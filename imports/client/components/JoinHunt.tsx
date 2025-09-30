@@ -102,15 +102,6 @@ const JoinHunt = () => {
   // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- we actually want to test the chained booleans
   const loading = authLoading || huntLoading;
 
-  const submitting = submitState === AccountFormSubmitState.SUBMITTING;
-  const { email, emailField } = useEmailField({
-    disabled: submitting || loginOptionsResult !== undefined,
-  });
-  const trimmedEmail = email.trim();
-  const { password, passwordField } = usePasswordField({
-    disabled: submitting,
-  });
-
   const onGoogleLoginCompleted = useCallback(
     ({ token, secret }: { token: string; secret: string }) => {
       const loginRequest: LoginOptions = {
@@ -149,11 +140,22 @@ const JoinHunt = () => {
     googleAvailable,
     googleSignInCredentials,
     googleSignInCredentialsField,
+    googleSignInSubmitState,
   } = useGoogleSignInCredentialsField({
-    disabled: submitting,
+    disabled: submitState === AccountFormSubmitState.SUBMITTING,
     onCredentialsSet: onGoogleLoginCompleted,
   });
+  const submitting =
+    submitState === AccountFormSubmitState.SUBMITTING ||
+    googleSignInSubmitState === AccountFormSubmitState.SUBMITTING;
 
+  const { email, emailField } = useEmailField({
+    disabled: submitting || loginOptionsResult !== undefined,
+  });
+  const trimmedEmail = email.trim();
+  const { password, passwordField } = usePasswordField({
+    disabled: submitting,
+  });
   const fetchLoginOptions = useCallback(
     (e: FormEvent<HTMLFormElement>) => {
       e.preventDefault();
@@ -314,11 +316,7 @@ const JoinHunt = () => {
             <Link to={`/users/${user._id}`}>{user.displayName}</Link>
           </p>
           <div className="d-grid gap-2">
-            <Button
-              disabled={submitState === AccountFormSubmitState.SUBMITTING}
-              variant="primary"
-              type="submit"
-            >
+            <Button disabled={submitting} variant="primary" type="submit">
               Join hunt
             </Button>
           </div>

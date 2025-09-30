@@ -26,21 +26,9 @@ const LoginForm = () => {
   const [submitState, setSubmitState] = useState<AccountFormSubmitState>(
     AccountFormSubmitState.IDLE,
   );
-  const submitting = submitState === AccountFormSubmitState.SUBMITTING;
   const [errorMessage, setErrorMessage] = useState<string | undefined>(
     undefined,
   );
-  const { email, emailField } = useEmailField({
-    disabled: submitting,
-    initialValue: () => {
-      return state?.email ?? "";
-    },
-  });
-  const { password, passwordField } = usePasswordField({
-    disabled: submitting,
-  });
-  const formIsValid = email.length > 0 && password.length > 0;
-
   const onGoogleCredentials = useCallback(
     ({ token, secret }: { token: string; secret: string }) => {
       setSubmitState(AccountFormSubmitState.SUBMITTING);
@@ -67,11 +55,27 @@ const LoginForm = () => {
     },
     [],
   );
-  const { googleAvailable, googleSignInCredentialsField } =
-    useGoogleSignInCredentialsField({
-      disabled: submitting,
-      onCredentialsSet: onGoogleCredentials,
-    });
+  const {
+    googleAvailable,
+    googleSignInCredentialsField,
+    googleSignInSubmitState,
+  } = useGoogleSignInCredentialsField({
+    disabled: submitState === AccountFormSubmitState.SUBMITTING,
+    onCredentialsSet: onGoogleCredentials,
+  });
+  const submitting =
+    submitState === AccountFormSubmitState.SUBMITTING ||
+    googleSignInSubmitState === AccountFormSubmitState.SUBMITTING;
+  const { email, emailField } = useEmailField({
+    disabled: submitting,
+    initialValue: () => {
+      return state?.email ?? "";
+    },
+  });
+  const { password, passwordField } = usePasswordField({
+    disabled: submitting,
+  });
+  const formIsValid = email.length > 0 && password.length > 0;
 
   const onSubmitForm = useCallback(
     (e: FormEvent<HTMLFormElement>) => {
