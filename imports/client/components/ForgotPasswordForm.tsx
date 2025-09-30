@@ -76,7 +76,7 @@ const ForgotPasswordForm = () => {
       </div>
       <StyledModeSwitchLink>
         <p>
-          If you already have an account,{" "}
+          If you know your password,{" "}
           <Link to="/login" state={{ email }}>
             sign in
           </Link>
