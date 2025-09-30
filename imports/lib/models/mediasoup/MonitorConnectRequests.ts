@@ -11,11 +11,11 @@ import {
 const MonitorConnectRequest = z.object({
   initiatingServer: foreignKey,
   receivingServer: foreignKey,
-  transportId: z.string().uuid(),
+  transportId: z.uuid(),
   ip: nonEmptyString,
   port: portNumber,
   srtpParameters: nonEmptyString.optional() /* JSON-serialized if present */,
-  producerId: z.string().uuid(),
+  producerId: z.uuid(),
   producerSctpStreamParameters:
     nonEmptyString.optional() /* JSON-serialized if present */,
   producerLabel: nonEmptyString.optional(),

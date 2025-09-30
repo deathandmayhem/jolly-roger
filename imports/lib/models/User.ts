@@ -33,7 +33,7 @@ export const User = z.object({
     .regex(/^[a-z0-9A-Z_]{3,15}$/)
     .optional(),
   emails: z
-    .object({ address: z.string().email(), verified: z.boolean() })
+    .object({ address: z.email(), verified: z.boolean() })
     .array()
     .optional(),
   createdAt: z.date().optional(),

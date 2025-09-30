@@ -14,7 +14,7 @@ import withCommon from "../withCommon";
 const TransportState = withCommon(
   z.object({
     createdServer: foreignKey,
-    transportId: z.string().uuid(), // mediasoup identifier
+    transportId: z.uuid(), // mediasoup identifier
     iceState: nonEmptyString.optional(),
     iceSelectedTuple: nonEmptyString.optional(), // JSON-encoded
     dtlsState: nonEmptyString.optional(),

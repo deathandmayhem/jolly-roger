@@ -20,9 +20,9 @@ const Puzzle = withCommon(
     hunt: foreignKey,
     tags: tagList,
     title: nonEmptyString,
-    url: z.string().url().optional(),
+    url: z.url().optional(),
     answers: answer.array(),
-    expectedAnswerCount: z.number().int().nonnegative(),
+    expectedAnswerCount: z.int().nonnegative(),
     replacedBy: foreignKey.optional(),
   }),
 );

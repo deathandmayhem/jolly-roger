@@ -12,7 +12,7 @@ const ConsumerAck = withCommon(
     peer: foreignKey,
     transportRequest: foreignKey,
     consumer: foreignKey,
-    producerId: z.string().uuid(),
+    producerId: z.uuid(),
   }),
 );
 

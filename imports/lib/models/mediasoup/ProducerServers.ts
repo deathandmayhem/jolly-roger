@@ -12,7 +12,7 @@ const ProducerServer = withCommon(
     transport: foreignKey,
     producerClient: foreignKey,
     trackId: nonEmptyString, // client-generated GUID
-    producerId: z.string().uuid(),
+    producerId: z.uuid(),
   }),
 );
 

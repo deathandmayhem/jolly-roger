@@ -178,12 +178,10 @@ describe("generateJsonSchema", function () {
 
   describe("objects with passthrough", function () {
     it("accepts extra fields of any type", async function () {
-      const schema = z
-        .object({
-          _id: z.string(),
-          foo: z.string(),
-        })
-        .passthrough();
+      const schema = z.looseObject({
+                _id: z.string(),
+                foo: z.string(),
+              });
       const collection = await createTestCollection(schema);
 
       await assert.isFulfilled(
@@ -206,8 +204,8 @@ describe("generateJsonSchema", function () {
           .string()
           .regex(/^[a-z]+$/)
           .optional(),
-        email: z.string().email().optional(),
-        uuid: z.string().uuid().optional(),
+        email: z.email().optional(),
+        uuid: z.uuid().optional(),
       });
       const collection = await createTestCollection(schema);
 
@@ -306,7 +304,7 @@ describe("generateJsonSchema", function () {
     it("is reasonably accepting of URLs", async function () {
       const schema = z.object({
         _id: z.string(),
-        url: z.string().url(),
+        url: z.url(),
       });
       const collection = await createTestCollection(schema);
 
@@ -348,7 +346,7 @@ describe("generateJsonSchema", function () {
         exclusiveMax: z.number().lt(3).optional(),
         inclusiveMin: z.number().gte(3).optional(),
         inclusiveMax: z.number().lte(3).optional(),
-        integer: z.number().int().optional(),
+        integer: z.int().optional(),
         multipleOf: z.number().multipleOf(3).optional(),
       });
       const collection = await createTestCollection(schema);
@@ -447,7 +445,7 @@ describe("generateJsonSchema", function () {
       }
       const schema = z.object({
         _id: z.string(),
-        enum: z.nativeEnum(Enum),
+        enum: z.enum(Enum),
       });
       const collection = await createTestCollection(schema);
 
@@ -481,7 +479,7 @@ describe("generateJsonSchema", function () {
     it("supports both a default and an explicit value", async function () {
       const schema = z.object({
         _id: z.string(),
-        string: z.string().default("foo"),
+        string: z.string().prefault("foo"),
       });
       const collection = await createTestCollection(schema);
 
@@ -631,7 +629,7 @@ describe("generateJsonSchema", function () {
     it("only accepts objects that match both schemas", async function () {
       const schema = z.object({
         _id: z.string(),
-        string: z.string().email().and(z.string().min(10)),
+        string: z.email().and(z.string().min(10)),
       });
       const collection = await createTestCollection(schema);
 

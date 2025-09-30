@@ -9,7 +9,7 @@ const Router = withCommon(
     hunt: foreignKey,
     call: foreignKey,
     createdServer: foreignKey,
-    routerId: z.string().uuid(), // mediasoup identifier
+    routerId: z.uuid(), // mediasoup identifier
     rtpCapabilities: nonEmptyString, // JSON-encoded
   }),
 );

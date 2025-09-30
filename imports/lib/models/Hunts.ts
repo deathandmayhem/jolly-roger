@@ -15,13 +15,13 @@ export type SavedDiscordObjectType = z.infer<typeof SavedDiscordObjectFields>;
 const EditableHunt = z.object({
   name: nonEmptyString,
   // Everyone that joins the hunt will be added to these mailing lists
-  mailingLists: nonEmptyString.array().default([]),
+  mailingLists: nonEmptyString.array().prefault([]),
   // This message is displayed (as markdown) to users that are not members of
   // this hunt. It should include instructions on how to join
   signupMessage: nonEmptyString.optional(),
   // If this is true, then any member of this hunt is allowed to add others to
   // it. Otherwise, you must be an operator to add someone to the hunt.
-  openSignups: z.boolean().default(false),
+  openSignups: z.boolean().prefault(false),
   // If this is true, an operator must mark guesses as correct or not.
   // If this is false, users enter answers directly without the guess step.
   hasGuessQueue: z.boolean(),

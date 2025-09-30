@@ -10,10 +10,10 @@ const Consumer = withCommon(
     call: foreignKey,
     peer: foreignKey,
     transportRequest: foreignKey,
-    transportId: z.string().uuid(),
+    transportId: z.uuid(),
     producerPeer: foreignKey,
-    consumerId: z.string().uuid(),
-    producerId: z.string().uuid(),
+    consumerId: z.uuid(),
+    producerId: z.uuid(),
     kind: z.enum(["audio", "video"]),
     rtpParameters: nonEmptyString, // JSON-encoded
     paused: z.boolean(),

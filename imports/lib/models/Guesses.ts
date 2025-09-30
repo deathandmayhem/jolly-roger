@@ -30,10 +30,10 @@ const Guess = withCommon(
     guess: answer,
     // Whether this was forward solved (10), backwards solved (-10), or somewhere
     // in between (only optional in that older hunts won't have it)
-    direction: z.number().int().min(-10).max(10).optional(),
+    direction: z.int().min(-10).max(10).optional(),
     // Submitted-evaluated probability that the answer is right (also only
     // optional on older hunts)
-    confidence: z.number().int().min(0).max(100).optional(),
+    confidence: z.int().min(0).max(100).optional(),
     state: GuessStates,
     // Additional notes can be used by the operator either for sharing (e.g.)
     // additional information received from the puzzle (e.g. for an intermediate

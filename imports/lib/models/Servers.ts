@@ -5,7 +5,7 @@ import { nonEmptyString, updatedTimestamp } from "./customTypes";
 
 const Server = z.object({
   hostname: nonEmptyString,
-  pid: z.number().int(),
+  pid: z.int(),
   updatedAt: updatedTimestamp,
 });
 

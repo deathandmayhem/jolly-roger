@@ -269,7 +269,7 @@ describe("Model", function () {
 
     it("accepts valid modifiers for arrays with defaults", async function () {
       const schema = z.object({
-        array: z.array(nonEmptyString).default([]),
+        array: z.array(nonEmptyString).prefault([]),
       });
       const relaxed = relaxSchema(schema);
 
@@ -395,8 +395,8 @@ describe("Model", function () {
   describe("parseMongoModifierAsync", function () {
     it("populates default values on upsert", async function () {
       const schema = z.object({
-        string: nonEmptyString.default("foo"),
-        array: z.array(nonEmptyString).default(["foo"]),
+        string: nonEmptyString.prefault("foo"),
+        array: z.array(nonEmptyString).prefault(["foo"]),
       });
       const relaxed = relaxSchema(schema);
 

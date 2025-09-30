@@ -44,7 +44,7 @@ export function relaxSchema(schema: z.ZodFirstPartySchemaTypes): z.ZodTypeAny {
         const fieldSchema = fieldSchemaUnknown as z.ZodTypeAny;
         newShape[key] = relaxSchema(fieldSchema);
       }
-      return z.object(newShape).passthrough().optional();
+      return z.looseObject(newShape).optional();
     }
     case z.ZodFirstPartyTypeKind.ZodArray:
       // Depending on how we're manipulating the array, it can either be:
@@ -59,9 +59,7 @@ export function relaxSchema(schema: z.ZodFirstPartySchemaTypes): z.ZodTypeAny {
       return z
         .union([
           z.record(z.coerce.number(), relaxSchema(def.type)).optional(),
-          z
-            .object({ $each: z.array(relaxSchema(def.type)) })
-            .passthrough()
+          z.looseObject({ $each: z.array(relaxSchema(def.type)) })
             .optional(),
           relaxSchema(def.type).optional(),
           z.array(relaxSchema(def.type)).optional(),
