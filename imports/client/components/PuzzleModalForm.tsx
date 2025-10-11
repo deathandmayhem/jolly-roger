@@ -111,6 +111,8 @@ const PuzzleModalForm = React.forwardRef(
     const [expectedAnswerCount, setExpectedAnswerCount] = useState<number>(
       puzzle ? puzzle.expectedAnswerCount : 1,
     );
+    const [confirmingDuplicateUrl, setConfirmingDuplicateUrl] =
+      useState<boolean>(false);
     const [allowDuplicateUrls, setAllowDuplicateUrls] = useState<
       boolean | undefined
     >(puzzle ? undefined : false);
@@ -246,6 +248,7 @@ const PuzzleModalForm = React.forwardRef(
                   ' puzzle? To force creation anyway, check the "Allow puzzles with identical' +
                   ' URLs" box above and try again.',
               );
+              setConfirmingDuplicateUrl(true);
             } else {
               setErrorMessage(error.message);
             }
@@ -439,8 +442,9 @@ const PuzzleModalForm = React.forwardRef(
     }, [url]);
 
     const allowDuplicateUrlsCheckbox =
-      !puzzle && typeof allowDuplicateUrls === "boolean" ? (
+      !puzzle && allowDuplicateUrls !== undefined && confirmingDuplicateUrl ? (
         <FormCheck
+          id="jr-new-puzzle-allow-duplicate-urls"
           label="Allow puzzles with identical URLs"
           type="checkbox"
           disabled={disableForm}

@@ -9,12 +9,14 @@ import React from "react";
 import styled from "styled-components";
 import type { DocumentType } from "../../lib/models/Documents";
 import type { Theme } from "../theme";
+import Logger from "../../Logger";
 
 interface DocumentDisplayProps {
   document: DocumentType;
   displayMode: "link" | "embed";
   user: Meteor.User;
   isShown: boolean;
+  user: Meteor.User;
 }
 
 const StyledDeepLink = styled.a`
@@ -52,6 +54,7 @@ const GoogleDocumentDisplay = ({
   displayMode,
   user,
   isShown,
+  user,
 }: DocumentDisplayProps) => {
   let url: string;
   let title: string;
@@ -59,7 +62,7 @@ const GoogleDocumentDisplay = ({
   // If the user has linked their Google account, try to force usage of that specific account.
   // Otherwise, they may open the document anonymously. If the user isn't signed in, they will be
   // redirected to the default account in their browser session anyway.
-  const authUserParam = user.googleAccount
+  const authUserParam = user?.googleAccount
     ? `authuser=${user.googleAccount}&`
     : "";
   switch (document.value.type) {
@@ -116,6 +119,7 @@ const DocumentDisplay = ({
   displayMode,
   user,
   isShown,
+  user,
 }: DocumentDisplayProps) => {
   switch (document.provider) {
     case "google":
@@ -125,6 +129,7 @@ const DocumentDisplay = ({
           displayMode={displayMode}
           user={user}
           isShown={isShown}
+          user={user}
         />
       );
     default:

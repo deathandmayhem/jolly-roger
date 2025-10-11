@@ -27,7 +27,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: "14.21.3"
+          node-version: "20.19.3"
 
       - name: Set up environment
         run: |
@@ -35,7 +35,7 @@ jobs:
 
       - name: Install Meteor
         run: |
-          curl "https://install.meteor.com/?release=2.9.1" | sh
+          curl "https://install.meteor.com/?release=3.3.2" | sh
           meteor --version
 
       - name: Install dependencies

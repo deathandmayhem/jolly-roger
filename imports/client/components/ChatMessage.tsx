@@ -92,12 +92,11 @@ const MarkdownToken = ({ token }: { token: Token }) => {
     }
     return <PreWrapParagraph>{children}</PreWrapParagraph>;
   } else if (token.type === "link") {
-
     // Truncate the link href
     let displayedHref = token.href;
-    const pathStart = token.href.indexOf("/", token.href.indexOf("//") + 2); // Find the start of the path
+    const pathStart = token.href.indexOf("/", rootStart + 2); // Find the start of the path
     if (pathStart !== -1 && token.href.length - pathStart > 50) {
-      displayedHref = token.href.slice(0, pathStart + 10) + "... [truncated]";
+      displayedHref = `${token.href.slice(0, pathStart + 10)}... [truncated]`;
     }
 
     return (
@@ -141,14 +140,11 @@ const MarkdownToken = ({ token }: { token: Token }) => {
     ));
     return <del>{children}</del>;
   } else if (token.type === "codespan") {
-    const sanitizedHtml = DOMPurify.sanitize(token.text);
-    // eslint-disable-next-line react/no-danger
-    return <code dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />;
+    const decodedText = he.decode(token.text);
+    return <code>{decodedText}</code>;
   } else if (token.type === "code") {
-    const sanitizedHtml = DOMPurify.sanitize(token.text);
-    return (
-      <StyledCodeBlock dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />
-    );
+    // Text in code blocks is _not_ encoded, so pass it through as is.
+    return <StyledCodeBlock>{token.text}</StyledCodeBlock>;
   } else {
     // Unhandled token types: just return the raw string with pre-wrap.
     // This covers things like bulleted or numbered lists, which we explicitly

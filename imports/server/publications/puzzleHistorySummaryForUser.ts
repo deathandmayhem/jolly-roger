@@ -212,7 +212,7 @@ class UserPuzzleHistoryAggregator {
     this.handles.push(puzzleHandle);
   }
 
-  private recomputePuzzleSummary(puzzleId: string, initializing = false) {
+  private async recomputePuzzleSummary(puzzleId: string, initializing = false) {
     if (!this.involvedPuzzleIds.has(puzzleId)) {
       if (this.puzzleHistoryMap.has(puzzleId)) {
         this.removePuzzleSummary(puzzleId);
@@ -220,7 +220,7 @@ class UserPuzzleHistoryAggregator {
       return;
     }
 
-    const puzzle = Puzzles.findOne(puzzleId);
+    const puzzle = await Puzzles.findOneAsync(puzzleId);
     if (!puzzle) {
       this.removePuzzleSummary(puzzleId);
       return;
@@ -356,10 +356,13 @@ class UserPuzzleHistoryAggregator {
     }
     this.puzzleHistoryMap.forEach((item, puzzleId) => {
       // A bit inefficient: fetch puzzle tags again. Could optimize by storing tags in summary item.
-      const puzzle = Puzzles.findOne(puzzleId, { fields: { tags: 1 } });
-      if (puzzle?.tags.includes(tagId)) {
-        this.recomputePuzzleSummary(puzzleId);
-      }
+      void Puzzles.findOneAsync(puzzleId, { fields: { tags: 1 } }).then(
+        (puzzle) => {
+          if (puzzle?.tags.includes(tagId)) {
+            void this.recomputePuzzleSummary(puzzleId);
+          }
+        },
+      );
     });
   }
 

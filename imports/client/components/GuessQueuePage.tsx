@@ -34,27 +34,16 @@ import { useBreadcrumb } from "../hooks/breadcrumb";
 import useFocusRefOnFindHotkey from "../hooks/useFocusRefOnFindHotkey";
 import useTypedSubscribe from "../hooks/useTypedSubscribe";
 import indexedDisplayNames from "../indexedDisplayNames";
+import type { Theme } from "../theme";
 import CopyToClipboardButton from "./CopyToClipboardButton";
 import GuessState from "./GuessState";
 import Markdown from "./Markdown";
 import PuzzleAnswer from "./PuzzleAnswer";
-import {
-  GuessConfidence,
-  GuessDirection,
-  formatGuessDirection,
-} from "./guessDetails";
+import { formatGuessDirection } from "./guessDetails";
 import Breakable from "./styling/Breakable";
-import { guessColorLookupTable } from "./styling/constants";
 import type { Breakpoint } from "./styling/responsive";
 import { mediaBreakpointDown } from "./styling/responsive";
-import {
-  Badge,
-  ButtonToolbar,
-  FormLabel,
-  ToggleButton,
-  ToggleButtonGroup,
-} from "react-bootstrap";
-import { Theme } from "../theme";
+import { ToggleButtonGroup, Badge, FormLabel, ButtonToolbar, ToggleButton } from "react-bootstrap";
 
 const StyledToggleButtonGroup = styled(ToggleButtonGroup)`
   @media (width < 360px) {
@@ -88,10 +77,10 @@ const StyledHeaderRow = styled.div`
   display: contents;
 `;
 
-const StyledHeader = styled.div<{theme: Theme}>`
+const StyledHeader = styled.div<{ theme: Theme }>`
   position: sticky;
   top: 0;
-  background-color: ${({theme}) => theme.colors.background};
+  background-color: ${({ theme }) => theme.colors.background};
   font-weight: bold;
   ${mediaBreakpointDown(
     compactViewBreakpoint,
@@ -176,13 +165,13 @@ const StyledPuzzleTimestampAndSubmitter = styled.div`
 
 const StyledPuzzleTimestamp = styled(StyledCell)`
   color: #888;
-  font-size: .9rem;
+  font-size: 0.9rem;
 
   ${mediaBreakpointDown(
     compactViewBreakpoint,
     css`
       line-height: 1.7;
-      margin-right: .5em;
+      margin-right: 0.5em;
 
       ::after {
         content: " submitted by ";
@@ -195,15 +184,7 @@ const StyledPuzzleTimestamp = styled(StyledCell)`
 const StyledPuzzleCell = styled(StyledCell)`
   display: flex;
   align-items: start;
-  ${mediaBreakpointDown(
-    compactViewBreakpoint,
-    css`
-      /* &::before { */
-        /* content: "Puzzle: "; */
-        /* white-space: pre; */
-      /* } */
-    `,
-  )}
+  ${mediaBreakpointDown(compactViewBreakpoint)}
 `;
 
 const StyledGuessCell = styled(StyledCell)`
@@ -235,7 +216,7 @@ const StyledGuessStatuses = styled.div`
 
       & > * {
         padding: 0;
-        margin-right: .5em;
+        margin-right: 0.5em;
       }
     `,
   )}
@@ -278,16 +259,7 @@ const GuessBlock = React.memo(
         Open on Jolly Roger
       </Tooltip>
     );
-    const copyTooltip = (
-      <Tooltip id={`guess-${guess._id}-copy-tooltip`}>
-        Copy to clipboard
-      </Tooltip>
-    );
-    const requeueTooltip = (
-      <Tooltip>
-        Return this guess to the queue
-      </Tooltip>
-    );
+    const requeueTooltip = <Tooltip>Return this guess to the queue</Tooltip>;
 
     let directionLabel;
     let directionVariant;
@@ -361,32 +333,30 @@ const GuessBlock = React.memo(
           <PuzzleAnswer answer={guess.guess} breakable indented />
         </StyledGuessCell>
         {hunt.hasGuessQueue && (
-          <>
-            <StyledGuessStatuses>
-              <StyledCell>
-                <Badge bg={directionVariant}>{directionLabel}</Badge>
-              </StyledCell>
-              <StyledCell>
-                <Badge bg={confidenceVariant}>{confidenceLabel}</Badge>
-              </StyledCell>
-              <StyledCell>
-                <GuessState id={`guess-${guess._id}-state`} state={guess.state} />
-              </StyledCell>
-          <StyledCell>
-            {canEdit && guess.state !== "pending" && (
-              <OverlayTrigger placement="top" overlay={requeueTooltip}>
-              <Button
-                variant="outline-secondary"
-                size="sm"
-                onClick={markPending}
-                >
-                Re-queue
-              </Button>
-              </OverlayTrigger>
-            )}
-          </StyledCell>
-            </StyledGuessStatuses>
-          </>
+          <StyledGuessStatuses>
+            <StyledCell>
+              <Badge bg={directionVariant}>{directionLabel}</Badge>
+            </StyledCell>
+            <StyledCell>
+              <Badge bg={confidenceVariant}>{confidenceLabel}</Badge>
+            </StyledCell>
+            <StyledCell>
+              <GuessState id={`guess-${guess._id}-state`} state={guess.state} />
+            </StyledCell>
+            <StyledCell>
+              {canEdit && guess.state !== "pending" && (
+                <OverlayTrigger placement="top" overlay={requeueTooltip}>
+                  <Button
+                    variant="outline-secondary"
+                    size="sm"
+                    onClick={markPending}
+                  >
+                    Re-queue
+                  </Button>
+                </OverlayTrigger>
+              )}
+            </StyledCell>
+          </StyledGuessStatuses>
         )}
         {guess.additionalNotes && (
           <Markdown as={StyledAdditionalNotes} text={guess.additionalNotes} />
@@ -397,6 +367,7 @@ const GuessBlock = React.memo(
 );
 
 const GuessQueuePage = () => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [displayMode, setDisplayMode] = useState<string[]>([
     "correct",
     "intermediate",
@@ -428,7 +399,11 @@ const GuessQueuePage = () => {
     () =>
       loading
         ? []
-        : Guesses.find({ hunt: huntId }, { sort: { createdAt: -1 } }).fetch().filter((x)=>displayMode.includes(x.state)||x.state==="pending"),
+        : Guesses.find({ hunt: huntId }, { sort: { createdAt: -1 } })
+            .fetch()
+            .filter(
+              (x) => displayMode.includes(x.state) || x.state === "pending",
+            ),
     [huntId, loading, displayMode],
   );
   const puzzles = useTracker(
@@ -449,6 +424,10 @@ const GuessQueuePage = () => {
 
   const searchBarRef = useRef<HTMLInputElement>(null);
   useFocusRefOnFindHotkey(searchBarRef);
+
+  const onChangeDisplayMode = useCallback((value: string[]) => {
+    setDisplayMode(value);
+  }, []);
 
   const setSearchString = useCallback(
     (val: string) => {
@@ -562,9 +541,9 @@ const GuessQueuePage = () => {
             <FontAwesomeIcon icon={faEraser} />
           </Button>
         </InputGroup>
-        </FormGroup>
-        <FormGroup>
-          <FormLabel>Guesses to show</FormLabel>
+      </FormGroup>
+      <FormGroup>
+        <FormLabel>Guesses to show</FormLabel>
         <ButtonToolbar>
           <StyledToggleButtonGroup
             type="checkbox"

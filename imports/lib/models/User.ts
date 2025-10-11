@@ -66,6 +66,7 @@ export type ProfileFields =
   | "googleAccount"
   | "discordAccount"
   | "phoneNumber"
+  | "hunts"
   | "dingwords"
   | "dingwordsOpenMatch"
   | "dingwordsMatchOnce"

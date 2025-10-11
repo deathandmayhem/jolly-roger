@@ -6,7 +6,7 @@ import type Hookset from "./Hookset";
 
 const PuzzleHooks: Hookset = {
   async onPuzzleCreated(puzzleId: string) {
-    const puzzle = Puzzles.findOne({ _id: puzzleId })!;
+    const puzzle = (await Puzzles.findOneAsync({ _id: puzzleId }))!;
     const allUsers: string[] = [];
 
     // Respect feature flag.

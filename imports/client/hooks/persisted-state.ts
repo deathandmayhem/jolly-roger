@@ -3,11 +3,13 @@ import { useCallback } from "react";
 import { useLocalStorage } from "usehooks-ts";
 
 export type AppThemeState = "dark" | "light";
-export const useAppThemeState = createPersistedState<AppThemeState>("appTheme");
+export const useAppThemeState = () => {
+  return useLocalStorage<AppThemeState>("appTheme", "dark");
+};
 
-export const usePersistedSidebarWidth = createPersistedState<number>(
-  "persistentSidebarWidth",
-);
+export const usePersistedSidebarWidth = () => {
+  return useLocalStorage<number>("persistentSidebarWidth", 250);
+};
 
 export type OperatorActionsHiddenState = Record<string /* huntId */, boolean>;
 

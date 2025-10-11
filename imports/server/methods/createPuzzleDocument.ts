@@ -32,7 +32,7 @@ defineMethod(createPuzzleDocument, {
       throw new Meteor.Error(404, "Unknown hunt id");
     }
 
-    const user = MeteorUsers.findOne(this.userId);
+    const user = await MeteorUsers.findOneAsync(this.userId);
     if (!user?.hunts?.includes(huntId)) {
       throw new Meteor.Error(403, "User is not a member of this hunt");
     }

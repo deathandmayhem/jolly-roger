@@ -19,7 +19,6 @@ import React, {
   type FC,
   useCallback,
   useEffect,
-  useMemo,
   useRef,
 } from "react";
 import Alert from "react-bootstrap/Alert";
@@ -62,6 +61,7 @@ import {
 } from "../hooks/persisted-state";
 import useFocusRefOnFindHotkey from "../hooks/useFocusRefOnFindHotkey";
 import useSubscribeDisplayNames from "../hooks/useSubscribeDisplayNames";
+import useFocusRefOnFindHotkey from "../hooks/useFocusRefOnFindHotkey";
 import useTypedSubscribe from "../hooks/useTypedSubscribe";
 import indexedDisplayNames from "../indexedDisplayNames";
 import { Subscribers } from "../subscribers";
@@ -696,6 +696,7 @@ const PuzzleListView = ({
     [
       displayMode,
       bookmarked,puzzlesMatchingSearchString
+      allPuzzles,
       allTags,
       canUpdate,
       showSolvers,
@@ -788,6 +789,8 @@ const PuzzleListView = ({
       },
       [retainedPuzzles],
     );
+  const retainedDeletedPuzzles =
+    deletedPuzzles && puzzlesMatchingSearchString(deletedPuzzles);
 
   return (
     <div>

@@ -433,6 +433,18 @@ const SplitPaneMinus = ({
     };
   }, [onWindowResized]);
 
+  useEffect(() => {
+    const [clampedSize, _didClamp] = clampSize(size);
+    const isPrimaryFirst = primary === "first";
+    setState((prevState) => {
+      return {
+        ...prevState,
+        draggedSize: clampedSize,
+        [isPrimaryFirst ? "pane1Size" : "pane2Size"]: clampedSize,
+      };
+    });
+  }, [size, primary, clampSize]);
+
   const className = classnames(
     "SplitPaneMinus",
     dragState.active ? "dragging" : "",

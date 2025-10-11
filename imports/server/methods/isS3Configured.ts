@@ -4,8 +4,8 @@ import isS3Configured from "../../methods/isS3Configured";
 import defineMethod from "./defineMethod";
 
 defineMethod(isS3Configured, {
-  run() {
-    const s3BucketSettings = Settings.findOne({
+  async run() {
+    const s3BucketSettings = await Settings.findOneAsync({
       name: "s3.image_bucket",
     });
     console.info("***************");

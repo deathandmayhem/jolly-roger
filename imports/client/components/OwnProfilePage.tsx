@@ -12,15 +12,12 @@ import FormControl from "react-bootstrap/FormControl";
 import FormGroup from "react-bootstrap/FormGroup";
 import FormLabel from "react-bootstrap/FormLabel";
 import FormText from "react-bootstrap/FormText";
-import InputGroup from "react-bootstrap/InputGroup";
-import CopyToClipboard from "react-copy-to-clipboard";
 import Flags from "../../Flags";
 import { formatDiscordName } from "../../lib/discord";
 import type { APIKeyType } from "../../lib/models/APIKeys";
 import createAPIKey from "../../methods/createAPIKey";
 import linkUserDiscordAccount from "../../methods/linkUserDiscordAccount";
 import linkUserGoogleAccount from "../../methods/linkUserGoogleAccount";
-import rollAPIKey from "../../methods/rollAPIKey";
 import unlinkUserDiscordAccount from "../../methods/unlinkUserDiscordAccount";
 import unlinkUserGoogleAccount from "../../methods/unlinkUserGoogleAccount";
 import updateProfile from "../../methods/updateProfile";
@@ -39,13 +36,8 @@ enum GoogleLinkBlockLinkState {
 }
 
 type GoogleLinkBlockState =
-  | {
-      state: GoogleLinkBlockLinkState.IDLE | GoogleLinkBlockLinkState.LINKING;
-    }
-  | {
-      state: GoogleLinkBlockLinkState.ERROR;
-      error: Error;
-    };
+  | { state: GoogleLinkBlockLinkState.IDLE | GoogleLinkBlockLinkState.LINKING }
+  | { state: GoogleLinkBlockLinkState.ERROR; error: Error };
 
 const GoogleLinkBlock = ({ user }: { user: Meteor.User }) => {
   const [state, setState] = useState<GoogleLinkBlockState>({
@@ -167,10 +159,7 @@ type DiscordLinkBlockState =
   | {
       state: DiscordLinkBlockLinkState.IDLE | DiscordLinkBlockLinkState.LINKING;
     }
-  | {
-      state: DiscordLinkBlockLinkState.ERROR;
-      error: Error;
-    };
+  | { state: DiscordLinkBlockLinkState.ERROR; error: Error };
 
 const DiscordLinkBlock = ({ user }: { user: Meteor.User }) => {
   const [state, setState] = useState<DiscordLinkBlockState>({
@@ -445,27 +434,6 @@ const OwnProfilePage = ({
 
   const dismissAlert = useCallback(() => {
     setSubmitState(OwnProfilePageSubmitState.IDLE);
-  }, []);
-
-  const toggleShowAPIKey = useCallback(() => {
-    setShowAPIKey(!showAPIKey);
-  }, [showAPIKey]);
-
-  const regenerateAPIKey = useCallback(() => {
-    setRegeneratingAPIKey(true);
-    setAPIKeyError("");
-    rollAPIKey.call({}, (error) => {
-      if (error) {
-        setAPIKeyError(error.message);
-      } else {
-        setAPIKeyError("");
-      }
-      setRegeneratingAPIKey(false);
-    });
-  }, []);
-
-  const dismissAPIKeyAlert = useCallback(() => {
-    setAPIKeyError("");
   }, []);
 
   const shouldDisableForm = submitState === "submitting";

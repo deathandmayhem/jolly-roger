@@ -103,8 +103,8 @@ interface PuzzleRendererProps extends ElementRendererProps<PuzzleElement> {
 }
 
 export const MentionSpan = styled.span<{
-  $isSelf: boolean;
   theme: Theme;
+  $isSelf: boolean;
 }>`
   padding: 2px 3px 3px;
   margin: 0 1px;

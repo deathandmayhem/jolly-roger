@@ -61,7 +61,7 @@ const ChatNotificationHooks: Hookset = {
           "dingwords.0": { $exists: true },
         },
         {
-          fields: {
+          projection: {
             _id: 1,
             dingwords: 1,
             dingwordsOpenMatch: 1,
