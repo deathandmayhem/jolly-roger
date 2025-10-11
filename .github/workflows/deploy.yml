@@ -39,7 +39,7 @@ jobs:
           meteor --version
 
       - name: Install dependencies
-        run: meteor npm install --production
+        run: meteor npm install
 
       - name: Build app
         run: meteor build --directory ~/${{ github.sha }} --architecture os.linux.x86_64
