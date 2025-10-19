@@ -4,13 +4,9 @@ import { useFind, useSubscribe, useTracker } from "meteor/react-meteor-data";
 import EmojiPicker from "emoji-picker-react";
 import { EmojiStyle } from "emoji-picker-react";
 import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons/faExternalLinkAlt";
-import { faEllipsisH } from "@fortawesome/free-solid-svg-icons/faEllipsisH";
 import { faFaceSmile } from "@fortawesome/free-solid-svg-icons/faFaceSmile";
 import { faChevronLeft } from "@fortawesome/free-solid-svg-icons/faChevronLeft";
 import { faChevronRight } from "@fortawesome/free-solid-svg-icons/faChevronRight";
-import { faArrowLeft } from "@fortawesome/free-solid-svg-icons/faArrowLeft";
-import { faArrowRight } from "@fortawesome/free-solid-svg-icons/faArrowRight";
-import { faCheck } from "@fortawesome/free-solid-svg-icons/faCheck";
 import { faCopy } from "@fortawesome/free-solid-svg-icons/faCopy";
 import { faEdit } from "@fortawesome/free-solid-svg-icons/faEdit";
 import { faImage } from "@fortawesome/free-solid-svg-icons/faImage";
@@ -49,7 +45,6 @@ import FormText from "react-bootstrap/FormText";
 import InputGroup from "react-bootstrap/InputGroup";
 import Modal from "react-bootstrap/Modal";
 import Row from "react-bootstrap/Row";
-import OverlayTrigger from "react-bootstrap/esm/OverlayTrigger";
 import Tooltip from "react-bootstrap/esm/Tooltip";
 import { createPortal } from "react-dom";
 import { Link, useLocation, useParams } from "react-router-dom";
@@ -112,6 +107,7 @@ import FancyEditor from "./FancyEditor";
 import GuessState from "./GuessState";
 import type { ImageInsertModalHandle } from "./InsertImageModal";
 import InsertImageModal from "./InsertImageModal";
+import MinimizedChatInfo from "./MinimizedChatInfo";
 import Markdown from "./Markdown";
 import type { ModalFormHandle } from "./ModalForm";
 import ModalForm from "./ModalForm";
@@ -127,13 +123,11 @@ import {
   SolvedPuzzleBackgroundColor,
 } from "./styling/constants";
 import { mediaBreakpointDown } from "./styling/responsive";
-import { ButtonGroup, Dropdown, DropdownButton, Offcanvas, Tab, Tabs, ToggleButton, ToggleButtonGroup } from "react-bootstrap";
+import { ButtonGroup, Dropdown, DropdownButton, Offcanvas, OverlayTrigger, Tab, Tabs, ToggleButton, ToggleButtonGroup } from "react-bootstrap";
 import removeChatMessage from "../../methods/removeChatMessage";
 import { Theme } from "../theme";
 import puzzlesForHunt from "../../lib/publications/puzzlesForHunt";
 import chatMessageNodeType from "../../lib/chatMessageNodeType";
-import createDocumentImageUpload from "../../methods/createDocumentImageUpload";
-import Settings from "../../lib/models/Settings";
 import createChatAttachmentUpload from "../../methods/createChatAttachmentUpload";
 import { usePersistedSidebarWidth } from "../hooks/persisted-state";
 import { faAngleDoubleUp } from "@fortawesome/free-solid-svg-icons/faAngleDoubleUp";
@@ -2709,9 +2703,9 @@ const PuzzlePageMetadata = ({
     )
   }, [allDocs, selectedDocumentIndex, unusedDocumentTypes, showDocument])
 
-  const minimizeMetadataButton = (<Button onClick={toggleMetadataMinimize} size="sm" title="Hide puzzle information">
+  const minimizeMetadataButton = (<OverlayTrigger placement="bottom-end" overlay={<Tooltip>Hide puzzle information</Tooltip>}><Button onClick={toggleMetadataMinimize} size="sm">
     <FontAwesomeIcon icon={faAngleDoubleUp} />
-  </Button>);
+  </Button></OverlayTrigger>);
 
   return !isMinimized ? (
     <div>
@@ -2899,9 +2893,8 @@ const MinimizeChatButton = styled.button<{ $left: number; $isMinimized: boolean;
   ${({ $isMinimized }) =>
     $isMinimized &&
     css`
-      left: 0;
+      left: 1px;
       transform: translateY(-50%);
-      border-left: 1px solid ${({ theme }) => theme.colors.text};
       border-top-left-radius: 0;
       border-bottom-left-radius: 0;
     `}
@@ -3949,24 +3942,37 @@ const PuzzlePage = React.memo(() => {
   const effectiveSidebarWidth = isChatMinimized ? 1 : sidebarWidth;
 
   const showMetadataButton = isMetadataMinimized ? (
-    <PuzzleMetadataFloatingButton ref={restoreButtonRef} variant="secondary" size="sm" onClick={toggleMetadata} title="Show puzzle information">
+    <OverlayTrigger placement="bottom-end" overlay={<Tooltip>Show puzzle information</Tooltip>}>
+    <PuzzleMetadataFloatingButton ref={restoreButtonRef} variant="secondary" size="sm" onClick={toggleMetadata}>
       <FontAwesomeIcon icon={faAngleDoubleDown} />
     </PuzzleMetadataFloatingButton>
+    </OverlayTrigger>
   ) : null;
   if (isDesktop) {
     return (
       <>
         {deletedModal}
         <FixedLayout className="puzzle-page" ref={puzzlePageDivRef}>
+        {isChatMinimized && (
+          <MinimizedChatInfo
+            huntId={huntId}
+            puzzleId={puzzleId}
+            callState={callState}
+            callDispatch={dispatch}
+          />
+        )}
+        <OverlayTrigger
+        placement="right"
+        overlay={<Tooltip>{isChatMinimized ? "Restore Chat" : "Minimize Chat"}</Tooltip>}>
         <MinimizeChatButton
-            $left={effectiveSidebarWidth + 10}
+            $left={isChatMinimized ? effectiveSidebarWidth : effectiveSidebarWidth + 15}
             $isMinimized={isChatMinimized}
             onClick={toggleChatMinimize}
-            title={isChatMinimized ? "Restore Chat" : "Minimize Chat"}
             theme={theme}
             >
             <FontAwesomeIcon icon={isChatMinimized ? faChevronRight : faChevronLeft} />
           </MinimizeChatButton>
+          </OverlayTrigger>
           <SplitPaneMinus
             split="vertical"
             minSize={isChatMinimized ? 1 : MinimumSidebarWidth}
