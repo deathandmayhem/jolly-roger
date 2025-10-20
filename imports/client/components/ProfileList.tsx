@@ -4,9 +4,10 @@ import { faCopy } from "@fortawesome/free-solid-svg-icons/faCopy";
 import { faEraser } from "@fortawesome/free-solid-svg-icons/faEraser";
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import type { MouseEvent } from "react";
+import type { ComponentPropsWithRef, FC, MouseEvent } from "react";
 import React, {
   useCallback,
+  useEffect,
   useImperativeHandle,
   useMemo,
   useRef,
@@ -387,7 +388,7 @@ const UserStatusBadge = React.memo(
   }) => {
     if (!huntId) {
       // we don't show statuses on the all list
-      return;
+      return null;
     }
 
     if (!statusObj) {
@@ -438,13 +439,13 @@ const UserStatusBadge = React.memo(
       const puzzleStatus = statusObj?.puzzleStatus?.status;
       const puzzleId = statusObj?.puzzleStatus?.puzzle;
       const puzzleName = puzzleId ? huntPuzzles[puzzleId] : null;
+      let statusString = "Online";
+      if (userStatus === "offline" && !lastSeenRecently) {
+        statusString = "Offline";
+      } else if (userStatus === "away" && !lastSeenRecently) {
+        statusString = "Away";
+      }
 
-      const statusString =
-        userStatus === "offline" && !lastSeenRecently
-          ? "Offline"
-          : userStatus === "away" && !lastSeenRecently
-            ? "Away"
-            : "Online";
       const puzzleLabel = (
         <span>
           <strong>

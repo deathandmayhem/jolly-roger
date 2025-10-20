@@ -5,7 +5,6 @@ import { useParams } from "react-router-dom";
 import Hunts from "../../lib/models/Hunts";
 import InvitationCodes from "../../lib/models/InvitationCodes";
 import MeteorUsers from "../../lib/models/MeteorUsers";
-import type { UserStatusType } from "../../lib/models/UserStatuses";
 import UserStatuses from "../../lib/models/UserStatuses";
 import {
   listAllRolesForHunt,
