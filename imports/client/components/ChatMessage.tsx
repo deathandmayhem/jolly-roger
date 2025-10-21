@@ -1,27 +1,30 @@
 /* eslint-disable react/no-array-index-key */
-import * as he from "he";
-import type { Token, Tokens } from "marked";
-import { marked } from "marked";
-import React from "react";
-import styled from "styled-components";
-import type { ChatMessageContentType } from "../../lib/models/ChatMessages";
-import nodeIsMention from "../../lib/nodeIsMention";
-import { MentionSpan, PuzzleSpan } from "./FancyEditor";
-import { shortCalendarTimeFormat } from "../../lib/calendarTimeFormat";
-import { Theme } from "../theme";
-import chatMessageNodeType from "../../lib/chatMessageNodeType";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPuzzlePiece } from "@fortawesome/free-solid-svg-icons/faPuzzlePiece";
-import { Link } from "react-router-dom";
-import { PuzzleType } from "../../lib/models/Puzzles";
-import { computeSolvedness } from "../../lib/solvedness";
 import {
   faChevronLeft,
   faChevronRight,
-  faFile,
   faPaperclip,
   faTimes,
 } from "@fortawesome/free-solid-svg-icons";
+import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload";
+import { faPuzzlePiece } from "@fortawesome/free-solid-svg-icons/faPuzzlePiece";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import * as he from "he";
+import type { Token, Tokens } from "marked";
+import { marked } from "marked";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+import styled from "styled-components";
+import { shortCalendarTimeFormat } from "../../lib/calendarTimeFormat";
+import chatMessageNodeType from "../../lib/chatMessageNodeType";
+import type {
+  ChatAttachmentType,
+  ChatMessageContentType,
+} from "../../lib/models/ChatMessages";
+import type { PuzzleType } from "../../lib/models/Puzzles";
+import nodeIsMention from "../../lib/nodeIsMention";
+import { computeSolvedness } from "../../lib/solvedness";
+import type { Theme } from "../theme";
+import { MentionSpan, PuzzleSpan } from "./FancyEditor";
 import {
   LightboxOverlay,
   LightboxContent,
@@ -29,8 +32,6 @@ import {
   LightboxImage,
   TopRightButtonGroup,
 } from "./Lightbox";
-import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload";
-import DOMPurify from "dompurify";
 
 // This file implements standalone rendering for the MessageElement format
 // defined by FancyEditor, for use in the chat pane.
@@ -60,6 +61,22 @@ const StyledCodeBlock = styled.code<{ theme: Theme }>`
   background-color: ${({ theme }) => theme.colors.codeBlockBackground};
   color: ${({ theme }) => theme.colors.codeBlockText};
   margin-bottom: 0;
+`;
+
+const AttachmentLinkTrigger = styled.a`
+  cursor: pointer;
+  color: ${(props) => props.theme.colors.linkColor ?? "#0d6efd"};
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+    color: ${(props) => props.theme.colors.linkHoverColor ?? "#0a58ca"};
+  }
+
+  small {
+    /* Ensure small tag inherits color */
+    color: inherit;
+  }
 `;
 
 // Renders a markdown token to React components.
@@ -161,13 +178,69 @@ const ChatMessage = ({
   puzzleData,
   selfUserId,
   timestamp,
+  attachments,
 }: {
   message: ChatMessageContentType;
   displayNames: Map<string, string>;
   puzzleData: Map<string, PuzzleType> | object;
   selfUserId: string;
   timestamp?: Date;
+  attachments: ChatAttachmentType[];
 }) => {
+  const [isLightboxOpen, setIsLightboxOpen] = useState<boolean>(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState<number>(0);
+  const imageAttachments = useMemo(
+    () => attachments?.filter((a) => a.mimeType.startsWith("image/")) ?? [],
+    [attachments],
+  );
+  const openLightbox = useCallback((index: number) => {
+    setCurrentImageIndex(index);
+    setIsLightboxOpen(true);
+  }, []);
+  const closeLightbox = useCallback(() => {
+    setIsLightboxOpen(false);
+  }, []);
+  const navigateLightbox = useCallback(
+    (direction: "prev" | "next") => {
+      setCurrentImageIndex((prevIndex) => {
+        if (direction === "prev") {
+          return prevIndex > 0 ? prevIndex - 1 : imageAttachments.length - 1;
+        } else {
+          return prevIndex < imageAttachments.length - 1 ? prevIndex + 1 : 0;
+        }
+      });
+    },
+    [imageAttachments.length],
+  );
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (isLightboxOpen) {
+        if (event.key === "Escape") {
+          closeLightbox();
+        } else if (event.key === "ArrowLeft") {
+          navigateLightbox("prev");
+        } else if (event.key === "ArrowRight") {
+          navigateLightbox("next");
+        }
+      }
+    };
+
+    if (isLightboxOpen) {
+      document.addEventListener("keydown", handleKeyDown);
+    }
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isLightboxOpen, closeLightbox, navigateLightbox]);
+
+  const handleOverlayClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (event.target === event.currentTarget) {
+      closeLightbox();
+    }
+  };
+
   const children = message.children.map((child, i) => {
     if (nodeIsMention(child)) {
       const displayName = displayNames.get(child.userId);

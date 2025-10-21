@@ -399,22 +399,6 @@ const PillSection = styled.div`
   }
 `;
 
-const ImagePlaceholder = styled.div`
-  width: 100px;
-  height: 100px;
-  background-color: #eee;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-bottom: 4px;
-`;
-
-const ImagePreview = styled.img`
-  max-width: 100%;
-  max-height: 100px;
-  margin-bottom: 4px;
-`;
-
 const ChatInputRow = styled.div`
   padding: ${PUZZLE_PAGE_PADDING}px;
   padding-bottom: max(
@@ -1110,12 +1094,6 @@ const ChatHistory = React.forwardRef(
     forwardedRef: React.Ref<ChatHistoryHandle>,
   ) => {
     // TODO: consider using useFind once fixed upstream
-    const chatMessages: FilteredChatMessageType[] = useTracker(() => {
-      return ChatMessages.find(
-        { puzzle: puzzleId },
-        { sort: { timestamp: 1 } },
-      ).fetch();
-    }, [puzzleId]);
 
     const ref = useRef<HTMLDivElement>(null);
     const scrollBottomTarget = useRef<number>(0);
@@ -1821,7 +1799,6 @@ const ChatInput = React.memo(
         setIsUploading(false);
       }
     }, [
-      // *** UPDATED DEPENDENCIES ***
       hasNonTrivialContent,
       isUploading,
       uploadingImages,
@@ -1838,7 +1815,6 @@ const ChatInput = React.memo(
       setContent,
       setUploadingImages,
       setImagePreviews,
-      // *** END UPDATED DEPENDENCIES ***
     ]);
 
     useBlockUpdate(
@@ -2395,7 +2371,6 @@ const PuzzlePageMetadata = ({
   allDocs,
   selectedDocumentIndex,
   setSelectedDocument,
-  selfUser,
 }: {
   isMinimized: boolean;
   puzzle: PuzzleType;
@@ -2413,7 +2388,6 @@ const PuzzlePageMetadata = ({
   allDocs: DocumentType[] | undefined;
   selectedDocumentIndex: number;
   setSelectedDocument: (arg0: number) => void;
-  selfUser: Meteor.User;
 }) => {
   const huntId = puzzle.hunt;
   const puzzleId = puzzle._id;

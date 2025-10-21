@@ -9,6 +9,13 @@ import React, {
   useRef,
   useState,
 } from "react";
+import {
+  ToggleButtonGroup,
+  Badge,
+  FormLabel,
+  ButtonToolbar,
+  ToggleButton,
+} from "react-bootstrap";
 import Button from "react-bootstrap/Button";
 import type { FormControlProps } from "react-bootstrap/FormControl";
 import FormControl from "react-bootstrap/FormControl";
@@ -43,7 +50,6 @@ import { formatGuessDirection } from "./guessDetails";
 import Breakable from "./styling/Breakable";
 import type { Breakpoint } from "./styling/responsive";
 import { mediaBreakpointDown } from "./styling/responsive";
-import { ToggleButtonGroup, Badge, FormLabel, ButtonToolbar, ToggleButton } from "react-bootstrap";
 
 const StyledToggleButtonGroup = styled(ToggleButtonGroup)`
   @media (width < 360px) {
@@ -194,16 +200,13 @@ const StyledGuessCell = styled(StyledCell)`
   ${mediaBreakpointDown(
     compactViewBreakpoint,
     css`
-      /* &::before { */
-        /* content: "Guess: "; */
-        /* white-space: pre; */
-      /* } */
+      &::before {
+        content: "Guess: ";
+        white-space: pre;
+      }
     `,
   )}
 `;
-
-
-
 
 const StyledGuessStatuses = styled.div`
   display: contents;
@@ -263,16 +266,17 @@ const GuessBlock = React.memo(
 
     let directionLabel;
     let directionVariant;
-    if (guess?.direction > 5) {
+    const guessDir = guess?.direction ?? 0;
+    if (guessDir > 5) {
       directionLabel = "Forward";
       directionVariant = "primary";
-    } else if (guess?.direction > 0) {
+    } else if (guessDir > 0) {
       directionLabel = "Forward*";
       directionVariant = "primary";
-    } else if (guess?.direction < -5) {
+    } else if (guessDir < -5) {
       directionLabel = "Back";
       directionVariant = "danger";
-    } else if (guess?.direction < 0) {
+    } else if (guessDir < 0) {
       directionLabel = "Back*";
       directionVariant = "danger";
     } else {
@@ -283,10 +287,11 @@ const GuessBlock = React.memo(
     let confidenceLabel;
     let confidenceVariant;
 
-    if (guess?.confidence > 50) {
+    const guessConf = guess?.confidence ?? 0;
+    if (guessConf > 50) {
       confidenceLabel = "High";
       confidenceVariant = "success";
-    } else if (guess?.confidence < 50) {
+    } else if (guessConf < 50) {
       confidenceLabel = "Low";
       confidenceVariant = "danger";
     } else {
@@ -367,7 +372,6 @@ const GuessBlock = React.memo(
 );
 
 const GuessQueuePage = () => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [displayMode, setDisplayMode] = useState<string[]>([
     "correct",
     "intermediate",

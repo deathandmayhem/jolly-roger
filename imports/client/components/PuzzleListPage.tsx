@@ -31,7 +31,7 @@ import FormLabel from "react-bootstrap/FormLabel";
 import InputGroup from "react-bootstrap/InputGroup";
 import ToggleButton from "react-bootstrap/ToggleButton";
 import ToggleButtonGroup from "react-bootstrap/ToggleButtonGroup";
-import { Navigate, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import styled, { css } from "styled-components";
 import isAdmin from "../../lib/isAdmin";
 import { sortedBy } from "../../lib/listUtils";
@@ -61,7 +61,6 @@ import {
 } from "../hooks/persisted-state";
 import useFocusRefOnFindHotkey from "../hooks/useFocusRefOnFindHotkey";
 import useSubscribeDisplayNames from "../hooks/useSubscribeDisplayNames";
-import useFocusRefOnFindHotkey from "../hooks/useFocusRefOnFindHotkey";
 import useTypedSubscribe from "../hooks/useTypedSubscribe";
 import indexedDisplayNames from "../indexedDisplayNames";
 import { Subscribers } from "../subscribers";
@@ -695,18 +694,16 @@ const PuzzleListView = ({
     },
     [
       displayMode,
-      bookmarked,puzzlesMatchingSearchString
+      bookmarked,
       allPuzzles,
       allTags,
       canUpdate,
       showSolvers,
       puzzleSubscribers,
       puzzleUsers,
-      deletedPuzzles,
       huntId,
       searchString,
       showAddModalWithTags,
-      allPuzzles,
       canExpandAllGroups,
       expandAllGroups,
     ],
@@ -766,28 +763,24 @@ const PuzzleListView = ({
   const retainedPuzzles = solvedOverConstrains
     ? matchingSearch
     : matchingSearchAndSolved;
-  const retainedDeletedPuzzles =
-    deletedPuzzles && puzzlesMatchingSearchString(deletedPuzzles);
   const filterText = useTracker(() => {
     return showSolvers !== "hide"
       ? "Filter by title, answer, tag, or solver"
       : "Filter by title, answer, or tag";
   }, [showSolvers]);
 
-
-
   const onSubmitSearch: NonNullable<FormControlProps["onKeyDown"]> =
     useCallback(
       (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === "Enter"){
+        if (e.key === "Enter") {
           const huntId = retainedPuzzles[0]?.hunt;
           const puzzleId = retainedPuzzles[0]?._id;
-          if (huntId && puzzleId && retainedPuzzles.length === 1){
+          if (huntId && puzzleId && retainedPuzzles.length === 1) {
             return navigate(`/hunts/${huntId}/puzzles/${puzzleId}`);
           }
         }
       },
-      [retainedPuzzles],
+      [navigate, retainedPuzzles],
     );
   const retainedDeletedPuzzles =
     deletedPuzzles && puzzlesMatchingSearchString(deletedPuzzles);
@@ -905,7 +898,12 @@ const PuzzleListView = ({
           </InputGroup>
         </SearchFormGroup>
       </ViewControls>
-      {renderList(retainedPuzzles, retainedDeletedPuzzles, solvedOverConstrains, allPuzzles.length, puzzleSubscribers)}
+      {renderList(
+        retainedPuzzles,
+        retainedDeletedPuzzles,
+        solvedOverConstrains,
+        allPuzzles.length,
+      )}
     </div>
   );
 };

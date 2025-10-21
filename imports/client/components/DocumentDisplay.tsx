@@ -2,21 +2,18 @@ import type { Meteor } from "meteor/meteor";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import { faFileAlt } from "@fortawesome/free-solid-svg-icons/faFileAlt";
 import { faFilePen } from "@fortawesome/free-solid-svg-icons/faFilePen";
-import { faMapLocationDot } from "@fortawesome/free-solid-svg-icons/faMapLocationDot";
 import { faTable } from "@fortawesome/free-solid-svg-icons/faTable";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React from "react";
 import styled from "styled-components";
 import type { DocumentType } from "../../lib/models/Documents";
 import type { Theme } from "../theme";
-import Logger from "../../Logger";
 
 interface DocumentDisplayProps {
   document: DocumentType;
   displayMode: "link" | "embed";
   user: Meteor.User;
   isShown: boolean;
-  user: Meteor.User;
 }
 
 const StyledDeepLink = styled.a`
@@ -54,7 +51,6 @@ const GoogleDocumentDisplay = ({
   displayMode,
   user,
   isShown,
-  user,
 }: DocumentDisplayProps) => {
   let url: string;
   let title: string;
@@ -119,7 +115,6 @@ const DocumentDisplay = ({
   displayMode,
   user,
   isShown,
-  user,
 }: DocumentDisplayProps) => {
   switch (document.provider) {
     case "google":
@@ -129,7 +124,6 @@ const DocumentDisplay = ({
           displayMode={displayMode}
           user={user}
           isShown={isShown}
-          user={user}
         />
       );
     default:

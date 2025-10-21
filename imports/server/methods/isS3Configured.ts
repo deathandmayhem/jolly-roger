@@ -8,8 +8,6 @@ defineMethod(isS3Configured, {
     const s3BucketSettings = await Settings.findOneAsync({
       name: "s3.image_bucket",
     });
-    console.info("***************");
-    console.info(s3BucketSettings?.value);
     return !!(
       s3BucketSettings?.value?.bucketName &&
       s3BucketSettings?.value?.bucketRegion

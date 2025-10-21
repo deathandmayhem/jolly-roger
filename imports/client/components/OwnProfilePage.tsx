@@ -358,9 +358,6 @@ const OwnProfilePage = ({
     OwnProfilePageSubmitState.IDLE,
   );
   const [submitError, setSubmitError] = useState<string>("");
-  const [showAPIKey, setShowAPIKey] = useState<boolean>(false);
-  const [regeneratingAPIKey, setRegeneratingAPIKey] = useState<boolean>(false);
-  const [APIKeyError, setAPIKeyError] = useState<string>();
 
   const handleDisplayNameFieldChange: NonNullable<
     FormControlProps["onChange"]
@@ -566,8 +563,9 @@ const OwnProfilePage = ({
                 <>
                   <strong>Match start:</strong> dingwords and -phrases only need
                   to match the <em>start</em> of a typed word or phrase. For
-                  example, the dingword <code>logic</code> would match "logic",
-                  "logician", and "logical", but not "illogical".
+                  example, the dingword <code>logic</code> would match
+                  &quot;logic&quot;, &quot;logician&quot;, and
+                  &quot;logical&quot;, but not &quot;illogical&quot;.
                 </>
               ),
             },

@@ -40,6 +40,7 @@
     "classnames": "^2.5.1",
     "discord.js": "^12.5.3",
     "dompurify": "^3.2.7",
+    "emoji-picker-react": "^4.14.1",
     "express": "^5.1.0",
     "form-data": "^4.0.4",
     "gaxios": "^6.7.1",
