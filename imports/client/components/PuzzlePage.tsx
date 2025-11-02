@@ -48,8 +48,8 @@ import Row from "react-bootstrap/Row";
 import Tooltip from "react-bootstrap/esm/Tooltip";
 import { createPortal } from "react-dom";
 import { Link, useLocation, useParams } from "react-router-dom";
-import { type Descendant } from "slate";
-import styled, { css, useTheme } from "styled-components";
+import { select, type Descendant } from "slate";
+import styled, { css, keyframes, useTheme } from "styled-components";
 import {
   calendarTimeFormat,
   shortCalendarTimeFormat,
@@ -131,10 +131,11 @@ import chatMessageNodeType from "../../lib/chatMessageNodeType";
 import createChatAttachmentUpload from "../../methods/createChatAttachmentUpload";
 import { usePersistedSidebarWidth } from "../hooks/persisted-state";
 import { faAngleDoubleUp } from "@fortawesome/free-solid-svg-icons/faAngleDoubleUp";
-import { faAngleDoubleDown } from "@fortawesome/free-solid-svg-icons";
+import { faAngleDoubleDown, faClose, faList, faTableColumns } from "@fortawesome/free-solid-svg-icons";
 import createPuzzleDocument from "../../methods/createPuzzleDocument";
 import setChatMessagePin from "../../methods/setChatMessagePin";
 import { formatConfidence, formatGuessDirection } from "./guessDetails";
+import { set } from "zod";
 
 // Shows a state dump as an in-page overlay when enabled.
 const DEBUG_SHOW_CALL_STATE = false;
@@ -450,12 +451,29 @@ const PuzzleContent = styled.div`
   /* position: relative; */
 `;
 
+const buttonPulseAnimation = keyframes`
+  0% {
+    box-shadow: 0 0 0 0px rgba(0, 123, 255, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(0, 123, 255, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0px rgba(0, 123, 255, 0);
+  }
+`;
+
 const PuzzleMetadata = styled.div<{ theme: Theme }>`
   flex: none;
   padding: ${PUZZLE_PAGE_PADDING - 2}px 8px;
   border-bottom: 1px solid #dadce0;
   z-index: 10;
   background-color: ${({ theme })=>theme.colors.background};
+
+  .resource-selector-pulse {
+    animation: ${buttonPulseAnimation} 1s 2;
+    border-radius: 6px;
+  }
 `;
 
 const PuzzleMetadataAnswer = styled.span`
@@ -2356,6 +2374,7 @@ const PuzzlePageMetadata = ({
   document,
   allPuzzles,
   isDesktop,
+  isTall,
   selfUser,
   showDocument,
   setShowDocument,
@@ -2365,6 +2384,10 @@ const PuzzlePageMetadata = ({
   allDocs,
   selectedDocumentIndex,
   setSelectedDocument,
+  selectedSecondaryDocument,
+  setSecondaryDocument,
+  splitDirection,
+  setSplitDirection,
 }: {
   isMinimized: boolean;
   puzzle: PuzzleType;
@@ -2373,6 +2396,7 @@ const PuzzlePageMetadata = ({
   document?: DocumentType;
   allPuzzles: PuzzleType[];
   isDesktop: boolean;
+  isTall: boolean;
   selfUser: Meteor.User;
   showDocument: boolean;
   setShowDocument: (showDocument: boolean) => void;
@@ -2382,6 +2406,10 @@ const PuzzlePageMetadata = ({
   allDocs: DocumentType[] | undefined;
   selectedDocumentIndex: number;
   setSelectedDocument: (arg0: number) => void;
+  selectedSecondaryDocument: number | null;
+  setSecondaryDocument: (arg0: number | null) => void;
+  splitDirection: "vertical" | "horizontal";
+  setSplitDirection: (arg0: "vertical" | "horizontal") => void;
 }) => {
   const huntId = puzzle.hunt;
   const puzzleId = puzzle._id;
@@ -2392,6 +2420,23 @@ const PuzzlePageMetadata = ({
     () => userMayWritePuzzlesForHunt(Meteor.user(), hunt),
     [hunt],
   );
+
+  const [pulseButton, setPulseButton] = useState(false);
+  const [hasPulsed, setHasPulsed] = useState(false);
+
+  useEffect(() => {
+  if (allDocs && allDocs.length > 1 && !hasPulsed) {
+    setPulseButton(true);
+    setHasPulsed(true);
+
+    const timer = setTimeout(() => {
+      setPulseButton(false);
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }
+  return;
+}, [allDocs, hasPulsed]);
 
   const allTags = useTracker(
     () => Tags.find({ hunt: huntId }).fetch(),
@@ -2648,6 +2693,7 @@ const PuzzlePageMetadata = ({
     })
   }, [allDocs])
 
+
   const switchOrCreateDocument = useCallback((e:"spreadsheet"|"document"
     |"drawing"|number)=>{
     if(!e) return;
@@ -2667,6 +2713,25 @@ const PuzzlePageMetadata = ({
     }
   }, [unusedDocumentTypes])
 
+  const toggleSecondaryDocument = useCallback((e:number, newstate: "horizontal" | "vertical" | "hide")=>{
+    if(!e) return;
+    switch(newstate){
+      case "horizontal":
+        setSplitDirection("horizontal");
+        setSecondaryDocument(e);
+        break;
+      case "vertical":
+        setSplitDirection("vertical");
+        setSecondaryDocument(e);
+        break;
+      case "hide":
+        setSplitDirection("horizontal");
+        setSecondaryDocument(null);
+        break;
+    }
+  },[selectedSecondaryDocument, selectedDocumentIndex, setSecondaryDocument, unusedDocumentTypes, setSplitDirection])
+
+
   const resourceSelectorButton = useTracker(()=>{
     return allDocs && (
       <DropdownButton
@@ -2677,13 +2742,41 @@ const PuzzlePageMetadata = ({
         variant={allDocs.length > 1 ? "primary" : "secondary"}
         onSelect={switchOrCreateDocument}
         title={toTitleCase(allDocs[selectedDocumentIndex]?.value.type ?? "")}
+        className={pulseButton ? "resource-selector-pulse" : ""}
       >
         <Dropdown.Header>
           Documents
         </Dropdown.Header>
         {allDocs?.map((doc, idx)=>{
+          let nextState: "horizontal" | "vertical" | "hide" = "horizontal";
+          let nextIcon = faTableColumns;
+          let nextTooltip = "Split current view";
+          if (selectedSecondaryDocument === null) {
+            nextState = isTall ? "horizontal" : "vertical";
+            nextIcon = isTall ? faList : faTableColumns;
+          } else if (isTall && splitDirection === "horizontal") {
+            nextState = "vertical";
+            nextIcon = faTableColumns;
+          } else if (!isTall && splitDirection === "vertical") {
+            nextState = "horizontal";
+            nextIcon = faList;
+          } else {
+            nextState = "hide";
+            nextIcon = faClose;
+            nextTooltip = "Hide split view";
+          }
           return (
-            <Dropdown.Item eventKey={idx}>{toTitleCase(doc.value.type)}</Dropdown.Item>
+            <Dropdown.Item eventKey={idx}>
+              {toTitleCase(doc.value.type)}
+              {(isDesktop && idx !== selectedDocumentIndex && (selectedSecondaryDocument === null || selectedSecondaryDocument === idx)) &&(
+                <Button size="sm" onClick={(evt)=>{
+                  evt.stopPropagation();
+                  toggleSecondaryDocument(idx, nextState);
+                }}>
+                  <FontAwesomeIcon icon={nextIcon} title={nextTooltip}/>
+                </Button>
+              )}
+            </Dropdown.Item>
           )
         })}
         {unusedDocumentTypes.length > 0 && <>
@@ -2701,7 +2794,7 @@ const PuzzlePageMetadata = ({
         {togglePuzzleInsetDD}
       </DropdownButton>
     )
-  }, [allDocs, selectedDocumentIndex, unusedDocumentTypes, showDocument])
+  }, [allDocs, selectedDocumentIndex, unusedDocumentTypes, showDocument, splitDirection, selectedSecondaryDocument, isTall, selectedSecondaryDocument, pulseButton])
 
   const minimizeMetadataButton = (<OverlayTrigger placement="bottom-end" overlay={<Tooltip>Hide puzzle information</Tooltip>}><Button onClick={toggleMetadataMinimize} size="sm">
     <FontAwesomeIcon icon={faAngleDoubleUp} />
@@ -2889,6 +2982,7 @@ const MinimizeChatButton = styled.button<{ $left: number; $isMinimized: boolean;
   border-bottom-right-radius: 8px;
   padding: 8px 4px;
   cursor: pointer;
+  height: 40px;
 
   ${({ $isMinimized }) =>
     $isMinimized &&
@@ -3526,7 +3620,12 @@ const PuzzlePage = React.memo(() => {
     useRef<ReactElement<typeof PuzzleMetadataFloatingButton>>(null);
   const [persistentWidth, setPersistentWidth] = usePersistedSidebarWidth();
   const [selectedDocumentIndex, setSelectedDocumentIndex] = useState<number>(0);
+  const [secondaryDocumentIndex, setSecondaryDocumentIndex] = useState<number|null>(null);
   const [sidebarWidth, setSidebarWidth] = useState<number>(persistentWidth ?? DefaultSidebarWidth);
+  const [pageWidth, setPageWidth] = useState<number>(window.innerWidth);
+  const [splitWidth, setSplitWidth] = useState<number>((window.innerWidth - DefaultSidebarWidth) / 2);
+  const [splitDirection, setSplitDirection] = useState<"vertical" | "horizontal">("vertical")
+  const [isTall, setIsTall] = useState<boolean>(window.innerHeight > window.innerWidth);
   const [isChatMinimized, setIsChatMinimized] = useState<boolean>(false);
   const [lastSidebarWidth, setLastSidebarWidth] = useState<number>(DefaultSidebarWidth);
   const [isRestoring, setIsRestoring] = useState(false);
@@ -3647,6 +3746,15 @@ const PuzzlePage = React.memo(() => {
     }, [puzzleDataLoading, allDocs, selectedDocumentIndex]
   )
 
+  const secondDoc = useTracker(
+    () => {
+      if (puzzleDataLoading || !allDocs || secondaryDocumentIndex === null) {
+        return undefined;
+      }
+      return allDocs[secondaryDocumentIndex];
+    }, [puzzleDataLoading, allDocs, secondaryDocumentIndex]
+  );
+
   const activePuzzle = useTracker(
     () => Puzzles.findOneAllowingDeleted(puzzleId),
     [puzzleId],
@@ -3674,6 +3782,7 @@ const PuzzlePage = React.memo(() => {
 
   const onResize = useCallback(() => {
     setIsDesktop(window.innerWidth >= MinimumDesktopWidth);
+    setIsTall(window.innerHeight > window.innerWidth);
     trace("PuzzlePage onResize", { hasRef: !!chatSectionRef.current });
     if (chatSectionRef.current) {
       chatSectionRef.current.scrollHistoryToTarget();
@@ -3696,6 +3805,12 @@ const PuzzlePage = React.memo(() => {
       }
     }
   }, [isChatMinimized]);
+
+  const onCommitSplitWidth = useCallback((newSplitWidth: number, collapsed: 0 | 1 | 2, cause: 'drag' | 'resize') => {
+    if (cause === 'drag') {
+      setSplitWidth(newSplitWidth);
+    }
+  })
 
   const toggleChatMinimize = useCallback(() => {
     setIsChatMinimized(prevMinimized => {
@@ -3865,6 +3980,10 @@ const PuzzlePage = React.memo(() => {
       allDocs={allDocs}
       selectedDocumentIndex={selectedDocumentIndex}
       setSelectedDocument={setSelectedDocumentIndex}
+      selectedSecondaryDocument={secondaryDocumentIndex}
+      setSecondaryDocument={setSecondaryDocumentIndex}
+      splitDirection={splitDirection}
+      setSplitDirection={setSplitDirection}
       selfUser={selfUser}
     />
   );
@@ -3939,6 +4058,7 @@ const PuzzlePage = React.memo(() => {
     );
   }
 
+
   const effectiveSidebarWidth = isChatMinimized ? 1 : sidebarWidth;
 
   const showMetadataButton = isMetadataMinimized ? (
@@ -3995,18 +4115,32 @@ const PuzzlePage = React.memo(() => {
                 (activePuzzle.url && hasIframeBeenLoaded) ? (
                   <StyledIframe
                     ref={iframeRef}
-                    style={{ zIndex: !showDocument ? 1 : -1, display: !showDocument ? "block" : "none" }} // this is a bit of a hack to keep both the puzzlepag and the shared doc loaded
+                    style={{ zIndex: !showDocument ? 1 : -1, display: !showDocument ? "block" : "none" }} // this is a bit of a hack to keep both the puzzlepage and the shared doc loaded
                     src={activePuzzle.url}
                   />
                   ) : null
                 }
-
+                <SplitPaneMinus
+                  split={splitDirection}
+                  minSize={secondaryDocumentIndex ? 100 : 0}
+                  maxSize={(splitDirection === 'horizontal' ? window.innerHeight - 300 : window.innerWidth - effectiveSidebarWidth - 100)}
+                  primary="second"
+                  size={secondaryDocumentIndex ? splitWidth : 0}
+                  onChanged={onCommitSplitWidth}
+                  onPaneChanged={onCommitSplitWidth}
+                  style={{ zIndex: showDocument ? 1 : -1, display: showDocument ? "block" : "none" }}
+                  >
                 <PuzzlePageMultiplayerDocument
                   document={doc}
                   showDocument={showDocument}
                   selfUser={selfUser}
-                  style={{ zIndex: showDocument ? 1 : -1, display: showDocument ? "block" : "none" }}
                   />
+                <PuzzlePageMultiplayerDocument
+                  document={secondDoc}
+                  showDocument={showDocument}
+                  selfUser={selfUser}
+                  />
+                  </SplitPaneMinus>
                 </PuzzleDocumentDiv>
               {debugPane}
             </PuzzleContent>

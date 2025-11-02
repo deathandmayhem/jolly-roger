@@ -20,7 +20,7 @@ import { PREFERRED_AUDIO_DEVICE_STORAGE_KEY } from "./AudioConfig";
 
 const MinimizedChatInfoContainer = styled.div<{ theme: Theme }>`
   position: absolute;
-  top: 40%;
+  top: calc(50% - 65px);
   left: 1px;
   transform: translateY(-50%);
   display: flex;
