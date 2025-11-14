@@ -46,7 +46,7 @@
     "glob": "^8.1.0",
     "he": "^1.2.0",
     "http-proxy": "^1.18.1",
-    "ip-address": "^10.0.1",
+    "ip-address": "^10.1.0",
     "logfmt": "^1.4.0",
     "marked": "^16.4.1",
     "mediasoup": "^3.19.7",
