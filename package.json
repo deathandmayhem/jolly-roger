@@ -49,7 +49,7 @@
     "ip-address": "^10.0.1",
     "logfmt": "^1.4.0",
     "marked": "^16.4.1",
-    "mediasoup": "^3.19.7",
+    "mediasoup": "^3.19.11",
     "mediasoup-client": "^3.18.0",
     "meteor-node-stubs": "^1.2.24",
     "mime-types": "^3.0.1",
