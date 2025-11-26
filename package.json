@@ -52,7 +52,7 @@
     "mediasoup": "^3.19.11",
     "mediasoup-client": "^3.18.1",
     "meteor-node-stubs": "^1.2.24",
-    "mime-types": "^3.0.1",
+    "mime-types": "^3.0.2",
     "mustache": "^4.2.0",
     "portscanner": "^2.2.0",
     "react": "^18.3.1",
