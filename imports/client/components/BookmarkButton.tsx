@@ -5,8 +5,9 @@ import React, { useCallback, useState } from "react";
 import { Button } from "react-bootstrap";
 import bookmarkPuzzle from "../../methods/bookmarkPuzzle";
 
-interface BookmarkButtonProps<As extends React.ElementType = React.ElementType>
-  extends React.HTMLAttributes<HTMLElement> {
+interface BookmarkButtonProps<
+  As extends React.ElementType = React.ElementType,
+> extends React.HTMLAttributes<HTMLElement> {
   puzzleId: string;
   bookmarked: boolean;
   as?: As;
