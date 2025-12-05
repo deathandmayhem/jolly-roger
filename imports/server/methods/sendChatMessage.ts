@@ -25,6 +25,10 @@ defineMethod(sendChatMessage, {
             userId: String,
           },
           {
+            type: "image" as const,
+            url: String,
+          },
+          {
             text: String,
           },
         ),

@@ -2,9 +2,11 @@
 import * as he from "he";
 import type { Token, Tokens } from "marked";
 import { marked } from "marked";
-import React from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import BSImage from "react-bootstrap/Image";
 import styled from "styled-components";
 import type { ChatMessageContentType } from "../../lib/models/ChatMessages";
+import nodeIsImage from "../../lib/nodeIsImage";
 import nodeIsMention from "../../lib/nodeIsMention";
 import { MentionSpan } from "./FancyEditor";
 
@@ -37,6 +39,70 @@ const StyledCodeBlock = styled.code`
   color: black;
   margin-bottom: 0;
 `;
+
+const ResponsiveImage = ({
+  src,
+  onLoadCB,
+}: {
+  src: string;
+  onLoadCB?: () => void;
+}) => {
+  const [isLarge, setIsLarge] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const imgRef = useRef<HTMLImageElement>(null);
+
+  const handleLoad = useCallback(() => {
+    if (imgRef.current && containerRef.current) {
+      const imgWidth = imgRef.current.naturalWidth;
+      const containerWidth = containerRef.current.offsetWidth;
+      setIsLarge(imgWidth > containerWidth);
+    }
+    onLoadCB?.();
+  }, [imgRef, containerRef, onLoadCB]);
+
+  // update on container resize
+  useEffect(() => {
+    const container = containerRef.current;
+    const observer = container ? new ResizeObserver(() => handleLoad()) : null;
+
+    if (observer && container) {
+      observer.observe(container);
+    }
+
+    return () => {
+      if (observer) observer.disconnect();
+    };
+  }, [handleLoad]);
+
+  return (
+    <div ref={containerRef} style={{ width: "100%" }}>
+      {isLarge ? (
+        <a href={src} target="_blank" rel="noopener noreferrer">
+          <BSImage
+            ref={imgRef}
+            src={src}
+            onLoad={handleLoad}
+            className={isLarge ? "img-thumbnail" : ""}
+            style={{
+              width: "100%",
+              height: "auto",
+              display: "block",
+            }}
+          />
+        </a>
+      ) : (
+        <BSImage
+          ref={imgRef}
+          src={src}
+          onLoad={handleLoad}
+          style={{
+            display: "block",
+          }}
+        />
+      )}
+    </div>
+  );
+};
 
 // Renders a markdown token to React components.
 const MarkdownToken = ({ token }: { token: Token }) => {
@@ -120,10 +186,12 @@ const ChatMessage = ({
   message,
   displayNames,
   selfUserId,
+  imageOnLoad,
 }: {
   message: ChatMessageContentType;
   displayNames: Map<string, string>;
   selfUserId: string;
+  imageOnLoad?: () => void;
 }) => {
   const children = message.children.map((child, i) => {
     if (nodeIsMention(child)) {
@@ -133,6 +201,8 @@ const ChatMessage = ({
           @{`${displayName ?? child.userId}`}
         </MentionSpan>
       );
+    } else if (nodeIsImage(child)) {
+      return <ResponsiveImage key={i} src={child.url} onLoadCB={imageOnLoad} />;
     } else {
       const tokensList = marked.lexer(child.text);
       return tokensList.map((token, j) => {

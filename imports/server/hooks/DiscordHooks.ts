@@ -8,6 +8,7 @@ import type { PuzzleType } from "../../lib/models/Puzzles";
 import Puzzles from "../../lib/models/Puzzles";
 import Settings from "../../lib/models/Settings";
 import Tags from "../../lib/models/Tags";
+import nodeIsImage from "../../lib/nodeIsImage";
 import nodeIsText from "../../lib/nodeIsText";
 import { computeSolvedness } from "../../lib/solvedness";
 import { DiscordBot } from "../discord";
@@ -37,6 +38,9 @@ async function renderChatMessageContent(
 ): Promise<string> {
   const chunks = await Promise.all(
     content.children.map(async (child) => {
+      if (nodeIsImage(child)) {
+        return "[image]";
+      }
       if (nodeIsText(child)) {
         return child.text;
       } else {

@@ -10,8 +10,14 @@ import React, {
   useState,
 } from "react";
 import { createPortal } from "react-dom";
-import type { BaseEditor, Descendant, NodeEntry, Node, Path } from "slate";
-import { createEditor, Editor, Text, Transforms, Range } from "slate";
+import type {
+  BaseEditor,
+  Descendant,
+  NodeEntry,
+  Node as SlateNode,
+  Path,
+} from "slate";
+import { createEditor, Editor, Node, Text, Transforms, Range } from "slate";
 import type { HistoryEditor } from "slate-history";
 import { withHistory } from "slate-history";
 import type {
@@ -40,14 +46,21 @@ export const DEBUG_EDITOR = false;
 export type CustomText = { text: string };
 export type MessageElement = {
   type: "message";
-  children: (MentionElement | CustomText)[];
+  children: (MentionElement | ImageElement | CustomText)[];
 };
 export type MentionElement = {
   type: "mention";
   userId: string; // user._id of the mentioned user
   children: CustomText[];
 };
-export type CustomElement = MessageElement | MentionElement;
+export type ImageElement = {
+  type: "image";
+  url: string;
+  tempId: string;
+  loading: boolean;
+  children: CustomText[];
+};
+export type CustomElement = MessageElement | MentionElement | ImageElement;
 declare module "slate" {
   interface CustomTypes {
     Editor: BaseEditor & ReactEditor & HistoryEditor;
@@ -130,17 +143,59 @@ const EditableMentionRenderer = ({
   );
 };
 
+const Image = styled.img`
+  max-height: 20px;
+`;
+const ChatImageRenderer = ({
+  attributes,
+  element,
+}: ElementRendererProps<ImageElement>) => {
+  return <Image {...attributes} src={element.url} />;
+};
+
 // Composed, layered reassignment is how Slate plugins are designed to work.
-const withMentions = (editor: Editor) => {
-  const { isInline, isVoid, markableVoid } = editor;
+const withMentionsAndImages = (
+  editor: Editor,
+  uploadImageFile: (file: File) => void,
+) => {
+  const { isInline, isVoid, markableVoid, insertData } = editor;
   editor.isInline = (element) => {
-    return element.type === "mention" ? true : isInline(element);
+    switch (element.type) {
+      case "mention":
+      case "image":
+        return true;
+      default:
+        return isInline(element);
+    }
   };
   editor.isVoid = (element) => {
-    return element.type === "mention" ? true : isVoid(element);
+    switch (element.type) {
+      case "mention":
+      case "image":
+        return true;
+      default:
+        return isVoid(element);
+    }
   };
   editor.markableVoid = (element) => {
-    return element.type === "mention" || markableVoid(element);
+    switch (element.type) {
+      case "mention":
+        return true;
+      case "image":
+        return false;
+      default:
+        return markableVoid(element);
+    }
+  };
+  editor.insertData = (data: DataTransfer) => {
+    if (!data) return;
+    for (const file of Array.from(data.files)) {
+      if (file.type.startsWith("image/")) {
+        uploadImageFile(file);
+        return;
+      }
+    }
+    insertData(data);
   };
   return editor;
 };
@@ -380,7 +435,7 @@ const renderLeaf = (props: RenderLeafProps) => {
 // associated with them, and then when renderLeaf is called the leaf elements
 // will have the additional properties available.  So we run the marked lexer
 // on the text to determine what ranges should have what annotations.
-const decorate = ([node, path]: [Node, Path]) => {
+const decorate = ([node, path]: [SlateNode, Path]) => {
   const ranges: (LeafProps & Range)[] = [];
   if (!Text.isText(node)) {
     // No decorations needed for non-text elements.
@@ -493,6 +548,8 @@ const Portal = ({ children }: { children: React.ReactNode }) => {
 
 export interface FancyEditorHandle {
   clearInput: () => void;
+  insertImage: (url: string, id: string, loading: boolean) => void;
+  replaceImage: (url: string, id: string) => void;
 }
 
 const FancyEditor = React.forwardRef(
@@ -504,6 +561,7 @@ const FancyEditor = React.forwardRef(
       users,
       onContentChange,
       onSubmit,
+      uploadImageFile,
       disabled,
     }: {
       className?: string;
@@ -511,14 +569,17 @@ const FancyEditor = React.forwardRef(
       placeholder?: string;
       users: Meteor.User[];
       onContentChange: (content: Descendant[]) => void;
-      onSubmit: () => void;
+      uploadImageFile: (file: File) => void;
+      onSubmit: () => boolean;
       disabled?: boolean;
     },
     forwardedRef: React.Ref<FancyEditorHandle>,
   ) => {
     const [editor] = useState(() => {
       const upstreamEditor = withReact(withHistory(createEditor()));
-      return withSingleMessage(withMentions(upstreamEditor));
+      return withSingleMessage(
+        withMentionsAndImages(upstreamEditor, uploadImageFile),
+      );
     });
 
     // The floating autocomplete box for @-mentions
@@ -534,6 +595,39 @@ const FancyEditor = React.forwardRef(
     const [completionSearchString, setCompletionSearchString] = useState("");
 
     const usersById = useMemo(() => indexedById(users), [users]);
+
+    const insertImage = useCallback(
+      (url: string, tempId: string, loading: boolean) => {
+        const image: ImageElement = {
+          type: "image",
+          url,
+          tempId,
+          loading,
+          children: [{ text: "" }],
+        };
+        if (!editor.selection) {
+          Transforms.select(editor, Editor.end(editor, []));
+        }
+        Transforms.insertNodes(editor, image);
+      },
+      [editor],
+    );
+
+    const replaceImage = useCallback(
+      (url: string, tempId: string) => {
+        for (const [node, path] of Node.nodes(editor)) {
+          if (
+            "type" in node &&
+            node.type === "image" &&
+            node.tempId === tempId
+          ) {
+            Transforms.setNodes(editor, { url, loading: false }, { at: path });
+            return;
+          }
+        }
+      },
+      [editor],
+    );
 
     const clearInput = useCallback(() => {
       // Reset the document by removing all nodes under the root editor node.
@@ -563,6 +657,8 @@ const FancyEditor = React.forwardRef(
     }, [editor]);
     useImperativeHandle(forwardedRef, () => ({
       clearInput,
+      insertImage,
+      replaceImage,
     }));
 
     const renderElement = useCallback(
@@ -573,6 +669,12 @@ const FancyEditor = React.forwardRef(
               <EditableMentionRenderer
                 users={usersById}
                 {...(props as ElementRendererProps<MentionElement>)}
+              />
+            );
+          case "image":
+            return (
+              <ChatImageRenderer
+                {...(props as ElementRendererProps<ImageElement>)}
               />
             );
           case "message":
@@ -682,8 +784,9 @@ const FancyEditor = React.forwardRef(
           } else {
             // submit contents.  clear the editor.
             event.preventDefault();
-            onSubmit();
-            clearInput();
+            if (onSubmit()) {
+              clearInput();
+            }
           }
         }
       },

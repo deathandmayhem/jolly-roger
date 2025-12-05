@@ -10,12 +10,18 @@ const MentionBlock = z.object({
 });
 export type ChatMessageMentionNodeType = z.infer<typeof MentionBlock>;
 
+const ImageBlock = z.object({
+  type: z.literal("image"),
+  url: z.string().url(),
+});
+export type ChatMessageImageNodeType = z.infer<typeof ImageBlock>;
+
 const TextBlock = z.object({
   text: allowedEmptyString,
 });
 export type ChatMessageTextNodeType = z.infer<typeof TextBlock>;
 
-const ContentNode = z.union([MentionBlock, TextBlock]);
+const ContentNode = z.union([MentionBlock, ImageBlock, TextBlock]);
 export type ChatMessageContentNodeType = z.infer<typeof ContentNode>;
 
 export const ChatMessageContent = z.object({

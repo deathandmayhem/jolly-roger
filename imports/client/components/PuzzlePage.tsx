@@ -60,6 +60,7 @@ import Puzzles from "../../lib/models/Puzzles";
 import type { PuzzleType } from "../../lib/models/Puzzles";
 import Tags from "../../lib/models/Tags";
 import type { TagType } from "../../lib/models/Tags";
+import nodeIsImage from "../../lib/nodeIsImage";
 import nodeIsMention from "../../lib/nodeIsMention";
 import nodeIsText from "../../lib/nodeIsText";
 import { userMayWritePuzzlesForHunt } from "../../lib/permission_stubs";
@@ -68,6 +69,7 @@ import puzzleForPuzzlePage from "../../lib/publications/puzzleForPuzzlePage";
 import { computeSolvedness } from "../../lib/solvedness";
 import addPuzzleAnswer from "../../methods/addPuzzleAnswer";
 import addPuzzleTag from "../../methods/addPuzzleTag";
+import createChatImageUpload from "../../methods/createChatImageUpload";
 import createGuess from "../../methods/createGuess";
 import ensurePuzzleDocument from "../../methods/ensurePuzzleDocument";
 import type { Sheet } from "../../methods/listDocumentSheets";
@@ -351,6 +353,7 @@ const ChatHistoryMessage = React.memo(
     isHighlighted,
     suppressSender,
     selfUserId,
+    imageOnLoad,
   }: {
     message: FilteredChatMessageType;
     displayNames: Map<string, string>;
@@ -358,6 +361,7 @@ const ChatHistoryMessage = React.memo(
     isHighlighted: boolean;
     suppressSender: boolean;
     selfUserId: string;
+    imageOnLoad: () => void;
   }) => {
     const ts = shortCalendarTimeFormat(message.timestamp);
 
@@ -376,6 +380,7 @@ const ChatHistoryMessage = React.memo(
           message={message.content}
           displayNames={displayNames}
           selfUserId={selfUserId}
+          imageOnLoad={imageOnLoad}
         />
       </ChatMessageDiv>
     );
@@ -504,7 +509,7 @@ const ChatHistory = React.forwardRef(
       };
     }, [scrollToTarget]);
 
-    useLayoutEffect(() => {
+    const scrollChat = useCallback(() => {
       // Whenever we rerender due to new messages arriving, make our
       // distance-from-bottom match the previous one, if it's larger than some
       // small fudge factor.  But if the user has actually scrolled into the backlog,
@@ -522,6 +527,10 @@ const ChatHistory = React.forwardRef(
         snapToBottom();
       }
     }, [chatMessages.length, saveScrollBottomTarget, snapToBottom]);
+
+    useLayoutEffect(() => {
+      scrollChat();
+    }, [chatMessages.length, saveScrollBottomTarget, scrollChat]);
 
     trace("ChatHistory render", { messageCount: chatMessages.length });
     return (
@@ -555,6 +564,7 @@ const ChatHistory = React.forwardRef(
               isHighlighted={isHighlighted}
               suppressSender={suppressSender}
               selfUserId={selfUser._id}
+              imageOnLoad={scrollChat}
             />
           );
         })}
@@ -645,6 +655,7 @@ const ChatInput = React.memo(
         content.length > 0 &&
         (content[0]! as MessageElement).children.some((child) => {
           return (
+            nodeIsImage(child) ||
             nodeIsMention(child) ||
             (nodeIsText(child) && child.text.trim().length > 0)
           );
@@ -652,8 +663,17 @@ const ChatInput = React.memo(
       );
     }, [content]);
 
+    const hasLoadingImage = useMemo(() => {
+      return (
+        content.length > 0 &&
+        (content[0]! as MessageElement).children.some((child) => {
+          return nodeIsImage(child) && child.loading;
+        })
+      );
+    }, [content]);
+
     const sendContentMessage = useCallback(() => {
-      if (hasNonTrivialContent) {
+      if (hasNonTrivialContent && !hasLoadingImage) {
         // Prepare to send message to server.
 
         // Take only the first Descendant; we normalize the input to a single
@@ -669,6 +689,11 @@ const ChatInput = React.memo(
               return {
                 type: child.type,
                 userId: child.userId,
+              };
+            } else if (nodeIsImage(child)) {
+              return {
+                type: child.type,
+                url: child.url,
               };
             } else {
               return child;
@@ -686,14 +711,76 @@ const ChatInput = React.memo(
         if (onMessageSent) {
           onMessageSent();
         }
+        return true;
       }
-    }, [hasNonTrivialContent, content, puzzleId, onMessageSent]);
+      return false;
+    }, [
+      hasNonTrivialContent,
+      hasLoadingImage,
+      content,
+      puzzleId,
+      onMessageSent,
+    ]);
 
     useBlockUpdate(
       hasNonTrivialContent
         ? "You're in the middle of typing a message."
         : undefined,
     );
+
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const handleButtonClick = useCallback(() => {
+      fileInputRef.current?.click();
+    }, [fileInputRef]);
+
+    const uploadImageFile = useCallback(
+      (file: File) => {
+        const tempId = Random.id();
+        fancyEditorRef.current?.insertImage(
+          "/images/spinner.png",
+          tempId,
+          true,
+        );
+
+        createChatImageUpload.call(
+          {
+            puzzleId,
+            mimeType: file.type,
+          },
+          (err, upload) => {
+            if (err || !upload) {
+              throw new Error("S3 upload creation failed", err);
+            } else {
+              const { publicUrl, uploadUrl, fields } = upload;
+              const formData = new FormData();
+              for (const [key, value] of Object.entries(fields)) {
+                formData.append(key, value);
+              }
+              formData.append("file", file);
+              fetch(uploadUrl, {
+                method: "POST",
+                mode: "no-cors",
+                body: formData,
+              })
+                .then(() => {
+                  fancyEditorRef.current?.replaceImage(publicUrl, tempId);
+                })
+                .catch((uploadErr) => {
+                  throw new Error("S3 upload failed", uploadErr);
+                });
+            }
+          },
+        );
+      },
+      [fancyEditorRef, puzzleId],
+    );
+
+    function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      uploadImageFile(file);
+    }
 
     return (
       <ChatInputRow>
@@ -706,16 +793,27 @@ const ChatInput = React.memo(
             users={users}
             onContentChange={onContentChange}
             onSubmit={sendContentMessage}
+            uploadImageFile={uploadImageFile}
             disabled={disabled}
           />
           <Button
             variant="secondary"
             onClick={sendContentMessage}
             onMouseDown={preventDefaultCallback}
-            disabled={disabled || !hasNonTrivialContent}
+            disabled={disabled || !hasNonTrivialContent || hasLoadingImage}
           >
             <FontAwesomeIcon icon={faPaperPlane} />
           </Button>
+          <Button variant="secondary" onClick={handleButtonClick}>
+            <FontAwesomeIcon icon={faImage} />
+          </Button>
+          <input
+            type="file"
+            accept="image/*"
+            style={{ display: "none" }}
+            ref={fileInputRef}
+            onChange={handleImageUpload}
+          />
         </InputGroup>
       </ChatInputRow>
     );
