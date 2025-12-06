@@ -11,6 +11,7 @@ export default async function attachSchema<T extends MongoRecordZodType>(
   collection: Mongo.Collection<z.output<T>>,
 ) {
   const validator = { $jsonSchema: generateJsonSchema(schema) };
+  console.log(`attachSchema(${collection._name}):`, validator.$jsonSchema);
   const db = collection.rawDatabase();
 
   try {

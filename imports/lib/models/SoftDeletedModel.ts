@@ -6,6 +6,15 @@ import type { stringId } from "./customTypes";
 import { deleted } from "./customTypes";
 import type { MongoRecordZodType } from "./generateJsonSchema";
 
+type extendShape<A extends object, B extends object> = keyof A &
+  keyof B extends never // fast path when there is no keys overlap
+  ? A & B
+  : {
+      [K in keyof A as K extends keyof B ? never : K]: A[K];
+    } & {
+      [K in keyof B]: B[K];
+    };
+
 const injectQuery = <S extends Mongo.Selector<any>>(
   selector: S | string | Mongo.ObjectID | undefined,
   injection: S,
@@ -53,16 +62,8 @@ class SoftDeletedModel<
   Schema extends MongoRecordZodType,
   IdSchema extends z.ZodTypeAny = typeof stringId,
 > extends Model<
-  Schema extends z.ZodObject<
-    infer Shape extends z.ZodRawShape,
-    infer UnknownKeys,
-    infer Catchall
-  >
-    ? z.ZodObject<
-        z.objectUtil.extendShape<Shape, { deleted: typeof deleted }>,
-        UnknownKeys,
-        Catchall
-      >
+  Schema extends z.ZodObject<infer Shape extends z.ZodRawShape>
+    ? z.ZodObject<extendShape<Shape, { deleted: typeof deleted }>>
     : z.ZodIntersection<Schema, z.ZodObject<{ deleted: typeof deleted }>>,
   IdSchema
 > {
@@ -71,7 +72,7 @@ class SoftDeletedModel<
       name,
       schema instanceof z.ZodObject
         ? schema.extend({ deleted })
-        : (schema.and(z.object({ deleted })) as any),
+        : (z.intersection(schema, z.object({ deleted })) as any),
       idSchema,
     );
   }

@@ -1,3 +1,4 @@
+/* eslint-disable no-underscore-dangle -- _zod is not under our control */
 import { Mongo, MongoInternals } from "meteor/mongo";
 import type {
   Document,
@@ -5,10 +6,22 @@ import type {
   IndexSpecification,
   CreateIndexesOptions,
 } from "mongodb";
-import { z } from "zod";
+import * as z from "zod";
+import type * as zc from "zod/v4/core";
 import { IsInsert, IsUpdate, IsUpsert, stringId } from "./customTypes";
 import type { MongoRecordZodType } from "./generateJsonSchema";
 import validateSchema from "./validateSchema";
+
+type identity<T> = T;
+type flatten<T> = identity<{ [k in keyof T]: T[k] }>;
+type extendShape<A extends object, B extends object> = keyof A &
+  keyof B extends never // fast path when there is no keys overlap
+  ? A & B
+  : {
+      [K in keyof A as K extends keyof B ? never : K]: A[K];
+    } & {
+      [K in keyof B]: B[K];
+    };
 
 export type Selector<T extends Document> =
   | Mongo.Selector<T>
@@ -21,7 +34,7 @@ export type SelectorToResultType<
   ? T & { _id: S }
   : S extends Mongo.ObjectID
     ? T & { _id: S }
-    : z.objectUtil.flatten<
+    : flatten<
         T & { [K in keyof S & keyof T]: S[K] extends T[K] ? S[K] : never }
       >;
 
@@ -35,18 +48,20 @@ export type SelectorToResultType<
 //
 // It's OK if any of these would accept _more_ than Mongo would accept, so long
 // as they accept _at least_ what Mongo would accept.
-export function relaxSchema(schema: z.ZodFirstPartySchemaTypes): z.$ZodType {
+export function relaxSchema(schema: zc.$ZodTypes): zc.$ZodType {
   const { def } = schema._zod;
-  switch (def.typeName) {
-    case z.ZodFirstPartyTypeKind.ZodObject: {
+  switch (def.type) {
+    case "object": {
       const newShape: any = {};
-      for (const [key, fieldSchemaUnknown] of Object.entries(def.shape())) {
-        const fieldSchema = fieldSchemaUnknown as z.$ZodType;
-        newShape[key] = relaxSchema(fieldSchema);
+      for (const [key, fieldSchemaUnknown] of Object.entries(
+        (def as zc.$ZodObjectDef).shape,
+      )) {
+        const fieldSchema = fieldSchemaUnknown;
+        newShape[key] = relaxSchema(fieldSchema as zc.$ZodTypes);
       }
       return z.looseObject(newShape).optional();
     }
-    case z.ZodFirstPartyTypeKind.ZodArray:
+    case "array":
       // Depending on how we're manipulating the array, it can either be:
       // - A record of stringified numbers to elements (not actually, but this
       //   is what we end up with from getSchemaForField)
@@ -58,48 +73,75 @@ export function relaxSchema(schema: z.ZodFirstPartySchemaTypes): z.$ZodType {
       // matches)
       return z
         .union([
-          z.record(z.coerce.number(), relaxSchema(def.type)).optional(),
-          z.looseObject({ $each: z.array(relaxSchema(def.type)) })
+          z
+            .record(
+              z.coerce.number<number>(),
+              relaxSchema(def.element as zc.$ZodTypes),
+            )
             .optional(),
-          relaxSchema(def.type).optional(),
-          z.array(relaxSchema(def.type)).optional(),
+          z
+            .looseObject({
+              $each: z.array(relaxSchema(def.element as zc.$ZodTypes)),
+            })
+            .optional(),
+          // relaxSchema((def as z.ZodArray).element).optional(),
+          z.array(relaxSchema(def.element as zc.$ZodTypes)).optional(),
         ])
         .optional();
-    case z.ZodFirstPartyTypeKind.ZodUnion:
-      return z.union(def.options.map(relaxSchema)).optional();
-    case z.ZodFirstPartyTypeKind.ZodDiscriminatedUnion:
-      return z.union(def.options.map(relaxSchema)).optional();
-    case z.ZodFirstPartyTypeKind.ZodIntersection:
+    case "union":
       return z
-        .intersection(relaxSchema(def.left), relaxSchema(def.right))
+        .union((def.options as zc.$ZodTypes[]).map(relaxSchema))
         .optional();
-    case z.ZodFirstPartyTypeKind.ZodTuple:
-      return z.tuple(def.items.map(relaxSchema)).optional();
-    case z.ZodFirstPartyTypeKind.ZodRecord:
-      return z.record(def.keyType, relaxSchema(def.valueType)).optional();
-    case z.ZodFirstPartyTypeKind.ZodDefault: {
+    case "intersection":
+      return z
+        .intersection(
+          relaxSchema(def.left as zc.$ZodTypes),
+          relaxSchema(def.right as zc.$ZodTypes),
+        )
+        .optional();
+    case "tuple":
+      return z
+        .tuple(
+          (def.items as zc.$ZodTypes[]).map(relaxSchema) as [
+            zc.$ZodType,
+            ...zc.$ZodType[],
+          ],
+        )
+        .optional();
+    case "record":
+      return z
+        .record(def.keyType, relaxSchema(def.valueType as zc.$ZodTypes))
+        .optional();
+    case "default": {
       const { defaultValue, innerType } = def;
-      return relaxSchema(innerType).transform(
-        (v: z.output<typeof innerType>) => {
+      return z.pipe(
+        relaxSchema(innerType as zc.$ZodTypes),
+        z.transform((v: z.output<typeof innerType>) => {
           if (v !== undefined) return v;
           if (
             IsInsert.getOrNullIfOutsideFiber() ||
             IsUpsert.getOrNullIfOutsideFiber()
           ) {
-            return defaultValue();
+            return defaultValue && typeof defaultValue === "function"
+              ? defaultValue()
+              : defaultValue;
           }
           return undefined;
-        },
+        }),
       );
     }
     default:
-      return schema.isOptional() ? schema : schema.optional();
+      console.log(schema);
+      throw new Error(
+        `Unsupported type ${def.type} in schema passed to relaxSchema`,
+      );
+    // return schema.isOptional() ? schema : schema.optional();
   }
 }
 
-export function flattenSchemas<Schemas extends z.$ZodType[]>(
+export function flattenSchemas<Schemas extends zc.$ZodType[]>(
   schemas: Schemas,
-): z.$ZodType {
+): zc.$ZodType {
   const [first, second, ...rest] = schemas.filter(
     (s) => !(s instanceof z.ZodNever),
   );
@@ -114,31 +156,30 @@ export function flattenSchemas<Schemas extends z.$ZodType[]>(
   return z.union([first, second, ...rest]);
 }
 
-export function getSchemaForField<Schema extends z.$ZodType>(
+export function getSchemaForField<Schema extends zc.$ZodTypes>(
   schema: Schema,
   field: string,
-): z.$ZodType {
-  const { _def: def } = schema;
-  switch (def.typeName) {
-    case z.ZodFirstPartyTypeKind.ZodObject:
-      if (field in def.shape()) {
-        return def.shape()[field];
+): zc.$ZodType {
+  const { def } = schema._zod;
+  switch (def.type) {
+    case "object":
+      if (field in def.shape) {
+        return def.shape[field]!;
       }
       return z.never();
-    case z.ZodFirstPartyTypeKind.ZodUnion:
-    case z.ZodFirstPartyTypeKind.ZodDiscriminatedUnion:
+    case "union":
       return flattenSchemas(
-        def.options.flatMap(<T extends z.$ZodType>(option: T) => {
-          return getSchemaForField(option, field);
+        def.options.flatMap(<T extends zc.$ZodType>(option: T) => {
+          return getSchemaForField(option as unknown as zc.$ZodTypes, field);
         }),
       );
-    case z.ZodFirstPartyTypeKind.ZodIntersection:
+    case "intersection":
       return flattenSchemas(
-        [def.left, def.right].flatMap(<T extends z.$ZodType>(option: T) => {
-          return getSchemaForField(option, field);
+        [def.left, def.right].flatMap(<T extends zc.$ZodType>(option: T) => {
+          return getSchemaForField(option as unknown as zc.$ZodTypes, field);
         }),
       );
-    case z.ZodFirstPartyTypeKind.ZodTuple: {
+    case "tuple": {
       let index;
       try {
         index = parseInt(field, 10);
@@ -147,30 +188,30 @@ export function getSchemaForField<Schema extends z.$ZodType>(
       }
       return def.items[index] ?? z.never();
     }
-    case z.ZodFirstPartyTypeKind.ZodArray: {
+    case "array": {
       try {
         parseInt(field, 10);
         // if the field is a number, it's a valid array index
-        return def.type;
+        return def.element;
       } catch (e) {
         return z.never();
       }
     }
-    case z.ZodFirstPartyTypeKind.ZodRecord:
-      if (def.keyType.safeParse(field).success) {
+    case "record":
+      if (z.safeParse(def.keyType, field).success) {
         return def.valueType;
       } else {
         return z.never();
       }
-    case z.ZodFirstPartyTypeKind.ZodOptional:
-      return getSchemaForField(def.innerType, field);
+    case "optional":
+      return getSchemaForField(def.innerType as zc.$ZodTypes, field);
     default:
-      throw new Error(`Unable to traverse schema type ${def.typeName}`);
+      throw new Error(`Unable to traverse schema type ${def.type}`);
   }
 }
 
 export async function parseMongoOperationAsync(
-  relaxedSchema: z.$ZodType,
+  relaxedSchema: zc.$ZodType,
   operation: Record<string, any>,
   parsed: Record<string, any> = {},
   pathParts: string[] = [],
@@ -194,14 +235,18 @@ export async function parseMongoOperationAsync(
     }
   }
 
-  const parsedNonDotSeparatedKeys =
-    await relaxedSchema.parseAsync(nonDotSeparatedKeys);
-  for (const [key, value] of Object.entries(parsedNonDotSeparatedKeys)) {
+  const parsedNonDotSeparatedKeys = await z.parseAsync(
+    relaxedSchema,
+    nonDotSeparatedKeys,
+  );
+  for (const [key, value] of Object.entries(
+    parsedNonDotSeparatedKeys as object,
+  )) {
     parsed[pathParts.concat(key).join(".")] = value;
   }
 
   for (const [prefix, suboperation] of Object.entries(dotSeparatedKeys)) {
-    const subschema = getSchemaForField(relaxedSchema, prefix);
+    const subschema = getSchemaForField(relaxedSchema as zc.$ZodTypes, prefix);
     await parseMongoOperationAsync(
       subschema,
       suboperation,
@@ -408,23 +453,15 @@ export const AllModels = new Set<Model<any, any>>();
 
 class Model<
   Schema extends MongoRecordZodType,
-  IdSchema extends z.$ZodType = typeof stringId,
+  IdSchema extends zc.$ZodType = typeof stringId,
 > {
   name: string;
 
-  schema: Schema extends z.ZodObject<
-    infer Shape extends z.ZodRawShape,
-    infer UnknownKeys,
-    infer Catchall
-  >
-    ? z.ZodObject<
-        z.objectUtil.extendShape<Shape, { _id: IdSchema }>,
-        UnknownKeys,
-        Catchall
-      >
+  schema: Schema extends z.ZodObject<infer Shape extends z.ZodRawShape>
+    ? z.ZodObject<extendShape<Shape, { _id: IdSchema }>>
     : z.ZodIntersection<Schema, z.ZodObject<{ _id: IdSchema }>>;
 
-  relaxedSchema: z.$ZodType;
+  relaxedSchema: zc.$ZodType;
 
   collection: Mongo.Collection<z.output<this["schema"]>>;
 
@@ -434,7 +471,10 @@ class Model<
     this.schema =
       schema instanceof z.ZodObject
         ? schema.extend({ _id: idSchema ?? stringId })
-        : (schema.and(z.object({ _id: idSchema ?? stringId })) as any);
+        : (z.intersection(
+            schema,
+            z.object({ _id: idSchema ?? stringId }),
+          ) as any);
     validateSchema(this.schema);
     this.name = name;
     this.relaxedSchema = relaxSchema(this.schema);
@@ -472,7 +512,7 @@ class Model<
       },
     );
     try {
-      return await this.collection.insertAsync(parsed);
+      return (await this.collection.insertAsync(parsed)) as z.output<IdSchema>;
     } catch (e) {
       formatValidationError(e);
       throw e;
@@ -531,7 +571,10 @@ class Model<
       }
     }
 
-    const parsed = await parseMongoModifierAsync(this.relaxedSchema, modifier);
+    const parsed = await parseMongoModifierAsync(
+      this.relaxedSchema as any,
+      modifier,
+    );
     try {
       return await this.collection.updateAsync(selector, parsed, mongoOptions);
     } catch (e) {
@@ -555,7 +598,10 @@ class Model<
     numberAffected?: number | undefined;
     insertedId?: z.output<IdSchema> | undefined;
   }> {
-    const parsed = await parseMongoModifierAsync(this.relaxedSchema, modifier);
+    const parsed = await parseMongoModifierAsync(
+      this.relaxedSchema as any,
+      modifier as Mongo.Modifier<z.input<this["schema"]>>,
+    );
     try {
       return (await this.collection.upsertAsync(
         selector,

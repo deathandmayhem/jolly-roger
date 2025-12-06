@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
-import { z } from "zod";
+/* eslint-disable no-underscore-dangle -- we cannot control _zod */
+import * as z from "zod/v4/core";
 import { Email, URL, UUID } from "./regexes";
 
 // This file is heavily inspired by zod-to-json-schema, but we use our own
@@ -7,10 +8,11 @@ import { Email, URL, UUID } from "./regexes";
 // json-schema than MongoDB (b) we wanted support for custom schema declarations
 
 export type MongoRecordZodType =
-  | z.ZodUnion<any>
-  | z.ZodDiscriminatedUnion<any, any>
-  | z.ZodIntersection<any, any>
-  | z.ZodRecord<any, any>;
+  | z.$ZodObject<any>
+  | z.$ZodUnion<any>
+  | z.$ZodDiscriminatedUnion<any>
+  | z.$ZodIntersection<any, any>;
+//  | z.$ZodRecord<any, any>;
 
 type BsonType =
   | "double"
@@ -71,69 +73,86 @@ export interface JsonSchema {
 function stringToSchema(def: z.$ZodStringDef): JsonSchema {
   const bsonType = "string";
 
-  const constraints = def.checks.reduce<Partial<JsonSchema>>((acc, check) => {
-    switch (check.kind) {
-      case "min":
-        return {
-          ...acc,
-          minLength: acc.minLength
-            ? Math.max(acc.minLength, check.value)
-            : check.value,
-        };
-      case "max":
-        return {
-          ...acc,
-          maxLength: acc.maxLength
-            ? Math.min(acc.maxLength, check.value)
-            : check.value,
-        };
-      case "length":
-        return {
-          ...acc,
-          minLength: acc.minLength
-            ? Math.max(acc.minLength, check.value)
-            : check.value,
-          maxLength: acc.maxLength
-            ? Math.min(acc.maxLength, check.value)
-            : check.value,
-        };
-      case "regex":
-      case "email":
-      case "uuid":
-      case "url": {
-        let pattern;
-        // eslint-disable-next-line default-case
-        switch (check.kind) {
-          case "regex":
-            pattern = check.regex;
-            break;
-          case "email":
-            pattern = Email;
-            break;
-          case "uuid":
-            pattern = UUID;
-            break;
-          case "url":
-            pattern = URL;
-            break;
-        }
-        if (pattern.flags !== "") {
-          throw new Error("Regex flags are not supported");
-        }
+  const constraints = (def.checks ?? []).reduce<Partial<JsonSchema>>(
+    (acc, check) => {
+      const checkDef = check._zod.def;
+      switch (checkDef.check) {
+        case "min_length":
+          return {
+            ...acc,
+            minLength: acc.minLength
+              ? Math.max(
+                  acc.minLength,
+                  (checkDef as z.$ZodCheckMinLengthDef).minimum,
+                )
+              : (checkDef as z.$ZodCheckMinLengthDef).minimum,
+          };
+        case "max_length":
+          return {
+            ...acc,
+            maxLength: acc.maxLength
+              ? Math.min(
+                  acc.maxLength,
+                  (checkDef as z.$ZodCheckMaxLengthDef).maximum,
+                )
+              : (checkDef as z.$ZodCheckMaxLengthDef).maximum,
+          };
+        case "length_equals":
+          return {
+            ...acc,
+            minLength: acc.minLength
+              ? Math.max(
+                  acc.minLength,
+                  (checkDef as z.$ZodCheckLengthEqualsDef).length,
+                )
+              : (checkDef as z.$ZodCheckLengthEqualsDef).length,
+            maxLength: acc.maxLength
+              ? Math.min(
+                  acc.maxLength,
+                  (checkDef as z.$ZodCheckLengthEqualsDef).length,
+                )
+              : (checkDef as z.$ZodCheckLengthEqualsDef).length,
+          };
+        case "string_format": {
+          let pattern;
+          const { format } = checkDef as z.$ZodCheckStringFormatDef;
+          switch (format) {
+            case "regex":
+              pattern = (checkDef as z.$ZodCheckRegexDef).pattern;
+              break;
+            case "email":
+              pattern = Email;
+              break;
+            case "uuid":
+              pattern = UUID;
+              break;
+            case "url":
+              pattern = URL;
+              break;
+            default:
+              throw new Error(
+                `Unimplemented string_format check format ${format}`,
+              );
+          }
+          if (pattern.flags !== "") {
+            throw new Error("Regex flags are not supported");
+          }
 
-        return {
-          ...acc,
-          ...(acc.pattern
-            ? {
-                allOf: [...(acc.allOf ?? []), { pattern: pattern.source }],
-              }
-            : { pattern: pattern.source }),
-        };
+          return {
+            ...acc,
+            ...(acc.pattern
+              ? {
+                  allOf: [...(acc.allOf ?? []), { pattern: pattern.source }],
+                }
+              : { pattern: pattern.source }),
+          };
+        }
+        default:
+          throw new Error(`Unsupported string check: ${checkDef.check}`);
       }
-      default:
-        throw new Error(`Unsupported string check: ${check.kind}`);
-    }
-  }, {});
+    },
+    {},
+  );
 
   return {
     bsonType,
@@ -141,7 +160,7 @@ function stringToSchema(def: z.$ZodStringDef): JsonSchema {
   };
 }
 
-function numberToSchema(def: z.ZodNumberDef): JsonSchema {
+function numberToSchema(def: z.$ZodNumberDef): JsonSchema {
   const constraints = def.checks.reduce<Partial<JsonSchema>>((acc, check) => {
     switch (check.kind) {
       case "int":
@@ -397,7 +416,7 @@ function intersectionToSchema(
   };
 }
 
-function tupleToSchema(def: z.ZodTupleDef<any>): JsonSchema {
+function tupleToSchema(def: z.$ZodTupleDef<any>): JsonSchema {
   return {
     bsonType: "array",
     items: def.items.map(schemaToJsonSchema),
@@ -405,12 +424,13 @@ function tupleToSchema(def: z.ZodTupleDef<any>): JsonSchema {
   };
 }
 
-function recordToSchema(def: z.ZodRecordDef<any>): JsonSchema {
-  if (!(def.keyType instanceof z.ZodString)) {
+function recordToSchema(def: z.$ZodRecordDef<any>): JsonSchema {
+  if (!(def.keyType instanceof z.$ZodString)) {
     throw new Error("Record key type must be string");
   }
 
-  if (def.keyType._def.checks.length > 0) {
+  const keyTypeDef = def.keyType._zod.def;
+  if (keyTypeDef.checks) {
     throw new Error("Record key type checks are not supported");
   }
 
@@ -420,15 +440,11 @@ function recordToSchema(def: z.ZodRecordDef<any>): JsonSchema {
   };
 }
 
-function enumToSchema(def: z.ZodEnumDef): JsonSchema {
+function enumToSchema(def: z.$ZodEnumDef): JsonSchema {
+  console.log("Trying to enumToSchema", def);
+  console.log("def.entries = ", def.entries);
   return {
-    enum: def.values,
-  };
-}
-
-function nativeEnumToSchema(def: z.ZodNativeEnumDef): JsonSchema {
-  return {
-    enum: Object.values(def.values),
+    enum: [...def.entries.values],
   };
 }
 
@@ -438,7 +454,7 @@ function nativeEnumToSchema(def: z.ZodNativeEnumDef): JsonSchema {
 // useful with json-schema or Mongo, neither of which can represent undefined.
 // So just return the inner type to keep our schema as simpler.
 function optionalToSchema(
-  def: z.ZodOptionalDef<any>,
+  def: z.$ZodOptionalDef<any>,
   allowedKeys: Set<string>,
   catchall: boolean,
 ): JsonSchema {
@@ -446,7 +462,7 @@ function optionalToSchema(
 }
 
 function nullableToSchema(
-  def: z.ZodNullableDef<any>,
+  def: z.$ZodNullableDef<any>,
   allowedKeys: Set<string>,
   catchall: boolean,
 ): JsonSchema {
@@ -465,7 +481,7 @@ function nullableToSchema(
 // This should be the not-nullable version of the inner type, since the default
 // must match the inner type.
 function defaultToSchema(
-  def: z.ZodDefaultDef<any>,
+  def: z.$ZodDefaultDef<any>,
   allowedKeys: Set<string>,
   catchall: boolean,
 ): JsonSchema {
@@ -486,7 +502,7 @@ function defaultToSchema(
 //
 // To work around that, we need to detect if one side of an intersection is
 // object-like, and push the properties it allows into the other side.
-export function schemaToJsonSchema<T extends z.ZodFirstPartySchemaTypes>(
+export function schemaToJsonSchema<T extends z.$ZodType>(
   schema: T,
   allowedKeys: Set<string> = new Set(),
   catchall = false,
@@ -495,60 +511,59 @@ export function schemaToJsonSchema<T extends z.ZodFirstPartySchemaTypes>(
     return schema.customJsonSchema;
   }
 
-  const { _def: def } = schema;
-  switch (def.typeName) {
+  const { def } = schema._zod;
+  switch (def.type) {
     // scalars
-    case z.ZodFirstPartyTypeKind.ZodString:
+    case "string":
       return stringToSchema(def);
-    case z.ZodFirstPartyTypeKind.ZodNumber:
+    case "number":
       return numberToSchema(def);
-    case z.ZodFirstPartyTypeKind.ZodDate:
+    case "date":
       return dateToSchema(def);
-    case z.ZodFirstPartyTypeKind.ZodLiteral:
+    case "literal":
       return literalToSchema(def);
-    case z.ZodFirstPartyTypeKind.ZodBoolean:
+    case "boolean":
       return { bsonType: "bool" };
-    case z.ZodFirstPartyTypeKind.ZodNull:
+    case "null":
       return { bsonType: "null" };
     // Treat "unknown" as any. They have different meanings at the type layer,
     // but at the database layer, they're equivalent
-    case z.ZodFirstPartyTypeKind.ZodUnknown:
-    case z.ZodFirstPartyTypeKind.ZodAny:
+    case "unknown":
+    case "any":
       return {};
 
     // collections
-    case z.ZodFirstPartyTypeKind.ZodArray:
+    case "array":
       return arrayToSchema(def);
-    case z.ZodFirstPartyTypeKind.ZodObject:
+    case "object":
       return objectToSchema(def, allowedKeys, catchall);
-    case z.ZodFirstPartyTypeKind.ZodUnion:
+    case "union":
       return unionToSchema(def, allowedKeys, catchall);
-    case z.ZodFirstPartyTypeKind.ZodDiscriminatedUnion:
-      return discriminatedUnionToSchema(def, allowedKeys, catchall);
-    case z.ZodFirstPartyTypeKind.ZodIntersection:
+    // TODO: investigate disc. union
+    //    case z.ZodFirstPartyTypeKind.ZodDiscriminatedUnion:
+    //      return discriminatedUnionToSchema(def, allowedKeys, catchall);
+    case "intersection":
       return intersectionToSchema(def, allowedKeys, catchall);
-    case z.ZodFirstPartyTypeKind.ZodTuple:
+    case "tuple":
       return tupleToSchema(def);
-    case z.ZodFirstPartyTypeKind.ZodRecord:
+    case "record":
       return recordToSchema(def);
-    case z.ZodFirstPartyTypeKind.ZodEnum:
+    case "enum":
       return enumToSchema(def);
-    case z.ZodFirstPartyTypeKind.ZodNativeEnum:
-      return nativeEnumToSchema(def);
-    case z.ZodFirstPartyTypeKind.ZodOptional:
+    case "optional":
       return optionalToSchema(def, allowedKeys, catchall);
-    case z.ZodFirstPartyTypeKind.ZodNullable:
+    case "nullable":
       return nullableToSchema(def, allowedKeys, catchall);
-    case z.ZodFirstPartyTypeKind.ZodDefault:
+    case "default":
       return defaultToSchema(def, allowedKeys, catchall);
     default:
       throw new Error(
-        `Unsupported schema type: ${def.typeName}; use customJsonSchema instead`,
+        `Unsupported schema type: ${def.type}; use customJsonSchema instead`,
       );
   }
 }
 
-export function attachCustomJsonSchema<T extends z.ZodTypeAny>(
+export function attachCustomJsonSchema<T extends z.$ZodTypes>(
   schema: T,
   customSchema: JsonSchema,
   required = false,

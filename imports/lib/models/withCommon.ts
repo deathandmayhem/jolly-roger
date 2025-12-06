@@ -14,16 +14,8 @@ const CombinedFields = {
 // only slightly) cleaner.
 export default function withCommon<T extends MongoRecordZodType>(
   schema: T,
-): T extends z.ZodObject<
-  infer Shape extends z.ZodRawShape,
-  infer UnknownKeys,
-  infer Catchall
->
-  ? z.ZodObject<
-      Shape & typeof TimestampFields & typeof UserFields,
-      UnknownKeys,
-      Catchall
-    >
+): T extends z.ZodObject<infer Shape extends z.ZodRawShape>
+  ? z.ZodObject<Shape & typeof TimestampFields & typeof UserFields>
   : z.ZodIntersection<
       T,
       z.ZodObject<typeof TimestampFields & typeof UserFields>
@@ -35,9 +27,8 @@ export default function withCommon<T extends MongoRecordZodType>(
     if (alreadyContainsFields) {
       throw new Error("schema already contains fields from withCommon");
     }
+    return schema.extend(CombinedFields) as any;
   }
 
-  return schema instanceof z.ZodObject
-    ? (schema.extend(CombinedFields) as any)
-    : (schema.and(z.object(CombinedFields)) as any);
+  return z.intersection(schema, z.object(CombinedFields)) as any;
 }

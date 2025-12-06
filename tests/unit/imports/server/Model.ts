@@ -232,7 +232,7 @@ describe("Model", function () {
       const relaxed = relaxSchema(schema);
 
       // An example $set operation
-      let valid = await relaxed.safeParseAsync({
+      let valid = await z.safeParseAsync(relaxed, {
         string: "foo",
         array: ["foo"],
         object: { string: "foo" },
@@ -241,27 +241,27 @@ describe("Model", function () {
       assert.isTrue(valid.success);
 
       // A $set on the other half of the union
-      valid = await relaxed.safeParseAsync({
+      valid = await z.safeParseAsync(relaxed, {
         unionedString: "foo",
       });
       assert.isTrue(valid.success);
 
       // An example $push operation
-      valid = await relaxed.safeParseAsync({
+      valid = await z.safeParseAsync(relaxed, {
         array: "foo",
         arrayOfObjects: { string: "foo" },
       });
       assert.isTrue(valid.success);
 
       // An example $addToSet operation
-      valid = await relaxed.safeParseAsync({
+      valid = await z.safeParseAsync(relaxed, {
         array: { $each: ["foo"] },
         arrayOfObjects: { $each: [{ string: "foo" }] },
       });
       assert.isTrue(valid.success);
 
       // An example $inc operation
-      valid = await relaxed.safeParseAsync({
+      valid = await z.safeParseAsync(relaxed, {
         number: 1,
       });
       assert.isTrue(valid.success);
@@ -274,21 +274,21 @@ describe("Model", function () {
       const relaxed = relaxSchema(schema);
 
       // A $set operation (with and without a value)
-      let valid = await relaxed.safeParseAsync({
+      let valid = await z.safeParseAsync(relaxed, {
         array: ["foo"],
       });
       assert.isTrue(valid.success);
-      valid = await relaxed.safeParseAsync({});
+      valid = await z.safeParseAsync(relaxed, {});
       assert.isTrue(valid.success);
 
       // A $push operation
-      valid = await relaxed.safeParseAsync({
+      valid = await z.safeParseAsync(relaxed, {
         array: "foo",
       });
       assert.isTrue(valid.success);
 
       // A $addToSet operation
-      valid = await relaxed.safeParseAsync({
+      valid = await z.safeParseAsync(relaxed, {
         array: { $each: ["foo"] },
       });
       assert.isTrue(valid.success);
@@ -300,7 +300,7 @@ describe("Model", function () {
       });
       const relaxed = relaxSchema(schema);
 
-      const valid = await relaxed.safeParseAsync({
+      const valid = await z.safeParseAsync(relaxed, {
         array: { $each: ["foo", "bar"] },
       });
       assert.isTrue(valid.success);

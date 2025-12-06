@@ -16,10 +16,8 @@ type Projection<T> = Partial<Record<keyof T, 0 | 1>>;
 // the types of the subsequent levels in the generic parameters to PublishSpec,
 // effectively building the tree in the generic parameters. I'm not entirely
 // sure how to actually do that.
-export type PublishSpec<T extends { _id: string }> = {
-  model:
-    | Mongo.Collection<T>
-    | Model<z.ZodType<T, any, any> & MongoRecordZodType>;
+export type PublishSpec<T extends { _id: string } & z.ZodRawShape> = {
+  model: Mongo.Collection<T> | Model<z.ZodObject<T> & MongoRecordZodType>;
   allowDeleted?: boolean;
   projection?: Projection<T>;
   foreignKeys?: {
@@ -33,7 +31,9 @@ function modelName(model: Mongo.Collection<any> | Model<any>) {
   return model instanceof Mongo.Collection ? model._name : model.name;
 }
 
-class RefCountedJoinedObjectObserverMap<T extends { _id: string }> {
+class RefCountedJoinedObjectObserverMap<
+  T extends { _id: string } & z.ZodRawShape,
+> {
   sub: Subscription;
 
   subscribers: Map<
@@ -102,7 +102,7 @@ const finder = (
     : model.find.bind(model);
 };
 
-class JoinedObjectObserver<T extends { _id: string }> {
+class JoinedObjectObserver<T extends { _id: string } & z.ZodRawShape> {
   sub: Subscription;
 
   id: string;
