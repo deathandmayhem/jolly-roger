@@ -72,7 +72,7 @@
     "usehooks-ts": "^3.1.1",
     "winston": "^3.18.3",
     "winston-transport": "^4.9.0",
-    "zod": "^3.23.8"
+    "zod": "^4.1.13"
   },
   "devDependencies": {
     "@testing-library/dom": "^10.4.1",
