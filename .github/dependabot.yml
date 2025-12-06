@@ -8,14 +8,6 @@ updates:
     open-pull-requests-limit: 20
     ignore:
       # All of these dependencies require Node v16 or greater
-      - dependency-name: "@typescript-eslint/eslint-plugin"
-        versions: [">=6"]
-      - dependency-name: "@typescript-eslint/parser"
-        versions: [">=6"]
-      - dependency-name: "@typescript-eslint/utils"
-        versions: [">=6"]
-      - dependency-name: "eslint-plugin-deprecation"
-        versions: [">=2"]
       - dependency-name: "discord.js"
         versions: [">=13"]
     groups:

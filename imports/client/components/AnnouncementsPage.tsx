@@ -69,10 +69,10 @@ const AnnouncementFormInput = ({
     }
   }, [message, huntId]);
 
-  const disabled = submitState === "submitting";
+  const disabled = submitState === AnnouncementFormSubmitState.SUBMITTING;
   return (
     <BoundedForm>
-      {submitState === "failed" ? (
+      {submitState === AnnouncementFormSubmitState.FAILED ? (
         <Alert variant="danger">{errorMessage}</Alert>
       ) : null}
       {message && (

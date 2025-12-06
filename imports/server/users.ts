@@ -40,11 +40,9 @@ const republishOnUserChange = async (
     | Mongo.Cursor<Meteor.User>
     | undefined
     | Promise<Mongo.Cursor<Meteor.User> | undefined>,
-  makeTransform?:
-    | undefined
-    | ((
-        user: Meteor.User,
-      ) => undefined | ((u: Partial<Meteor.User>) => Partial<Meteor.User>)),
+  makeTransform?: (
+    user: Meteor.User,
+  ) => undefined | ((u: Partial<Meteor.User>) => Partial<Meteor.User>),
 ) => {
   const u = (await MeteorUsers.findOneAsync(sub.userId!))!;
   const merger = new PublicationMerger(sub);

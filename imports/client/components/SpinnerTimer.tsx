@@ -70,9 +70,7 @@ const SpinnerTimer = ({
   }, [startTime, endTime, width, height]);
 
   useEffect(() => {
-    if (!periodicHandle.current) {
-      periodicHandle.current = window.requestAnimationFrame(drawSpinner);
-    }
+    periodicHandle.current ??= window.requestAnimationFrame(drawSpinner);
     return () => {
       if (periodicHandle.current) {
         window.cancelAnimationFrame(periodicHandle.current);

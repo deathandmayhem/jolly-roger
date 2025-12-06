@@ -13,8 +13,8 @@ const blobMappingsSub = typedSubscribe(blobMappingsAll);
 export default function lookupUrl(image: string) {
   let mapping = BlobMappings.findOne(image)?.blob;
   if (!blobMappingsSub.ready()) {
-    mapping ||= __meteor_runtime_config__.blobMappings?.[image];
+    mapping ??= __meteor_runtime_config__.blobMappings?.[image];
   }
-  mapping ||= __meteor_runtime_config__.defaultBlobMappings[image];
+  mapping ??= __meteor_runtime_config__.defaultBlobMappings[image];
   return `/asset/${mapping}`;
 }

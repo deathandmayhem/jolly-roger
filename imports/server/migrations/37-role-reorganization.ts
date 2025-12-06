@@ -27,7 +27,7 @@ Migrations.add({
         if (role === "operator") {
           user.hunts?.forEach((huntId) => {
             newRoles[huntId] ||= [];
-            newRoles[huntId]!.push("operator");
+            newRoles[huntId].push("operator");
           });
         } else {
           newRoles[GLOBAL_SCOPE] ||= [];

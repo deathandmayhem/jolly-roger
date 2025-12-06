@@ -391,19 +391,19 @@ const GoogleDriveRootForm = ({ initialRootId }: { initialRootId?: string }) => {
     [],
   );
 
-  const shouldDisableForm = state.submitState === "submitting";
+  const shouldDisableForm = state.submitState === SubmitState.SUBMITTING;
 
   return (
     <div>
-      {state.submitState === "submitting" ? (
+      {state.submitState === SubmitState.SUBMITTING ? (
         <Alert variant="info">Saving...</Alert>
       ) : null}
-      {state.submitState === "success" ? (
+      {state.submitState === SubmitState.SUCCESS ? (
         <Alert variant="success" dismissible onClose={dismissAlert}>
           Saved changes.
         </Alert>
       ) : null}
-      {state.submitState === "error" ? (
+      {state.submitState === SubmitState.ERROR ? (
         <Alert variant="danger" dismissible onClose={dismissAlert}>
           Saving failed: {state.error.message}
         </Alert>
@@ -521,18 +521,18 @@ const GoogleDriveTemplateForm = ({
     [spreadsheetTemplate, docTemplate],
   );
 
-  const shouldDisableForm = state.submitState === "submitting";
+  const shouldDisableForm = state.submitState === SubmitState.SUBMITTING;
   return (
     <div>
-      {state.submitState === "submitting" ? (
+      {state.submitState === SubmitState.SUBMITTING ? (
         <Alert variant="info">Saving...</Alert>
       ) : null}
-      {state.submitState === "success" ? (
+      {state.submitState === SubmitState.SUCCESS ? (
         <Alert variant="success" dismissible onClose={dismissAlert}>
           Saved changes.
         </Alert>
       ) : null}
-      {state.submitState === "error" ? (
+      {state.submitState === SubmitState.ERROR ? (
         <Alert variant="danger" dismissible onClose={dismissAlert}>
           Saving failed: {state.error.message}
         </Alert>
@@ -638,18 +638,18 @@ const GoogleScriptForm = ({
     [endpointUrl],
   );
 
-  const shouldDisable = state.submitState === "submitting";
+  const shouldDisable = state.submitState === SubmitState.SUBMITTING;
   return (
     <>
-      {state.submitState === "submitting" ? (
+      {state.submitState === SubmitState.SUBMITTING ? (
         <Alert variant="info">Saving...</Alert>
       ) : null}
-      {state.submitState === "success" ? (
+      {state.submitState === SubmitState.SUCCESS ? (
         <Alert variant="success" dismissible onClose={dismissAlert}>
           Saved changes.
         </Alert>
       ) : null}
-      {state.submitState === "error" ? (
+      {state.submitState === SubmitState.ERROR ? (
         <Alert variant="danger" dismissible onClose={dismissAlert}>
           Saving failed: {state.error.message}
         </Alert>
@@ -1102,7 +1102,7 @@ const S3ImageBucketForm = ({
     setSubmitState(SubmitState.IDLE);
   }, []);
 
-  const shouldDisableForm = submitState === "submitting";
+  const shouldDisableForm = submitState === SubmitState.SUBMITTING;
 
   const saveConfig = useCallback(
     (e: React.FormEvent<HTMLFormElement>) => {
@@ -1122,15 +1122,15 @@ const S3ImageBucketForm = ({
 
   return (
     <form onSubmit={saveConfig}>
-      {submitState === "submitting" ? (
+      {submitState === SubmitState.SUBMITTING ? (
         <Alert variant="info">Saving...</Alert>
       ) : null}
-      {submitState === "success" ? (
+      {submitState === SubmitState.SUCCESS ? (
         <Alert variant="success" dismissible onClose={dismissAlert}>
           Saved changes.
         </Alert>
       ) : null}
-      {submitState === "error" ? (
+      {submitState === SubmitState.ERROR ? (
         <Alert variant="danger" dismissible onClose={dismissAlert}>
           Saving failed: {submitError}
         </Alert>
@@ -1303,18 +1303,18 @@ const EmailConfigForm = ({
     ],
   );
 
-  const shouldDisableForm = submitState === "submitting";
+  const shouldDisableForm = submitState === SubmitState.SUBMITTING;
   return (
     <div>
-      {submitState === "submitting" ? (
+      {submitState === SubmitState.SUBMITTING ? (
         <Alert variant="info">Saving...</Alert>
       ) : null}
-      {submitState === "success" ? (
+      {submitState === SubmitState.SUCCESS ? (
         <Alert variant="success" dismissible onClose={dismissAlert}>
           Saved changes.
         </Alert>
       ) : null}
-      {submitState === "error" ? (
+      {submitState === SubmitState.ERROR ? (
         <Alert variant="danger" dismissible onClose={dismissAlert}>
           Saving failed: {submitError}
         </Alert>
@@ -1594,22 +1594,22 @@ const DiscordOAuthForm = ({ oauthSettings }: { oauthSettings: any }) => {
     [clientId, clientSecret],
   );
 
-  const shouldDisableForm = submitState === "submitting";
+  const shouldDisableForm = submitState === SubmitState.SUBMITTING;
   const configured = !!oauthSettings;
   const secretPlaceholder = configured
     ? "<configured secret not revealed>"
     : "";
   return (
     <div>
-      {submitState === "submitting" ? (
+      {submitState === SubmitState.SUBMITTING ? (
         <Alert variant="info">Saving...</Alert>
       ) : null}
-      {submitState === "success" ? (
+      {submitState === SubmitState.SUCCESS ? (
         <Alert variant="success" dismissible onClose={dismissAlert}>
           Saved changes.
         </Alert>
       ) : null}
-      {submitState === "error" ? (
+      {submitState === SubmitState.ERROR ? (
         <Alert variant="danger" dismissible onClose={dismissAlert}>
           Saving failed: {submitError}
         </Alert>
@@ -1702,15 +1702,15 @@ const DiscordBotForm = ({
   const shouldDisableForm = submitState === SubmitState.SUBMITTING;
   return (
     <div>
-      {submitState === "submitting" ? (
+      {submitState === SubmitState.SUBMITTING ? (
         <Alert variant="info">Saving...</Alert>
       ) : null}
-      {submitState === "success" ? (
+      {submitState === SubmitState.SUCCESS ? (
         <Alert variant="success" dismissible onClose={dismissAlert}>
           Saved changes.
         </Alert>
       ) : null}
-      {submitState === "error" ? (
+      {submitState === SubmitState.ERROR ? (
         <Alert variant="danger" dismissible onClose={dismissAlert}>
           Saving failed: {submitError}
         </Alert>
@@ -1799,15 +1799,15 @@ const DiscordGuildForm = ({
   const formOptions = [noneOption, ...guilds];
   return (
     <div>
-      {submitState === "submitting" ? (
+      {submitState === SubmitState.SUBMITTING ? (
         <Alert variant="info">Saving...</Alert>
       ) : null}
-      {submitState === "success" ? (
+      {submitState === SubmitState.SUCCESS ? (
         <Alert variant="success" dismissible onClose={dismissAlert}>
           Saved changes.
         </Alert>
       ) : null}
-      {submitState === "error" ? (
+      {submitState === SubmitState.ERROR ? (
         <Alert variant="danger" dismissible onClose={dismissAlert}>
           Saving failed: {submitError}
         </Alert>
@@ -2051,15 +2051,15 @@ const BrandingTeamName = () => {
   const shouldDisableForm = submitState === SubmitState.SUBMITTING;
   return (
     <div>
-      {submitState === "submitting" ? (
+      {submitState === SubmitState.SUBMITTING ? (
         <Alert variant="info">Saving...</Alert>
       ) : null}
-      {submitState === "success" ? (
+      {submitState === SubmitState.SUCCESS ? (
         <Alert variant="success" dismissible onClose={dismissAlert}>
           Saved changes.
         </Alert>
       ) : null}
-      {submitState === "error" ? (
+      {submitState === SubmitState.ERROR ? (
         <Alert variant="danger" dismissible onClose={dismissAlert}>
           Saving failed: {submitError}
         </Alert>
@@ -2186,15 +2186,15 @@ const BrandingAssetRow = ({
   const blobUrl = useTracker(() => lookupUrl(asset), [asset]);
   return (
     <BrandingRow>
-      {submitState === "submitting" ? (
+      {submitState === SubmitState.SUBMITTING ? (
         <Alert variant="info">Saving...</Alert>
       ) : null}
-      {submitState === "success" ? (
+      {submitState === SubmitState.SUCCESS ? (
         <Alert variant="success" dismissible onClose={dismissAlert}>
           Saved changes.
         </Alert>
       ) : null}
-      {submitState === "error" ? (
+      {submitState === SubmitState.ERROR ? (
         <Alert variant="danger" dismissible onClose={dismissAlert}>
           Saving failed: {submitError}
         </Alert>

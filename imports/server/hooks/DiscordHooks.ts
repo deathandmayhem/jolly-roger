@@ -20,7 +20,7 @@ async function makeDiscordBotFromSettings(): Promise<DiscordBot | undefined> {
   }
 
   const botSettings = await Settings.findOneAsync({ name: "discord.bot" });
-  if (!botSettings || botSettings.name !== "discord.bot") {
+  if (botSettings?.name !== "discord.bot") {
     return undefined;
   }
 

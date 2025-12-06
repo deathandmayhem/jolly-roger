@@ -1,20 +1,14 @@
-{
-  "root": true,
-  "parser": "@typescript-eslint/parser",
-  "parserOptions": {
-    "allowImportExportEverywhere": false,
-    "tsconfigRootDir": ".",
-    "project": "./tsconfig.json"
+module.exports = {
+  root: true,
+  parser: "@typescript-eslint/parser",
+  parserOptions: {
+    allowImportExportEverywhere: false,
+    tsconfigRootDir: __dirname,
+    project: "./tsconfig.json",
   },
-  "plugins": [
-    "filenames",
-    "meteor",
-    "@typescript-eslint",
-    "deprecation",
-    "jolly-roger"
-  ],
-  "reportUnusedDisableDirectives": true,
-  "extends": [
+  plugins: ["filenames", "meteor", "@typescript-eslint", "jolly-roger"],
+  reportUnusedDisableDirectives: true,
+  extends: [
     "airbnb",
     "plugin:meteor/recommended",
     "plugin:import/errors",
@@ -24,19 +18,19 @@
     "plugin:@typescript-eslint/recommended",
     "plugin:@typescript-eslint/recommended-requiring-type-checking",
     // Make sure to put this last so it can override any other rules
-    "prettier"
+    "prettier",
   ],
-  "settings": {
+  settings: {
     "import/resolver": {
-      "meteor": {
-        "extensions": [".js", ".jsx", ".ts", ".tsx"]
+      meteor: {
+        extensions: [".js", ".jsx", ".ts", ".tsx"],
       },
-      "typescript": {
-        "extensions": [".js", ".jsx", ".ts", ".tsx"]
-      }
-    }
+      typescript: {
+        extensions: [".js", ".jsx", ".ts", ".tsx"],
+      },
+    },
   },
-  "rules": {
+  rules: {
     // explicit returns can sometimes be more readable and avoid the issue of "I want to return an
     // object literal but ES6 interprets it as a function body with a void expression"
     "arrow-body-style": "off",
@@ -48,14 +42,14 @@
     "new-cap": [
       "error",
       {
-        "capIsNewExceptions": [
+        capIsNewExceptions: [
           "Optional",
           "OneOf",
           "Maybe",
           "ObjectIncluding",
-          "Router"
-        ]
-      }
+          "Router",
+        ],
+      },
     ],
 
     // sometimes else after a return reads more clearly
@@ -67,7 +61,7 @@
     "no-underscore-dangle": [
       "error",
       {
-        "allow": [
+        allow: [
           "_id",
           "_this",
           "_dropIndex",
@@ -83,23 +77,23 @@
           "_allSubscriptionsReady",
           "_onMigrate",
           "_def",
-          "_makeNewID"
-        ]
-      }
+          "_makeNewID",
+        ],
+      },
     ],
-    "camelcase": [
+    camelcase: [
       "error",
       {
-        "properties": "never",
-        "allow": [
+        properties: "never",
+        allow: [
           "__meteor_runtime_config__",
           // attempt to capture versioned Google APIs
-          "[a-z]+_v[0-9]+"
-        ]
-      }
+          "[a-z]+_v[0-9]+",
+        ],
+      },
     ],
 
-    "no-constant-condition": ["error", { "checkLoops": false }],
+    "no-constant-condition": ["error", { checkLoops: false }],
 
     // We have files with multiple React components.  Maybe we should split them out
     // later, but right now I don't want to deal with this
@@ -116,9 +110,9 @@
     "import/no-extraneous-dependencies": [
       "error",
       {
-        "optionalDependencies": true,
-        "devDependencies": ["tests/**"]
-      }
+        optionalDependencies: true,
+        devDependencies: ["tests/**"],
+      },
     ],
 
     // Imports should be grouped, and sorted within the group. Meteor imports
@@ -126,17 +120,17 @@
     "import/order": [
       "error",
       {
-        "alphabetize": { "order": "asc" },
-        "pathGroups": [
+        alphabetize: { order: "asc" },
+        pathGroups: [
           {
-            "pattern": "meteor/**",
-            "group": "external",
-            "position": "before"
-          }
+            pattern: "meteor/**",
+            group: "external",
+            position: "before",
+          },
         ],
-        "pathGroupsExcludedImportTypes": ["builtin"],
-        "newlines-between": "never"
-      }
+        pathGroupsExcludedImportTypes: ["builtin"],
+        "newlines-between": "never",
+      },
     ],
 
     // Require type-only imports as appropriate - this reduces the size of our
@@ -144,8 +138,8 @@
     "@typescript-eslint/consistent-type-imports": [
       "error",
       {
-        "prefer": "type-imports"
-      }
+        prefer: "type-imports",
+      },
     ],
 
     // Files with default exports should be named to match them
@@ -170,22 +164,19 @@
     "class-methods-use-this": "off",
 
     // Allow tsx files
-    "react/jsx-filename-extension": [1, { "extensions": [".jsx", ".tsx"] }],
+    "react/jsx-filename-extension": [1, { extensions: [".jsx", ".tsx"] }],
 
     // Detect missing deps for non-standard hooks
     "react-hooks/exhaustive-deps": [
       "warn",
-      { "additionalHooks": "useTracker|useFind" }
+      { additionalHooks: "useTracker|useFind" },
     ],
 
     // Allow disabling eslint rules on more than a single line, but only across a whole file
-    "eslint-comments/disable-enable-pair": [
-      "error",
-      { "allowWholeFile": true }
-    ],
+    "eslint-comments/disable-enable-pair": ["error", { allowWholeFile: true }],
 
     // Allow void statements to explicitly tag when we're throwing away a promise
-    "no-void": ["error", { "allowAsStatement": true }],
+    "no-void": ["error", { allowAsStatement: true }],
 
     // Relax typescript checks to accommodate existing code
     "@typescript-eslint/no-non-null-assertion": "off",
@@ -198,7 +189,7 @@
     "@typescript-eslint/restrict-template-expressions": "off",
     "@typescript-eslint/no-unused-vars": [
       "error",
-      { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }
+      { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
     ],
     "@typescript-eslint/no-namespace": "off",
     "@typescript-eslint/prefer-namespace-keyword": "off",
@@ -225,81 +216,84 @@
     "no-await-in-loop": "off",
 
     // Show errors for deprecated code
-    "deprecation/deprecation": "error",
+    "@typescript-eslint/no-deprecated": "error",
 
     // Override Airbnb's style guide to allow "for-of" iteration, which is
     // already supported by Meteor
     "no-restricted-syntax": [
       "error",
       {
-        "selector": "ForInStatement",
-        "message": "for..in loops iterate over the entire prototype chain, which is virtually never what you want. Use Object.{keys,values,entries}, and iterate over the resulting array."
+        selector: "ForInStatement",
+        message:
+          "for..in loops iterate over the entire prototype chain, which is virtually never what you want. Use Object.{keys,values,entries}, and iterate over the resulting array.",
       },
       {
-        "selector": "LabeledStatement",
-        "message": "Labels are a form of GOTO; using them makes code confusing and hard to maintain and understand."
+        selector: "LabeledStatement",
+        message:
+          "Labels are a form of GOTO; using them makes code confusing and hard to maintain and understand.",
       },
       {
-        "selector": "WithStatement",
-        "message": "`with` is disallowed in strict mode because it makes code impossible to predict and optimize."
-      }
+        selector: "WithStatement",
+        message:
+          "`with` is disallowed in strict mode because it makes code impossible to predict and optimize.",
+      },
     ],
 
     // Some external libraries (e.g. Bugsnag) require modifying parameter props
     // as part of their interface
-    "no-param-reassign": ["error", { "props": false }],
+    "no-param-reassign": ["error", { props: false }],
 
     "jolly-roger/no-disallowed-sync-methods": ["error"],
 
     // Match existing style
     "prefer-destructuring": "off",
-    "no-plusplus": ["error", { "allowForLoopAfterthoughts": true }],
+    "no-plusplus": ["error", { allowForLoopAfterthoughts: true }],
     "react/function-component-definition": [
       "error",
       {
-        "namedComponents": "arrow-function"
-      }
+        namedComponents: "arrow-function",
+      },
     ],
     "jsx-a11y/click-events-have-key-events": "off",
     "jsx-a11y/no-static-element-interactions": "off",
-    "jsx-a11y/media-has-caption": "off"
+    "jsx-a11y/media-has-caption": "off",
   },
-  "overrides": [
+  overrides: [
     {
-      "files": ["*.ts", "*.tsx"],
-      "rules": {
+      files: ["*.ts", "*.tsx"],
+      rules: {
         // The Javascript versions of these rules don't handle TypeScript
         // scoping correctly, so use the TypeScript-specific ones instead
         "no-use-before-define": "off",
         "@typescript-eslint/no-use-before-define": "error",
 
         "no-shadow": "off",
-        "@typescript-eslint/no-shadow": "error"
-      }
-    },
-    {
-      "files": "**/client/**",
-      "env": {
-        "browser": true
+        "@typescript-eslint/no-shadow": "error",
       },
-      "rules": {
+    },
+    {
+      files: "**/client/**",
+      env: {
+        browser: true,
+      },
+      rules: {
         "jolly-roger/no-disallowed-sync-methods": "off",
-        "deprecation/deprecation": "off"
-      }
+        "@typescript-eslint/no-deprecated": "off",
+      },
     },
     {
-      "files": "eslint/**",
-      "parserOptions": { "project": "eslint/tsconfig.json" }
+      files: "eslint/**",
+      parserOptions: { project: "eslint/tsconfig.json" },
     },
     {
-      "files": "**/server/**",
-      "env": {
-        "node": true
-      }
+      files: "**/server/**",
+      env: {
+        node: true,
+      },
     },
     {
-      "files": "types/**",
-      "rules": {
+      files: "types/**",
+      rules: {
         // type declarations for other libraries don't get to choose their
         // export structure
         "import/prefer-default-export": "off",
@@ -307,12 +301,12 @@
         "no-underscore-dangle": "off",
         // we often need to declare unused variables when extending generic
         // types
-        "@typescript-eslint/no-unused-vars": "off"
-      }
+        "@typescript-eslint/no-unused-vars": "off",
+      },
     },
     {
-      "files": "tests/**",
-      "rules": {
+      files: "tests/**",
+      rules: {
         // arrow functions with mocha are discouraged
         "func-names": "off",
         "prefer-arrow-callback": "off",
@@ -320,9 +314,9 @@
         // since tests run in both client and server context, sometimes we need
         // conditional imports, which can only be easily done with require
         "global-require": "off",
-        "@typescript-eslint/no-var-requires": "off",
-        "@typescript-eslint/consistent-type-imports": "off"
-      }
-    }
-  ]
-}
+        "@typescript-eslint/consistent-type-imports": "off",
+        "@typescript-eslint/no-require-imports": "off",
+      },
+    },
+  ],
+};

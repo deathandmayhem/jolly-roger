@@ -85,7 +85,7 @@ export const createdUser = foreignKey.optional().transform((v) => {
   if (v) return v;
   try {
     if (IsInsert.get() || IsUpsert.get()) return Meteor.userId()!;
-  } catch (e) {
+  } catch {
     /* ignore */
   }
   return undefined as unknown as string;
@@ -100,7 +100,7 @@ export const updatedUser = foreignKey.optional().transform((v) => {
   if (v) return v;
   try {
     if (IsUpdate.get()) return Meteor.userId() ?? undefined;
-  } catch (e) {
+  } catch {
     /* ignore */
   }
   return undefined;
