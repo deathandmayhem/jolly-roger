@@ -419,6 +419,7 @@ describe("Model", function () {
       string: nonEmptyString,
       number: z.number(),
     });
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- We're testing the type system
     let model: Model<typeof schema>;
     this.beforeAll(async function () {
       model = await createTestModel(schema);
@@ -472,6 +473,7 @@ describe("Model", function () {
 
     describe("findOne", function () {
       it("can narrow a discriminated union", async function () {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars -- We're testing the type system
         const result = await discriminatedUnionModel.findOneAsync({
           name: "foo",
         });

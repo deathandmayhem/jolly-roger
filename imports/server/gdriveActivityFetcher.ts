@@ -24,13 +24,13 @@ async function recordDriveChanges(
 
   // In all likelihood, we will only have one of each of these, but for
   // completeness we'll record the full cartesian product
-  for await (const fileId of fileIds) {
+  for (const fileId of fileIds) {
     const document = await Documents.findOneAsync({ "value.id": fileId });
     if (!document) {
       continue;
     }
 
-    for await (const googleAccountId of googleAccountIds) {
+    for (const googleAccountId of googleAccountIds) {
       // There's no guarantee that googleAccountId is unique (in fact, since
       // many people end up registered multiple times, it may frequently not
       // be). We can make it more likely to be unique by scoping the query to
@@ -163,14 +163,11 @@ async function featureFlagChanged() {
         resolve();
       }
     };
-    Flags.observeChangesAsync(FEATURE_FLAG_NAME, callback).then(
-      (handle) => {
+    Flags.observeChangesAsync(FEATURE_FLAG_NAME, callback)
+      .then((handle) => {
         handleThunk = handle;
-      },
-      (error) => {
-        reject(error);
-      },
-    );
+      })
+      .catch(reject);
   });
 }
 
@@ -194,7 +191,7 @@ async function fetchActivityLoop() {
             renewInterval = Meteor.setInterval(async () => {
               try {
                 await renew();
-              } catch (e) {
+              } catch {
                 // We failed to renew the lock
                 r(true);
               }

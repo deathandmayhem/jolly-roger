@@ -69,10 +69,10 @@ export default class LoadBalancer {
         }
 
         if (workerMapping[id]) {
-          workerMapping[id]!.lastUpdate = Date.now();
+          workerMapping[id].lastUpdate = Date.now();
           const target = {
             host: "127.0.0.1",
-            port: workerMapping[id]!.worker.port,
+            port: workerMapping[id].worker.port,
           };
           // Set long timeout because clients long-poll
           res.setTimeout(2 * 60 * 1000);

@@ -1411,7 +1411,7 @@ const lookupIPSources = async (ipv: "v4" | "v6") => {
     sources.map(async (source) => {
       try {
         return await lookupIPSource(ipv, source);
-      } catch (e) {
+      } catch {
         return undefined;
       }
     }),

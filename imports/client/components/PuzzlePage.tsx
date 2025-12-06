@@ -125,17 +125,8 @@ const DEBUG_SHOW_CALL_STATE = false;
 
 const tabId = Random.id();
 
-const FilteredChatFields = [
-  "_id",
-  "puzzle",
-  "content",
-  "sender",
-  "timestamp",
-] as const;
-type FilteredChatMessageType = Pick<
-  ChatMessageType,
-  (typeof FilteredChatFields)[number]
->;
+type FilteredChatFields = "_id" | "puzzle" | "content" | "sender" | "timestamp";
+type FilteredChatMessageType = Pick<ChatMessageType, FilteredChatFields>;
 
 // It doesn't need to be, but this is consistent with the 576px transition used in other pages' css
 const MinimumSidebarWidth = 176;

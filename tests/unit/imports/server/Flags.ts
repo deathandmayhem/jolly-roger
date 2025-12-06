@@ -24,14 +24,10 @@ async function propagationPromise(
         changed: cb,
         removed: cb,
       })
-      .then(
-        (handle) => {
-          handleThunk = handle;
-        },
-        (error) => {
-          reject(error);
-        },
-      );
+      .then((handle) => {
+        handleThunk = handle;
+      })
+      .catch(reject);
   });
 }
 

@@ -3,11 +3,8 @@ import type { ChatMessageType } from "./models/ChatMessages";
 import nodeIsMention from "./nodeIsMention";
 import nodeIsText from "./nodeIsText";
 
-const NeededChatFields = ["content", "sender"] as const;
-type PartialChatMessageType = Pick<
-  ChatMessageType,
-  (typeof NeededChatFields)[number]
->;
+type NeededChatFields = "content" | "sender";
+type PartialChatMessageType = Pick<ChatMessageType, NeededChatFields>;
 
 export function normalizedForDingwordSearch(
   chatMessage: PartialChatMessageType,

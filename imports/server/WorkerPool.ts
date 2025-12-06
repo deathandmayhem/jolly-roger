@@ -96,7 +96,7 @@ export default class WorkerPool {
       });
 
       const registerWorker = (message: any) => {
-        if (message && message.type === "ready") {
+        if (message?.type === "ready") {
           this.workers.push(worker);
           this.workersMap[worker.id] = worker;
 

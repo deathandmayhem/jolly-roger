@@ -1,4 +1,4 @@
-import { ESLintUtils } from "@typescript-eslint/utils";
+import { AST_NODE_TYPES, ESLintUtils } from "@typescript-eslint/utils";
 import ts from "typescript";
 
 const bannedMethods: Map<
@@ -122,8 +122,8 @@ export default ESLintUtils.RuleCreator.withoutDocs({
   create(context) {
     return {
       CallExpression(node) {
-        if (node.callee.type !== "MemberExpression") return;
-        if (node.callee.property.type !== "Identifier") return;
+        if (node.callee.type !== AST_NODE_TYPES.MemberExpression) return;
+        if (node.callee.property.type !== AST_NODE_TYPES.Identifier) return;
 
         const { property } = node.callee;
         const methodName = node.callee.property.name;
