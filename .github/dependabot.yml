@@ -18,8 +18,6 @@ updates:
         versions: [">=2"]
       - dependency-name: "discord.js"
         versions: [">=13"]
-      - dependency-name: "glob"
-        versions: [">=9"]
       - dependency-name: "puppeteer"
       - dependency-name: "@testing-library/react"
         versions: [">=15"]
