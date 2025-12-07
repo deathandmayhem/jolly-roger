@@ -609,6 +609,29 @@ const FancyEditor = React.forwardRef(
           Transforms.select(editor, Editor.end(editor, []));
         }
         Transforms.insertNodes(editor, image);
+
+        // find the image node we just inserted by matching tempId
+        const matches = Array.from(
+          Editor.nodes(editor, {
+            at: [],
+            match: (n) =>
+              "type" in n && n.type === "image" && n.tempId === tempId,
+          }),
+        );
+
+        const imageEntry = matches.length ? matches[0] : null;
+
+        if (imageEntry) {
+          const [, imagePath] = imageEntry;
+
+          // try to get a point *after* the image
+          const pointAfter = Editor.after(editor, imagePath);
+          if (pointAfter) {
+            // select that point (places caret after the image)
+            Transforms.select(editor, pointAfter);
+            ReactEditor.focus(editor);
+          }
+        }
       },
       [editor],
     );

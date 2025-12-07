@@ -39,7 +39,7 @@ async function renderChatMessageContent(
   const chunks = await Promise.all(
     content.children.map(async (child) => {
       if (nodeIsImage(child)) {
-        return "[image]";
+        return child.url;
       }
       if (nodeIsText(child)) {
         return child.text;
