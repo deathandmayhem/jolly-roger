@@ -21,6 +21,10 @@ updates:
       fontawesome:
         patterns:
           - "@fortawesome/*"
+      react:
+        patterns:
+          - "react"
+          - "react-dom"
       slate:
         patterns:
           - "slate"
