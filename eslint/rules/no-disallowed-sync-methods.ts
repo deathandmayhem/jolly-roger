@@ -63,6 +63,16 @@ const bannedMethods: Map<
   ["TypedMethod", new Map([["call", "callAsync"]])],
 ]);
 
+const cleanupFullyQualifiedName = (name: string) => {
+  // At some point, Meteor's types started returning absolute paths (e.g.
+  // "/Users/evan/src/jolly-roger/.meteor/local/types/node_modules/package-types/mongo/package/os/packages/mongo/mongo")
+  // so clean that up
+
+  const match = name.match(/".*\/.meteor\/local\/types\/node_modules\/package-types\/([^\/]+)\/.*"/);
+  if (!match) return name;
+  return name.replace(/"[^"]+"/, `"meteor/${match[1]}"`);
+}
+
 const findParent = <T extends ts.Node>(
   node: ts.Node,
   predicate: (node: ts.Node) => node is T,
@@ -164,7 +174,7 @@ export default ESLintUtils.RuleCreator.withoutDocs({
           if (!type.symbol) continue;
 
           const bannedMethodsForType = bannedMethods.get(
-            checker.getFullyQualifiedName(type.symbol),
+            cleanupFullyQualifiedName(checker.getFullyQualifiedName(type.symbol)),
           );
           if (!bannedMethodsForType) continue;
 
