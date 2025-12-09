@@ -1,5 +1,5 @@
 import type { Meteor } from "meteor/meteor";
-import { type Tokens, type Token } from "marked";
+import type { Tokens, Token } from "marked";
 import { marked } from "marked";
 import React, {
   useCallback,
