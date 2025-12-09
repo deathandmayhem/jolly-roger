@@ -48,7 +48,7 @@ interface ViewerSubscriber {
 
 interface PersonBoxProps extends ViewerSubscriber {
   children?: ReactNode;
-  popperBoundaryRef: React.RefObject<HTMLElement>;
+  popperBoundaryRef: React.RefObject<HTMLElement | null>;
 }
 
 const ViewerPersonBox = ({

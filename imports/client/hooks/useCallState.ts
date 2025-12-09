@@ -357,7 +357,7 @@ const useTransport = (
   transportParams: TransportType | undefined,
   dispatch: React.Dispatch<Action>,
 ) => {
-  const connectRef = useRef<() => void>();
+  const connectRef = useRef<(() => void) | undefined>(undefined);
 
   const hasParams = !!device && !!transportParams;
   useEffect(() => {
