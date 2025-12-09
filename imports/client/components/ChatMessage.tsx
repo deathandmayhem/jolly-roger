@@ -2,7 +2,7 @@
 import * as he from "he";
 import type { Token, Tokens } from "marked";
 import { marked } from "marked";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import BSImage from "react-bootstrap/Image";
 import styled from "styled-components";
 import type { ChatMessageContentType } from "../../lib/models/ChatMessages";

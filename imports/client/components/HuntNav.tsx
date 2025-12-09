@@ -6,7 +6,6 @@ import { faMap } from "@fortawesome/free-solid-svg-icons/faMap";
 import { faReceipt } from "@fortawesome/free-solid-svg-icons/faReceipt";
 import { faUsers } from "@fortawesome/free-solid-svg-icons/faUsers";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import React from "react";
 import { Nav } from "react-bootstrap";
 import { NavLink, useParams } from "react-router-dom";
 import styled, { css } from "styled-components";

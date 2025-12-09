@@ -3,7 +3,6 @@ import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import { faFileAlt } from "@fortawesome/free-solid-svg-icons/faFileAlt";
 import { faTable } from "@fortawesome/free-solid-svg-icons/faTable";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import React from "react";
 import styled from "styled-components";
 import type { DocumentType } from "../../lib/models/Documents";
 

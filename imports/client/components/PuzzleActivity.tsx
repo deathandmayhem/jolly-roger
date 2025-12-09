@@ -6,7 +6,7 @@ import { faFilePen } from "@fortawesome/free-solid-svg-icons/faFilePen";
 import { faPeopleGroup } from "@fortawesome/free-solid-svg-icons/faPeopleGroup";
 import { faPhoneVolume } from "@fortawesome/free-solid-svg-icons/faPhoneVolume";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Tooltip from "react-bootstrap/Tooltip";
 import { Sparklines, SparklinesLine, SparklinesSpots } from "react-sparklines";

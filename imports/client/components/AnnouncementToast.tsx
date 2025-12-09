@@ -1,4 +1,3 @@
-import React from "react";
 import Toast from "react-bootstrap/Toast";
 import styled from "styled-components";
 import { calendarTimeFormat } from "../../lib/calendarTimeFormat";

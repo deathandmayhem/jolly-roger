@@ -1,6 +1,5 @@
 import { Meteor } from "meteor/meteor";
 import { useSubscribe, useTracker } from "meteor/react-meteor-data";
-import React from "react";
 import { useParams } from "react-router-dom";
 import Hunts from "../../lib/models/Hunts";
 import InvitationCodes from "../../lib/models/InvitationCodes";

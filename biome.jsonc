@@ -127,8 +127,7 @@
       "quoteProperties": "asNeeded",
       "trailingCommas": "all",
       "arrowParentheses": "always"
-    },
-    "jsxRuntime": "reactClassic"
+    }
   },
   "html": {
     "formatter": {

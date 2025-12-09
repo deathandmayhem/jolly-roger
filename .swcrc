@@ -3,7 +3,7 @@
   "jsc": {
     "transform": {
       "react": {
-        "runtime": "classic"
+        "runtime": "automatic"
       }
     },
     "experimental": {
