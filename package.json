@@ -94,14 +94,12 @@
     "@types/react-router-bootstrap": "^0.26.8",
     "@types/react-sparklines": "^1.7.5",
     "@types/ws": "^8.18.1",
-    "@typescript-eslint/eslint-plugin": "^8.48.1",
-    "@typescript-eslint/parser": "^8.48.1",
     "@typescript-eslint/utils": "^8.48.1",
     "babel-plugin-add-react-displayname": "0.0.5",
     "babel-plugin-styled-components": "^2.1.4",
     "chai": "^6.2.1",
     "chai-as-promised": "^8.0.2",
-    "eslint": "^8.57.0",
+    "eslint": "^9.39.1",
     "eslint-plugin-jolly-roger": "file:./eslint",
     "gray-matter": "^4.0.3",
     "lockfix": "^2.2.1",
@@ -115,7 +113,8 @@
     "stylelint-config-standard": "^39.0.1",
     "stylelint-scss": "^6.13.0",
     "ts-node": "^10.9.2",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.49.0"
   },
   "meteor": {
     "mainModule": {
