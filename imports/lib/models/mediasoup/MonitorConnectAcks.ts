@@ -1,7 +1,7 @@
 import { z } from "zod";
+import { foreignKey, nonEmptyString, portNumber } from "../customTypes";
 import type { ModelType } from "../Model";
 import Model from "../Model";
-import { foreignKey, nonEmptyString, portNumber } from "../customTypes";
 
 const MonitorConnectAck = z.object({
   initiatingServer: foreignKey,

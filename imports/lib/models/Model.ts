@@ -1,9 +1,9 @@
 import { Mongo, MongoInternals } from "meteor/mongo";
 import type {
+  CreateIndexesOptions,
   Document,
   IndexDirection,
   IndexSpecification,
-  CreateIndexesOptions,
 } from "mongodb";
 import { z } from "zod";
 import { IsInsert, IsUpdate, IsUpsert, stringId } from "./customTypes";

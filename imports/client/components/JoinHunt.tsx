@@ -20,11 +20,11 @@ import {
   AccountFormFrame,
   AccountFormSubmitState,
   useEmailField,
-  usePasswordField,
   useGoogleSignInCredentialsField,
+  usePasswordField,
 } from "./AccountFormHelpers";
-import SplashPage from "./SplashPage";
 import { useAuthenticated } from "./authentication";
+import SplashPage from "./SplashPage";
 
 type LoginOptionsResult = { exists: boolean; loginMethods?: string[] };
 

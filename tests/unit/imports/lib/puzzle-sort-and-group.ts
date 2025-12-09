@@ -2,9 +2,9 @@ import { assert } from "chai";
 import type { PuzzleType } from "../../../../imports/lib/models/Puzzles";
 import type { TagType } from "../../../../imports/lib/models/Tags";
 import {
-  puzzleInterestingness,
-  puzzleGroupsByRelevance,
   filteredPuzzleGroups,
+  puzzleGroupsByRelevance,
+  puzzleInterestingness,
 } from "../../../../imports/lib/puzzle-sort-and-group";
 
 const hunt = "hunt_id";

@@ -8,7 +8,7 @@
 
 import { check, Match } from "meteor/check";
 import { Meteor } from "meteor/meteor";
-import { serverId, registerPeriodicCleanupHook } from "./garbage-collection";
+import { registerPeriodicCleanupHook, serverId } from "./garbage-collection";
 import Subscribers from "./models/Subscribers";
 
 // Clean up leaked subscribers from dead servers periodically.

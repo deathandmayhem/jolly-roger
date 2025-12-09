@@ -1,5 +1,5 @@
-import { useEffect, useRef } from "react";
 import type { EffectCallback } from "react";
+import { useEffect, useRef } from "react";
 
 function depsDiffer<T>(deps1?: Array<T>, deps2?: Array<T>) {
   return !(

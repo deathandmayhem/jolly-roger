@@ -1,7 +1,7 @@
 import { z } from "zod";
+import { foreignKey, nonEmptyString } from "./customTypes";
 import type { ModelType } from "./Model";
 import SoftDeletedModel from "./SoftDeletedModel";
-import { foreignKey, nonEmptyString } from "./customTypes";
 import withCommon from "./withCommon";
 
 // A broadcast message from a hunt operator to be displayed

@@ -2,7 +2,7 @@ import { faAlignJustify } from "@fortawesome/free-solid-svg-icons/faAlignJustify
 import { faCopy } from "@fortawesome/free-solid-svg-icons/faCopy";
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import type { ModifierArguments, Modifier, Padding } from "@popperjs/core";
+import type { Modifier, ModifierArguments, Padding } from "@popperjs/core";
 import detectOverflow from "@popperjs/core/lib/utils/detectOverflow";
 import React, {
   type ComponentPropsWithRef,

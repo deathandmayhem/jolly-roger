@@ -17,8 +17,8 @@ import Modal from "react-bootstrap/Modal";
 import { createPortal } from "react-dom";
 import { LinkContainer } from "react-router-bootstrap";
 import { Link } from "react-router-dom";
-import Hunts from "../../lib/models/Hunts";
 import type { HuntType } from "../../lib/models/Hunts";
+import Hunts from "../../lib/models/Hunts";
 import {
   userMayCreateHunt,
   userMayUpdateHunt,

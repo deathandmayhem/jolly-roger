@@ -27,9 +27,9 @@ import PuzzleAnswer from "./PuzzleAnswer";
 import PuzzleDeleteModal from "./PuzzleDeleteModal";
 import type { PuzzleModalFormSubmitPayload } from "./PuzzleModalForm";
 import PuzzleModalForm from "./PuzzleModalForm";
-import TagList from "./TagList";
 import { backgroundColorLookupTable } from "./styling/constants";
 import { mediaBreakpointDown } from "./styling/responsive";
+import TagList from "./TagList";
 
 const PuzzleDiv = styled.div<{
   $solvedness: Solvedness;

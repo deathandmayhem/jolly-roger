@@ -5,8 +5,8 @@ import React, { act } from "react";
 import type { Location, NavigateFunction, RouteObject } from "react-router-dom";
 import {
   MemoryRouter,
-  Route,
   Routes as ReactRouterRoutes,
+  Route,
   useLocation,
   useNavigate,
 } from "react-router-dom";

@@ -2,8 +2,8 @@ import type { IncomingMessage, ServerResponse } from "http";
 import type stream from "stream";
 import { WebApp } from "meteor/webapp";
 import type HttpProxy from "http-proxy";
-import type { Worker } from "./WorkerPool";
 import type WorkerPool from "./WorkerPool";
+import type { Worker } from "./WorkerPool";
 
 // This implements a simple multi-process, single-machine load-balancer.
 //

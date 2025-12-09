@@ -29,6 +29,7 @@ import { trace } from "../tracing";
 import { PREFERRED_AUDIO_DEVICE_STORAGE_KEY } from "./AudioConfig";
 import Avatar from "./Avatar";
 import CallSection from "./CallSection";
+import { PuzzlePagePadding } from "./styling/constants";
 import {
   AVActions,
   AVButton,
@@ -37,7 +38,6 @@ import {
   PeopleItemDiv,
   PeopleListDiv,
 } from "./styling/PeopleComponents";
-import { PuzzlePagePadding } from "./styling/constants";
 
 interface ViewerSubscriber {
   user: string;

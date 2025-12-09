@@ -8,9 +8,9 @@ import React, {
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/esm/Modal";
 import { createPortal } from "react-dom";
-import Puzzles from "../../lib/models/Puzzles";
-import type { PuzzleType } from "../../lib/models/Puzzles";
 import Peers from "../../lib/models/mediasoup/Peers";
+import type { PuzzleType } from "../../lib/models/Puzzles";
+import Puzzles from "../../lib/models/Puzzles";
 import puzzlesForHunt from "../../lib/publications/puzzlesForHunt";
 import destroyPuzzle from "../../methods/destroyPuzzle";
 import useSubscribeDisplayNames from "../hooks/useSubscribeDisplayNames";

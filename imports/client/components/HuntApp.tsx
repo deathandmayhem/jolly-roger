@@ -7,8 +7,8 @@ import Button from "react-bootstrap/Button";
 import ButtonToolbar from "react-bootstrap/ButtonToolbar";
 import { createPortal } from "react-dom";
 import { Outlet, useNavigate, useParams } from "react-router-dom";
-import Hunts from "../../lib/models/Hunts";
 import type { HuntType } from "../../lib/models/Hunts";
+import Hunts from "../../lib/models/Hunts";
 import {
   userMayAddUsersToHunt,
   userMayUpdateHunt,

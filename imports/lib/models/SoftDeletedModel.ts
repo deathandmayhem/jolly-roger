@@ -1,10 +1,10 @@
 import { Mongo } from "meteor/mongo";
 import { z } from "zod";
-import type { ModelType, Selector, SelectorToResultType } from "./Model";
-import Model from "./Model";
 import type { stringId } from "./customTypes";
 import { deleted } from "./customTypes";
 import type { MongoRecordZodType } from "./generateJsonSchema";
+import type { ModelType, Selector, SelectorToResultType } from "./Model";
+import Model from "./Model";
 
 const injectQuery = <S extends Mongo.Selector<any>>(
   selector: S | string | Mongo.ObjectID | undefined,

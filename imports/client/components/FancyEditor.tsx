@@ -1,5 +1,5 @@
 import type { Meteor } from "meteor/meteor";
-import type { Tokens, Token } from "marked";
+import type { Token, Tokens } from "marked";
 import { marked } from "marked";
 import React, {
   useCallback,
@@ -10,22 +10,22 @@ import React, {
   useState,
 } from "react";
 import { createPortal } from "react-dom";
-import type { BaseEditor, Descendant, NodeEntry, Node, Path } from "slate";
-import { createEditor, Editor, Text, Transforms, Range } from "slate";
+import type { BaseEditor, Descendant, Node, NodeEntry, Path } from "slate";
+import { createEditor, Editor, Range, Text, Transforms } from "slate";
 import type { HistoryEditor } from "slate-history";
 import { withHistory } from "slate-history";
 import type {
-  RenderLeafProps,
   RenderElementProps,
+  RenderLeafProps,
   RenderPlaceholderProps,
 } from "slate-react";
 import {
-  Slate,
   Editable,
   ReactEditor,
-  withReact,
-  useSelected,
+  Slate,
   useFocused,
+  useSelected,
+  withReact,
 } from "slate-react";
 import styled, { css } from "styled-components";
 import { formatDiscordName } from "../../lib/discord";

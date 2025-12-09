@@ -3,8 +3,8 @@ import type { Subscription } from "meteor/meteor";
 import { Meteor } from "meteor/meteor";
 import { Mongo } from "meteor/mongo";
 import type { z } from "zod";
-import type Model from "../lib/models/Model";
 import type { MongoRecordZodType } from "../lib/models/generateJsonSchema";
+import type Model from "../lib/models/Model";
 
 type Projection<T> = Partial<Record<keyof T, 0 | 1>>;
 

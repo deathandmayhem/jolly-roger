@@ -1,7 +1,7 @@
 import { z } from "zod";
+import { answer, foreignKey, nonEmptyString } from "./customTypes";
 import type { ModelType } from "./Model";
 import SoftDeletedModel from "./SoftDeletedModel";
-import { answer, foreignKey, nonEmptyString } from "./customTypes";
 import withCommon from "./withCommon";
 
 // The state of this guess, as handled by the operators:
