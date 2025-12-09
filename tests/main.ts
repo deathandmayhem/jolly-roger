@@ -1,4 +1,3 @@
-/* eslint-disable import/first */
 import { Accounts } from "meteor/accounts-base";
 import { Meteor } from "meteor/meteor";
 import chai from "chai";

@@ -1,7 +1,7 @@
 import { Meteor } from "meteor/meteor";
 import Flags from "../../Flags";
-import ChatMessages from "../../lib/models/ChatMessages";
 import type { ChatMessageContentType } from "../../lib/models/ChatMessages";
+import ChatMessages from "../../lib/models/ChatMessages";
 import Hunts from "../../lib/models/Hunts";
 import MeteorUsers from "../../lib/models/MeteorUsers";
 import type { PuzzleType } from "../../lib/models/Puzzles";

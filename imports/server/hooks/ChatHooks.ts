@@ -1,6 +1,6 @@
 import { contentFromMessage } from "../../lib/models/ChatMessages";
-import Puzzles from "../../lib/models/Puzzles";
 import type { PuzzleType } from "../../lib/models/Puzzles";
+import Puzzles from "../../lib/models/Puzzles";
 import Tags from "../../lib/models/Tags";
 import sendChatMessageInternal from "../sendChatMessageInternal";
 import type Hookset from "./Hookset";

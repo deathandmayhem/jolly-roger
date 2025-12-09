@@ -23,8 +23,8 @@ import unlinkUserGoogleAccount from "../../methods/unlinkUserGoogleAccount";
 import updateProfile from "../../methods/updateProfile";
 import { requestDiscordCredential } from "../discord";
 import useTeamName from "../hooks/useTeamName";
-import APIKeysTable from "./APIKeysTable";
 import ActionButtonRow from "./ActionButtonRow";
+import APIKeysTable from "./APIKeysTable";
 import AudioConfig from "./AudioConfig";
 import Avatar from "./Avatar";
 

@@ -1,7 +1,7 @@
 import { z } from "zod";
+import { foreignKey } from "../customTypes";
 import type { ModelType } from "../Model";
 import SoftDeletedModel from "../SoftDeletedModel";
-import { foreignKey } from "../customTypes";
 import withCommon from "../withCommon";
 
 // PeerRemoteMute is an audit log of when one user mutes another user. When a

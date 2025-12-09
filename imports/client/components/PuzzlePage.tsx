@@ -27,6 +27,8 @@ import Alert from "react-bootstrap/Alert";
 import Badge from "react-bootstrap/Badge";
 import Button from "react-bootstrap/Button";
 import Col from "react-bootstrap/Col";
+import OverlayTrigger from "react-bootstrap/esm/OverlayTrigger";
+import Tooltip from "react-bootstrap/esm/Tooltip";
 import type { FormControlProps } from "react-bootstrap/FormControl";
 import FormControl from "react-bootstrap/FormControl";
 import FormGroup from "react-bootstrap/FormGroup";
@@ -35,8 +37,6 @@ import FormText from "react-bootstrap/FormText";
 import InputGroup from "react-bootstrap/InputGroup";
 import Modal from "react-bootstrap/Modal";
 import Row from "react-bootstrap/Row";
-import OverlayTrigger from "react-bootstrap/esm/OverlayTrigger";
-import Tooltip from "react-bootstrap/esm/Tooltip";
 import { createPortal } from "react-dom";
 import { Link, useParams } from "react-router-dom";
 import type { Descendant } from "slate";
@@ -50,16 +50,16 @@ import { indexedById, sortedBy } from "../../lib/listUtils";
 import Bookmarks from "../../lib/models/Bookmarks";
 import type { ChatMessageType } from "../../lib/models/ChatMessages";
 import ChatMessages from "../../lib/models/ChatMessages";
-import Documents from "../../lib/models/Documents";
 import type { DocumentType } from "../../lib/models/Documents";
-import Guesses from "../../lib/models/Guesses";
+import Documents from "../../lib/models/Documents";
 import type { GuessType } from "../../lib/models/Guesses";
+import Guesses from "../../lib/models/Guesses";
 import Hunts from "../../lib/models/Hunts";
 import MeteorUsers from "../../lib/models/MeteorUsers";
-import Puzzles from "../../lib/models/Puzzles";
 import type { PuzzleType } from "../../lib/models/Puzzles";
-import Tags from "../../lib/models/Tags";
+import Puzzles from "../../lib/models/Puzzles";
 import type { TagType } from "../../lib/models/Tags";
+import Tags from "../../lib/models/Tags";
 import nodeIsMention from "../../lib/nodeIsMention";
 import nodeIsText from "../../lib/nodeIsText";
 import { userMayWritePuzzlesForHunt } from "../../lib/permission_stubs";
@@ -95,6 +95,12 @@ import DocumentDisplay, { DocumentMessage } from "./DocumentDisplay";
 import type { FancyEditorHandle, MessageElement } from "./FancyEditor";
 import FancyEditor from "./FancyEditor";
 import GuessState from "./GuessState";
+import {
+  formatConfidence,
+  formatGuessDirection,
+  GuessConfidence,
+  GuessDirection,
+} from "./guessDetails";
 import type { ImageInsertModalHandle } from "./InsertImageModal";
 import InsertImageModal from "./InsertImageModal";
 import Markdown from "./Markdown";
@@ -104,21 +110,15 @@ import PuzzleAnswer from "./PuzzleAnswer";
 import type { PuzzleModalFormSubmitPayload } from "./PuzzleModalForm";
 import PuzzleModalForm from "./PuzzleModalForm";
 import SplitPaneMinus from "./SplitPaneMinus";
-import TagList from "./TagList";
-import {
-  GuessConfidence,
-  GuessDirection,
-  formatGuessDirection,
-  formatConfidence,
-} from "./guessDetails";
 import Breakable from "./styling/Breakable";
-import FixedLayout from "./styling/FixedLayout";
 import {
   guessColorLookupTable,
   MonospaceFontFamily,
   SolvedPuzzleBackgroundColor,
 } from "./styling/constants";
+import FixedLayout from "./styling/FixedLayout";
 import { mediaBreakpointDown } from "./styling/responsive";
+import TagList from "./TagList";
 
 // Shows a state dump as an in-page overlay when enabled.
 const DEBUG_SHOW_CALL_STATE = false;
@@ -1065,7 +1065,6 @@ const PuzzlePageMetadata = ({
             {numGuesses}
           </Badge>
         </Button>
-        {/* eslint-disable-next-line @typescript-eslint/no-use-before-define */}
         <PuzzleGuessModal
           ref={guessModalRef}
           puzzle={puzzle}
@@ -1079,7 +1078,6 @@ const PuzzlePageMetadata = ({
           <FontAwesomeIcon icon={faKey} />
           {" Answer"}
         </Button>
-        {/* eslint-disable-next-line @typescript-eslint/no-use-before-define */}
         <PuzzleAnswerModal
           ref={answerModalRef}
           puzzle={puzzle}
@@ -1989,8 +1987,8 @@ const PuzzlePage = React.memo(() => {
     }
   }, []);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies(sidebarWidth): When the sidebar width changes, we want to scroll to the target.
   useLayoutEffect(() => {
-    // When sidebarWidth is updated, scroll history to the target
     trace("PuzzlePage useLayoutEffect", { hasRef: !!chatSectionRef.current });
     if (chatSectionRef.current) {
       chatSectionRef.current.scrollHistoryToTarget();

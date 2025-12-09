@@ -1,9 +1,9 @@
 import { Mongo, MongoInternals } from "meteor/mongo";
 import type {
+  CreateIndexesOptions,
   Document,
   IndexDirection,
   IndexSpecification,
-  CreateIndexesOptions,
 } from "mongodb";
 import { z } from "zod";
 import { IsInsert, IsUpdate, IsUpsert, stringId } from "./customTypes";
@@ -595,7 +595,6 @@ class Model<
       "limit" | "transform"
     >,
   >(selector?: S, options?: O) {
-    // eslint-disable-next-line @typescript-eslint/no-deprecated -- findOne is still perfectly valid for client code
     return this.collection.findOne(selector ?? {}, options) as
       | SelectorToResultType<z.output<this["schema"]>, S>
       | undefined;

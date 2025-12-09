@@ -1,11 +1,11 @@
 import { z } from "zod";
-import type { ModelType } from "./Model";
-import SoftDeletedModel from "./SoftDeletedModel";
 import { answer, foreignKey, nonEmptyString } from "./customTypes";
 import {
   attachCustomJsonSchema,
   schemaToJsonSchema,
 } from "./generateJsonSchema";
+import type { ModelType } from "./Model";
+import SoftDeletedModel from "./SoftDeletedModel";
 import withCommon from "./withCommon";
 
 const tagList = foreignKey.array().default([]);

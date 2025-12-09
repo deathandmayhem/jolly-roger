@@ -20,8 +20,8 @@ import { shortCalendarTimeFormat } from "../../lib/calendarTimeFormat";
 import { indexedById } from "../../lib/listUtils";
 import type { ChatMessageType } from "../../lib/models/ChatMessages";
 import ChatMessages from "../../lib/models/ChatMessages";
-import Puzzles from "../../lib/models/Puzzles";
 import type { PuzzleType } from "../../lib/models/Puzzles";
+import Puzzles from "../../lib/models/Puzzles";
 import nodeIsMention from "../../lib/nodeIsMention";
 import chatMessagesForFirehose from "../../lib/publications/chatMessagesForFirehose";
 import { useBreadcrumb } from "../hooks/breadcrumb";
@@ -284,6 +284,8 @@ const FirehosePage = () => {
     };
   }, [onLayoutMaybeChanged]);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies(loading): We want to run this effect when loading or chats.length changes.
+  // biome-ignore lint/correctness/useExhaustiveDependencies(chats.length): We want to run this effect when loading or chats.length changes.
   useLayoutEffect(() => {
     onLayoutMaybeChanged();
   }, [loading, onLayoutMaybeChanged, chats.length]);

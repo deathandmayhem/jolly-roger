@@ -1,7 +1,7 @@
 import { z } from "zod";
+import { foreignKey } from "../customTypes";
 import type { ModelType } from "../Model";
 import Model from "../Model";
-import { foreignKey } from "../customTypes";
 
 // Don't use the BaseCodec here - unlike most database objects, this isn't
 // manipulated by users, so many of the fields don't make sense

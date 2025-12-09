@@ -3,6 +3,7 @@
     "target": "es2020",
     "module": "CommonJS",
     "moduleResolution": "node",
+    "resolveJsonModule": true,
     "esModuleInterop": true,
     "noEmit": false,
     "outDir": "dist",

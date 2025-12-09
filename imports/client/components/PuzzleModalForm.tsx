@@ -28,7 +28,6 @@ import ModalForm from "./ModalForm";
 // Casting away the React.lazy because otherwise we lose access to the generic parameter
 const Creatable = React.lazy(
   () => import("react-select/creatable"),
-  // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 ) as typeof import("react-select/creatable").default;
 
 type TagSelectOption = { value: string; label: string };

@@ -1,7 +1,7 @@
 import { z } from "zod";
+import { foreignKey } from "./customTypes";
 import type { ModelType } from "./Model";
 import Model from "./Model";
-import { foreignKey } from "./customTypes";
 
 /* DocumentActivityFields doesn't inherit from Base because it's created by the
    server, not by users */

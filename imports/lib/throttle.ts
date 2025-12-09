@@ -38,7 +38,6 @@ export default function throttle<T>(
         savedArgs = undefined;
       }
     } else if (timeoutHandle === undefined) {
-      // eslint-disable-next-line @typescript-eslint/no-this-alias
       savedThis = this;
       savedArgs = args;
       timeoutHandle = setTimeout(onTimeout, remaining) as any as number;

@@ -8,7 +8,7 @@
 
 import { check, Match } from "meteor/check";
 import { Meteor } from "meteor/meteor";
-import { serverId, registerPeriodicCleanupHook } from "./garbage-collection";
+import { registerPeriodicCleanupHook, serverId } from "./garbage-collection";
 import Subscribers from "./models/Subscribers";
 
 // Clean up leaked subscribers from dead servers periodically.
@@ -17,7 +17,6 @@ async function cleanupHook(deadServers: string[]) {
 }
 registerPeriodicCleanupHook(cleanupHook);
 
-// eslint-disable-next-line new-cap
 const contextMatcher = Match.Where(
   (val: unknown): val is Record<string, string> => {
     if (!Match.test(val, Object)) {

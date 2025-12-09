@@ -1,5 +1,5 @@
 import type { Meteor } from "meteor/meteor";
-import { type Tokens, type Token } from "marked";
+import type { Token, Tokens } from "marked";
 import { marked } from "marked";
 import React, {
   useCallback,
@@ -10,22 +10,22 @@ import React, {
   useState,
 } from "react";
 import { createPortal } from "react-dom";
-import type { BaseEditor, Descendant, NodeEntry, Node, Path } from "slate";
-import { createEditor, Editor, Text, Transforms, Range } from "slate";
+import type { BaseEditor, Descendant, Node, NodeEntry, Path } from "slate";
+import { createEditor, Editor, Range, Text, Transforms } from "slate";
 import type { HistoryEditor } from "slate-history";
 import { withHistory } from "slate-history";
 import type {
-  RenderLeafProps,
   RenderElementProps,
+  RenderLeafProps,
   RenderPlaceholderProps,
 } from "slate-react";
 import {
-  Slate,
   Editable,
   ReactEditor,
-  withReact,
-  useSelected,
+  Slate,
   useFocused,
+  useSelected,
+  withReact,
 } from "slate-react";
 import styled, { css } from "styled-components";
 import { formatDiscordName } from "../../lib/discord";
@@ -327,7 +327,6 @@ const walkTokenList = (
   let end = start;
   tokens.forEach((token) => {
     // mutual recursion requires this
-    // eslint-disable-next-line @typescript-eslint/no-use-before-define
     walkToken(token, callback, end);
     end += token.raw.length;
   });
@@ -462,7 +461,7 @@ const decorate = ([node, path]: [Node, Path]) => {
   );
 
   if (DEBUG_EDITOR) {
-    // eslint-disable-next-line no-console
+    // biome-ignore lint/suspicious/noConsole: migration from eslint
     console.log("decorated", ranges);
   }
   return ranges;
@@ -735,13 +734,7 @@ const FancyEditor = React.forwardRef(
           el.style.left = `${left}px`;
         }
       }
-    }, [
-      matchingUsers.length,
-      editor,
-      completionCursorIndex,
-      completionSearchString,
-      completionAnchorRange,
-    ]);
+    }, [matchingUsers.length, editor, completionAnchorRange]);
 
     const onUserSelected = useCallback(
       (u: Meteor.User) => {

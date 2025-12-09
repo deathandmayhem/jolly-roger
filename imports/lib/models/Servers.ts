@@ -1,7 +1,7 @@
 import { z } from "zod";
+import { nonEmptyString, updatedTimestamp } from "./customTypes";
 import type { ModelType } from "./Model";
 import Model from "./Model";
-import { nonEmptyString, updatedTimestamp } from "./customTypes";
 
 const Server = z.object({
   hostname: nonEmptyString,

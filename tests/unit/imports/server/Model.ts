@@ -1,13 +1,6 @@
 import { Random } from "meteor/random";
 import { assert } from "chai";
 import { z } from "zod";
-import Model, {
-  ModelType,
-  modifierIsNotWholeDoc,
-  parseMongoModifierAsync,
-  parseMongoOperationAsync,
-  relaxSchema,
-} from "../../../../imports/lib/models/Model";
 import {
   createdTimestamp,
   nonEmptyString,
@@ -17,6 +10,13 @@ import {
   updatedTimestamp,
 } from "../../../../imports/lib/models/customTypes";
 import { MongoRecordZodType } from "../../../../imports/lib/models/generateJsonSchema";
+import Model, {
+  ModelType,
+  modifierIsNotWholeDoc,
+  parseMongoModifierAsync,
+  parseMongoOperationAsync,
+  relaxSchema,
+} from "../../../../imports/lib/models/Model";
 import attachSchema from "../../../../imports/server/attachSchema";
 import AssertTypesEqual from "../../../lib/AssertTypesEqual";
 
@@ -419,7 +419,6 @@ describe("Model", function () {
       string: nonEmptyString,
       number: z.number(),
     });
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- We're testing the type system
     let model: Model<typeof schema>;
     this.beforeAll(async function () {
       model = await createTestModel(schema);
@@ -473,7 +472,6 @@ describe("Model", function () {
 
     describe("findOne", function () {
       it("can narrow a discriminated union", async function () {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars -- We're testing the type system
         const result = await discriminatedUnionModel.findOneAsync({
           name: "foo",
         });

@@ -319,7 +319,7 @@ const PeerBox = ({
         setRenderMuteModal(true);
       }
     },
-    [renderMuteModal, muteModalRef],
+    [renderMuteModal],
   );
 
   const { muted, deafened } = peer;

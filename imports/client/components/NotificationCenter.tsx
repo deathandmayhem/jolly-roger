@@ -20,19 +20,19 @@ import Flags from "../../Flags";
 import { calendarTimeFormat } from "../../lib/calendarTimeFormat";
 import isAdmin from "../../lib/isAdmin";
 import { indexedById } from "../../lib/listUtils";
-import Announcements from "../../lib/models/Announcements";
 import type { AnnouncementType } from "../../lib/models/Announcements";
+import Announcements from "../../lib/models/Announcements";
 import type { BookmarkNotificationType } from "../../lib/models/BookmarkNotifications";
 import BookmarkNotifications from "../../lib/models/BookmarkNotifications";
 import type { ChatNotificationType } from "../../lib/models/ChatNotifications";
 import ChatNotifications from "../../lib/models/ChatNotifications";
-import Guesses from "../../lib/models/Guesses";
 import type { GuessType } from "../../lib/models/Guesses";
-import Hunts from "../../lib/models/Hunts";
+import Guesses from "../../lib/models/Guesses";
 import type { HuntType } from "../../lib/models/Hunts";
+import Hunts from "../../lib/models/Hunts";
 import PendingAnnouncements from "../../lib/models/PendingAnnouncements";
-import Puzzles from "../../lib/models/Puzzles";
 import type { PuzzleType } from "../../lib/models/Puzzles";
+import Puzzles from "../../lib/models/Puzzles";
 import { huntsUserIsOperatorFor } from "../../lib/permission_stubs";
 import bookmarkNotificationsForSelf from "../../lib/publications/bookmarkNotificationsForSelf";
 import pendingAnnouncementsForSelf from "../../lib/publications/pendingAnnouncementsForSelf";
@@ -44,8 +44,8 @@ import dismissPendingAnnouncement from "../../methods/dismissPendingAnnouncement
 import linkUserDiscordAccount from "../../methods/linkUserDiscordAccount";
 import setGuessState from "../../methods/setGuessState";
 import { guessURL } from "../../model-helpers";
-import GoogleScriptInfo from "../GoogleScriptInfo";
 import { requestDiscordCredential } from "../discord";
+import GoogleScriptInfo from "../GoogleScriptInfo";
 import { useOperatorActionsHidden } from "../hooks/persisted-state";
 import { useBlockReasons } from "../hooks/useBlockUpdate";
 import useTypedSubscribe from "../hooks/useTypedSubscribe";
@@ -53,10 +53,10 @@ import indexedDisplayNames from "../indexedDisplayNames";
 import AnnouncementToast from "./AnnouncementToast";
 import ChatMessage from "./ChatMessage";
 import CopyToClipboardButton from "./CopyToClipboardButton";
+import { GuessConfidence, GuessDirection } from "./guessDetails";
 import Markdown from "./Markdown";
 import PuzzleAnswer from "./PuzzleAnswer";
 import SpinnerTimer from "./SpinnerTimer";
-import { GuessConfidence, GuessDirection } from "./guessDetails";
 
 // How long to keep showing guess notifications after actioning.
 // Note that this cannot usefully exceed the linger period implemented by the

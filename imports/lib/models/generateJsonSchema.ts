@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-use-before-define */
 import { z } from "zod";
 import { Email, URL, UUID } from "./regexes";
 
@@ -103,7 +102,7 @@ function stringToSchema(def: z.ZodStringDef): JsonSchema {
       case "uuid":
       case "url": {
         let pattern;
-        // eslint-disable-next-line default-case
+        // biome-ignore lint/style/useDefaultSwitchClause: migration from eslint
         switch (check.kind) {
           case "regex":
             pattern = check.regex;

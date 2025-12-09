@@ -31,7 +31,7 @@ const CopyToClipboardButton = (props: CopyToClipboardProps) => {
         }, 3000);
       },
       (error) => {
-        // eslint-disable-next-line no-console
+        // biome-ignore lint/suspicious/noConsole: migration from eslint
         console.error("could not copy to clipboard:", error.message);
       },
     );

@@ -1,4 +1,3 @@
-/* eslint-disable camelcase */
 import child_process from "child_process";
 import { WebApp } from "meteor/webapp";
 import portscanner from "portscanner";

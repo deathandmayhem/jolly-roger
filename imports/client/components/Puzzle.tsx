@@ -27,9 +27,9 @@ import PuzzleAnswer from "./PuzzleAnswer";
 import PuzzleDeleteModal from "./PuzzleDeleteModal";
 import type { PuzzleModalFormSubmitPayload } from "./PuzzleModalForm";
 import PuzzleModalForm from "./PuzzleModalForm";
-import TagList from "./TagList";
 import { backgroundColorLookupTable } from "./styling/constants";
 import { mediaBreakpointDown } from "./styling/responsive";
+import TagList from "./TagList";
 
 const PuzzleDiv = styled.div<{
   $solvedness: Solvedness;
@@ -227,7 +227,6 @@ const Puzzle = React.memo(
     const answers = puzzle.answers.map((answer, i) => {
       return (
         <PuzzleAnswer
-          // eslint-disable-next-line react/no-array-index-key
           key={`${i}-${answer}`}
           answer={answer}
           respace={segmentAnswers}

@@ -3,7 +3,7 @@ import { OAuth } from "meteor/oauth";
 import type { Configuration } from "meteor/service-configuration";
 import { ServiceConfiguration } from "meteor/service-configuration";
 import type { drive_v3 } from "@googleapis/drive";
-import { drive, auth } from "@googleapis/drive";
+import { auth, drive } from "@googleapis/drive";
 import type { driveactivity_v2 } from "@googleapis/driveactivity";
 import { driveactivity } from "@googleapis/driveactivity";
 import type { people_v1 } from "@googleapis/people";

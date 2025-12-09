@@ -1,13 +1,13 @@
 import type { Meteor } from "meteor/meteor";
 import { useTracker } from "meteor/react-meteor-data";
 import React from "react";
-import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Tooltip from "react-bootstrap/esm/Tooltip";
+import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import styled from "styled-components";
 import { formatDiscordName } from "../../lib/discord";
 import { indexedById } from "../../lib/listUtils";
-import Hunts from "../../lib/models/Hunts";
 import type { HuntType } from "../../lib/models/Hunts";
+import Hunts from "../../lib/models/Hunts";
 import huntsAll from "../../lib/publications/huntsAll";
 import useTypedSubscribe from "../hooks/useTypedSubscribe";
 import Avatar from "./Avatar";
