@@ -747,11 +747,7 @@ const ChatInput = React.memo(
     const uploadImageFile = useCallback(
       (file: File) => {
         const tempId = Random.id();
-        fancyEditorRef.current?.insertImage(
-          "/images/spinner.png",
-          tempId,
-          "loading",
-        );
+        fancyEditorRef.current?.insertImage("", tempId, "loading");
 
         createChatImageUpload.call(
           {
@@ -760,11 +756,7 @@ const ChatInput = React.memo(
           },
           (err, upload) => {
             if (err || !upload) {
-              fancyEditorRef.current?.replaceImage(
-                "/images/brokenImage.png",
-                tempId,
-                "error",
-              );
+              fancyEditorRef.current?.replaceImage("", tempId, "error");
               setUploadImageError(
                 err?.message ??
                   "S3 presignedPost creation failed, check server settings to ensure S3 image bucket is configured correctly.",
@@ -789,11 +781,7 @@ const ChatInput = React.memo(
                   );
                 })
                 .catch((uploadErr) => {
-                  fancyEditorRef.current?.replaceImage(
-                    "/images/brokenImage.png",
-                    tempId,
-                    "error",
-                  );
+                  fancyEditorRef.current?.replaceImage("", tempId, "error");
                   setUploadImageError(`S3 upload failed: ${uploadErr.message}`);
                 });
             }
@@ -806,6 +794,10 @@ const ChatInput = React.memo(
     function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
       const file = e.target.files?.[0];
       if (!file) return;
+      if (!file.type.startsWith("image/")) {
+        setUploadImageError("Only image files can be uploaded in chat.");
+        return;
+      }
       uploadImageFile(file);
     }
 

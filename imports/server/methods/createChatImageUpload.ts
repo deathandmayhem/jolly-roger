@@ -19,6 +19,11 @@ defineMethod(createChatImageUpload, {
 
   async run({ puzzleId, mimeType }) {
     check(this.userId, String);
+
+    if (!mimeType.startsWith("image/")) {
+      throw new Meteor.Error(403, "Only image files can be uploaded in chat.");
+    }
+
     const user = (await MeteorUsers.findOneAsync(this.userId))!;
 
     const puzzle = await Puzzles.findOneAsync(puzzleId);

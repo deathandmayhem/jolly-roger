@@ -1,4 +1,7 @@
 import type { Meteor } from "meteor/meteor";
+import { faFileCircleExclamation } from "@fortawesome/free-solid-svg-icons/faFileCircleExclamation";
+import { faSpinner } from "@fortawesome/free-solid-svg-icons/faSpinner";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { type Tokens, type Token } from "marked";
 import { marked } from "marked";
 import React, {
@@ -126,6 +129,16 @@ const SelectedMentionSpan = styled(MentionSpan)`
   box-shadow: 0 0 0 2px #b4d5ff;
 `;
 
+export const ImageSpan = styled.span<{
+  $isSelf: boolean;
+}>`
+  padding: 2px;
+`;
+
+const SelectedImageSpan = styled(ImageSpan)`
+  border: 1px solid red;
+`;
+
 const EditableMentionRenderer = ({
   attributes,
   children,
@@ -146,18 +159,43 @@ const EditableMentionRenderer = ({
 
 const Image = styled.img`
   max-height: 20px;
+  vertical-align: top;
 `;
 const ChatImageRenderer = ({
   attributes,
   element,
 }: ElementRendererProps<ImageElement>) => {
-  return (
-    <Image
-      {...attributes}
-      src={element.url}
-      title={element.status === "error" ? "Image upload failed" : ""}
-    />
-  );
+  const selected = useSelected();
+  const focused = useFocused();
+
+  const Elem = selected && focused ? SelectedImageSpan : ImageSpan;
+
+  switch (element.status) {
+    case "loading":
+      return (
+        <Elem {...attributes} contentEditable={false}>
+          <FontAwesomeIcon icon={faSpinner} spin />
+        </Elem>
+      );
+    case "error":
+      return (
+        <Elem {...attributes} contentEditable={false}>
+          <FontAwesomeIcon
+            icon={faFileCircleExclamation}
+            title="Image upload failed"
+            color="red"
+          />
+        </Elem>
+      );
+    case "success":
+      return (
+        <Elem {...attributes} contentEditable={false}>
+          <Image {...attributes} src={element.url} />
+        </Elem>
+      );
+    default:
+      return null;
+  }
 };
 
 // Composed, layered reassignment is how Slate plugins are designed to work.
