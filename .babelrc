@@ -1,6 +1,0 @@
-{
-  "plugins": [
-    "babel-plugin-styled-components",
-    "babel-plugin-add-react-displayname"
-  ]
-}
