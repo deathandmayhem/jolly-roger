@@ -70,6 +70,34 @@ Meteor.publish("teamName", async function () {
   this.ready();
 });
 
+Meteor.publish("enabledChatImage", async function () {
+  const cursor = Settings.find({ name: "s3.image_bucket" });
+  let tracked = false;
+  const handle: Meteor.LiveQueryHandle = await cursor.observeAsync({
+    added: (doc) => {
+      tracked = true;
+      this.added("enabledChatImage", "enabledChatImage", {
+        enabled: doc.value.bucketName !== undefined,
+      });
+    },
+    changed: (newDoc) => {
+      this.changed("enabledChatImage", "enabledChatImage", {
+        enabled: newDoc.value.bucketName !== undefined,
+      });
+    },
+    removed: () => {
+      if (tracked) {
+        this.removed("enabledChatImage", "enabledChatImage");
+      }
+    },
+  });
+  this.onStop(() => {
+    handle.stop();
+  });
+
+  this.ready();
+});
+
 Meteor.publish("googleScriptInfo", async function () {
   if (!this.userId) {
     return [];

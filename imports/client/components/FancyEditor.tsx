@@ -53,11 +53,12 @@ export type MentionElement = {
   userId: string; // user._id of the mentioned user
   children: CustomText[];
 };
+export type ImageStatus = "success" | "error" | "loading";
 export type ImageElement = {
   type: "image";
   url: string;
   tempId: string;
-  loading: boolean;
+  status: ImageStatus;
   children: CustomText[];
 };
 export type CustomElement = MessageElement | MentionElement | ImageElement;
@@ -150,7 +151,13 @@ const ChatImageRenderer = ({
   attributes,
   element,
 }: ElementRendererProps<ImageElement>) => {
-  return <Image {...attributes} src={element.url} />;
+  return (
+    <Image
+      {...attributes}
+      src={element.url}
+      title={element.status === "error" ? "Image upload failed" : ""}
+    />
+  );
 };
 
 // Composed, layered reassignment is how Slate plugins are designed to work.
@@ -548,8 +555,8 @@ const Portal = ({ children }: { children: React.ReactNode }) => {
 
 export interface FancyEditorHandle {
   clearInput: () => void;
-  insertImage: (url: string, id: string, loading: boolean) => void;
-  replaceImage: (url: string, id: string) => void;
+  insertImage: (url: string, id: string, status: ImageStatus) => void;
+  replaceImage: (url: string, id: string, status: ImageStatus) => void;
 }
 
 const FancyEditor = React.forwardRef(
@@ -597,12 +604,12 @@ const FancyEditor = React.forwardRef(
     const usersById = useMemo(() => indexedById(users), [users]);
 
     const insertImage = useCallback(
-      (url: string, tempId: string, loading: boolean) => {
+      (url: string, tempId: string, status: ImageStatus) => {
         const image: ImageElement = {
           type: "image",
           url,
           tempId,
-          loading,
+          status,
           children: [{ text: "" }],
         };
         if (!editor.selection) {
@@ -637,14 +644,14 @@ const FancyEditor = React.forwardRef(
     );
 
     const replaceImage = useCallback(
-      (url: string, tempId: string) => {
+      (url: string, tempId: string, status: ImageStatus) => {
         for (const [node, path] of Node.nodes(editor)) {
           if (
             "type" in node &&
             node.type === "image" &&
             node.tempId === tempId
           ) {
-            Transforms.setNodes(editor, { url, loading: false }, { at: path });
+            Transforms.setNodes(editor, { url, status }, { at: path });
             return;
           }
         }

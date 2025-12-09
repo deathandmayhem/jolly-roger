@@ -79,6 +79,7 @@ import removePuzzleTag from "../../methods/removePuzzleTag";
 import sendChatMessage from "../../methods/sendChatMessage";
 import undestroyPuzzle from "../../methods/undestroyPuzzle";
 import updatePuzzle from "../../methods/updatePuzzle";
+import EnabledChatImage from "../EnabledChatImage";
 import GoogleScriptInfo from "../GoogleScriptInfo";
 import { useBreadcrumb } from "../hooks/breadcrumb";
 import useBlockUpdate from "../hooks/useBlockUpdate";
@@ -618,6 +619,11 @@ const ChatInput = React.memo(
     // We want to have hunt profile data around so we can autocomplete from multiple fields.
     const profilesLoadingFunc = useSubscribe("huntProfiles", huntId);
     const profilesLoading = profilesLoadingFunc();
+    const [uploadImageError, setUploadImageError] = useState<string>();
+    const clearUploadImageError = useCallback(
+      () => setUploadImageError(undefined),
+      [],
+    );
     const users = useTracker(() => {
       return profilesLoading
         ? []
@@ -667,7 +673,7 @@ const ChatInput = React.memo(
       return (
         content.length > 0 &&
         (content[0]! as MessageElement).children.some((child) => {
-          return nodeIsImage(child) && child.loading;
+          return nodeIsImage(child) && child.status === "loading";
         })
       );
     }, [content]);
@@ -684,21 +690,25 @@ const ChatInput = React.memo(
         const { type, children } = message;
         const cleanedMessage = {
           type,
-          children: children.map((child) => {
-            if (nodeIsMention(child)) {
-              return {
-                type: child.type,
-                userId: child.userId,
-              };
-            } else if (nodeIsImage(child)) {
-              return {
-                type: child.type,
-                url: child.url,
-              };
-            } else {
-              return child;
-            }
-          }),
+          children: children
+            .filter((child) => {
+              return !(nodeIsImage(child) && child.status !== "success");
+            })
+            .map((child) => {
+              if (nodeIsMention(child)) {
+                return {
+                  type: child.type,
+                  userId: child.userId,
+                };
+              } else if (nodeIsImage(child)) {
+                return {
+                  type: child.type,
+                  url: child.url,
+                };
+              } else {
+                return child;
+              }
+            }),
         };
 
         // Send chat message.
@@ -740,7 +750,7 @@ const ChatInput = React.memo(
         fancyEditorRef.current?.insertImage(
           "/images/spinner.png",
           tempId,
-          true,
+          "loading",
         );
 
         createChatImageUpload.call(
@@ -750,7 +760,15 @@ const ChatInput = React.memo(
           },
           (err, upload) => {
             if (err || !upload) {
-              throw new Error("S3 upload creation failed", err);
+              fancyEditorRef.current?.replaceImage(
+                "/images/brokenImage.png",
+                tempId,
+                "error",
+              );
+              setUploadImageError(
+                err?.message ??
+                  "S3 presignedPost creation failed, check server settings to ensure S3 image bucket is configured correctly.",
+              );
             } else {
               const { publicUrl, uploadUrl, fields } = upload;
               const formData = new FormData();
@@ -764,10 +782,19 @@ const ChatInput = React.memo(
                 body: formData,
               })
                 .then(() => {
-                  fancyEditorRef.current?.replaceImage(publicUrl, tempId);
+                  fancyEditorRef.current?.replaceImage(
+                    publicUrl,
+                    tempId,
+                    "success",
+                  );
                 })
                 .catch((uploadErr) => {
-                  throw new Error("S3 upload failed", uploadErr);
+                  fancyEditorRef.current?.replaceImage(
+                    "/images/brokenImage.png",
+                    tempId,
+                    "error",
+                  );
+                  setUploadImageError(`S3 upload failed: ${uploadErr.message}`);
                 });
             }
           },
@@ -782,8 +809,28 @@ const ChatInput = React.memo(
       uploadImageFile(file);
     }
 
+    useSubscribe("enabledChatImage");
+    const enabledChatImage = useTracker(
+      () => EnabledChatImage.findOne("enabledChatImage")?.enabled ?? false,
+      [],
+    );
+
+    const errorModal = (
+      <Modal show onHide={clearUploadImageError}>
+        <Modal.Header closeButton>Error uploading image to chat</Modal.Header>
+        <Modal.Body>
+          <p>
+            Something went wrong while uploading images to the chat. Contact
+            admin with the error message for help.
+          </p>
+          <p>Error message: {uploadImageError}</p>
+        </Modal.Body>
+      </Modal>
+    );
+
     return (
       <ChatInputRow>
+        {uploadImageError && createPortal(errorModal, document.body)}
         <InputGroup>
           <StyledFancyEditor
             ref={fancyEditorRef}
@@ -804,16 +851,20 @@ const ChatInput = React.memo(
           >
             <FontAwesomeIcon icon={faPaperPlane} />
           </Button>
-          <Button variant="secondary" onClick={handleButtonClick}>
-            <FontAwesomeIcon icon={faImage} />
-          </Button>
-          <input
-            type="file"
-            accept="image/*"
-            style={{ display: "none" }}
-            ref={fileInputRef}
-            onChange={handleImageUpload}
-          />
+          {enabledChatImage && (
+            <>
+              <Button variant="secondary" onClick={handleButtonClick}>
+                <FontAwesomeIcon icon={faImage} />
+              </Button>
+              <input
+                type="file"
+                accept="image/*"
+                style={{ display: "none" }}
+                ref={fileInputRef}
+                onChange={handleImageUpload}
+              />
+            </>
+          )}
         </InputGroup>
       </ChatInputRow>
     );
