@@ -327,7 +327,6 @@ const walkTokenList = (
   let end = start;
   tokens.forEach((token) => {
     // mutual recursion requires this
-    // eslint-disable-next-line @typescript-eslint/no-use-before-define
     walkToken(token, callback, end);
     end += token.raw.length;
   });
@@ -462,7 +461,7 @@ const decorate = ([node, path]: [Node, Path]) => {
   );
 
   if (DEBUG_EDITOR) {
-    // eslint-disable-next-line no-console
+    // biome-ignore lint/suspicious/noConsole: migration from eslint
     console.log("decorated", ranges);
   }
   return ranges;

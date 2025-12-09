@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-use-before-define */
 import { isDeepStrictEqual } from "util";
 import type { Subscription } from "meteor/meteor";
 import { Meteor } from "meteor/meteor";
@@ -175,7 +174,7 @@ class JoinedObjectObserver<T extends { _id: string }> {
             this.values.set(id, fkValues);
           },
           (err) => {
-            // eslint-disable-next-line no-console
+            // biome-ignore lint/suspicious/noConsole: migration from eslint
             console.log("incref promise rejected:", err);
           },
         );
@@ -241,7 +240,7 @@ class JoinedObjectObserver<T extends { _id: string }> {
             });
           },
           (err) => {
-            // eslint-disable-next-line no-console
+            // biome-ignore lint/suspicious/noConsole: migration from eslint
             console.log("incref promise rejected:", err);
           },
         );

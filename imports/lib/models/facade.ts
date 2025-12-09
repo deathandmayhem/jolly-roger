@@ -1,4 +1,3 @@
-/* eslint-disable filenames/match-exported */
 import Announcements from "./Announcements";
 import BlobMappings from "./BlobMappings";
 import Bookmarks from "./Bookmarks";

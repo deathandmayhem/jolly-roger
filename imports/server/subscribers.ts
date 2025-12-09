@@ -17,7 +17,6 @@ async function cleanupHook(deadServers: string[]) {
 }
 registerPeriodicCleanupHook(cleanupHook);
 
-// eslint-disable-next-line new-cap
 const contextMatcher = Match.Where(
   (val: unknown): val is Record<string, string> => {
     if (!Match.test(val, Object)) {

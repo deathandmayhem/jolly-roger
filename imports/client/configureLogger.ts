@@ -48,7 +48,7 @@ class BrowserConsole extends Transport {
     if (error) {
       args.push(error);
     }
-    // eslint-disable-next-line no-console
+    // biome-ignore lint/suspicious/noConsole: migration from eslint
     console[selectedLevel](...args);
     next();
   }

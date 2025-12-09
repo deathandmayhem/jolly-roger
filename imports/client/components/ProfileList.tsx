@@ -398,7 +398,6 @@ const ProfileList = ({
       // A user is interesting if for every search key, that search key matches
       // one of their fields.
       return toMatch.every((searchKey) => {
-        /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
         return (
           user.displayName?.toLowerCase().includes(searchKey) ||
           user.emails?.some((e) =>
@@ -410,7 +409,6 @@ const ProfileList = ({
             role.toLowerCase().includes(searchKey),
           )
         );
-        /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
       });
     };
 

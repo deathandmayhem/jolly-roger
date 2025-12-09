@@ -1065,7 +1065,6 @@ const PuzzlePageMetadata = ({
             {numGuesses}
           </Badge>
         </Button>
-        {/* eslint-disable-next-line @typescript-eslint/no-use-before-define */}
         <PuzzleGuessModal
           ref={guessModalRef}
           puzzle={puzzle}
@@ -1079,7 +1078,6 @@ const PuzzlePageMetadata = ({
           <FontAwesomeIcon icon={faKey} />
           {" Answer"}
         </Button>
-        {/* eslint-disable-next-line @typescript-eslint/no-use-before-define */}
         <PuzzleAnswerModal
           ref={answerModalRef}
           puzzle={puzzle}

@@ -96,7 +96,6 @@ const JoinHunt = () => {
     LoginOptionsResult | undefined
   >(undefined);
 
-  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- we actually want to test the chained booleans
   const loading = authLoading || huntLoading;
 
   const onGoogleLoginCompleted = useCallback(

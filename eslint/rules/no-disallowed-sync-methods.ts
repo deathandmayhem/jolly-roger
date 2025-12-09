@@ -81,12 +81,10 @@ const allSyncMethods = [...bannedMethods.values()].reduce((acc, map) => {
 }, new Set<string>());
 
 const isObjectType = (type: ts.Type): type is ts.ObjectType => {
-  // eslint-disable-next-line no-bitwise
   return !!(type.flags & ts.TypeFlags.Object);
 };
 
 const isTypeReference = (type: ts.Type): type is ts.TypeReference => {
-  // eslint-disable-next-line no-bitwise
   return isObjectType(type) && !!(type.objectFlags & ts.ObjectFlags.Reference);
 };
 

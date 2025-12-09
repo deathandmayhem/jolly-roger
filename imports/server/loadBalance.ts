@@ -39,7 +39,6 @@ const getWorkersCount = () => {
   return parseInt(maybeWorkerCountString, 10) || 0;
 };
 
-// eslint-disable-next-line import/prefer-default-export
 export const workersCount = getWorkersCount();
 
 WebApp.onListening(() => {

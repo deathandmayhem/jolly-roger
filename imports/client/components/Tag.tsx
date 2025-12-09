@@ -1,4 +1,3 @@
-/* eslint-disable react/destructuring-assignment */
 import { faAlignJustify } from "@fortawesome/free-solid-svg-icons/faAlignJustify";
 import { faCopy } from "@fortawesome/free-solid-svg-icons/faCopy";
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes";
@@ -326,7 +325,6 @@ const Tag = (props: TagProps) => {
     const withColon = i < arr.length - 1;
     nameWithBreaks.push(`${part}${withColon ? ":" : ""}`);
     if (withColon) {
-      // eslint-disable-next-line react/no-array-index-key
       nameWithBreaks.push(<wbr key={`wbr-${i}-${part}`} />);
     }
   });

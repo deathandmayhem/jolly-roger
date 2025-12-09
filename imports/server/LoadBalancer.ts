@@ -1,4 +1,3 @@
-/* eslint-disable no-underscore-dangle */
 import type { IncomingMessage, ServerResponse } from "http";
 import type stream from "stream";
 import { WebApp } from "meteor/webapp";

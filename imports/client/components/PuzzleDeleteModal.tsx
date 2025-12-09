@@ -22,7 +22,6 @@ import Loading from "./Loading";
 // Casting away the React.lazy because otherwise we lose access to the generic parameter
 const Select = React.lazy(
   () => import("react-select"),
-  // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 ) as typeof import("react-select").default;
 
 export type PuzzleDeleteModalHandle = {

@@ -595,7 +595,6 @@ class Model<
       "limit" | "transform"
     >,
   >(selector?: S, options?: O) {
-    // eslint-disable-next-line @typescript-eslint/no-deprecated -- findOne is still perfectly valid for client code
     return this.collection.findOne(selector ?? {}, options) as
       | SelectorToResultType<z.output<this["schema"]>, S>
       | undefined;

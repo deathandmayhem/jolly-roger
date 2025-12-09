@@ -377,7 +377,7 @@ const PuzzleListView = ({
 
       let listComponent;
       let listControls;
-      // eslint-disable-next-line default-case
+      // biome-ignore lint/style/useDefaultSwitchClause: migration from eslint
       switch (displayMode) {
         case "group": {
           // We group and sort first, and only filter afterward, to avoid losing the

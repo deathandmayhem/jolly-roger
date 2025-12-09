@@ -52,10 +52,6 @@ export default function defineMethod<
   const validator = (validate ?? voidValidator) as TypedMethodValidator<Args>;
 
   Meteor.methods({
-    /* eslint-disable-next-line meteor/audit-argument-checks -- because we're
-      wrapping the method call, the eslint check can't tell what's going on, but
-      the actual Meteor audit-argument-checks package will still fire if we
-      don't use check methods. */
     async [method.name](arg0: Args) {
       try {
         // In the case of no arguments, the type system will track the return
