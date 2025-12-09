@@ -1,0 +1,177 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.3.8/schema.json",
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true
+  },
+  "files": {
+    "includes": ["**", "!**/node_modules", "!**/.git", "!**/.meteor", "!eslint"]
+  },
+  "formatter": {
+    "enabled": true,
+    "formatWithErrors": false,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineEnding": "lf",
+    "lineWidth": 80,
+    "attributePosition": "auto",
+    "bracketSameLine": false,
+    "bracketSpacing": true,
+    "expand": "auto"
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+      "a11y": {
+        "noSvgWithoutTitle": "off"
+      },
+      "complexity": {
+        // We use the void operator to explicitly throw away promises
+        "noVoid": "off",
+        // Explicit function declarations can be easier to read
+        "useArrowFunction": "off",
+        // Useless switch cases are good for exhaustiveness
+        "noUselessSwitchCase": "off",
+        // TODO: Consider enabling these
+        "useIndexOf": "off",
+        "useFlatMap": "off",
+        "useDateNow": "off"
+      },
+      "correctness": {
+        // We don't use imports with extensions
+        "useImportExtensions": "off",
+        // This doesn't know about Meteor packages and there's no way to teach it
+        "noUndeclaredDependencies": "off",
+        // TODO: this seems like a decent rule worth migrating to
+        "useUniqueElementIds": "off",
+        // TODO: This seems like a good analog to noArrayIndexKey and worth enabling
+        "useJsxKeyInIterable": "off",
+
+        "noNestedComponentDefinitions": "error",
+
+        "useExhaustiveDependencies": {
+          "level": "error",
+          "options": {
+            "hooks": [
+              {
+                "name": "useTracker",
+                "closureIndex": 0,
+                "dependenciesIndex": 1
+              }
+            ]
+          }
+        }
+      },
+      "nursery": {
+        "noDeprecatedImports": "warn",
+        "noFloatingPromises": "error",
+        "noMisusedPromises": "error",
+        "noUnusedExpressions": "error",
+        "noUselessCatchBinding": "error",
+        "useExhaustiveSwitchCases": "error"
+      },
+      "performance": {
+        // TODO: Reevaluate this, as there's a reasonable case to be made about inefficiency here
+        "noAccumulatingSpread": "off"
+      },
+      "security": {
+        // This rule is well-intentioned, but it's sufficiently clear when you use dangerouslySetInnerHTML that you should be careful
+        "noDangerouslySetInnerHtml": "off"
+      },
+      "style": {
+        // We often export utility types and hooks from the same modules as components
+        "useComponentExportOnlyModules": "off",
+        // We use this operator a lot
+        "noNonNullAssertion": "off",
+        // TODO: migrate so we can enable this
+        "useNodejsImportProtocol": "off",
+        "useDefaultSwitchClause": "error",
+        // TODO: this is a good rule (and parallel to useImportType) and we should enable it
+        "useExportType": "off"
+      },
+      "suspicious": {
+        // TODO: migrate so we can enable this
+        "useIterableCallbackReturn": "off",
+        // TODO: consider migrating this on, but right now our code isn't compliant
+        "noImplicitAnyLet": "off",
+        // TODO: consider migrating this on
+        "useAwait": "off",
+        // TODO: migrate this on
+        "noPrototypeBuiltins": "off",
+        "noConsole": "warn",
+        "noUnassignedVariables": "warn",
+        "noVar": "warn",
+        // We use any too often to account for unknown types
+        "noExplicitAny": "off",
+        // We use void in various generics and intermediate types for its actual meaning of a function return type
+        "noConfusingVoidType": "off"
+      }
+    },
+    "domains": {
+      "react": "all",
+      "project": "all"
+    }
+  },
+  "javascript": {
+    "formatter": {
+      "jsxQuoteStyle": "double",
+      "quoteProperties": "asNeeded",
+      "trailingCommas": "all",
+      "arrowParentheses": "always"
+    },
+    "jsxRuntime": "reactClassic"
+  },
+  "html": {
+    "formatter": {
+      "indentScriptAndStyle": true,
+      "selfCloseVoidElements": "always"
+    }
+  },
+  "assist": {
+    "enabled": true,
+    "actions": {
+      "source": {
+        "organizeImports": {
+          "level": "on",
+          "options": {
+            "groups": [":NODE:", "meteor/**", ":PACKAGE:", ":PATH:"]
+          }
+        }
+      }
+    }
+  },
+  "overrides": [
+    {
+      "includes": ["tests/**"],
+      "linter": {
+        "rules": {
+          "complexity": {
+            // Arrow functions with mocha are discouraged
+            "useArrowFunction": "off"
+          },
+          "style": {
+            // TODO: this was enabled on eslint due to our use of conditional imports, but shouldn't be necessary (and is hiding issues)
+            "useImportType": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["types/**"],
+      "linter": {
+        // Type declarations for other libraries have to conform to those libraries
+        "rules": {
+          "correctness": {
+            "noUnusedImports": "off"
+          },
+          "suspicious": {
+            "noVar": "off",
+            "useNamespaceKeyword": "off"
+          }
+        }
+      }
+    }
+  ]
+}
