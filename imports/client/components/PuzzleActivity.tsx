@@ -98,6 +98,7 @@ const PuzzleActivity = ({
   const [finalBucket, setFinalBucket] = useState(
     roundedTime(ACTIVITY_GRANULARITY),
   );
+  // biome-ignore lint/correctness/useExhaustiveDependencies(finalBucket): This does actually depend on finalBucket because we want to reset the timer whenever it changes.
   useEffect(() => {
     const nextBucket =
       roundedTime(ACTIVITY_GRANULARITY).getTime() + ACTIVITY_GRANULARITY;

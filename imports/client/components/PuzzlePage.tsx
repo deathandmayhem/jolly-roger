@@ -1987,8 +1987,8 @@ const PuzzlePage = React.memo(() => {
     }
   }, []);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies(sidebarWidth): When the sidebar width changes, we want to scroll to the target.
   useLayoutEffect(() => {
-    // When sidebarWidth is updated, scroll history to the target
     trace("PuzzlePage useLayoutEffect", { hasRef: !!chatSectionRef.current });
     if (chatSectionRef.current) {
       chatSectionRef.current.scrollHistoryToTarget();

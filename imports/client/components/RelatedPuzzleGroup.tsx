@@ -81,11 +81,7 @@ const RelatedPuzzleGroup = ({
     } else {
       setNonPersistentCollapsed((prevCollapsed) => !prevCollapsed);
     }
-  }, [
-    setPersistentCollapsed,
-    setNonPersistentCollapsed,
-    trackPersistentExpand,
-  ]);
+  }, [setPersistentCollapsed, trackPersistentExpand]);
   const collapsed = trackPersistentExpand
     ? persistentCollapsed
     : nonPersistentCollapsed;

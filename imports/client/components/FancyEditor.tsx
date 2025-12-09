@@ -734,13 +734,7 @@ const FancyEditor = React.forwardRef(
           el.style.left = `${left}px`;
         }
       }
-    }, [
-      matchingUsers.length,
-      editor,
-      completionCursorIndex,
-      completionSearchString,
-      completionAnchorRange,
-    ]);
+    }, [matchingUsers.length, editor, completionAnchorRange]);
 
     const onUserSelected = useCallback(
       (u: Meteor.User) => {

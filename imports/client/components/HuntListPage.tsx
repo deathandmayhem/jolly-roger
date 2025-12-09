@@ -185,7 +185,7 @@ const HuntListPage = () => {
         setRenderCreateFixtureModal(true);
       }
     },
-    [renderCreateFixtureModal, createFixtureModalRef],
+    [renderCreateFixtureModal],
   );
 
   const body: ReactNode[] = [];

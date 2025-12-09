@@ -238,7 +238,7 @@ const PuzzleListView = ({
 
       createPuzzle.call({ docType, ...rest }, onAddComplete);
     },
-    [addModalRef],
+    [],
   );
 
   const setSearchString = useCallback(

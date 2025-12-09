@@ -248,7 +248,7 @@ const OperatorControls = ({
         setRenderPromoteModal(true);
       }
     },
-    [renderPromoteModal, promoteModalRef],
+    [renderPromoteModal],
   );
   const showDemoteModal = useCallback(
     (e: MouseEvent) => {
@@ -463,7 +463,7 @@ const ProfileList = ({
         setRenderGenerateInvitationLinkModal(true);
       }
     },
-    [renderGenerateInvitationLinkModal, generateInvitationLinkModalRef],
+    [renderGenerateInvitationLinkModal],
   );
 
   const [
@@ -484,7 +484,7 @@ const ProfileList = ({
         setRenderDisableInvitationLinkModal(true);
       }
     },
-    [renderDisableInvitationLinkModal, disableInvitationLinkModalRef],
+    [renderDisableInvitationLinkModal],
   );
 
   const invitationLink = useMemo(() => {
