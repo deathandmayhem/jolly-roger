@@ -102,7 +102,7 @@ describe("MigrationRegistry", function () {
     const start = Date.now();
     try {
       await reg.migrateToLatest();
-    } catch (e) {
+    } catch {
       // ignore failure
     }
     // Expect that the database is still locked.
@@ -158,7 +158,7 @@ describe("MigrationRegistry", function () {
     const start = Date.now();
     try {
       await reg.migrateToLatest();
-    } catch (e) {
+    } catch {
       // ignore failure
     }
     // Expect that the database is still locked.

@@ -1,13 +1,6 @@
 import { Random } from "meteor/random";
 import { assert } from "chai";
 import { z } from "zod";
-import Model, {
-  ModelType,
-  modifierIsNotWholeDoc,
-  parseMongoModifierAsync,
-  parseMongoOperationAsync,
-  relaxSchema,
-} from "../../../../imports/lib/models/Model";
 import {
   createdTimestamp,
   nonEmptyString,
@@ -17,6 +10,13 @@ import {
   updatedTimestamp,
 } from "../../../../imports/lib/models/customTypes";
 import { MongoRecordZodType } from "../../../../imports/lib/models/generateJsonSchema";
+import Model, {
+  ModelType,
+  modifierIsNotWholeDoc,
+  parseMongoModifierAsync,
+  parseMongoOperationAsync,
+  relaxSchema,
+} from "../../../../imports/lib/models/Model";
 import attachSchema from "../../../../imports/server/attachSchema";
 import AssertTypesEqual from "../../../lib/AssertTypesEqual";
 

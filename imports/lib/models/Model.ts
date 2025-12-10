@@ -1,9 +1,9 @@
 import { Mongo, MongoInternals } from "meteor/mongo";
 import type {
+  CreateIndexesOptions,
   Document,
   IndexDirection,
   IndexSpecification,
-  CreateIndexesOptions,
 } from "mongodb";
 import { z } from "zod";
 import { IsInsert, IsUpdate, IsUpsert, stringId } from "./customTypes";
@@ -144,7 +144,7 @@ export function getSchemaForField<Schema extends z.ZodTypeAny>(
       let index;
       try {
         index = parseInt(field, 10);
-      } catch (e) {
+      } catch {
         return z.never();
       }
       return def.items[index] ?? z.never();
@@ -154,7 +154,7 @@ export function getSchemaForField<Schema extends z.ZodTypeAny>(
         parseInt(field, 10);
         // if the field is a number, it's a valid array index
         return def.type;
-      } catch (e) {
+      } catch {
         return z.never();
       }
     }
@@ -189,7 +189,7 @@ export async function parseMongoOperationAsync(
   for (const [key, value] of Object.entries(operation)) {
     const [prefix, next, ...rest] = key.split(".");
     if (prefix && next) {
-      dotSeparatedKeys[prefix] = dotSeparatedKeys[prefix] || {};
+      dotSeparatedKeys[prefix] = dotSeparatedKeys[prefix] ?? {};
       dotSeparatedKeys[prefix][[next, ...rest].join(".")] = value;
     } else {
       nonDotSeparatedKeys[key] = value;
@@ -595,7 +595,6 @@ class Model<
       "limit" | "transform"
     >,
   >(selector?: S, options?: O) {
-    // eslint-disable-next-line deprecation/deprecation -- findOne is still perfectly valid for client code
     return this.collection.findOne(selector ?? {}, options) as
       | SelectorToResultType<z.output<this["schema"]>, S>
       | undefined;

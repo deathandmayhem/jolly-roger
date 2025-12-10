@@ -45,5 +45,4 @@ import ModelsFacade from "../imports/lib/models/facade";
 
 // Very last thing: run latest build hooks to actually create indexes and
 // schemas
-// eslint-disable-next-line import/first
 import "../imports/server/runLatestBuildHooks";

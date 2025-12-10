@@ -1,10 +1,9 @@
-/* eslint-disable no-underscore-dangle */
 import type { IncomingMessage, ServerResponse } from "http";
 import type stream from "stream";
 import { WebApp } from "meteor/webapp";
 import type HttpProxy from "http-proxy";
-import type { Worker } from "./WorkerPool";
 import type WorkerPool from "./WorkerPool";
+import type { Worker } from "./WorkerPool";
 
 // This implements a simple multi-process, single-machine load-balancer.
 //
@@ -69,10 +68,10 @@ export default class LoadBalancer {
         }
 
         if (workerMapping[id]) {
-          workerMapping[id]!.lastUpdate = Date.now();
+          workerMapping[id].lastUpdate = Date.now();
           const target = {
             host: "127.0.0.1",
-            port: workerMapping[id]!.worker.port,
+            port: workerMapping[id].worker.port,
           };
           // Set long timeout because clients long-poll
           res.setTimeout(2 * 60 * 1000);

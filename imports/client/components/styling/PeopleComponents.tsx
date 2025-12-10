@@ -1,4 +1,4 @@
-import type { FC, ComponentPropsWithRef } from "react";
+import type { ComponentPropsWithRef, FC } from "react";
 import Button from "react-bootstrap/Button";
 import styled, { css } from "styled-components";
 import { PuzzlePagePadding } from "./constants";

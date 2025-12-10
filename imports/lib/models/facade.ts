@@ -1,4 +1,3 @@
-/* eslint-disable filenames/match-exported */
 import Announcements from "./Announcements";
 import BlobMappings from "./BlobMappings";
 import Bookmarks from "./Bookmarks";
@@ -12,11 +11,6 @@ import FeatureFlags from "./FeatureFlags";
 import FolderPermissions from "./FolderPermissions";
 import Guesses from "./Guesses";
 import Hunts from "./Hunts";
-import PendingAnnouncements from "./PendingAnnouncements";
-import Puzzles from "./Puzzles";
-import Servers from "./Servers";
-import Settings from "./Settings";
-import Tags from "./Tags";
 import CallHistories from "./mediasoup/CallHistories";
 import ConnectAcks from "./mediasoup/ConnectAcks";
 import ConnectRequests from "./mediasoup/ConnectRequests";
@@ -31,6 +25,11 @@ import Routers from "./mediasoup/Routers";
 import TransportRequests from "./mediasoup/TransportRequests";
 import TransportStates from "./mediasoup/TransportStates";
 import Transports from "./mediasoup/Transports";
+import PendingAnnouncements from "./PendingAnnouncements";
+import Puzzles from "./Puzzles";
+import Servers from "./Servers";
+import Settings from "./Settings";
+import Tags from "./Tags";
 
 const Models = {
   Announcements,

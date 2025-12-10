@@ -1,5 +1,5 @@
-import { useCallback, useEffect } from "react";
 import type { RefObject } from "react";
+import { useCallback, useEffect } from "react";
 
 function useFocusRefOnFindHotkey<T extends HTMLElement>(nodeRef: RefObject<T>) {
   const maybeStealCtrlF = useCallback(

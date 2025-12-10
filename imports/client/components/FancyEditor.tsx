@@ -2,7 +2,7 @@ import type { Meteor } from "meteor/meteor";
 import { faFileCircleExclamation } from "@fortawesome/free-solid-svg-icons/faFileCircleExclamation";
 import { faSpinner } from "@fortawesome/free-solid-svg-icons/faSpinner";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { type Tokens, type Token } from "marked";
+import type { Token, Tokens } from "marked";
 import { marked } from "marked";
 import React, {
   useCallback,
@@ -17,24 +17,24 @@ import type {
   BaseEditor,
   Descendant,
   NodeEntry,
-  Node as SlateNode,
   Path,
+  Node as SlateNode,
 } from "slate";
-import { createEditor, Editor, Node, Text, Transforms, Range } from "slate";
+import { createEditor, Editor, Node, Range, Text, Transforms } from "slate";
 import type { HistoryEditor } from "slate-history";
 import { withHistory } from "slate-history";
 import type {
-  RenderLeafProps,
   RenderElementProps,
+  RenderLeafProps,
   RenderPlaceholderProps,
 } from "slate-react";
 import {
-  Slate,
   Editable,
   ReactEditor,
-  withReact,
-  useSelected,
+  Slate,
   useFocused,
+  useSelected,
+  withReact,
 } from "slate-react";
 import styled, { css } from "styled-components";
 import { formatDiscordName } from "../../lib/discord";
@@ -427,7 +427,6 @@ const walkTokenList = (
   let end = start;
   tokens.forEach((token) => {
     // mutual recursion requires this
-    // eslint-disable-next-line @typescript-eslint/no-use-before-define
     walkToken(token, callback, end);
     end += token.raw.length;
   });
@@ -562,7 +561,7 @@ const decorate = ([node, path]: [SlateNode, Path]) => {
   );
 
   if (DEBUG_EDITOR) {
-    // eslint-disable-next-line no-console
+    // biome-ignore lint/suspicious/noConsole: migration from eslint
     console.log("decorated", ranges);
   }
   return ranges;
@@ -906,13 +905,7 @@ const FancyEditor = React.forwardRef(
           el.style.left = `${left}px`;
         }
       }
-    }, [
-      matchingUsers.length,
-      editor,
-      completionCursorIndex,
-      completionSearchString,
-      completionAnchorRange,
-    ]);
+    }, [matchingUsers.length, editor, completionAnchorRange]);
 
     const onUserSelected = useCallback(
       (u: Meteor.User) => {

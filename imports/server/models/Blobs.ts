@@ -1,7 +1,7 @@
 import { z } from "zod";
+import { nonEmptyString, uint8Array } from "../../lib/models/customTypes";
 import type { ModelType } from "../../lib/models/Model";
 import Model from "../../lib/models/Model";
-import { nonEmptyString, uint8Array } from "../../lib/models/customTypes";
 
 // _id is the ASCII hex string of the sha256 hash of the blob contents
 export const Blob = z.object({

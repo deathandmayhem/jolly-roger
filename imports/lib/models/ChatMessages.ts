@@ -1,7 +1,7 @@
 import { z } from "zod";
+import { allowedEmptyString, foreignKey } from "./customTypes";
 import type { ModelType } from "./Model";
 import SoftDeletedModel from "./SoftDeletedModel";
-import { allowedEmptyString, foreignKey } from "./customTypes";
 import withCommon from "./withCommon";
 
 const MentionBlock = z.object({

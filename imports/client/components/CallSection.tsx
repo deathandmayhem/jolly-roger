@@ -319,7 +319,7 @@ const PeerBox = ({
         setRenderMuteModal(true);
       }
     },
-    [renderMuteModal, muteModalRef],
+    [renderMuteModal],
   );
 
   const { muted, deafened } = peer;
@@ -412,7 +412,7 @@ const Callers = ({
   audioContext: AudioContext;
   localStream: MediaStream;
   callersExpanded: boolean;
-  onToggleCallersExpanded(): void;
+  onToggleCallersExpanded: () => void;
   otherPeers: PeerType[];
   peerStreams: Map<string, MediaStream>;
 }) => {
@@ -469,7 +469,7 @@ const CallSection = ({
   audioContext: AudioContext;
   localStream: MediaStream;
   callersExpanded: boolean;
-  onToggleCallersExpanded(): void;
+  onToggleCallersExpanded: () => void;
   callState: CallState;
   callDispatch: React.Dispatch<Action>;
 }) => {

@@ -1,4 +1,4 @@
-/* eslint-disable react/no-array-index-key */
+// biome-ignore-all lint/suspicious/noArrayIndexKey: migrated from eslint
 import * as he from "he";
 import type { Token, Tokens } from "marked";
 import { marked } from "marked";
@@ -58,7 +58,7 @@ const ResponsiveImage = ({
       setIsLarge(imgWidth > containerWidth);
     }
     onLoadCB?.();
-  }, [imgRef, containerRef, onLoadCB]);
+  }, [onLoadCB]);
 
   // update on container resize
   useEffect(() => {

@@ -35,16 +35,14 @@ const Spectrum = ({
   if (analyserNode.current === undefined) {
     analyserNode.current = audioContext.createAnalyser();
     analyserNode.current.fftSize = barCount !== undefined ? barCount * 2 : 32;
-    analyserNode.current.smoothingTimeConstant =
-      smoothingTimeConstant !== undefined ? smoothingTimeConstant : 0.4;
+    analyserNode.current.smoothingTimeConstant = smoothingTimeConstant ?? 0.4;
     bufferLength.current = analyserNode.current.frequencyBinCount;
     analyserBuffer.current = new Uint8Array(bufferLength.current);
   }
 
   const periodicHandle = useRef<number | undefined>(undefined);
   const lastPainted = useRef<number>(0);
-  const throttleMinMsecValue =
-    1000 / (throttleFps !== undefined ? throttleFps : DEFAULT_THROTTLE_MAX_FPS);
+  const throttleMinMsecValue = 1000 / (throttleFps ?? DEFAULT_THROTTLE_MAX_FPS);
   const throttleMinMsecElapsed = useRef<number>(throttleMinMsecValue);
 
   useEffect(() => {
@@ -106,9 +104,7 @@ const Spectrum = ({
     wrapperStreamSource.connect(analyserNode.current!);
 
     // Schedule periodic spectrogram paintings, if not already running.
-    if (!periodicHandle.current) {
-      periodicHandle.current = window.requestAnimationFrame(drawSpectrum);
-    }
+    periodicHandle.current ??= window.requestAnimationFrame(drawSpectrum);
     return () => {
       wrapperStreamSource.disconnect();
     };

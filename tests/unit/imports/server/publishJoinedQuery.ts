@@ -179,14 +179,10 @@ describe("publishJoinedQuery", function () {
             }
           },
         })
-        .then(
-          (handle) => {
-            handleThunk = handle;
-          },
-          (error) => {
-            reject(error);
-          },
-        );
+        .then((handle) => {
+          handleThunk = handle;
+        })
+        .catch(reject);
       after(() => handleThunk?.stop());
     });
 

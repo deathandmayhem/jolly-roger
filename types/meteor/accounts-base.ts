@@ -64,7 +64,6 @@ declare module "meteor/accounts-base" {
       enrollAccount: EmailFields;
       verifyEmail: EmailFields;
     }
-    // eslint-disable-next-line no-var, vars-on-top -- this is how it is upstream
     var emailTemplates: EmailTemplates;
   }
 }

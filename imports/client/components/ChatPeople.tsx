@@ -29,6 +29,7 @@ import { trace } from "../tracing";
 import { PREFERRED_AUDIO_DEVICE_STORAGE_KEY } from "./AudioConfig";
 import Avatar from "./Avatar";
 import CallSection from "./CallSection";
+import { PuzzlePagePadding } from "./styling/constants";
 import {
   AVActions,
   AVButton,
@@ -37,7 +38,6 @@ import {
   PeopleItemDiv,
   PeopleListDiv,
 } from "./styling/PeopleComponents";
-import { PuzzlePagePadding } from "./styling/constants";
 
 interface ViewerSubscriber {
   user: string;
@@ -299,6 +299,7 @@ const ChatPeople = ({
     })();
   }, [callDispatch]);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies(disabled): We want the parent to re-render when anything might have changed our rendered size
   useLayoutEffect(() => {
     trace("ChatPeople useLayoutEffect", {
       loading,

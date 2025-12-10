@@ -1,7 +1,7 @@
 import { z } from "zod";
+import { foreignKey, nonEmptyString } from "../../lib/models/customTypes";
 import type { ModelType } from "../../lib/models/Model";
 import Model from "../../lib/models/Model";
-import { foreignKey, nonEmptyString } from "../../lib/models/customTypes";
 import { Id } from "../../lib/models/regexes";
 import withTimestamps from "../../lib/models/withTimestamps";
 

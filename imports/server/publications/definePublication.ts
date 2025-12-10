@@ -3,11 +3,11 @@ import { Meteor } from "meteor/meteor";
 import type { Mongo } from "meteor/mongo";
 import Bugsnag from "@bugsnag/js";
 import Logger from "../../Logger";
+import type TypedPublication from "../../lib/publications/TypedPublication";
 import type {
   DefaultTypedPublication,
   TypedPublicationArgs,
 } from "../../lib/publications/TypedPublication";
-import type TypedPublication from "../../lib/publications/TypedPublication";
 
 type TypedPublicationReturn =
   | undefined
@@ -49,10 +49,6 @@ export default function definePublication<
   const validator = (validate ??
     voidValidator) as TypedPublicationValidator<Args>;
 
-  /* eslint-disable-next-line meteor/audit-argument-checks -- because we're
-    wrapping the method call, the eslint check can't tell what's going on, but
-    the actual Meteor audit-argument-checks package will still fire if we don't
-    use check methods. */
   Meteor.publish(publication.name, async function (arg0: Args) {
     try {
       const validatedArg0 = validator.bind(this)(arg0) as any;

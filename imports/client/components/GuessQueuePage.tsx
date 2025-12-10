@@ -17,12 +17,12 @@ import { Link, useParams, useSearchParams } from "react-router-dom";
 import styled, { css } from "styled-components";
 import { calendarTimeFormat } from "../../lib/calendarTimeFormat";
 import { indexedById } from "../../lib/listUtils";
-import Guesses from "../../lib/models/Guesses";
 import type { GuessType } from "../../lib/models/Guesses";
-import Hunts from "../../lib/models/Hunts";
+import Guesses from "../../lib/models/Guesses";
 import type { HuntType } from "../../lib/models/Hunts";
-import Puzzles from "../../lib/models/Puzzles";
+import Hunts from "../../lib/models/Hunts";
 import type { PuzzleType } from "../../lib/models/Puzzles";
+import Puzzles from "../../lib/models/Puzzles";
 import { userMayUpdateGuessesForHunt } from "../../lib/permission_stubs";
 import guessesForGuessQueue from "../../lib/publications/guessesForGuessQueue";
 import setGuessState from "../../methods/setGuessState";
@@ -33,13 +33,13 @@ import useTypedSubscribe from "../hooks/useTypedSubscribe";
 import indexedDisplayNames from "../indexedDisplayNames";
 import CopyToClipboardButton from "./CopyToClipboardButton";
 import GuessState from "./GuessState";
-import Markdown from "./Markdown";
-import PuzzleAnswer from "./PuzzleAnswer";
 import {
+  formatGuessDirection,
   GuessConfidence,
   GuessDirection,
-  formatGuessDirection,
 } from "./guessDetails";
+import Markdown from "./Markdown";
+import PuzzleAnswer from "./PuzzleAnswer";
 import Breakable from "./styling/Breakable";
 import { guessColorLookupTable } from "./styling/constants";
 import type { Breakpoint } from "./styling/responsive";

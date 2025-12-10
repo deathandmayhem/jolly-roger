@@ -286,7 +286,7 @@ export async function ensureDocument(
           value: { type, id: googleDocId, folder: folderId },
         };
         const docId = await Documents.insertAsync(newDoc);
-        doc = await Documents.findOneAsync(docId)!;
+        doc = (await Documents.findOneAsync(docId))!;
       }
     });
   }

@@ -23,8 +23,8 @@ import unlinkUserGoogleAccount from "../../methods/unlinkUserGoogleAccount";
 import updateProfile from "../../methods/updateProfile";
 import { requestDiscordCredential } from "../discord";
 import useTeamName from "../hooks/useTeamName";
-import APIKeysTable from "./APIKeysTable";
 import ActionButtonRow from "./ActionButtonRow";
+import APIKeysTable from "./APIKeysTable";
 import AudioConfig from "./AudioConfig";
 import Avatar from "./Avatar";
 
@@ -118,7 +118,7 @@ const GoogleLinkBlock = ({ user }: { user: Meteor.User }) => {
   return (
     <FormGroup className="mb-3">
       <FormLabel>Google Account</FormLabel>
-      {state.state === "error" ? (
+      {state.state === GoogleLinkBlockLinkState.ERROR ? (
         <Alert variant="danger" dismissible onClose={dismissAlert}>
           Linking Google account failed: {state.error.message}
         </Alert>
@@ -265,7 +265,7 @@ const DiscordLinkBlock = ({ user }: { user: Meteor.User }) => {
   return (
     <FormGroup className="mb-3">
       <FormLabel>Discord account</FormLabel>
-      {state.state === "error" ? (
+      {state.state === DiscordLinkBlockLinkState.ERROR ? (
         <Alert variant="danger" dismissible onClose={dismissAlert}>
           Linking Discord account failed: {state.error.message}
         </Alert>
@@ -409,7 +409,8 @@ const OwnProfilePage = ({
     setSubmitState(OwnProfilePageSubmitState.IDLE);
   }, []);
 
-  const shouldDisableForm = submitState === "submitting";
+  const shouldDisableForm =
+    submitState === OwnProfilePageSubmitState.SUBMITTING;
   return (
     <Container>
       <h1>Account information</h1>
@@ -423,15 +424,15 @@ const OwnProfilePage = ({
           disabled
         />
       </FormGroup>
-      {submitState === "submitting" ? (
+      {submitState === OwnProfilePageSubmitState.SUBMITTING ? (
         <Alert variant="info">Saving...</Alert>
       ) : null}
-      {submitState === "success" ? (
+      {submitState === OwnProfilePageSubmitState.SUCCESS ? (
         <Alert variant="success" dismissible onClose={dismissAlert}>
           Saved changes.
         </Alert>
       ) : null}
-      {submitState === "error" ? (
+      {submitState === OwnProfilePageSubmitState.ERROR ? (
         <Alert variant="danger" dismissible onClose={dismissAlert}>
           Saving failed: {submitError}
         </Alert>

@@ -8,7 +8,6 @@ const resetDatabaseMethod = new TypedMethod<{ testName: string }, void>(
   "test.methods.resetDatabase",
 );
 
-// eslint-disable-next-line import/no-mutable-exports
 let resetDatabase: (testName: string) => Promise<void>;
 
 if (Meteor.isServer) {

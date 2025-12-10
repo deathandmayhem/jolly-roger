@@ -25,8 +25,8 @@ import styled, { css } from "styled-components";
 import { sortedBy } from "../../lib/listUtils";
 import Bookmarks from "../../lib/models/Bookmarks";
 import Hunts from "../../lib/models/Hunts";
-import Puzzles from "../../lib/models/Puzzles";
 import type { PuzzleType } from "../../lib/models/Puzzles";
+import Puzzles from "../../lib/models/Puzzles";
 import Tags from "../../lib/models/Tags";
 import { userMayWritePuzzlesForHunt } from "../../lib/permission_stubs";
 import puzzleActivityForHunt from "../../lib/publications/puzzleActivityForHunt";
@@ -238,7 +238,7 @@ const PuzzleListView = ({
 
       createPuzzle.call({ docType, ...rest }, onAddComplete);
     },
-    [addModalRef],
+    [],
   );
 
   const setSearchString = useCallback(
@@ -377,7 +377,7 @@ const PuzzleListView = ({
 
       let listComponent;
       let listControls;
-      // eslint-disable-next-line default-case
+      // biome-ignore lint/style/useDefaultSwitchClause: migration from eslint
       switch (displayMode) {
         case "group": {
           // We group and sort first, and only filter afterward, to avoid losing the

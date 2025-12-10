@@ -19,11 +19,11 @@ import Row from "react-bootstrap/Row";
 import { createPortal } from "react-dom";
 import { useNavigate, useParams } from "react-router-dom";
 import DiscordCache from "../../lib/models/DiscordCache";
-import Hunts from "../../lib/models/Hunts";
 import type {
   EditableHuntType,
   SavedDiscordObjectType,
 } from "../../lib/models/Hunts";
+import Hunts from "../../lib/models/Hunts";
 import Settings from "../../lib/models/Settings";
 import discordChannelsForConfiguredGuild from "../../lib/publications/discordChannelsForConfiguredGuild";
 import discordRolesForConfiguredGuild from "../../lib/publications/discordRolesForConfiguredGuild";

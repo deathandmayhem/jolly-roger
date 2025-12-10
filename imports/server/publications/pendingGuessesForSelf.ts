@@ -1,5 +1,5 @@
-import Guesses from "../../lib/models/Guesses";
 import type { GuessType } from "../../lib/models/Guesses";
+import Guesses from "../../lib/models/Guesses";
 import Hunts from "../../lib/models/Hunts";
 import MeteorUsers from "../../lib/models/MeteorUsers";
 import Puzzles from "../../lib/models/Puzzles";

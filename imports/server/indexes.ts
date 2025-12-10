@@ -1,9 +1,9 @@
 import util from "util";
 import { MongoInternals } from "meteor/mongo";
 import type {
-  IndexSpecification,
-  CreateIndexesOptions,
   CommandOperationOptions,
+  CreateIndexesOptions,
+  IndexSpecification,
 } from "mongodb";
 import Logger from "../Logger";
 import type { ModelIndexSpecification } from "../lib/models/Model";

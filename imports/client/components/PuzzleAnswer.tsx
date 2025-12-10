@@ -86,7 +86,7 @@ const PuzzleAnswer = React.memo(
         },
       );
       formattedAnswer = segments.map((segment, i) => (
-        // eslint-disable-next-line react/no-array-index-key
+        // biome-ignore lint/suspicious/noArrayIndexKey: migration from eslint
         <PuzzleAnswerSegment key={`segment-${i}`}>
           {segment}
           <wbr />

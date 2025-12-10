@@ -61,14 +61,10 @@ export default async function withLock<T>(
               resolve(undefined);
             },
           })
-          .then(
-            (handleThunk) => {
-              handle = handleThunk;
-            },
-            (error) => {
-              reject(error);
-            },
-          );
+          .then((handleThunk) => {
+            handle = handleThunk;
+          })
+          .catch(reject);
       });
 
       lock = await tryAcquire(name);

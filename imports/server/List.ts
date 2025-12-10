@@ -61,7 +61,7 @@ class List {
     try {
       blanche([this.name, "-a", member]);
       return true;
-    } catch (e) {
+    } catch {
       return false;
     }
   }

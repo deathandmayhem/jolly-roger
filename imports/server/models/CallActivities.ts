@@ -1,7 +1,7 @@
 import { z } from "zod";
+import { foreignKey } from "../../lib/models/customTypes";
 import type { ModelType } from "../../lib/models/Model";
 import Model from "../../lib/models/Model";
-import { foreignKey } from "../../lib/models/customTypes";
 
 const CallActivity = z.object({
   ts: z.date(),

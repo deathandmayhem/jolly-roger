@@ -8,23 +8,8 @@ updates:
     open-pull-requests-limit: 20
     ignore:
       # All of these dependencies require Node v16 or greater
-      - dependency-name: "@typescript-eslint/eslint-plugin"
-        versions: [">=6"]
-      - dependency-name: "@typescript-eslint/parser"
-        versions: [">=6"]
-      - dependency-name: "@typescript-eslint/utils"
-        versions: [">=6"]
-      - dependency-name: "eslint-plugin-deprecation"
-        versions: [">=2"]
       - dependency-name: "discord.js"
         versions: [">=13"]
-      - dependency-name: "glob"
-        versions: [">=9"]
-      - dependency-name: "puppeteer"
-      - dependency-name: "@testing-library/react"
-        versions: [">=15"]
-      - dependency-name: "chai"
-        versions: [">=5"]
     groups:
       aws:
         patterns:
@@ -32,6 +17,7 @@ updates:
       google:
         patterns:
           - "@googleapis/*"
+          - gaxios
       fontawesome:
         patterns:
           - "@fortawesome/*"

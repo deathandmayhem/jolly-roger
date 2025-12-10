@@ -10,8 +10,8 @@ import { logger as defaultLogger } from "../Logger";
 import BlobMappings from "../lib/models/BlobMappings";
 import addRuntimeConfig from "./addRuntimeConfig";
 import expressAsyncWrapper from "./expressAsyncWrapper";
-import Blobs from "./models/Blobs";
 import type { BlobType } from "./models/Blobs";
+import Blobs from "./models/Blobs";
 import UploadTokens from "./models/UploadTokens";
 import onExit from "./onExit";
 
