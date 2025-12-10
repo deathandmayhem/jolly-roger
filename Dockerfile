@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1.4
+# syntax=docker/dockerfile:1.19
 
 # Build and test images (No need to worry about creating intermediate images)
 #
@@ -7,10 +7,13 @@
 
 FROM ubuntu:22.04 AS buildenv
 
-ENV DEBIAN_FRONTEND noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
+ENV METEOR_ALLOW_SUPERUSER=1
 
 # Install build deps
-RUN <<'EOF'
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+  --mount=type=cache,target=/var/lib/apt,sharing=locked \
+  <<'EOF'
 #!/bin/bash
 set -eux
 set -o pipefail
@@ -26,17 +29,9 @@ apt-get install --no-install-recommends -y \
 	curl \
 	python3 python3-pip python3-dev python3-setuptools python3-wheel \
 	comerr-dev libkrb5-dev libreadline-dev libhesiod-dev libncurses5-dev autoconf
-
-# The easiest way to install puppeteer's dependencies is to pull the
-# dependencies for Chrome. We don't actually need to install Chrome, but this
-# prevents us from needing to manually maintain the list of dependencies here.
-curl https://dl-ssl.google.com/linux/linux_signing_key.pub > /etc/apt/trusted.gpg.d/google.asc
-echo "deb https://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google.list
-apt-get update
-apt-get satisfy --no-install-recommends -y "$(apt-cache show google-chrome-stable | sed -ne 's/^Depends: //p')"
 EOF
 
-FROM buildenv as moiraenv
+FROM buildenv AS moiraenv
 
 # Fetch source code
 WORKDIR /moira/src
@@ -56,47 +51,50 @@ make -j
 make install DESTDIR=/moira/build
 EOF
 
-FROM buildenv as meteorenv
+FROM buildenv AS meteorenv
 
 WORKDIR /app
 
 ARG CI=true
 
-# Install Meteor
-COPY .meteor/release /app/.meteor/release
-RUN <<'EOF'
+# Install Meteor and deps
+COPY .meteor /app/.meteor
+RUN --mount=type=cache,target=/root/.npm <<'EOF'
 #!/bin/bash
 set -eux
 set -o pipefail
 METEOR_RELEASE="$(sed -e 's/.*@//g' .meteor/release)"
 curl -sL "https://install.meteor.com?release=$METEOR_RELEASE" | sh
+
+# This is sufficient to fetch our Meteor package dependencies
+meteor list
+
+# Meteor likes to install several copies of things like SWC so see if we can
+# consolidate down
+hardlink -c /root/.meteor
 EOF
 
-# Install meteor deps (list is sufficient to do this)
-COPY .meteor /app/.meteor
-RUN METEOR_ALLOW_SUPERUSER=1 meteor list
 # Install app deps
-COPY package.json package-lock.json tsconfig.json /app
-COPY eslint /app/eslint
+COPY package.json package-lock.json tsconfig.json /app/
+COPY eslint /app/eslint/
 RUN --mount=type=cache,target=/root/.npm <<'EOF'
 #!/bin/bash
 set -eux
 set -o pipefail
-export METEOR_ALLOW_SUPERUSER=1
+export METEOR_OFFLINE_CATALOG=1
 meteor npm ci
-meteor npm run prepare
+meteor npx playwright install --with-deps chromium
 EOF
 
-COPY . /app
-
 FROM meteorenv AS test
+
+COPY . /app/
 
 # Run lint
 COPY <<'EOF' /test.sh
 #!/bin/bash
 set -eux
 set -o pipefail
-export METEOR_ALLOW_SUPERUSER=1
 meteor npm run lint | sed -e "s,/app/,${PATH_PREFIX:+${PATH_PREFIX}/},g"
 meteor npm run test
 EOF
@@ -104,20 +102,30 @@ CMD ["/bin/bash", "/test.sh"]
 
 FROM meteorenv AS build
 
+# For production, we don't need a full git repository; just the commit hash
+COPY --exclude=.git . /app
+ARG METEOR_GIT_COMMIT_HASH
+ENV METEOR_GIT_COMMIT_HASH=${METEOR_GIT_COMMIT_HASH}
+
 # Generate production build
-RUN --mount=type=cache,target=/app/.meteor/local/ meteor build --allow-superuser --directory /built_app --server=http://localhost:3000
+RUN --mount=type=cache,target=/app/.meteor/local/ meteor build --directory /built_app --server=http://localhost:3000
 
 # Install server dependencies
 WORKDIR /built_app/bundle/programs/server
-RUN --mount=type=cache,target=/root/.npm meteor npm --allow-superuser install --omit=dev
+RUN --mount=type=cache,target=/root/.npm meteor npm install --omit=dev
 
 # Production image
 # (Be careful about creating as few layers as possible)
 
 FROM ubuntu:22.04 AS production
 
+ARG METEOR_GIT_COMMIT_HASH
+ENV METEOR_GIT_COMMIT_HASH=${METEOR_GIT_COMMIT_HASH}
+
 # Install runtime deps
-RUN <<'EOF'
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+  --mount=type=cache,target=/var/lib/apt,sharing=locked \
+	<<'EOF'
 #!/bin/bash
 set -eux
 set -o pipefail
@@ -147,7 +155,7 @@ COPY --from=moiraenv --link /moira/build /
 COPY --from=build --link /built_app /built_app
 COPY scripts /built_app/scripts
 
-ENV PORT 80
+ENV PORT=80
 EXPOSE 80
 
 # Mediasoup RTC ports
@@ -155,4 +163,4 @@ EXPOSE 10000-59999/udp
 EXPOSE 10000-59999/tcp
 
 WORKDIR /built_app/bundle
-CMD /built_app/scripts/run_jolly_roger.sh
+CMD ["/built_app/scripts/run_jolly_roger.sh"]
