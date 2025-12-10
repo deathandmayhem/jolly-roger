@@ -33,23 +33,30 @@ async function makeDiscordBotFromSettings(): Promise<DiscordBot | undefined> {
   return new DiscordBot(token);
 }
 
+type DescriptionContent = { description: string };
+type ImageContent = { image: { url: string } };
+type Content = DescriptionContent | ImageContent;
 async function renderChatMessageContent(
   content: ChatMessageContentType,
-): Promise<string> {
+): Promise<Content> {
+  if (content.children.length === 1 && nodeIsImage(content.children[0]!)) {
+    return { image: { url: content.children[0].url } };
+  }
+
   const chunks = await Promise.all(
     content.children.map(async (child) => {
       if (nodeIsImage(child)) {
-        return child.url;
+        return ` ${child.url} `;
       }
       if (nodeIsText(child)) {
         return child.text;
-      } else {
-        const user = await MeteorUsers.findOneAsync(child.userId);
-        return ` @${user?.displayName ?? child.userId} `;
       }
+      const user = await MeteorUsers.findOneAsync(child.userId);
+      return ` @${user?.displayName ?? child.userId} `;
     }),
   );
-  return chunks.join("");
+
+  return { description: chunks.join("") };
 }
 
 const DiscordHooks: Hookset = {
@@ -211,7 +218,7 @@ const DiscordHooks: Hookset = {
           },
           url,
           title,
-          description,
+          ...description,
         },
         nonce: chatMessageId,
         allowed_mentions: {
