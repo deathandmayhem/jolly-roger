@@ -683,7 +683,16 @@ const ChatInput = React.memo(
           type,
           children: children
             .filter((child) => {
-              return !(nodeIsImage(child) && child.status !== "success");
+              if (nodeIsMention(child)) {
+                return true;
+              }
+              if (nodeIsImage(child) && child.status !== "success") {
+                return false;
+              }
+              if (nodeIsText(child) && child.text === "") {
+                return false;
+              }
+              return true;
             })
             .map((child) => {
               if (nodeIsMention(child)) {
