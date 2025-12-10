@@ -6,7 +6,6 @@ import { faExclamationCircle } from "@fortawesome/free-solid-svg-icons/faExclama
 import { faQuestionCircle } from "@fortawesome/free-solid-svg-icons/faQuestionCircle";
 import { faTimesCircle } from "@fortawesome/free-solid-svg-icons/faTimesCircle";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import React from "react";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Tooltip from "react-bootstrap/Tooltip";
 import type { GuessType } from "../../lib/models/Guesses";

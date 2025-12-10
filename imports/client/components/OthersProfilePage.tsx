@@ -1,6 +1,5 @@
 import type { Meteor } from "meteor/meteor";
 import { useTracker } from "meteor/react-meteor-data";
-import React from "react";
 import Tooltip from "react-bootstrap/esm/Tooltip";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import styled from "styled-components";

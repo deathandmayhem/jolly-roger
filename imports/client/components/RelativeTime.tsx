@@ -1,5 +1,5 @@
 import { Meteor } from "meteor/meteor";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import type { RelativeTimeFormatOpts } from "../../lib/relativeTimeFormat";
 import { complete } from "../../lib/relativeTimeFormat";
 

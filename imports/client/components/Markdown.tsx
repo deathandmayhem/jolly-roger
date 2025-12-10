@@ -1,6 +1,6 @@
 import DOMPurify from "dompurify";
 import { marked, Renderer, type Tokens } from "marked";
-import React from "react";
+import type React from "react";
 
 const renderer = new (class extends Renderer {
   link(linkToken: Tokens.Link) {

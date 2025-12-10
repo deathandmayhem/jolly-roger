@@ -1,7 +1,8 @@
 import { useTracker } from "meteor/react-meteor-data";
 import { faInfo } from "@fortawesome/free-solid-svg-icons/faInfo";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import React, { useCallback, useRef, useState } from "react";
+import type React from "react";
+import { useCallback, useRef, useState } from "react";
 import { Modal, ModalBody, ModalFooter } from "react-bootstrap";
 import Alert from "react-bootstrap/Alert";
 import Button from "react-bootstrap/Button";

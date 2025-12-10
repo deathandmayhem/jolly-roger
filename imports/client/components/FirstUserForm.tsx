@@ -1,5 +1,6 @@
 import { Meteor } from "meteor/meteor";
-import React, { useCallback, useState } from "react";
+import type React from "react";
+import { useCallback, useState } from "react";
 import Alert from "react-bootstrap/Alert";
 import Button from "react-bootstrap/Button";
 import type { FormControlProps } from "react-bootstrap/FormControl";

@@ -2,7 +2,7 @@ import { faCopy } from "@fortawesome/free-solid-svg-icons/faCopy";
 import { faEye } from "@fortawesome/free-solid-svg-icons/faEye";
 import { faEyeSlash } from "@fortawesome/free-solid-svg-icons/faEyeSlash";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import React, { useCallback, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import Alert from "react-bootstrap/Alert";
 import Button from "react-bootstrap/Button";
 import FormControl from "react-bootstrap/FormControl";

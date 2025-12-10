@@ -1,0 +1,20 @@
+{
+  "$schema": "https://swc.rs/schema.json",
+  "jsc": {
+    "transform": {
+      "react": {
+        "runtime": "automatic"
+      }
+    },
+    "experimental": {
+      "plugins": [
+        [
+          "@swc/plugin-styled-components",
+          {
+            "displayName": true
+          }
+        ]
+      ]
+    }
+  }
+}

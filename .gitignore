@@ -2,3 +2,4 @@ node_modules
 npm-debug.log
 jsconfig.json
 .vscode/launch.json
+.swc

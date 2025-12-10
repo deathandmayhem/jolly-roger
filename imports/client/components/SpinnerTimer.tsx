@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 // A component which animates a grey spinner between startTime and endTime like
 //     _____         __            __            __            __            __

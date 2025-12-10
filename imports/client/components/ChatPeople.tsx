@@ -3,8 +3,9 @@ import { useSubscribe, useTracker } from "meteor/react-meteor-data";
 import { faCaretDown } from "@fortawesome/free-solid-svg-icons/faCaretDown";
 import { faCaretRight } from "@fortawesome/free-solid-svg-icons/faCaretRight";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import type React from "react";
 import type { ReactNode } from "react";
-import React, {
+import {
   useCallback,
   useEffect,
   useLayoutEffect,
