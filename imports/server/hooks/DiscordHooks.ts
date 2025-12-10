@@ -47,12 +47,12 @@ async function renderChatMessageContent(
     content.children.map(async (child) => {
       if (nodeIsImage(child)) {
         return ` ${child.url} `;
-      } else if (nodeIsText(child)) {
-        return child.text;
-      } else {
-        const user = await MeteorUsers.findOneAsync(child.userId);
-        return ` @${user?.displayName ?? child.userId} `;
       }
+      if (nodeIsText(child)) {
+        return child.text;
+      }
+      const user = await MeteorUsers.findOneAsync(child.userId);
+      return ` @${user?.displayName ?? child.userId} `;
     }),
   );
 
