@@ -34,7 +34,9 @@ enum InsertImageSubmitState {
 
 class InvalidImage extends Error {}
 
-const validateImageForDirectUpload = async (file: File): Promise<string> => {
+export const validateImageForDirectUpload = async (
+  file: File,
+): Promise<string> => {
   if (file.size > 2 * 1024 * 1024) {
     throw new InvalidImage("Image must be less than 2MB");
   }

@@ -60,6 +60,7 @@ import type { PuzzleType } from "../../lib/models/Puzzles";
 import Puzzles from "../../lib/models/Puzzles";
 import type { TagType } from "../../lib/models/Tags";
 import Tags from "../../lib/models/Tags";
+import nodeIsImage from "../../lib/nodeIsImage";
 import nodeIsMention from "../../lib/nodeIsMention";
 import nodeIsText from "../../lib/nodeIsText";
 import { userMayWritePuzzlesForHunt } from "../../lib/permission_stubs";
@@ -68,6 +69,7 @@ import puzzleForPuzzlePage from "../../lib/publications/puzzleForPuzzlePage";
 import { computeSolvedness } from "../../lib/solvedness";
 import addPuzzleAnswer from "../../methods/addPuzzleAnswer";
 import addPuzzleTag from "../../methods/addPuzzleTag";
+import createChatImageUpload from "../../methods/createChatImageUpload";
 import createGuess from "../../methods/createGuess";
 import ensurePuzzleDocument from "../../methods/ensurePuzzleDocument";
 import type { Sheet } from "../../methods/listDocumentSheets";
@@ -77,6 +79,7 @@ import removePuzzleTag from "../../methods/removePuzzleTag";
 import sendChatMessage from "../../methods/sendChatMessage";
 import undestroyPuzzle from "../../methods/undestroyPuzzle";
 import updatePuzzle from "../../methods/updatePuzzle";
+import EnabledChatImage from "../EnabledChatImage";
 import GoogleScriptInfo from "../GoogleScriptInfo";
 import { useBreadcrumb } from "../hooks/breadcrumb";
 import useBlockUpdate from "../hooks/useBlockUpdate";
@@ -342,6 +345,7 @@ const ChatHistoryMessage = React.memo(
     isHighlighted,
     suppressSender,
     selfUserId,
+    imageOnLoad,
   }: {
     message: FilteredChatMessageType;
     displayNames: Map<string, string>;
@@ -349,6 +353,7 @@ const ChatHistoryMessage = React.memo(
     isHighlighted: boolean;
     suppressSender: boolean;
     selfUserId: string;
+    imageOnLoad: () => void;
   }) => {
     const ts = shortCalendarTimeFormat(message.timestamp);
 
@@ -367,6 +372,7 @@ const ChatHistoryMessage = React.memo(
           message={message.content}
           displayNames={displayNames}
           selfUserId={selfUserId}
+          imageOnLoad={imageOnLoad}
         />
       </ChatMessageDiv>
     );
@@ -495,7 +501,7 @@ const ChatHistory = React.forwardRef(
       };
     }, [scrollToTarget]);
 
-    useLayoutEffect(() => {
+    const scrollChat = useCallback(() => {
       // Whenever we rerender due to new messages arriving, make our
       // distance-from-bottom match the previous one, if it's larger than some
       // small fudge factor.  But if the user has actually scrolled into the backlog,
@@ -513,6 +519,10 @@ const ChatHistory = React.forwardRef(
         snapToBottom();
       }
     }, [chatMessages.length, saveScrollBottomTarget, snapToBottom]);
+
+    useLayoutEffect(() => {
+      scrollChat();
+    }, [scrollChat]);
 
     trace("ChatHistory render", { messageCount: chatMessages.length });
     return (
@@ -546,6 +556,7 @@ const ChatHistory = React.forwardRef(
               isHighlighted={isHighlighted}
               suppressSender={suppressSender}
               selfUserId={selfUser._id}
+              imageOnLoad={scrollChat}
             />
           );
         })}
@@ -599,6 +610,11 @@ const ChatInput = React.memo(
     // We want to have hunt profile data around so we can autocomplete from multiple fields.
     const profilesLoadingFunc = useSubscribe("huntProfiles", huntId);
     const profilesLoading = profilesLoadingFunc();
+    const [uploadImageError, setUploadImageError] = useState<string>();
+    const clearUploadImageError = useCallback(
+      () => setUploadImageError(undefined),
+      [],
+    );
     const users = useTracker(() => {
       return profilesLoading
         ? []
@@ -636,6 +652,7 @@ const ChatInput = React.memo(
         content.length > 0 &&
         (content[0]! as MessageElement).children.some((child) => {
           return (
+            nodeIsImage(child) ||
             nodeIsMention(child) ||
             (nodeIsText(child) && child.text.trim().length > 0)
           );
@@ -643,8 +660,17 @@ const ChatInput = React.memo(
       );
     }, [content]);
 
+    const hasLoadingImage = useMemo(() => {
+      return (
+        content.length > 0 &&
+        (content[0]! as MessageElement).children.some((child) => {
+          return nodeIsImage(child) && child.status === "loading";
+        })
+      );
+    }, [content]);
+
     const sendContentMessage = useCallback(() => {
-      if (hasNonTrivialContent) {
+      if (hasNonTrivialContent && !hasLoadingImage) {
         // Prepare to send message to server.
 
         // Take only the first Descendant; we normalize the input to a single
@@ -655,16 +681,25 @@ const ChatInput = React.memo(
         const { type, children } = message;
         const cleanedMessage = {
           type,
-          children: children.map((child) => {
-            if (nodeIsMention(child)) {
-              return {
-                type: child.type,
-                userId: child.userId,
-              };
-            } else {
-              return child;
-            }
-          }),
+          children: children
+            .filter((child) => {
+              return !(nodeIsImage(child) && child.status !== "success");
+            })
+            .map((child) => {
+              if (nodeIsMention(child)) {
+                return {
+                  type: child.type,
+                  userId: child.userId,
+                };
+              } else if (nodeIsImage(child)) {
+                return {
+                  type: child.type,
+                  url: child.url,
+                };
+              } else {
+                return child;
+              }
+            }),
         };
 
         // Send chat message.
@@ -677,8 +712,16 @@ const ChatInput = React.memo(
         if (onMessageSent) {
           onMessageSent();
         }
+        return true;
       }
-    }, [hasNonTrivialContent, content, puzzleId, onMessageSent]);
+      return false;
+    }, [
+      hasNonTrivialContent,
+      hasLoadingImage,
+      content,
+      puzzleId,
+      onMessageSent,
+    ]);
 
     useBlockUpdate(
       hasNonTrivialContent
@@ -686,8 +729,91 @@ const ChatInput = React.memo(
         : undefined,
     );
 
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const handleButtonClick = useCallback(() => {
+      fileInputRef.current?.click();
+    }, []);
+
+    const uploadImageFile = useCallback(
+      (file: File) => {
+        const tempId = Random.id();
+        fancyEditorRef.current?.insertImage("", tempId, "loading");
+
+        createChatImageUpload.call(
+          {
+            puzzleId,
+            mimeType: file.type,
+          },
+          (err, upload) => {
+            if (err || !upload) {
+              fancyEditorRef.current?.replaceImage("", tempId, "error");
+              setUploadImageError(
+                err?.message ??
+                  "S3 presignedPost creation failed, check server settings to ensure S3 image bucket is configured correctly.",
+              );
+            } else {
+              const { publicUrl, uploadUrl, fields } = upload;
+              const formData = new FormData();
+              for (const [key, value] of Object.entries(fields)) {
+                formData.append(key, value);
+              }
+              formData.append("file", file);
+              fetch(uploadUrl, {
+                method: "POST",
+                mode: "no-cors",
+                body: formData,
+              })
+                .then(() => {
+                  fancyEditorRef.current?.replaceImage(
+                    publicUrl,
+                    tempId,
+                    "success",
+                  );
+                })
+                .catch((uploadErr) => {
+                  fancyEditorRef.current?.replaceImage("", tempId, "error");
+                  setUploadImageError(`S3 upload failed: ${uploadErr.message}`);
+                });
+            }
+          },
+        );
+      },
+      [puzzleId],
+    );
+
+    function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      if (!file.type.startsWith("image/")) {
+        setUploadImageError("Only image files can be uploaded in chat.");
+        return;
+      }
+      uploadImageFile(file);
+    }
+
+    useSubscribe("enabledChatImage");
+    const enabledChatImage = useTracker(
+      () => EnabledChatImage.findOne("enabledChatImage")?.enabled ?? false,
+      [],
+    );
+
+    const errorModal = (
+      <Modal show onHide={clearUploadImageError}>
+        <Modal.Header closeButton>Error uploading image to chat</Modal.Header>
+        <Modal.Body>
+          <p>
+            Something went wrong while uploading images to the chat. Contact
+            admin with the error message for help.
+          </p>
+          <p>Error message: {uploadImageError}</p>
+        </Modal.Body>
+      </Modal>
+    );
+
     return (
       <ChatInputRow>
+        {uploadImageError && createPortal(errorModal, document.body)}
         <InputGroup>
           <StyledFancyEditor
             ref={fancyEditorRef}
@@ -697,16 +823,31 @@ const ChatInput = React.memo(
             users={users}
             onContentChange={onContentChange}
             onSubmit={sendContentMessage}
+            uploadImageFile={uploadImageFile}
             disabled={disabled}
           />
           <Button
             variant="secondary"
             onClick={sendContentMessage}
             onMouseDown={preventDefaultCallback}
-            disabled={disabled || !hasNonTrivialContent}
+            disabled={disabled || !hasNonTrivialContent || hasLoadingImage}
           >
             <FontAwesomeIcon icon={faPaperPlane} />
           </Button>
+          {enabledChatImage && (
+            <>
+              <Button variant="secondary" onClick={handleButtonClick}>
+                <FontAwesomeIcon icon={faImage} />
+              </Button>
+              <input
+                type="file"
+                accept="image/*"
+                style={{ display: "none" }}
+                ref={fileInputRef}
+                onChange={handleImageUpload}
+              />
+            </>
+          )}
         </InputGroup>
       </ChatInputRow>
     );
