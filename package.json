@@ -108,7 +108,7 @@
     "postcss-selector-parser": "^7.1.1",
     "postcss-styled-syntax": "^0.7.1",
     "puppeteer": "^24.32.0",
-    "sass": "^1.94.2",
+    "sass": "^1.95.1",
     "stylelint": "^16.26.1",
     "stylelint-config-standard": "^39.0.1",
     "stylelint-scss": "^6.13.0",
