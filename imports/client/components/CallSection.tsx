@@ -128,7 +128,7 @@ const SelfBox = ({
   deafened: boolean;
   audioContext: AudioContext;
   stream: MediaStream;
-  popperBoundaryRef: React.RefObject<HTMLElement>;
+  popperBoundaryRef: React.RefObject<HTMLElement | null>;
 }) => {
   const spectraDisabled = useTracker(() => Flags.active("disable.spectra"));
   const { userId, name, discordAccount } = useTracker(() => {
@@ -285,7 +285,7 @@ const PeerBox = ({
   audioContext: AudioContext;
   selfDeafened: boolean;
   peer: PeerType;
-  popperBoundaryRef: React.RefObject<HTMLElement>;
+  popperBoundaryRef: React.RefObject<HTMLElement | null>;
   stream: MediaStream | undefined;
 }) => {
   const spectraDisabled = useTracker(() => Flags.active("disable.spectra"));

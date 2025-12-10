@@ -15,7 +15,7 @@ export default function useImmediateEffect<T>(
   deps?: Array<T>,
 ) {
   const cleanupRef = useRef<ReturnType<EffectCallback>>(undefined);
-  const depsRef = useRef<Array<T> | undefined>();
+  const depsRef = useRef<Array<T> | undefined>(undefined);
 
   if (!depsRef.current || depsDiffer(depsRef.current, deps)) {
     depsRef.current = deps;
