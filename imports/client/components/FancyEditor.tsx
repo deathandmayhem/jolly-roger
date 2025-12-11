@@ -382,7 +382,7 @@ function matchUsers(
 
   // Sort the remaining users by relevancy, with extra weight given to
   // matching at the start of the field, and with display name more important
-  // that google email address or discord username#discriminator.
+  // that google email address or discord username.
   // Note that `users` was originally sorted by displayName and that
   // `sortedBy` is a stable sort.
   return sortedBy(augmentedMatches, (u) => {

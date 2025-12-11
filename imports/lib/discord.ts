@@ -21,10 +21,7 @@ function getAvatarCdnUrl(
 }
 
 function formatDiscordName(da?: DiscordAccountType): string | undefined {
-  if (!da?.username) return undefined;
-
-  if (!da.discriminator || da.discriminator === "0") return da.username;
-  return `${da.username}#${da.discriminator}`;
+  return da?.username;
 }
 
 export { API_BASE, DiscordOAuthScopes, getAvatarCdnUrl, formatDiscordName };
