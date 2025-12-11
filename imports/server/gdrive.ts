@@ -49,7 +49,7 @@ async function createDocument(
   type: GdriveMimeTypesType,
   parentId?: string,
 ) {
-  if (!Object.prototype.hasOwnProperty.call(GdriveMimeTypes, type)) {
+  if (!Object.hasOwn(GdriveMimeTypes, type)) {
     throw new Meteor.Error(400, `Invalid document type ${type}`);
   }
   await checkClientOk();

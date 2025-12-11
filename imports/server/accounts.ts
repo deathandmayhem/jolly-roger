@@ -273,7 +273,7 @@ async function makeView(user: Meteor.User, url: string) {
   const huntNames = hunts.map((h) => h.name);
   const huntNamesCount = huntNames.length;
   const huntNamesCommaSeparated = huntNames.join(", ");
-  const mailingLists = [...new Set(hunts.map((h) => h.mailingLists).flat())];
+  const mailingLists = [...new Set(hunts.flatMap((h) => h.mailingLists))];
   const mailingListsCount = mailingLists.length;
   const mailingListsCommaSeparated = mailingLists.join(", ");
   return {

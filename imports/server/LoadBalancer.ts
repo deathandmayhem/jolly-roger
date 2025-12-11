@@ -1,5 +1,5 @@
-import type { IncomingMessage, ServerResponse } from "http";
-import type stream from "stream";
+import type { IncomingMessage, ServerResponse } from "node:http";
+import type stream from "node:stream";
 import { WebApp } from "meteor/webapp";
 import type HttpProxy from "http-proxy";
 import type WorkerPool from "./WorkerPool";

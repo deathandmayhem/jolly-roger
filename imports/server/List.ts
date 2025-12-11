@@ -1,4 +1,4 @@
-import child from "child_process";
+import child from "node:child_process";
 import { Meteor } from "meteor/meteor";
 import Logger from "../Logger";
 

@@ -1,4 +1,4 @@
-import { promisify } from "util";
+import { promisify } from "node:util";
 import { Meteor } from "meteor/meteor";
 import { assert } from "chai";
 import ChatMessages from "../../imports/lib/models/ChatMessages";

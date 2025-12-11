@@ -394,7 +394,7 @@ function puzzleGroupsByRelevance(
 }
 
 export {
-  PuzzleGroup,
+  type PuzzleGroup,
   puzzleInterestingness,
   puzzleGroupsByRelevance,
   filteredPuzzleGroups,

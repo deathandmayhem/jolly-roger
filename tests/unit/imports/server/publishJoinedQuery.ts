@@ -1,4 +1,4 @@
-import { Meteor, Subscription } from "meteor/meteor";
+import { Meteor, type Subscription } from "meteor/meteor";
 import { Random } from "meteor/random";
 import { assert } from "chai";
 import Guesses from "../../../../imports/lib/models/Guesses";

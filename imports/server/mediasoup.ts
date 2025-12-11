@@ -1,7 +1,7 @@
-import crypto from "crypto";
-import { promises as dns } from "dns";
-import EventEmitter from "events";
-import { networkInterfaces } from "os";
+import crypto from "node:crypto";
+import { promises as dns } from "node:dns";
+import EventEmitter from "node:events";
+import { networkInterfaces } from "node:os";
 import { Meteor } from "meteor/meteor";
 import { Random } from "meteor/random";
 import { Address6 } from "ip-address";
@@ -1185,7 +1185,7 @@ class SFU {
   }
 
   async producerClientChanged(id: string, fields: Partial<ProducerClientType>) {
-    if (!Object.prototype.hasOwnProperty.call(fields, "paused")) {
+    if (!Object.hasOwn(fields, "paused")) {
       return;
     }
 
