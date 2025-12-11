@@ -49,8 +49,6 @@
         "noUndeclaredDependencies": "off",
         // TODO: this seems like a decent rule worth migrating to
         "useUniqueElementIds": "off",
-        // TODO: This seems like a good analog to noArrayIndexKey and worth enabling
-        "useJsxKeyInIterable": "off",
 
         "noNestedComponentDefinitions": "error",
 

@@ -213,14 +213,17 @@ const Producer = ({ producer }: { producer: ProducerClientType }) => {
     if (!producerServer) {
       return [
         "Connecting",
-        <FontAwesomeIcon icon={faSpinner} spin fixedWidth />,
+        <FontAwesomeIcon key="spinner" icon={faSpinner} spin fixedWidth />,
       ];
     } else if (producer.paused) {
-      return ["Paused", <FontAwesomeIcon icon={faPause} fixedWidth />];
+      return [
+        "Paused",
+        <FontAwesomeIcon key="pause" icon={faPause} fixedWidth />,
+      ];
     } else {
       return [
         "Broadcasting",
-        <FontAwesomeIcon icon={faBroadcastTower} fixedWidth />,
+        <FontAwesomeIcon key="broadcast" icon={faBroadcastTower} fixedWidth />,
       ];
     }
   }, [producer.paused, producerServer]);
@@ -327,12 +330,18 @@ const Consumer = ({ consumer }: { consumer: ConsumerType }) => {
     if (!consumerAcked) {
       return [
         "Connecting",
-        <FontAwesomeIcon icon={faSpinner} spin fixedWidth />,
+        <FontAwesomeIcon key="spinner" icon={faSpinner} spin fixedWidth />,
       ];
     } else if (consumer.paused) {
-      return ["Paused", <FontAwesomeIcon icon={faPause} fixedWidth />];
+      return [
+        "Paused",
+        <FontAwesomeIcon key="pause" icon={faPause} fixedWidth />,
+      ];
     } else {
-      return ["Active", <FontAwesomeIcon icon={faPlay} fixedWidth />];
+      return [
+        "Active",
+        <FontAwesomeIcon key="play" icon={faPlay} fixedWidth />,
+      ];
     }
   }, [consumer.paused, consumerAcked]);
 
@@ -452,16 +461,19 @@ const Transport = ({ transport }: { transport: TransportType }) => {
 
   const [statusTooltip, statusIcon] = useMemo(() => {
     if (connectionCompleted) {
-      return ["Connected", <FontAwesomeIcon icon={faWifi} fixedWidth />];
+      return [
+        "Connected",
+        <FontAwesomeIcon key="wifi" icon={faWifi} fixedWidth />,
+      ];
     } else if (connectionStarted) {
       return [
         "Connecting",
-        <FontAwesomeIcon icon={faSpinner} fixedWidth spin />,
+        <FontAwesomeIcon key="spinner" icon={faSpinner} fixedWidth spin />,
       ];
     } else {
       return [
         "Not connected",
-        <span className="fa-layers fa-fw">
+        <span key="not-connected" className="fa-layers fa-fw">
           <FontAwesomeIcon icon={faWifi} fixedWidth />
           <FontAwesomeIcon icon={faSlash} fixedWidth />
         </span>,
