@@ -75,10 +75,6 @@
         "noUselessCatchBinding": "error",
         "useExhaustiveSwitchCases": "error"
       },
-      "performance": {
-        // TODO: Reevaluate this, as there's a reasonable case to be made about inefficiency here
-        "noAccumulatingSpread": "off"
-      },
       "security": {
         // This rule is well-intentioned, but it's sufficiently clear when you use dangerouslySetInnerHTML that you should be careful
         "noDangerouslySetInnerHtml": "off"
