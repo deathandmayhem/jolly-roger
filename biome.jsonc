@@ -85,7 +85,7 @@
       "suspicious": {
         // This is a good idea, but isn't type aware so complains even if the lambda returns void
         "useIterableCallbackReturn": "off",
-        // TODO: consider migrating this on, but right now our code isn't compliant
+        // This rule seems flawed - TypeScript is perfectly capable of inferring types in let declarations
         "noImplicitAnyLet": "off",
         "noConsole": "warn",
         "noUnassignedVariables": "warn",
