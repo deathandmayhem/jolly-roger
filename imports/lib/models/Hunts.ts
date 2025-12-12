@@ -37,6 +37,8 @@ const EditableHunt = z.object({
   // If provided, then this is a link to the overall root hunt homepage and will
   // be shown in the PuzzleListPage navbar.
   homepageUrl: nonEmptyString.url().optional(),
+  // If provided, then announcements will be synced to this Discord channel
+  announcementDiscordChannel: SavedDiscordObjectFields.optional(),
   // If provided, this is an object containing a Discord channel id and cached
   // channel name (for local presentation) to which we should post puzzle
   // create/solve messages as the server-configured Discord bot.
@@ -65,6 +67,7 @@ export const HuntPattern = {
   termsOfUse: Match.Optional(String),
   submitTemplate: Match.Optional(String),
   homepageUrl: Match.Optional(String),
+  announcementDiscordChannel: Match.Optional(SavedDiscordObjectPattern),
   puzzleHooksDiscordChannel: Match.Optional(SavedDiscordObjectPattern),
   firehoseDiscordChannel: Match.Optional(SavedDiscordObjectPattern),
   memberDiscordRole: Match.Optional(SavedDiscordObjectPattern),
