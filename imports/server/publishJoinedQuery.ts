@@ -1,4 +1,4 @@
-import { isDeepStrictEqual } from "util";
+import { isDeepStrictEqual } from "node:util";
 import type { Subscription } from "meteor/meteor";
 import { Meteor } from "meteor/meteor";
 import { Mongo } from "meteor/mongo";
@@ -206,7 +206,7 @@ class JoinedObjectObserver<T extends { _id: string }> {
             const fkValues = this.values.get(id)!;
             foreignKeys?.forEach(({ field, join }) => {
               // Only remove foreign key values that actually got updated to undefined
-              if (Object.prototype.hasOwnProperty.call(fields, field)) {
+              if (Object.hasOwn(fields, field)) {
                 const val = fkValues.get(field);
                 if (!val) {
                   // Nothing to decref -- foreign key was absent previously.
@@ -226,7 +226,7 @@ class JoinedObjectObserver<T extends { _id: string }> {
 
             // finally update this.values (through inner object fkValues)
             foreignKeys?.forEach(({ field }) => {
-              if (Object.prototype.hasOwnProperty.call(fields, field)) {
+              if (Object.hasOwn(fields, field)) {
                 const val = fields[field] as unknown as
                   | undefined
                   | string

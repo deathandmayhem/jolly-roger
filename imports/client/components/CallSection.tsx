@@ -9,6 +9,7 @@ import type { MouseEvent } from "react";
 import React, {
   useCallback,
   useEffect,
+  useId,
   useImperativeHandle,
   useRef,
   useState,
@@ -140,6 +141,8 @@ const SelfBox = ({
     };
   });
 
+  const tooltipId = useId();
+
   return (
     <OverlayTrigger
       placement="bottom"
@@ -156,7 +159,7 @@ const SelfBox = ({
         ],
       }}
       overlay={
-        <Tooltip id="caller-self">
+        <Tooltip id={tooltipId}>
           <div>You are in the call.</div>
           {muted && (
             <div>You are currently muted and will transmit no audio.</div>
@@ -324,6 +327,8 @@ const PeerBox = ({
 
   const { muted, deafened } = peer;
 
+  const tooltipId = useId();
+
   return (
     <>
       {renderMuteModal && (
@@ -348,7 +353,7 @@ const PeerBox = ({
           ],
         }}
         overlay={
-          <ChatterTooltip id={`caller-${peer._id}`}>
+          <ChatterTooltip id={tooltipId}>
             <div>{name}</div>
             {muted && <div>Muted (no one can hear them)</div>}
             {deafened && <div>Deafened (they can&apos;t hear anyone)</div>}
@@ -534,6 +539,8 @@ const CallSection = ({
     );
   }
 
+  const idPrefix = useId();
+
   return (
     <>
       <AVActions>
@@ -568,7 +575,7 @@ const CallSection = ({
         show={callState.allowInitialPeerStateNotification && muted}
         placement="bottom"
       >
-        <Tooltip id="muted-on-join-notification">
+        <Tooltip id={`${idPrefix}-muted-on-join-notification`}>
           <div>
             We&apos;ve left your mic muted for now given the number of people on
             the call. You can unmute yourself at any time.
@@ -582,7 +589,7 @@ const CallSection = ({
         placement="bottom"
         onExited={onShowMutedByDismissed}
       >
-        <Tooltip id="remote-muted-notification">
+        <Tooltip id={`${idPrefix}-remote-muted-notification`}>
           <div>
             You were muted by {mutedBy ?? "someone else"}. This usually happens
             when it seemed like you had stepped away from your computer without

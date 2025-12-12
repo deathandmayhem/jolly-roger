@@ -28,7 +28,7 @@ const SplashPage = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <Container>
-      <Jumbotron id="jr-login">
+      <Jumbotron>
         <Container>
           <Image
             src={heroSrc}

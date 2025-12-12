@@ -1,9 +1,9 @@
 import { Accounts } from "meteor/accounts-base";
-import { Meteor } from "meteor/meteor";
+import type { Meteor } from "meteor/meteor";
 import { assert } from "chai";
 import Flags from "../../../../imports/Flags";
 import FeatureFlags from "../../../../imports/lib/models/FeatureFlags";
-import { ModelType, Selector } from "../../../../imports/lib/models/Model";
+import type { ModelType, Selector } from "../../../../imports/lib/models/Model";
 import { USER_EMAIL, USER_PASSWORD } from "../../../acceptance/lib";
 
 async function propagationPromise(

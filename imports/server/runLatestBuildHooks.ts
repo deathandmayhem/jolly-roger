@@ -1,4 +1,4 @@
-import { promises as fs } from "fs";
+import { promises as fs } from "node:fs";
 import { Meteor } from "meteor/meteor";
 import Logger from "../Logger";
 import ignoringDuplicateKeyErrors from "./ignoringDuplicateKeyErrors";

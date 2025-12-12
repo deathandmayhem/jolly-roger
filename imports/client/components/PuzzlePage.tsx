@@ -17,6 +17,7 @@ import type { ComponentPropsWithRef, FC, MouseEvent } from "react";
 import React, {
   useCallback,
   useEffect,
+  useId,
   useImperativeHandle,
   useLayoutEffect,
   useMemo,
@@ -1550,13 +1551,15 @@ const PuzzleGuessModal = React.forwardRef(
       haveSetConfidence,
     ]);
 
+    const idPrefix = useId();
+
     const directionTooltip = (
-      <Tooltip id="jr-puzzle-guess-direction-tooltip">
+      <Tooltip id={`${idPrefix}-direction-tooltip`}>
         <strong>Solve direction:</strong> {formatGuessDirection(directionInput)}
       </Tooltip>
     );
     const confidenceTooltip = (
-      <Tooltip id="jr-puzzle-guess-confidence-tooltip">
+      <Tooltip id={`${idPrefix}-confidence-tooltip`}>
         <strong>Confidence:</strong> {formatConfidence(confidenceInput)}
       </Tooltip>
     );
@@ -1579,14 +1582,14 @@ const PuzzleGuessModal = React.forwardRef(
         submitLabel={confirmingSubmit ? "Confirm Submit" : "Submit"}
         size="lg"
       >
-        <FormGroup as={Row} className="mb-3">
-          <FormLabel column xs={3} htmlFor="jr-puzzle-guess">
+        <FormGroup as={Row} className="mb-3" controlId={`${idPrefix}-guess`}>
+          <FormLabel column xs={3}>
             Guess
           </FormLabel>
           <Col xs={9}>
             <AnswerFormControl
               type="text"
-              id="jr-puzzle-guess"
+              id={`${idPrefix}-guess`}
               autoFocus
               autoComplete="off"
               onChange={onGuessInputChange}
@@ -1596,8 +1599,12 @@ const PuzzleGuessModal = React.forwardRef(
           </Col>
         </FormGroup>
 
-        <FormGroup as={Row} className="mb-3">
-          <FormLabel column xs={3} htmlFor="jr-puzzle-guess-direction">
+        <FormGroup
+          as={Row}
+          className="mb-3"
+          controlId={`${idPrefix}-guess-direction`}
+        >
+          <FormLabel column xs={3}>
             Solve direction
           </FormLabel>
           <Col xs={9}>
@@ -1608,16 +1615,16 @@ const PuzzleGuessModal = React.forwardRef(
                     <FontAwesomeIcon icon={faArrowLeft} fixedWidth />
                   </GuessSliderLeftLabel>
                   <GuessSlider
-                    id="jr-puzzle-guess-direction"
+                    id={`${idPrefix}-guess-direction`}
                     type="range"
                     min="-10"
                     max="10"
-                    list="jr-puzzle-guess-direction-list"
+                    list={`${idPrefix}-guess-direction-list`}
                     onChange={onDirectionInputChange}
                     value={directionInput}
                     disabled={puzzle.deleted}
                   />
-                  <datalist id="jr-puzzle-guess-direction-list">
+                  <datalist id={`${idPrefix}-guess-direction-list`}>
                     <option value="-10">-10</option>
                     <option value="0">0</option>
                     <option value="10">10</option>
@@ -1641,8 +1648,12 @@ const PuzzleGuessModal = React.forwardRef(
           </Col>
         </FormGroup>
 
-        <FormGroup as={Row} className="mb-3">
-          <FormLabel column xs={3} htmlFor="jr-puzzle-guess-confidence">
+        <FormGroup
+          as={Row}
+          className="mb-3"
+          controlId={`${idPrefix}-guess-confidence`}
+        >
+          <FormLabel column xs={3}>
             Confidence
           </FormLabel>
           <Col xs={9}>
@@ -1651,16 +1662,16 @@ const PuzzleGuessModal = React.forwardRef(
                 <GuessSliderContainer>
                   <GuessSliderLeftLabel>0%</GuessSliderLeftLabel>
                   <GuessSlider
-                    id="jr-puzzle-guess-confidence"
+                    id={`${idPrefix}-guess-confidence`}
                     type="range"
                     min="0"
                     max="100"
-                    list="jr-puzzle-guess-confidence-list"
+                    list={`${idPrefix}-guess-confidence-list`}
                     onChange={onConfidenceInputChange}
                     value={confidenceInput}
                     disabled={puzzle.deleted}
                   />
-                  <datalist id="jr-puzzle-guess-confidence-list">
+                  <datalist id={`${idPrefix}-guess-confidence-list`}>
                     <option value="0">0%</option>
                     <option value="25">25%</option>
                     <option value="50">50%</option>
@@ -1696,17 +1707,12 @@ const PuzzleGuessModal = React.forwardRef(
                     <GuessRow $state={guess.state} key={guess._id}>
                       <GuessTableSmallRow>
                         <GuessCell>
-                          <GuessState
-                            id={`guess-${guess._id}-state`}
-                            state={guess.state}
-                            short
-                          />
+                          <GuessState state={guess.state} short />
                         </GuessCell>
                         <GuessAnswerCell>
                           <StyledCopyToClipboardButton
                             variant="link"
                             aria-label="Copy"
-                            tooltipId={`jr-puzzle-guess-${guess._id}-copy-tooltip`}
                             text={guess.guess}
                           >
                             <FontAwesomeIcon icon={faCopy} fixedWidth />
@@ -1728,13 +1734,13 @@ const PuzzleGuessModal = React.forwardRef(
                       </GuessSubmitterCell>
                       <GuessDirectionCell>
                         <GuessDirection
-                          id={`guess-${guess._id}-direction`}
+                          id={`${idPrefix}-${guess._id}-direction`}
                           value={guess.direction}
                         />
                       </GuessDirectionCell>
                       <GuessConfidenceCell>
                         <GuessConfidence
-                          id={`guess-${guess._id}-confidence`}
+                          id={`${idPrefix}-${guess._id}-confidence`}
                           value={guess.confidence}
                         />
                       </GuessConfidenceCell>
@@ -1872,6 +1878,8 @@ const PuzzleAnswerModal = React.forwardRef(
       );
     }, [puzzle._id, confirmingSubmit, guesses, solvedness, answer, hide]);
 
+    const idPrefix = useId();
+
     return (
       <ModalForm
         ref={formRef}
@@ -1879,14 +1887,14 @@ const PuzzleAnswerModal = React.forwardRef(
         onSubmit={onSubmit}
         submitLabel={confirmingSubmit ? "Confirm Submit" : "Submit"}
       >
-        <FormGroup as={Row} className="mb-3">
-          <FormLabel column xs={3} htmlFor="jr-puzzle-answer">
+        <FormGroup as={Row} className="mb-3" controlId={`${idPrefix}-answer`}>
+          <FormLabel column xs={3}>
             Answer
           </FormLabel>
           <Col xs={9}>
             <AnswerFormControl
               type="text"
-              id="jr-puzzle-answer"
+              id={`${idPrefix}-answer`}
               autoFocus
               autoComplete="off"
               onChange={onAnswerChange}

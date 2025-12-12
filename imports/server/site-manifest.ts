@@ -1,4 +1,4 @@
-import type http from "http";
+import type http from "node:http";
 import { Meteor } from "meteor/meteor";
 import { WebApp } from "meteor/webapp";
 import type { NextFunction } from "express";

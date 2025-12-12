@@ -5,7 +5,7 @@ import { faEraser } from "@fortawesome/free-solid-svg-icons/faEraser";
 import { faPuzzlePiece } from "@fortawesome/free-solid-svg-icons/faPuzzlePiece";
 import { faSkullCrossbones } from "@fortawesome/free-solid-svg-icons/faSkullCrossbones";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import React, { useCallback, useRef } from "react";
+import React, { useCallback, useId, useRef } from "react";
 import Button from "react-bootstrap/Button";
 import type { FormControlProps } from "react-bootstrap/FormControl";
 import FormControl from "react-bootstrap/FormControl";
@@ -255,11 +255,13 @@ const GuessBlock = React.memo(
       setGuessState.call({ guessId: guess._id, state: "pending" });
     }, [guess._id]);
 
+    const idPrefix = useId();
+
     const puzzleTooltip = (
-      <Tooltip id={`guess-${guess._id}-puzzle-tooltip`}>Open puzzle</Tooltip>
+      <Tooltip id={`${idPrefix}-puzzle-tooltip`}>Open puzzle</Tooltip>
     );
     const discussionTooltip = (
-      <Tooltip id={`guess-${guess._id}-discussion-tooltip`}>
+      <Tooltip id={`${idPrefix}-discussion-tooltip`}>
         Open Jolly Roger discussion
       </Tooltip>
     );
@@ -295,7 +297,6 @@ const GuessBlock = React.memo(
           <StyledCopyToClipboardButton
             variant="link"
             aria-label="Copy"
-            tooltipId={`guess-${guess._id}-copy-tooltip`}
             text={guess.guess}
           >
             <FontAwesomeIcon icon={faCopy} fixedWidth />
@@ -307,21 +308,21 @@ const GuessBlock = React.memo(
             <StyledGuessDetailWithLabel>
               <StyledGuessDetailLabel>Solve direction</StyledGuessDetailLabel>
               <StyledGuessDirection
-                id={`guess-${guess._id}-direction`}
+                id={`${idPrefix}-direction`}
                 value={guess.direction}
               />
             </StyledGuessDetailWithLabel>
             <StyledGuessDetailWithLabel>
               <StyledGuessDetailLabel>Confidence</StyledGuessDetailLabel>
               <StyledGuessConfidence
-                id={`guess-${guess._id}-confidence`}
+                id={`${idPrefix}-confidence`}
                 value={guess.confidence}
               />
             </StyledGuessDetailWithLabel>
           </StyledGuessDetails>
         )}
         <StyledCell>
-          <GuessState id={`guess-${guess._id}-state`} state={guess.state} />
+          <GuessState state={guess.state} />
         </StyledCell>
         {hunt.hasGuessQueue && (
           <StyledCell>
@@ -469,19 +470,21 @@ const GuessQueuePage = () => {
     [searchString, compileMatcher],
   );
 
+  const idPrefix = useId();
+
   if (loading || !hunt) {
     return <div>loading...</div>;
   }
 
   const directionTooltip = (
-    <Tooltip id="direction-tooltip">
+    <Tooltip id={`${idPrefix}-direction-tooltip`}>
       Direction this puzzle was solved, ranging from completely backsolved (
       {formatGuessDirection(-10)}) to completely forward solved (
       {formatGuessDirection(10)})
     </Tooltip>
   );
   const confidenceTooltip = (
-    <Tooltip id="confidence-tooltip">
+    <Tooltip id={`${idPrefix}-confidence-tooltip`}>
       Submitter-estimated likelihood that this answer is correct
     </Tooltip>
   );
@@ -489,10 +492,9 @@ const GuessQueuePage = () => {
   return (
     <div>
       <h1>{pageTitle}</h1>
-      <FormGroup className="mb-3">
+      <FormGroup className="mb-3" controlId={`${idPrefix}-guess-search`}>
         <InputGroup>
           <FormControl
-            id="jr-guess-search"
             as="input"
             type="text"
             ref={searchBarRef}

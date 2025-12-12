@@ -40,21 +40,13 @@
         // Explicit function declarations can be easier to read
         "useArrowFunction": "off",
         // Useless switch cases are good for exhaustiveness
-        "noUselessSwitchCase": "off",
-        // TODO: Consider enabling these
-        "useIndexOf": "off",
-        "useFlatMap": "off",
-        "useDateNow": "off"
+        "noUselessSwitchCase": "off"
       },
       "correctness": {
         // We don't use imports with extensions
         "useImportExtensions": "off",
         // This doesn't know about Meteor packages and there's no way to teach it
         "noUndeclaredDependencies": "off",
-        // TODO: this seems like a decent rule worth migrating to
-        "useUniqueElementIds": "off",
-        // TODO: This seems like a good analog to noArrayIndexKey and worth enabling
-        "useJsxKeyInIterable": "off",
 
         "noNestedComponentDefinitions": "error",
 
@@ -79,10 +71,6 @@
         "noUselessCatchBinding": "error",
         "useExhaustiveSwitchCases": "error"
       },
-      "performance": {
-        // TODO: Reevaluate this, as there's a reasonable case to be made about inefficiency here
-        "noAccumulatingSpread": "off"
-      },
       "security": {
         // This rule is well-intentioned, but it's sufficiently clear when you use dangerouslySetInnerHTML that you should be careful
         "noDangerouslySetInnerHtml": "off"
@@ -92,21 +80,13 @@
         "useComponentExportOnlyModules": "off",
         // We use this operator a lot
         "noNonNullAssertion": "off",
-        // TODO: migrate so we can enable this
-        "useNodejsImportProtocol": "off",
-        "useDefaultSwitchClause": "error",
-        // TODO: this is a good rule (and parallel to useImportType) and we should enable it
-        "useExportType": "off"
+        "useDefaultSwitchClause": "error"
       },
       "suspicious": {
-        // TODO: migrate so we can enable this
+        // This is a good idea, but isn't type aware so complains even if the lambda returns void
         "useIterableCallbackReturn": "off",
-        // TODO: consider migrating this on, but right now our code isn't compliant
+        // This rule seems flawed - TypeScript is perfectly capable of inferring types in let declarations
         "noImplicitAnyLet": "off",
-        // TODO: consider migrating this on
-        "useAwait": "off",
-        // TODO: migrate this on
-        "noPrototypeBuiltins": "off",
         "noConsole": "warn",
         "noUnassignedVariables": "warn",
         "noVar": "warn",
@@ -156,10 +136,6 @@
           "complexity": {
             // Arrow functions with mocha are discouraged
             "useArrowFunction": "off"
-          },
-          "style": {
-            // TODO: this was enabled on eslint due to our use of conditional imports, but shouldn't be necessary (and is hiding issues)
-            "useImportType": "off"
           }
         }
       }

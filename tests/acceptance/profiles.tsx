@@ -1,4 +1,4 @@
-import { promisify } from "util";
+import { promisify } from "node:util";
 import { Accounts } from "meteor/accounts-base";
 import { check } from "meteor/check";
 import { Meteor } from "meteor/meteor";

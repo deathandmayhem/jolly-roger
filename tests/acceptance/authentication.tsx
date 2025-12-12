@@ -1,8 +1,9 @@
-import { promisify } from "util";
+import { promisify } from "node:util";
 import { Meteor } from "meteor/meteor";
 import { cleanup, render } from "@testing-library/react";
 import { assert } from "chai";
-import React, { act } from "react";
+import type React from "react";
+import { act } from "react";
 import type { Location, NavigateFunction } from "react-router-dom";
 import {
   MemoryRouter,

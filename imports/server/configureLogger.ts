@@ -1,4 +1,4 @@
-import util from "util";
+import util from "node:util";
 import { Meteor } from "meteor/meteor";
 import logfmt from "logfmt";
 import { format, transports } from "winston";

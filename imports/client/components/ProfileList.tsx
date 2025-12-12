@@ -7,6 +7,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import type { MouseEvent } from "react";
 import React, {
   useCallback,
+  useId,
   useImperativeHandle,
   useMemo,
   useRef,
@@ -498,7 +499,6 @@ const ProfileList = ({
       <p>
         Invitation link:{" "}
         <StyledCopyToClipboardButton
-          tooltipId={`invitation-code-${invitationCode}`}
           text={invitationUrl}
           variant="link"
           aria-label="Copy"
@@ -596,6 +596,8 @@ const ProfileList = ({
     );
   }, [hunt]);
 
+  const searchId = useId();
+
   const matching = users.filter(matcher);
   return (
     <div>
@@ -607,11 +609,10 @@ const ProfileList = ({
       {invitationLink}
       {invitationLinkManagementButtons}
 
-      <FormGroup className="mb-3">
-        <FormLabel htmlFor="jr-profile-list-search">Search</FormLabel>
+      <FormGroup className="mb-3" controlId={searchId}>
+        <FormLabel>Search</FormLabel>
         <InputGroup>
           <FormControl
-            id="jr-profile-list-search"
             type="text"
             ref={searchBarRef}
             placeholder="search by name, email, phone, Discord..."

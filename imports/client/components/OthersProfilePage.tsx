@@ -1,5 +1,6 @@
 import type { Meteor } from "meteor/meteor";
 import { useTracker } from "meteor/react-meteor-data";
+import { useId } from "react";
 import Tooltip from "react-bootstrap/esm/Tooltip";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import styled from "styled-components";
@@ -41,13 +42,15 @@ const OthersProfilePage = ({ user }: { user: Meteor.User }) => {
     [loading],
   );
 
+  const tooltipId = useId();
+
   return (
     <div>
       <h1>
         <OverlayTrigger
           placement="bottom-start"
           overlay={
-            <AvatarTooltip id="tooltip-avatar">
+            <AvatarTooltip id={tooltipId}>
               <Avatar {...user} size={128} />
             </AvatarTooltip>
           }

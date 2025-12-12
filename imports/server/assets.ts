@@ -1,6 +1,6 @@
-import crypto from "crypto";
-import fs from "fs/promises";
-import path from "path";
+import crypto from "node:crypto";
+import fs from "node:fs/promises";
+import path from "node:path";
 import { check } from "meteor/check";
 import { Meteor } from "meteor/meteor";
 import { WebApp } from "meteor/webapp";
@@ -132,7 +132,7 @@ router.post(
     // Regardless of age, once a token is presented, we should remove it.
     await UploadTokens.removeAsync(req.params.uploadToken);
 
-    const now = new Date().getTime();
+    const now = Date.now();
     if (
       !uploadToken ||
       uploadToken.createdAt.getTime() + UPLOAD_TOKEN_VALIDITY_MSEC < now

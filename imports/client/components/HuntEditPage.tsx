@@ -2,7 +2,7 @@ import { useTracker } from "meteor/react-meteor-data";
 import { faInfo } from "@fortawesome/free-solid-svg-icons/faInfo";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import type React from "react";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useId, useRef, useState } from "react";
 import { Modal, ModalBody, ModalFooter } from "react-bootstrap";
 import Alert from "react-bootstrap/Alert";
 import Button from "react-bootstrap/Button";
@@ -54,7 +54,6 @@ const splitLists = function (lists: string): string[] {
 
 interface DiscordSelectorParams {
   disable: boolean;
-  id: string;
   value: SavedDiscordObjectType | undefined;
   onChange: (next: SavedDiscordObjectType | undefined) => void;
 }
@@ -66,7 +65,6 @@ interface DiscordSelectorProps extends DiscordSelectorParams {
 
 const DiscordSelector = ({
   disable,
-  id: formId,
   value,
   onChange,
   loading,
@@ -113,7 +111,6 @@ const DiscordSelector = ({
   } else {
     return (
       <FormControl
-        id={formId}
         as="select"
         type="text"
         value={value?.id}
@@ -416,18 +413,23 @@ const HuntEditPage = () => {
     document.body,
   );
 
+  const idPrefix = useId();
+
   return (
     <Container>
       <h1>{huntId ? "Edit Hunt" : "New Hunt"}</h1>
 
       <Form onSubmit={onFormSubmit}>
-        <FormGroup as={Row} className="mb-3">
-          <FormLabel column xs={3} htmlFor="hunt-form-name">
+        <FormGroup
+          as={Row}
+          className="mb-3"
+          controlId={`${idPrefix}-hunt-form-name`}
+        >
+          <FormLabel column xs={3}>
             Name
           </FormLabel>
           <Col xs={9}>
             <FormControl
-              id="hunt-form-name"
               type="text"
               value={name}
               onChange={onNameChanged}
@@ -438,13 +440,16 @@ const HuntEditPage = () => {
 
         <h3>Users and permissions</h3>
 
-        <FormGroup as={Row} className="mb-3">
-          <FormLabel column xs={3} htmlFor="hunt-form-signup-message">
+        <FormGroup
+          as={Row}
+          className="mb-3"
+          controlId={`${idPrefix}-hunt-form-signup-message`}
+        >
+          <FormLabel column xs={3}>
             Signup message
           </FormLabel>
           <Col xs={9}>
             <FormControl
-              id="hunt-form-signup-message"
               as="textarea"
               value={signupMessage}
               onChange={onSignupMessageChanged}
@@ -458,13 +463,17 @@ const HuntEditPage = () => {
           </Col>
         </FormGroup>
 
-        <FormGroup as={Row} className="mb-3">
-          <FormLabel column xs={3} htmlFor="hunt-form-open-signups">
+        <FormGroup
+          as={Row}
+          className="mb-3"
+          controlId={`${idPrefix}-hunt-form-open-signups`}
+        >
+          <FormLabel column xs={3}>
             Open invites
           </FormLabel>
           <Col xs={9}>
             <FormCheck
-              id="hunt-form-open-signups"
+              id={`${idPrefix}-hunt-form-open-signups`}
               checked={openSignups}
               onChange={onOpenSignupsChanged}
               disabled={disableForm}
@@ -477,13 +486,17 @@ const HuntEditPage = () => {
           </Col>
         </FormGroup>
 
-        <FormGroup as={Row} className="mb-3">
-          <FormLabel column xs={3} htmlFor="hunt-form-has-guess-queue">
+        <FormGroup
+          as={Row}
+          className="mb-3"
+          controlId={`${idPrefix}-hunt-form-has-guess-queue`}
+        >
+          <FormLabel column xs={3}>
             Guess queue
           </FormLabel>
           <Col xs={9}>
             <FormCheck
-              id="hunt-form-has-guess-queue"
+              id={`${idPrefix}-hunt-form-has-guess-queue`}
               checked={hasGuessQueue}
               onChange={onHasGuessQueueChanged}
               disabled={disableForm}
@@ -496,13 +509,16 @@ const HuntEditPage = () => {
           </Col>
         </FormGroup>
 
-        <FormGroup as={Row} className="mb-3">
-          <FormLabel column xs={3} htmlFor="hunt-form-terms-of-use">
+        <FormGroup
+          as={Row}
+          className="mb-3"
+          controlId={`${idPrefix}-hunt-form-terms-of-use`}
+        >
+          <FormLabel column xs={3}>
             Terms of use
           </FormLabel>
           <Col xs={9}>
             <FormControl
-              id="hunt-form-terms-of-use"
               as="textarea"
               value={termsOfUse}
               onChange={onTermsOfUseChanged}
@@ -528,13 +544,16 @@ const HuntEditPage = () => {
 
         <h3>Hunt website</h3>
 
-        <FormGroup as={Row} className="mb-3">
-          <FormLabel column xs={3} htmlFor="hunt-form-homepage-url">
+        <FormGroup
+          as={Row}
+          className="mb-3"
+          controlId={`${idPrefix}-hunt-form-homepage-url`}
+        >
+          <FormLabel column xs={3}>
             Homepage URL
           </FormLabel>
           <Col xs={9}>
             <FormControl
-              id="hunt-form-homepage-url"
               type="text"
               value={homepageUrl}
               onChange={onHomepageUrlChanged}
@@ -547,13 +566,16 @@ const HuntEditPage = () => {
           </Col>
         </FormGroup>
 
-        <FormGroup as={Row} className="mb-3">
-          <FormLabel column xs={3} htmlFor="hunt-form-submit-template">
+        <FormGroup
+          as={Row}
+          className="mb-3"
+          controlId={`${idPrefix}-hunt-form-submit-template`}
+        >
+          <FormLabel column xs={3}>
             Submit URL template
           </FormLabel>
           <Col xs={9}>
             <FormControl
-              id="hunt-form-submit-template"
               type="text"
               value={submitTemplate}
               onChange={onSubmitTemplateChanged}
@@ -585,13 +607,16 @@ const HuntEditPage = () => {
 
         <h3>External integrations</h3>
 
-        <FormGroup as={Row} className="mb-3">
-          <FormLabel column xs={3} htmlFor="hunt-form-mailing-lists">
+        <FormGroup
+          as={Row}
+          className="mb-3"
+          controlId={`${idPrefix}-hunt-form-mailing-lists`}
+        >
+          <FormLabel column xs={3}>
             Mailing lists
           </FormLabel>
           <Col xs={9}>
             <FormControl
-              id="hunt-form-mailing-lists"
               type="text"
               value={mailingLists}
               onChange={onMailingListsChanged}
@@ -606,17 +631,16 @@ const HuntEditPage = () => {
 
         {guildId ? (
           <>
-            <FormGroup as={Row} className="mb-3">
-              <FormLabel
-                column
-                xs={3}
-                htmlFor="hunt-form-puzzle-hooks-discord-channel"
-              >
+            <FormGroup
+              as={Row}
+              className="mb-3"
+              controlId={`${idPrefix}-hunt-form-puzzle-hooks-discord-channel`}
+            >
+              <FormLabel column xs={3}>
                 Puzzle notifications Discord channel
               </FormLabel>
               <Col xs={9}>
                 <DiscordChannelSelector
-                  id="hunt-form-puzzle-hooks-discord-channel"
                   guildId={guildId}
                   disable={disableForm}
                   value={puzzleHooksDiscordChannel}
@@ -630,17 +654,16 @@ const HuntEditPage = () => {
               </Col>
             </FormGroup>
 
-            <FormGroup as={Row} className="mb-3">
-              <FormLabel
-                column
-                xs={3}
-                htmlFor="hunt-form-firehose-discord-channel"
-              >
+            <FormGroup
+              as={Row}
+              className="mb-3"
+              controlId={`${idPrefix}-hunt-form-firehose-discord-channel`}
+            >
+              <FormLabel column xs={3}>
                 Firehose Discord channel
               </FormLabel>
               <Col xs={9}>
                 <DiscordChannelSelector
-                  id="hunt-form-firehose-discord-channel"
                   guildId={guildId}
                   disable={disableForm}
                   value={firehoseDiscordChannel}
@@ -654,13 +677,16 @@ const HuntEditPage = () => {
               </Col>
             </FormGroup>
 
-            <FormGroup as={Row} className="mb-3">
-              <FormLabel column xs={3} htmlFor="hunt-form-member-discord-role">
+            <FormGroup
+              as={Row}
+              className="mb-3"
+              controlId={`${idPrefix}-hunt-form-member-discord-role`}
+            >
+              <FormLabel column xs={3}>
                 Discord role for members
               </FormLabel>
               <Col xs={9}>
                 <DiscordRoleSelector
-                  id="hunt-form-member-discord-role"
                   guildId={guildId}
                   disable={disableForm}
                   value={memberDiscordRole}

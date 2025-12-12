@@ -4,6 +4,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, {
   useCallback,
   useEffect,
+  useId,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -293,6 +294,8 @@ const FirehosePage = () => {
     onLayoutMaybeChanged();
   }, [loading, onLayoutMaybeChanged, chats.length]);
 
+  const searchId = useId();
+
   if (loading) {
     return <div>Loading all chat messages. Expect this to take a while.</div>;
   }
@@ -302,10 +305,9 @@ const FirehosePage = () => {
       <FirehosePageLayout>
         <h1>Firehose</h1>
         <p>This log includes all chat messages hunt-wide. Expect some lag.</p>
-        <FormGroup className="mb-3">
+        <FormGroup className="mb-3" controlId={searchId}>
           <InputGroup>
             <FormControl
-              id="jr-firehose-search"
               as="input"
               type="text"
               ref={searchBarRef}

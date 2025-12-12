@@ -6,7 +6,7 @@ import { faFilePen } from "@fortawesome/free-solid-svg-icons/faFilePen";
 import { faPeopleGroup } from "@fortawesome/free-solid-svg-icons/faPeopleGroup";
 import { faPhoneVolume } from "@fortawesome/free-solid-svg-icons/faPhoneVolume";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Tooltip from "react-bootstrap/Tooltip";
 import { Sparklines, SparklinesLine, SparklinesSpots } from "react-sparklines";
@@ -169,8 +169,10 @@ const PuzzleActivity = ({
     return counts;
   }, [finalBucket, huntId, puzzleId]);
 
+  const idPrefix = useId();
+
   const unlockTooltip = (
-    <Tooltip id={`puzzle-activity-unlock-${puzzleId}`}>
+    <Tooltip id={`${idPrefix}-unlock`}>
       Puzzle unlocked: {calendarTimeFormat(unlockTime)}
     </Tooltip>
   );
@@ -180,7 +182,7 @@ const PuzzleActivity = ({
   };
 
   const sparklineTooltip = (
-    <Tooltip id={`puzzle-activity-sparkline-${puzzleId}`}>
+    <Tooltip id={`${idPrefix}-sparkline`}>
       <div>People working on this puzzle:</div>
       <PuzzleActivityDetailTimeRange>
         <div>

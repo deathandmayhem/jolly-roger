@@ -265,7 +265,7 @@ const AppNavbar = () => {
       )}
       <Nav className="ml-auto">
         <Dropdown as={NavItem}>
-          <DropdownToggle id="profileDropdown" as={NavLink}>
+          <DropdownToggle as={NavLink}>
             <FontAwesomeIcon icon={faUser} />{" "}
             <NavUsername>{displayName}</NavUsername>
           </DropdownToggle>
