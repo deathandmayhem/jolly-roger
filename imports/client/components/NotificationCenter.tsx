@@ -590,7 +590,10 @@ const ChatNotificationMessage = ({
         <strong className="me-auto">
           {senderDisplayName}
           {" on "}
-          <Link to={`/hunts/${hunt._id}/puzzles/${puzzle._id}`}>
+          <Link
+            to={`/hunts/${hunt._id}/puzzles/${puzzle._id}`}
+            onClick={dismiss}
+          >
             {puzzle.title}
           </Link>
         </strong>
@@ -643,7 +646,10 @@ const BookmarkNotificationMessage = ({
     <Toast onClose={dismiss}>
       <Toast.Header>
         <strong className="me-auto">
-          <Link to={`/hunts/${hunt._id}/puzzles/${puzzle._id}`}>
+          <Link
+            to={`/hunts/${hunt._id}/puzzles/${puzzle._id}`}
+            onClick={dismiss}
+          >
             {puzzle.title}
           </Link>{" "}
           {describeState}
