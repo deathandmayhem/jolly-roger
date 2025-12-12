@@ -5,7 +5,7 @@ import { useTracker } from "meteor/react-meteor-data";
 import { ServiceConfiguration } from "meteor/service-configuration";
 import type React from "react";
 import type { ReactNode } from "react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useState } from "react";
 import Alert from "react-bootstrap/Alert";
 import Badge from "react-bootstrap/Badge";
 import Button from "react-bootstrap/Button";
@@ -200,6 +200,9 @@ const GoogleOAuthForm = ({
   const secretPlaceholder = isConfigured
     ? "<configured secret not revealed>"
     : "";
+
+  const idPrefix = useId();
+
   return (
     <form onSubmit={onSubmitOauthConfiguration}>
       {state.submitState === SubmitState.SUBMITTING ? (
@@ -215,24 +218,18 @@ const GoogleOAuthForm = ({
           Saving failed: {state.submitError}
         </Alert>
       ) : null}
-      <FormGroup className="mb-3">
-        <FormLabel htmlFor="jr-setup-edit-google-client-id">
-          Client ID
-        </FormLabel>
+      <FormGroup className="mb-3" controlId={`${idPrefix}-client-id`}>
+        <FormLabel>Client ID</FormLabel>
         <FormControl
-          id="jr-setup-edit-google-client-id"
           type="text"
           value={clientId}
           disabled={shouldDisableForm}
           onChange={onClientIdChange}
         />
       </FormGroup>
-      <FormGroup className="mb-3">
-        <FormLabel htmlFor="jr-setup-edit-google-client-secret">
-          Client secret
-        </FormLabel>
+      <FormGroup className="mb-3" controlId={`${idPrefix}-client-secret`}>
+        <FormLabel>Client secret</FormLabel>
         <FormControl
-          id="jr-setup-edit-google-client-secret"
           type="text"
           value={clientSecret}
           disabled={shouldDisableForm}
@@ -392,8 +389,9 @@ const GoogleDriveRootForm = ({ initialRootId }: { initialRootId?: string }) => {
     [],
   );
 
-  const shouldDisableForm = state.submitState === SubmitState.SUBMITTING;
+  const idPrefix = useId();
 
+  const shouldDisableForm = state.submitState === SubmitState.SUBMITTING;
   return (
     <div>
       {state.submitState === SubmitState.SUBMITTING ? (
@@ -409,12 +407,9 @@ const GoogleDriveRootForm = ({ initialRootId }: { initialRootId?: string }) => {
           Saving failed: {state.error.message}
         </Alert>
       ) : null}
-      <FormGroup className="mb-3">
-        <FormLabel htmlFor="jr-setup-edit-google-drive-root">
-          Google Drive root folder ID
-        </FormLabel>
+      <FormGroup className="mb-3" controlId={`${idPrefix}-google-drive-root`}>
+        <FormLabel>Google Drive root folder ID</FormLabel>
         <FormControl
-          id="jr-setup-edit-google-drive-root"
           type="text"
           value={rootId}
           disabled={shouldDisableForm}
@@ -430,8 +425,11 @@ const GoogleDriveRootForm = ({ initialRootId }: { initialRootId?: string }) => {
           Save
         </Button>
       </ActionButtonRow>
-      <FormGroup className="mb-3">
-        <FormLabel htmlFor="jr-setup-edit-google-drive-reorganize">
+      <FormGroup
+        className="mb-3"
+        controlId={`${idPrefix}-google-drive-reorganize`}
+      >
+        <FormLabel>
           Changing this setting does not automatically reorganize any existing
           files or folders under the new root folder, but if you want to do
           that, you can click the button below.
@@ -439,7 +437,6 @@ const GoogleDriveRootForm = ({ initialRootId }: { initialRootId?: string }) => {
         <div>
           <Button
             variant="secondary"
-            id="jr-setup-edit-google-drive-reorganize"
             onClick={reorganizeGoogleDrive}
             disabled={shouldDisableForm}
           >
@@ -522,6 +519,8 @@ const GoogleDriveTemplateForm = ({
     [spreadsheetTemplate, docTemplate],
   );
 
+  const idPrefix = useId();
+
   const shouldDisableForm = state.submitState === SubmitState.SUBMITTING;
   return (
     <div>
@@ -538,24 +537,21 @@ const GoogleDriveTemplateForm = ({
           Saving failed: {state.error.message}
         </Alert>
       ) : null}
-      <FormGroup className="mb-3">
-        <FormLabel htmlFor="jr-setup-edit-gdrive-sheet-template">
-          Spreadsheet template doc id
-        </FormLabel>
+      <FormGroup
+        className="mb-3"
+        controlId={`${idPrefix}-gdrive-sheet-template`}
+      >
+        <FormLabel>Spreadsheet template doc id</FormLabel>
         <FormControl
-          id="jr-setup-edit-gdrive-sheet-template"
           type="text"
           value={spreadsheetTemplate}
           disabled={shouldDisableForm}
           onChange={onSpreadsheetTemplateChange}
         />
       </FormGroup>
-      <FormGroup className="mb-3">
-        <FormLabel htmlFor="jr-setup-edit-gdrive-doc-template">
-          Document template doc id
-        </FormLabel>
+      <FormGroup className="mb-3" controlId={`${idPrefix}-gdrive-doc-template`}>
+        <FormLabel>Document template doc id</FormLabel>
         <FormControl
-          id="jr-setup-edit-gdrive-doc-template"
           type="text"
           value={docTemplate}
           disabled={shouldDisableForm}
@@ -638,6 +634,8 @@ const GoogleScriptForm = ({
     },
     [endpointUrl],
   );
+
+  const idPrefix = useId();
 
   const shouldDisable = state.submitState === SubmitState.SUBMITTING;
   return (
@@ -744,12 +742,12 @@ const GoogleScriptForm = ({
               app&quot;, paste it below, and click the Save button:
             </li>
           </ol>
-          <FormGroup className="mb-3">
-            <FormLabel htmlFor="jr-setup-google-script-url">
-              Google Apps Script Web app URL
-            </FormLabel>
+          <FormGroup
+            className="mb-3"
+            controlId={`${idPrefix}-google-script-url`}
+          >
+            <FormLabel>Google Apps Script Web app URL</FormLabel>
             <FormControl
-              id="jr-setup-google-script-url"
               type="text"
               value={endpointUrl}
               onChange={onEndpointUrlChange}
@@ -881,6 +879,7 @@ const GoogleIntegrationSection = () => {
     : "warning";
 
   return (
+    // biome-ignore lint/correctness/useUniqueElementIds: id for linking
     <Section id="google">
       <SectionHeader>
         <SectionHeaderLabel>Google integration</SectionHeaderLabel>
@@ -1169,6 +1168,7 @@ const AWSIntegrationSection = () => {
   const badgeVariant = configured ? "success" : "warning";
 
   return (
+    // biome-ignore lint/correctness/useUniqueElementIds: id for linking
     <Section id="aws">
       <SectionHeader>
         <SectionHeaderLabel>AWS configuration</SectionHeaderLabel>
@@ -1304,6 +1304,8 @@ const EmailConfigForm = ({
     ],
   );
 
+  const idPrefix = useId();
+
   const shouldDisableForm = submitState === SubmitState.SUBMITTING;
   return (
     <div>
@@ -1320,55 +1322,52 @@ const EmailConfigForm = ({
           Saving failed: {submitError}
         </Alert>
       ) : null}
-      <FormGroup className="mb-3">
-        <FormLabel htmlFor="jr-setup-edit-email-from">
-          Email &quot;From&quot; address
-        </FormLabel>
+      <FormGroup className="mb-3" controlId={`${idPrefix}-email-from`}>
+        <FormLabel>Email &quot;From&quot; address</FormLabel>
         <FormControl
-          id="jr-setup-edit-email-from"
-          aria-describedby="jr-setup-edit-email-from-description"
+          aria-describedby={`${idPrefix}-email-from-description`}
           type="text"
           value={from}
           disabled={shouldDisableForm}
           onChange={onFromChange}
         />
-        <FormText id="jr-setup-edit-email-from-description">
+        <FormText id={`${idPrefix}-email-from-description`}>
           The credentials you configured for <code>MAIL_URL</code> must be able
           to send email as this address.
         </FormText>
       </FormGroup>
-      <FormGroup className="mb-3">
-        <FormLabel htmlFor="jr-setup-edit-email-enroll-subject">
-          New user invite email subject
-        </FormLabel>
+      <FormGroup
+        className="mb-3"
+        controlId={`${idPrefix}-email-enroll-subject`}
+      >
+        <FormLabel>New user invite email subject</FormLabel>
         <FormControl
-          id="jr-setup-edit-email-enroll-subject"
-          aria-describedby="jr-setup-edit-email-enroll-subject-description"
+          aria-describedby={`${idPrefix}-email-enroll-subject-description`}
           type="text"
           value={enrollAccountSubject}
           disabled={shouldDisableForm}
           onChange={onEnrollSubjectChange}
         />
-        <FormText id="jr-setup-edit-email-enroll-subject-description" muted>
+        <FormText id={`${idPrefix}-email-enroll-subject-description`} muted>
           This is a Mustache template. The only variable available is:{" "}
           <code>{"{{siteName}}"}</code>
           {" (domain name)."}
         </FormText>
       </FormGroup>
-      <FormGroup className="mb-3">
-        <FormLabel htmlFor="jr-setup-edit-email-enroll-message">
-          New user invite email contents
-        </FormLabel>
+      <FormGroup
+        className="mb-3"
+        controlId={`${idPrefix}-email-enroll-message`}
+      >
+        <FormLabel>New user invite email contents</FormLabel>
         <FormControl
-          id="jr-setup-edit-email-enroll-message"
-          aria-describedby="jr-setup-edit-email-enroll-message-description"
+          aria-describedby={`${idPrefix}-email-enroll-message-description`}
           as="textarea"
           rows={8}
           value={enrollAccountMessage}
           disabled={shouldDisableForm}
           onChange={onEnrollMessageChange}
         />
-        <FormText id="jr-setup-edit-email-enroll-message-description" muted>
+        <FormText id={`${idPrefix}-email-enroll-message-description`} muted>
           This is a Mustache template. Available variables are:
           <ul>
             <li>
@@ -1406,20 +1405,20 @@ const EmailConfigForm = ({
           </ul>
         </FormText>
       </FormGroup>
-      <FormGroup className="mb-3">
-        <FormLabel htmlFor="jr-setup-edit-email-existing-join-subject">
-          Existing user added-to-hunt email subject
-        </FormLabel>
+      <FormGroup
+        className="mb-3"
+        controlId={`${idPrefix}-email-existing-join-subject`}
+      >
+        <FormLabel>Existing user added-to-hunt email subject</FormLabel>
         <FormControl
-          id="jr-setup-edit-email-existing-join-subject"
-          aria-describedby="jr-setup-edit-email-existing-join-subject-description"
+          aria-describedby={`${idPrefix}-email-existing-join-subject-description`}
           type="text"
           value={existingJoinSubject}
           disabled={shouldDisableForm}
           onChange={onJoinSubjectChange}
         />
         <FormText
-          id="jr-setup-edit-email-existing-join-subject-description"
+          id={`${idPrefix}-email-existing-join-subject-description`}
           muted
         >
           This is a Mustache template. The following variables are available:
@@ -1434,13 +1433,13 @@ const EmailConfigForm = ({
           </ul>
         </FormText>
       </FormGroup>
-      <FormGroup className="mb-3">
-        <FormLabel htmlFor="jr-setup-edit-email-existing-join-message">
-          Existing user added-to-hunt email contents
-        </FormLabel>
+      <FormGroup
+        className="mb-3"
+        controlId={`${idPrefix}-email-existing-join-message`}
+      >
+        <FormLabel>Existing user added-to-hunt email contents</FormLabel>
         <FormControl
-          id="jr-setup-edit-email-existing-join-message"
-          aria-describedby="jr-setup-edit-email-existing-join-message-description"
+          aria-describedby={`${idPrefix}-email-existing-join-message-description`}
           as="textarea"
           rows={8}
           value={existingJoinMessage}
@@ -1448,7 +1447,7 @@ const EmailConfigForm = ({
           onChange={onJoinMessageChange}
         />
         <FormText
-          id="jr-setup-edit-email-existing-join-message-description"
+          id={`${idPrefix}-email-existing-join-message-description`}
           muted
         >
           This is a Mustache template. Available variables are:
@@ -1504,6 +1503,7 @@ const EmailConfigSection = () => {
   const configured = !!config?.value.from;
   const badgeVariant = configured ? "success" : "warning";
   return (
+    // biome-ignore lint/correctness/useUniqueElementIds: id for linking
     <Section id="email">
       <SectionHeader>
         <SectionHeaderLabel>Email configuration</SectionHeaderLabel>
@@ -1595,6 +1595,8 @@ const DiscordOAuthForm = ({ oauthSettings }: { oauthSettings: any }) => {
     [clientId, clientSecret],
   );
 
+  const idPrefix = useId();
+
   const shouldDisableForm = submitState === SubmitState.SUBMITTING;
   const configured = !!oauthSettings;
   const secretPlaceholder = configured
@@ -1618,12 +1620,9 @@ const DiscordOAuthForm = ({ oauthSettings }: { oauthSettings: any }) => {
 
       {/* TODO: UI for client ID and client secret */}
       <form onSubmit={onSubmitOauthConfiguration}>
-        <FormGroup className="mb-3">
-          <FormLabel htmlFor="jr-setup-edit-discord-client-id">
-            Client ID
-          </FormLabel>
+        <FormGroup className="mb-3" controlId={`${idPrefix}-discord-client-id`}>
+          <FormLabel>Client ID</FormLabel>
           <FormControl
-            id="jr-setup-edit-discord-client-id"
             type="text"
             placeholder=""
             value={clientId}
@@ -1631,12 +1630,12 @@ const DiscordOAuthForm = ({ oauthSettings }: { oauthSettings: any }) => {
             onChange={onClientIdChange}
           />
         </FormGroup>
-        <FormGroup className="mb-3">
-          <FormLabel htmlFor="jr-setup-edit-discord-client-secret">
-            Client Secret
-          </FormLabel>
+        <FormGroup
+          className="mb-3"
+          controlId={`${idPrefix}-discord-client-secret`}
+        >
+          <FormLabel>Client Secret</FormLabel>
           <FormControl
-            id="jr-setup-edit-discord-client-secret"
             type="text"
             placeholder={secretPlaceholder}
             value={clientSecret}
@@ -1700,6 +1699,8 @@ const DiscordBotForm = ({
     [botToken],
   );
 
+  const idPrefix = useId();
+
   const shouldDisableForm = submitState === SubmitState.SUBMITTING;
   return (
     <div>
@@ -1718,12 +1719,9 @@ const DiscordBotForm = ({
       ) : null}
 
       <form onSubmit={onSubmitBotToken}>
-        <FormGroup className="mb-3">
-          <FormLabel htmlFor="jr-setup-edit-discord-bot-token">
-            Bot token
-          </FormLabel>
+        <FormGroup className="mb-3" controlId={`${idPrefix}-discord-bot-token`}>
+          <FormLabel>Bot token</FormLabel>
           <FormControl
-            id="jr-setup-edit-discord-bot-token"
             type="text"
             placeholder=""
             value={botToken}
@@ -1792,6 +1790,8 @@ const DiscordGuildForm = ({
     [guilds, guildId],
   );
 
+  const idPrefix = useId();
+
   const shouldDisableForm = submitState === SubmitState.SUBMITTING;
   const noneOption = {
     id: "empty",
@@ -1815,10 +1815,9 @@ const DiscordGuildForm = ({
       ) : null}
 
       <form onSubmit={onSaveGuild}>
-        <FormGroup className="mb-3">
-          <FormLabel htmlFor="jr-setup-edit-discord-bot-guild">Guild</FormLabel>
+        <FormGroup className="mb-3" controlId={`${idPrefix}-discord-bot-guild`}>
+          <FormLabel>Guild</FormLabel>
           <FormControl
-            id="jr-setup-edit-discord-bot-guild"
             as="select"
             type="text"
             value={guildId}
@@ -1881,6 +1880,7 @@ const DiscordIntegrationSection = () => {
   const guildBadgeLabel = guild ? "configured" : "unconfigured";
   const guildBadgeVariant = guild ? "success" : "warning";
   return (
+    // biome-ignore lint/correctness/useUniqueElementIds: id for linking
     <Section id="discord">
       <SectionHeader>
         <SectionHeaderLabel>Discord integration</SectionHeaderLabel>
@@ -2049,6 +2049,8 @@ const BrandingTeamName = () => {
     [teamName],
   );
 
+  const idPrefix = useId();
+
   const shouldDisableForm = submitState === SubmitState.SUBMITTING;
   return (
     <div>
@@ -2067,10 +2069,12 @@ const BrandingTeamName = () => {
       ) : null}
 
       <form onSubmit={onSubmit}>
-        <FormGroup className="mb-3">
-          <FormLabel htmlFor="jr-setup-edit-team-name">Team name</FormLabel>
+        <FormGroup
+          className="mb-3"
+          controlId={`${idPrefix}-jr-setup-edit-team-name`}
+        >
+          <FormLabel>Team name</FormLabel>
           <FormControl
-            id="jr-setup-edit-team-name"
             type="text"
             placeholder=""
             value={teamName}
@@ -2221,6 +2225,7 @@ const BrandingAssetRow = ({
 
 const BrandingSection = () => {
   return (
+    // biome-ignore lint/correctness/useUniqueElementIds: id for linking
     <Section id="branding">
       <SectionHeader>
         <SectionHeaderLabel>Branding</SectionHeaderLabel>
@@ -2373,6 +2378,7 @@ const CircuitBreakerControl = ({
 
 const CircuitBreakerSection = () => {
   return (
+    //biome-ignore lint/correctness/useUniqueElementIds: id for linking
     <Section id="circuit-breakers">
       <SectionHeader>Circuit breakers</SectionHeader>
       <p>

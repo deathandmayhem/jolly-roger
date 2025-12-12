@@ -3,7 +3,7 @@ import type { Meteor } from "meteor/meteor";
 import { OAuth } from "meteor/oauth";
 import { useTracker } from "meteor/react-meteor-data";
 import { ServiceConfiguration } from "meteor/service-configuration";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useId, useMemo, useState } from "react";
 import Alert from "react-bootstrap/Alert";
 import Button from "react-bootstrap/Button";
 import Container from "react-bootstrap/Container";
@@ -411,14 +411,16 @@ const OwnProfilePage = ({
 
   const shouldDisableForm =
     submitState === OwnProfilePageSubmitState.SUBMITTING;
+
+  const idPrefix = useId();
+
   return (
     <Container>
       <h1>Account information</h1>
       <Avatar {...initialUser} size={64} />
-      <FormGroup className="mb-3">
-        <FormLabel htmlFor="jr-profile-edit-email">Email address</FormLabel>
+      <FormGroup className="mb-3" controlId={`${idPrefix}-email`}>
+        <FormLabel>Email address</FormLabel>
         <FormControl
-          id="jr-profile-edit-email"
           type="text"
           value={initialUser.emails![0]!.address}
           disabled
@@ -442,12 +444,9 @@ const OwnProfilePage = ({
 
       <DiscordLinkBlock user={initialUser} />
 
-      <FormGroup className="mb-3">
-        <FormLabel htmlFor="jr-profile-edit-display-name">
-          Display name
-        </FormLabel>
+      <FormGroup className="mb-3" controlId={`${idPrefix}-display-name`}>
+        <FormLabel>Display name</FormLabel>
         <FormControl
-          id="jr-profile-edit-display-name"
           type="text"
           value={displayName}
           disabled={shouldDisableForm}
@@ -456,12 +455,9 @@ const OwnProfilePage = ({
         <FormText>We suggest your full name, to avoid ambiguity.</FormText>
       </FormGroup>
 
-      <FormGroup className="mb-3">
-        <FormLabel htmlFor="jr-profile-edit-phone">
-          Phone number (optional)
-        </FormLabel>
+      <FormGroup className="mb-3" controlId={`${idPrefix}-phone`}>
+        <FormLabel>Phone number (optional)</FormLabel>
         <FormControl
-          id="jr-profile-edit-phone"
           type="text"
           value={phoneNumber}
           disabled={shouldDisableForm}
@@ -470,12 +466,9 @@ const OwnProfilePage = ({
         <FormText>In case we need to reach you via phone.</FormText>
       </FormGroup>
 
-      <FormGroup className="mb-3">
-        <FormLabel htmlFor="jr-profile-edit-dingwords">
-          Dingwords (experimental)
-        </FormLabel>
+      <FormGroup className="mb-3" controlId={`${idPrefix}-dingwords`}>
+        <FormLabel>Dingwords (experimental)</FormLabel>
         <FormControl
-          id="jr-profile-edit-dingwords"
           type="text"
           value={dingwordsFlat}
           disabled={shouldDisableForm}

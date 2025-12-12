@@ -47,8 +47,6 @@
         "useImportExtensions": "off",
         // This doesn't know about Meteor packages and there's no way to teach it
         "noUndeclaredDependencies": "off",
-        // TODO: this seems like a decent rule worth migrating to
-        "useUniqueElementIds": "off",
 
         "noNestedComponentDefinitions": "error",
 

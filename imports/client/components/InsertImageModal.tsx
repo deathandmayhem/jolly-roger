@@ -1,6 +1,7 @@
 import type { ChangeEvent, MouseEvent } from "react";
 import React, {
   useCallback,
+  useId,
   useImperativeHandle,
   useMemo,
   useRef,
@@ -222,17 +223,17 @@ const InsertImageModal = React.forwardRef(
 
     const submitDisabled = submitState === InsertImageSubmitState.SUBMITTING;
 
+    const idPrefix = useId();
+
     const modal = (
       <Modal show={visible} onHide={hide}>
         <Modal.Header closeButton>Insert image</Modal.Header>
         <Form onSubmit={onSubmit}>
           <Modal.Body>
-            <FormGroup className="mb-3">
-              <FormLabel htmlFor="jr-puzzle-insert-image-sheet">
-                Choose a sheet
-              </FormLabel>
+            <FormGroup className="mb-3" controlId={`${idPrefix}-sheet-select`}>
+              <FormLabel>Choose a sheet</FormLabel>
               <FormSelect
-                id="jr-puzzle-insert-image-sheet"
+                id={`${idPrefix}-sheet-select`}
                 onChange={onChangeSheet}
                 value={sheet}
               >
@@ -255,12 +256,12 @@ const InsertImageModal = React.forwardRef(
                 />
               </Tab>
               <Tab eventKey="link" title="Link">
-                <FormGroup className="mb-3">
-                  <FormLabel htmlFor="jr-puzzle-insert-image-link">
-                    Image URL
-                  </FormLabel>
+                <FormGroup
+                  className="mb-3"
+                  controlId={`${idPrefix}-image-link`}
+                >
+                  <FormLabel>Image URL</FormLabel>
                   <FormControl
-                    id="jr-puzzle-insert-image-link"
                     type="url"
                     required={imageSource === "link"}
                     onChange={onChangeUrl}

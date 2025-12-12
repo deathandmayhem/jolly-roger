@@ -227,7 +227,7 @@ const HuntListPage = () => {
   }
 
   return (
-    <div id="jr-hunts">
+    <div>
       <h1>Hunts</h1>
       {canAdd && (
         <>

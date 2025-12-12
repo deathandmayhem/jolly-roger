@@ -8,6 +8,7 @@ import {
   type ComponentPropsWithRef,
   type FC,
   useCallback,
+  useId,
   useRef,
 } from "react";
 import Alert from "react-bootstrap/Alert";
@@ -491,6 +492,8 @@ const PuzzleListView = ({
     ],
   );
 
+  const idPrefix = useId();
+
   const addPuzzleContent = canAdd && (
     <>
       <PuzzleModalForm
@@ -510,14 +513,14 @@ const PuzzleListView = ({
             onChange={setOperatorActionsHiddenString}
           >
             <ToggleButton
-              id="operator-actions-hide-button"
+              id={`${idPrefix}-operator-actions-hide-button`}
               variant="outline-info"
               value="hide"
             >
               Off
             </ToggleButton>
             <ToggleButton
-              id="operator-actions-show-button"
+              id={`${idPrefix}-operator-actions-show-button`}
               variant="outline-info"
               value="show"
             >
@@ -562,14 +565,14 @@ const PuzzleListView = ({
               onChange={setDisplayMode}
             >
               <ToggleButton
-                id="view-group-button"
+                id={`${idPrefix}-view-group-button`}
                 variant="outline-info"
                 value="group"
               >
                 Group
               </ToggleButton>
               <ToggleButton
-                id="view-unlock-button"
+                id={`${idPrefix}-view-unlock-button`}
                 variant="outline-info"
                 value="unlock"
               >
@@ -589,14 +592,14 @@ const PuzzleListView = ({
               onChange={setShowSolvedString}
             >
               <ToggleButton
-                id="solved-hide-button"
+                id={`${idPrefix}-solved-hide-button`}
                 variant="outline-info"
                 value="hide"
               >
                 Hidden
               </ToggleButton>
               <ToggleButton
-                id="solved-show-button"
+                id={`${idPrefix}-solved-show-button`}
                 variant="outline-info"
                 value="show"
               >
@@ -606,11 +609,13 @@ const PuzzleListView = ({
           </ButtonToolbar>
         </FormGroup>
         {addPuzzleContent}
-        <SearchFormGroup $canAdd={canAdd}>
+        <SearchFormGroup
+          $canAdd={canAdd}
+          controlId={`${idPrefix}-puzzle-search`}
+        >
           <SearchFormLabel $canAdd={canAdd}>Search</SearchFormLabel>
           <InputGroup>
             <FormControl
-              id="jr-puzzle-search"
               as="input"
               type="text"
               ref={searchBarRef}

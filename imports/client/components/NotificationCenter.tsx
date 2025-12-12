@@ -6,7 +6,7 @@ import { faCopy } from "@fortawesome/free-solid-svg-icons/faCopy";
 import { faPuzzlePiece } from "@fortawesome/free-solid-svg-icons/faPuzzlePiece";
 import { faSpinner } from "@fortawesome/free-solid-svg-icons/faSpinner";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useId, useState } from "react";
 import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
@@ -166,10 +166,10 @@ const GuessMessage = React.memo(
       onDismiss(guess._id);
     }, [onDismiss, guess._id]);
 
+    const idPrefix = useId();
+
     const extLinkTooltip = (
-      <Tooltip id={`notification-guess-${guess._id}-ext-link-tooltip`}>
-        Open puzzle
-      </Tooltip>
+      <Tooltip id={`${idPrefix}-ext-link-tooltip`}>Open puzzle</Tooltip>
     );
 
     const linkTarget = `/hunts/${puzzle.hunt}/puzzles/${puzzle._id}`;
@@ -199,11 +199,11 @@ const GuessMessage = React.memo(
         stageTwoSection = (
           <Form>
             <StyledNotificationRow>
-              <Form.Group controlId={`guess-${guess._id}-additional-notes`}>
+              <Form.Group controlId={`${idPrefix}-additional-notes`}>
                 <Form.Label>{stageTwoLabels[nextState]}</Form.Label>
                 <StyledNotificationRow>
                   <ReactTextareaAutosize
-                    id={`guess-${guess._id}-additional-notes`}
+                    id={`${idPrefix}-additional-notes`}
                     minRows={1}
                     className="form-control"
                     autoFocus
@@ -272,7 +272,6 @@ const GuessMessage = React.memo(
           <StyledNotificationActionBar>
             <StyledNotificationActionItem>
               <CopyToClipboardButton
-                tooltipId={`notification-guess-${guess._id}-copy-tooltip`}
                 text={guess.guess}
                 variant="outline-secondary"
                 size="sm"
@@ -297,11 +296,11 @@ const GuessMessage = React.memo(
             </StyledNotificationActionItem>
             <StyledGuessDetails>
               <GuessDirection
-                id={`notification-guess-${guess._id}-direction`}
+                id={`${idPrefix}-direction`}
                 value={guess.direction}
               />
               <GuessConfidence
-                id={`notification-guess-${guess._id}-confidence`}
+                id={`${idPrefix}-confidence`}
                 value={guess.confidence}
               />
             </StyledGuessDetails>

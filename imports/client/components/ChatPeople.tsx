@@ -8,6 +8,7 @@ import type { ReactNode } from "react";
 import {
   useCallback,
   useEffect,
+  useId,
   useLayoutEffect,
   useRef,
   useState,
@@ -56,13 +57,13 @@ const ViewerPersonBox = ({
   user,
   name,
   discordAccount,
-  tab,
   children,
   popperBoundaryRef,
 }: PersonBoxProps) => {
+  const id = useId();
+
   return (
     <OverlayTrigger
-      key={`viewer-${user}-${tab}`}
       placement="bottom"
       popperConfig={{
         modifiers: [
@@ -76,9 +77,9 @@ const ViewerPersonBox = ({
           },
         ],
       }}
-      overlay={<Tooltip id={`viewer-${user}-${tab}`}>{name}</Tooltip>}
+      overlay={<Tooltip id={id}>{name}</Tooltip>}
     >
-      <PeopleItemDiv key={`viewer-${user}-${tab}`}>
+      <PeopleItemDiv>
         <Avatar
           _id={user}
           displayName={name}

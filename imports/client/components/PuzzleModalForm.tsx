@@ -3,6 +3,7 @@ import React, {
   Suspense,
   useCallback,
   useEffect,
+  useId,
   useImperativeHandle,
   useMemo,
   useRef,
@@ -301,16 +302,17 @@ const PuzzleModalForm = React.forwardRef(
         return { value: t, label: t };
       });
 
+    const idPrefix = useId();
+
     const docTypeSelector =
       !puzzle && docType ? (
         <FormGroup as={Row} className="mb-3">
-          <FormLabel column xs={3} htmlFor="jr-new-puzzle-doc-type">
+          <FormLabel column xs={3}>
             Document type
           </FormLabel>
           <Col xs={9}>
             <LabelledRadioGroup
               header=""
-              name="jr-new-puzzle-doc-type"
               options={[
                 {
                   value: "spreadsheet",
@@ -332,7 +334,7 @@ const PuzzleModalForm = React.forwardRef(
     const allowDuplicateUrlsCheckbox =
       !puzzle && allowDuplicateUrls !== undefined && confirmingDuplicateUrl ? (
         <FormCheck
-          id="jr-new-puzzle-allow-duplicate-urls"
+          id={`${idPrefix}-allow-duplicate-urls`}
           label="Allow puzzles with identical URLs"
           type="checkbox"
           disabled={disableForm}
@@ -355,13 +357,16 @@ const PuzzleModalForm = React.forwardRef(
           onSubmit={onFormSubmit}
           submitDisabled={disableForm}
         >
-          <FormGroup as={Row} className="mb-3">
-            <FormLabel column xs={3} htmlFor="jr-new-puzzle-title">
+          <FormGroup
+            as={Row}
+            className="mb-3"
+            controlId={`${idPrefix}-new-puzzle-title`}
+          >
+            <FormLabel column xs={3}>
               Title
             </FormLabel>
             <Col xs={9}>
               <FormControl
-                id="jr-new-puzzle-title"
                 type="text"
                 autoFocus
                 disabled={disableForm}
@@ -371,13 +376,16 @@ const PuzzleModalForm = React.forwardRef(
             </Col>
           </FormGroup>
 
-          <FormGroup as={Row} className="mb-3">
-            <FormLabel column xs={3} htmlFor="jr-new-puzzle-url">
+          <FormGroup
+            as={Row}
+            className="mb-3"
+            controlId={`${idPrefix}-new-puzzle-url`}
+          >
+            <FormLabel column xs={3}>
               URL
             </FormLabel>
             <Col xs={9}>
               <FormControl
-                id="jr-new-puzzle-url"
                 type="text"
                 disabled={disableForm}
                 onChange={onUrlChange}
@@ -387,13 +395,17 @@ const PuzzleModalForm = React.forwardRef(
             </Col>
           </FormGroup>
 
-          <FormGroup as={Row} className="mb-3">
-            <FormLabel column xs={3} htmlFor="jr-new-puzzle-tags">
+          <FormGroup
+            as={Row}
+            className="mb-3"
+            controlId={`${idPrefix}-new-puzzle-tags`}
+          >
+            <FormLabel column xs={3}>
               Tags
             </FormLabel>
             <Col xs={9}>
               <Creatable
-                id="jr-new-puzzle-tags"
+                id={`${idPrefix}-new-puzzle-tags`}
                 options={selectOptions}
                 isMulti
                 isDisabled={disableForm}
@@ -407,17 +419,16 @@ const PuzzleModalForm = React.forwardRef(
 
           {docTypeSelector}
 
-          <FormGroup as={Row} className="mb-3">
-            <FormLabel
-              column
-              xs={3}
-              htmlFor="jr-new-puzzle-expected-answer-count"
-            >
+          <FormGroup
+            as={Row}
+            className="mb-3"
+            controlId={`${idPrefix}-new-puzzle-expected-answer-count`}
+          >
+            <FormLabel column xs={3}>
               Expected # of answers
             </FormLabel>
             <Col xs={9}>
               <FormControl
-                id="jr-new-puzzle-expected-answer-count"
                 type="number"
                 disabled={disableForm}
                 onChange={onExpectedAnswerCountChange}

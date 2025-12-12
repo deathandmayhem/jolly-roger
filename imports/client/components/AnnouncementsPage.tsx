@@ -1,7 +1,7 @@
 import { Meteor } from "meteor/meteor";
 import { useTracker } from "meteor/react-meteor-data";
 import type React from "react";
-import { useCallback, useState } from "react";
+import { useCallback, useId, useState } from "react";
 import Alert from "react-bootstrap/Alert";
 import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
@@ -71,6 +71,9 @@ const AnnouncementFormInput = ({
   }, [message, huntId]);
 
   const disabled = submitState === AnnouncementFormSubmitState.SUBMITTING;
+
+  const id = useId();
+
   return (
     <BoundedForm>
       {submitState === AnnouncementFormSubmitState.FAILED ? (
@@ -84,12 +87,12 @@ const AnnouncementFormInput = ({
           createdAt={new Date()}
         />
       )}
-      <Form.Group className="mb-2" controlId="announcement-input">
+      <Form.Group className="mb-2" controlId={id}>
         <Form.Label>
           Write an announcement: (try to keep it brief and on-point)
         </Form.Label>
         <ReactTextareaAutosize
-          id="announcement-input"
+          id={id}
           minRows={4}
           className="form-control"
           autoFocus
