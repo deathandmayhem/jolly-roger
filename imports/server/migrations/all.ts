@@ -50,3 +50,4 @@ import "./48-make-puzzle-tags-unique";
 import "./49-schema-fixups";
 import "./50-upconvert-chatmessage-content";
 import "./51-backfill-updated-at";
+import "./52-remove-discord-discriminator";

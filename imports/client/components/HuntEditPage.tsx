@@ -144,8 +144,10 @@ const DiscordChannelSelector = ({
       {
         type: "channel",
         "object.guild": guildId,
-        // We want only text channels, since those are the only ones we can bridge chat messages to.
-        "object.type": "text",
+        // We want only text channels, since those are the only ones we can
+        // bridge chat messages to. (0 is GUILD_TEXT, but we can't import
+        // discordjs into client code because of server-only dependencies)
+        "object.type": 0,
       },
       {
         // We want to sort them in the same order they're provided in the Discord UI.

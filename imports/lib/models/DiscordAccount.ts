@@ -4,7 +4,6 @@ import { nonEmptyString } from "./customTypes";
 const DiscordAccount = z.object({
   id: nonEmptyString,
   username: nonEmptyString,
-  discriminator: nonEmptyString,
   avatar: nonEmptyString.optional(),
 });
 
