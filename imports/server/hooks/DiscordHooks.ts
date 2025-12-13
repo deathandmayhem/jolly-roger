@@ -12,6 +12,7 @@ import Tags from "../../lib/models/Tags";
 import nodeIsImage from "../../lib/nodeIsImage";
 import nodeIsText from "../../lib/nodeIsText";
 import { computeSolvedness } from "../../lib/solvedness";
+import { specialUsers } from "../../lib/specialUsers";
 import { DiscordBot } from "../discord";
 import type Hookset from "./Hookset";
 
@@ -51,6 +52,10 @@ async function renderChatMessageContent(
       }
       if (nodeIsText(child)) {
         return child.text;
+      }
+      const spUser = specialUsers.get(child.userId);
+      if (spUser) {
+        return ` @${spUser.displayName} `;
       }
       const user = await MeteorUsers.findOneAsync(child.userId);
       return ` @${user?.displayName ?? child.userId} `;

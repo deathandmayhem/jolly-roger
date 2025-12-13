@@ -39,6 +39,8 @@ import {
 import styled, { css } from "styled-components";
 import { formatDiscordName } from "../../lib/discord";
 import { indexedById, sortedBy } from "../../lib/listUtils";
+import type { SpecialUser } from "../../lib/specialUsers";
+import { specialUsers } from "../../lib/specialUsers";
 import Avatar from "./Avatar";
 
 // This implements a markdown-inspired input editor with live formatting preview
@@ -147,7 +149,7 @@ const EditableMentionRenderer = ({
 }: MentionRendererProps) => {
   const selected = useSelected();
   const focused = useFocused();
-  const user = users.get(element.userId);
+  const user = specialUsers.get(element.userId) ?? users.get(element.userId);
   const Elem = selected && focused ? SelectedMentionSpan : MentionSpan;
 
   return (
@@ -331,10 +333,12 @@ type AugmentedUser = Meteor.User & {
   startsDiscord: boolean;
 };
 
+type MentionableUser = AugmentedUser | SpecialUser;
+
 function matchUsers(
   users: Meteor.User[],
   searchString: string,
-): AugmentedUser[] {
+): MentionableUser[] {
   // No point doing all this matching work if there's no search string to match against.
   if (!searchString) return [];
 
@@ -385,7 +389,7 @@ function matchUsers(
   // that google email address or discord username.
   // Note that `users` was originally sorted by displayName and that
   // `sortedBy` is a stable sort.
-  return sortedBy(augmentedMatches, (u) => {
+  const matchedUsers = sortedBy(augmentedMatches, (u) => {
     return (
       (u.startsDisplayName ? -10000 : 0) +
       (u.startsGoogle || u.startsEmail || u.startsDiscord ? -5000 : 0) +
@@ -394,7 +398,15 @@ function matchUsers(
       (u.foundGoogle ? -10 : 0) +
       (u.foundDiscord ? -5 : 0)
     );
+  }) as MentionableUser[];
+
+  specialUsers.values().forEach((su) => {
+    if (su.displayName.toLowerCase().startsWith(needle)) {
+      matchedUsers.push(su);
+    }
   });
+
+  return matchedUsers;
 }
 
 const StyledMessage = styled.p`
@@ -797,7 +809,7 @@ const FancyEditor = React.forwardRef(
       [editor, onContentChange],
     );
 
-    const matchingUsers: AugmentedUser[] = useMemo(
+    const matchingUsers: MentionableUser[] = useMemo(
       () => matchUsers(users, completionSearchString),
       [users, completionSearchString],
     );

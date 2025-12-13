@@ -8,6 +8,7 @@ import styled from "styled-components";
 import type { ChatMessageContentType } from "../../lib/models/ChatMessages";
 import nodeIsImage from "../../lib/nodeIsImage";
 import nodeIsMention from "../../lib/nodeIsMention";
+import { specialUsers } from "../../lib/specialUsers";
 import { MentionSpan } from "./FancyEditor";
 
 // This file implements standalone rendering for the MessageElement format
@@ -210,10 +211,11 @@ const ChatMessage = ({
 }) => {
   const children = message.children.map((child, i) => {
     if (nodeIsMention(child)) {
-      const displayName = displayNames.get(child.userId);
+      const spUser = specialUsers.get(child.userId);
       return (
         <MentionSpan key={i} $isSelf={child.userId === selfUserId}>
-          @{`${displayName ?? child.userId}`}
+          @
+          {`${spUser?.displayName ?? displayNames.get(child.userId) ?? child.userId}`}
         </MentionSpan>
       );
     } else if (nodeIsImage(child)) {

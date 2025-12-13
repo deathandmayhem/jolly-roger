@@ -7,6 +7,7 @@ import ChatMessages from "../../lib/models/ChatMessages";
 import ChatNotifications from "../../lib/models/ChatNotifications";
 import MeteorUsers from "../../lib/models/MeteorUsers";
 import nodeIsMention from "../../lib/nodeIsMention";
+import { resolveSpecialUser, specialUsers } from "../../lib/specialUsers";
 import type Hookset from "./Hookset";
 
 const ChatNotificationHooks: Hookset = {
@@ -33,8 +34,18 @@ const ChatNotificationHooks: Hookset = {
       chatMessage.content.children.map(async (child) => {
         if (nodeIsMention(child)) {
           const mentionedUserId = child.userId;
-          // Don't have messages notify yourself.
-          if (mentionedUserId !== sender) {
+          if (specialUsers.has(mentionedUserId)) {
+            const users = await resolveSpecialUser(
+              chatMessage.hunt,
+              mentionedUserId,
+            );
+            for (const u of users) {
+              // Don't have messages notify yourself.
+              if (u._id !== sender) {
+                usersToNotify.add(u._id);
+              }
+            }
+          } else if (mentionedUserId !== sender) {
             // Only create mentions for users that are in the current hunt.
             const mentionedUser =
               await MeteorUsers.findOneAsync(mentionedUserId);
