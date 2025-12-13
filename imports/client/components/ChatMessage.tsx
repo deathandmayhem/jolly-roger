@@ -105,12 +105,23 @@ const ResponsiveImage = ({
 };
 
 // Renders a markdown token to React components.
-const MarkdownToken = ({ token }: { token: Token }) => {
+const MarkdownToken = ({
+  token,
+  truncate,
+}: {
+  token: Token;
+  // truncate only applies to this immediate node; it isn't propagated
+  truncate?: boolean;
+}) => {
   // NOTE: Marked's lexer encodes using HTML entities in the text; see:
   // https://github.com/markedjs/marked/discussions/1737
   // We need to decode the text since React will apply its own escaping.
   if (token.type === "text") {
-    return <PreWrapSpan>{token.raw}</PreWrapSpan>;
+    const text =
+      truncate && token.raw.length > 100
+        ? `${token.raw.slice(0, 100)}…`
+        : token.raw;
+    return <PreWrapSpan>{text}</PreWrapSpan>;
   } else if (token.type === "space") {
     return <PreWrapSpan>{token.raw}</PreWrapSpan>;
   } else if (token.type === "paragraph") {
@@ -134,8 +145,12 @@ const MarkdownToken = ({ token }: { token: Token }) => {
     }
     return <PreWrapParagraph>{children}</PreWrapParagraph>;
   } else if (token.type === "link") {
-    const children = (token as Tokens.Link).tokens.map((t, i) => (
-      <MarkdownToken key={i} token={t} />
+    const linkToken = token as Tokens.Link;
+    // If the link text and the href are identical, this is probably an auto-link, so truncate it
+    const truncate =
+      linkToken.tokens.length === 1 && linkToken.text === linkToken.href;
+    const children = linkToken.tokens.map((t, i) => (
+      <MarkdownToken key={i} token={t} truncate={truncate} />
     ));
     return (
       <a target="_blank" rel="noopener noreferrer" href={token.href}>
