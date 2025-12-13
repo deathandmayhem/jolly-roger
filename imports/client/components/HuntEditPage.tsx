@@ -241,6 +241,9 @@ const HuntEditPage = () => {
   const [submitTemplate, setSubmitTemplate] = useState<string>(
     hunt?.submitTemplate ?? "",
   );
+  const [announcementDiscordChannel, setAnnouncementDiscordChannel] = useState<
+    SavedDiscordObjectType | undefined
+  >(hunt?.announcementDiscordChannel);
   const [puzzleHooksDiscordChannel, setPuzzleHooksDiscordChannel] = useState<
     SavedDiscordObjectType | undefined
   >(hunt?.puzzleHooksDiscordChannel);
@@ -302,6 +305,13 @@ const HuntEditPage = () => {
     setSubmitTemplate(e.currentTarget.value);
   }, []);
 
+  const onAnnnouncementDiscordChannelChanged = useCallback(
+    (next: SavedDiscordObjectType | undefined) => {
+      setAnnouncementDiscordChannel(next);
+    },
+    [],
+  );
+
   const onPuzzleHooksDiscordChannelChanged = useCallback(
     (next: SavedDiscordObjectType | undefined) => {
       setPuzzleHooksDiscordChannel(next);
@@ -360,6 +370,7 @@ const HuntEditPage = () => {
         termsOfUse: termsOfUse === "" ? undefined : termsOfUse,
         homepageUrl: homepageUrl === "" ? undefined : homepageUrl,
         submitTemplate: submitTemplate === "" ? undefined : submitTemplate,
+        announcementDiscordChannel,
         puzzleHooksDiscordChannel,
         firehoseDiscordChannel,
         memberDiscordRole,
@@ -381,6 +392,7 @@ const HuntEditPage = () => {
       termsOfUse,
       homepageUrl,
       submitTemplate,
+      announcementDiscordChannel,
       puzzleHooksDiscordChannel,
       firehoseDiscordChannel,
       memberDiscordRole,
@@ -631,6 +643,28 @@ const HuntEditPage = () => {
 
         {guildId ? (
           <>
+            <FormGroup
+              as={Row}
+              className="mb-3"
+              controlId={`${idPrefix}-hunt-form-announcement-discord-channel`}
+            >
+              <FormLabel column xs={3}>
+                Puzzle notifications Discord channel
+              </FormLabel>
+              <Col xs={9}>
+                <DiscordChannelSelector
+                  guildId={guildId}
+                  disable={disableForm}
+                  value={announcementDiscordChannel}
+                  onChange={onAnnnouncementDiscordChannelChanged}
+                />
+                <FormText>
+                  If this field is specified, announcements made on Jolly Meow
+                  will be mirrored to this channel.
+                </FormText>
+              </Col>
+            </FormGroup>
+
             <FormGroup
               as={Row}
               className="mb-3"

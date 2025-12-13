@@ -1,5 +1,6 @@
 import { Meteor } from "meteor/meteor";
 import Flags from "../../Flags";
+import Announcements from "../../lib/models/Announcements";
 import type { ChatMessageContentType } from "../../lib/models/ChatMessages";
 import ChatMessages from "../../lib/models/ChatMessages";
 import Hunts from "../../lib/models/Hunts";
@@ -60,6 +61,29 @@ async function renderChatMessageContent(
 }
 
 const DiscordHooks: Hookset = {
+  async onAnnouncement(announcementId: string) {
+    const bot = await makeDiscordBotFromSettings();
+    if (!bot) {
+      return;
+    }
+
+    const announcement = (await Announcements.findOneAsync(announcementId))!;
+    const sender = (await MeteorUsers.findOneAsync(announcement.createdBy))!;
+    const hunt = (await Hunts.findOneAsync(announcement.hunt))!;
+    const messageObj = {
+      embed: {
+        title: `Announcement from ${sender.displayName ?? sender._id}`,
+        description: announcement.message,
+      },
+    };
+    if (hunt.announcementDiscordChannel) {
+      await bot.postMessageToChannel(
+        hunt.announcementDiscordChannel.id,
+        messageObj,
+      );
+    }
+  },
+
   async onPuzzleCreated(puzzleId: string) {
     const bot = await makeDiscordBotFromSettings();
     if (!bot) {

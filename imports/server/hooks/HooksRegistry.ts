@@ -21,6 +21,14 @@ class HooksRegistry {
     }
   }
 
+  async runAnnouncementHooks(announcementId: string) {
+    for (const hook of this.registeredHooks) {
+      if (hook.onAnnouncement) {
+        await hook.onAnnouncement(announcementId);
+      }
+    }
+  }
+
   async runPuzzleCreatedHooks(puzzleId: string) {
     for (const hook of this.registeredHooks) {
       if (hook.onPuzzleCreated) {
