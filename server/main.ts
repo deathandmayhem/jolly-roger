@@ -2,6 +2,11 @@
 import "../imports/server/bugsnag";
 import "../imports/server/configureLogger";
 
+process.on("unhandledRejection", (err) => {
+  // biome-ignore lint/suspicious/noConsole: Error logging
+  console.error("Unhandled promise rejection:", err);
+});
+
 // setup database management
 import "../imports/server/schemas";
 import "../imports/server/indexes";
