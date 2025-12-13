@@ -155,10 +155,13 @@ runIfLatestBuild(async () => {
       });
       // Prefer createIndexes to createIndex so we can specify an explicit name
       // to match the one in our spec
-      await collection.createIndexes(
-        [{ key: Object.fromEntries(index), name }],
-        Object.fromEntries(options),
-      );
+      await collection.createIndexes([
+        {
+          key: Object.fromEntries(index),
+          name,
+          ...Object.fromEntries(options),
+        },
+      ]);
     }
     // Finally, drop non-conflicting indexes.
     for (const extraIndex of extraNonConflicting) {
