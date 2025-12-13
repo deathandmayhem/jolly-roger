@@ -102,7 +102,7 @@ jobs:
           mkdir -p ${{ runner.temp }}/digests
           echo "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }}" >> ${{ runner.temp }}/digests/digest
       - name: Upload digest
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: ${{ matrix.artifact }}
           path: ${{ runner.temp }}/digests/digest
