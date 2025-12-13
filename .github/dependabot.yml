@@ -6,6 +6,13 @@ updates:
       interval: "weekly"
       day: "friday"
     open-pull-requests-limit: 20
+    ignore:
+      # Keep this pinned to the version of Node that we're running
+      - dependency-name: "@types/node"
+        versions: [">=23"]
+      # This has tight coupling to the version of SWC, which is provided by
+      # Meteor. Assume we'll upgrade this when we take Meteor upgrades.
+      - dependency-name: "@swc/plugin-styled-components"
     groups:
       aws:
         patterns:
