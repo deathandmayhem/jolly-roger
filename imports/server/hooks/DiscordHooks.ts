@@ -68,8 +68,14 @@ const DiscordHooks: Hookset = {
     }
 
     const announcement = (await Announcements.findOneAsync(announcementId))!;
+    const sender = (await MeteorUsers.findOneAsync(announcement.createdBy))!;
     const hunt = (await Hunts.findOneAsync(announcement.hunt))!;
-    const messageObj = { content: announcement.message };
+    const messageObj = {
+      embed: {
+        title: `Announcement from ${sender.displayName ?? sender._id}`,
+        description: announcement.message,
+      },
+    };
     if (hunt.announcementDiscordChannel) {
       await bot.postMessageToChannel(
         hunt.announcementDiscordChannel.id,
