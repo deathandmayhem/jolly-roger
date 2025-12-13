@@ -31,12 +31,19 @@ async function cleanup() {
     },
   );
   if (!firstUpsert && result.insertedId) {
-    Logger.warn("Server record unexpectedly deleted", {
+    const error = new Error("Server record unexpected deleted");
+    Logger.error("Server record unexpectedly deleted", {
       serverId,
       pid: process.pid,
       hostname: os.hostname(),
-      error: new Error("Server record unexpectedly deleted"),
+      error,
     });
+    // If another server has garbage collected us, we are likely in a weird
+    // state, so as long as we are part of the worker pool, let the pool replace
+    // us
+    if (process.env.CLUSTER_WORKER_ID) {
+      throw error;
+    }
   }
   firstUpsert = false;
 
