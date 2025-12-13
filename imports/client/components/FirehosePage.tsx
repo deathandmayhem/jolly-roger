@@ -26,6 +26,7 @@ import Puzzles from "../../lib/models/Puzzles";
 import nodeIsImage from "../../lib/nodeIsImage";
 import nodeIsMention from "../../lib/nodeIsMention";
 import chatMessagesForFirehose from "../../lib/publications/chatMessagesForFirehose";
+import { specialUsers } from "../../lib/specialUsers";
 import { useBreadcrumb } from "../hooks/breadcrumb";
 import useFocusRefOnFindHotkey from "../hooks/useFocusRefOnFindHotkey";
 import useSubscribeDisplayNames from "../hooks/useSubscribeDisplayNames";
@@ -65,7 +66,8 @@ function asFlatString(
   return chatMessage.content.children
     .map((child) => {
       if (nodeIsMention(child)) {
-        return ` @${displayNames.get(child.userId) ?? "???"} `;
+        const spUser = specialUsers.get(child.userId);
+        return ` @${spUser?.displayName ?? displayNames.get(child.userId) ?? "???"} `;
       } else if (nodeIsImage(child)) {
         return `[image]`;
       } else {

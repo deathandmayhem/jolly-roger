@@ -1,3 +1,5 @@
+import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React from "react";
 import styled from "styled-components";
 import { getAvatarCdnUrl } from "../../lib/discord";
@@ -104,6 +106,7 @@ const Avatar = React.memo(
     _id,
     displayName,
     discordAccount,
+    icon,
     className,
     isSelf = false,
   }: {
@@ -112,19 +115,37 @@ const Avatar = React.memo(
     _id?: string; // hashed to produce a globally consistant background color for the fallback avatar
     displayName?: string;
     discordAccount?: DiscordAccountType;
+    icon?: IconDefinition;
     className?: string;
     isSelf?: boolean;
   }) => {
-    const content =
-      discordAccount && getAvatarCdnUrl(discordAccount) ? (
-        <DiscordAvatarInner
-          size={size}
-          displayName={displayName}
-          discordAccount={discordAccount}
-        />
-      ) : (
-        <DefaultAvatarInner _id={_id} displayName={displayName} />
+    let content;
+    if (icon) {
+      content = (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            height: "100%",
+            backgroundColor: "black",
+          }}
+        >
+          <FontAwesomeIcon icon={icon} color="white" size="lg" />
+        </div>
       );
+    } else {
+      content =
+        discordAccount && getAvatarCdnUrl(discordAccount) ? (
+          <DiscordAvatarInner
+            size={size}
+            displayName={displayName}
+            discordAccount={discordAccount}
+          />
+        ) : (
+          <DefaultAvatarInner _id={_id} displayName={displayName} />
+        );
+    }
     return (
       <AvatarContainer
         className={className}
