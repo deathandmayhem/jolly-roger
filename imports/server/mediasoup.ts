@@ -6,7 +6,6 @@ import { Meteor } from "meteor/meteor";
 import { Random } from "meteor/random";
 import { Address6 } from "ip-address";
 import { createWorker, type types } from "mediasoup";
-import { AudioLevelObserverImpl } from "mediasoup/node/lib/AudioLevelObserver";
 import Flags from "../Flags";
 import Logger from "../Logger";
 import { ACTIVITY_GRANULARITY } from "../lib/config/activityTracking";
@@ -179,6 +178,10 @@ type ListenIp = {
   // external announced address (v4 or v6 or hostname)
   announcedIp?: string;
 };
+
+const isAudioLevelObserver = (
+  t: types.RtpObserver,
+): t is types.AudioLevelObserver => t.type === "audiolevel";
 
 class SFU {
   public ips: [ListenIp, ...ListenIp[]];
@@ -609,7 +612,7 @@ class SFU {
   }
 
   onRtpObserverCreated(observer: types.RtpObserver) {
-    if (!(observer instanceof AudioLevelObserverImpl)) {
+    if (!isAudioLevelObserver(observer)) {
       return;
     }
 

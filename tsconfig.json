@@ -22,26 +22,13 @@
     "noUncheckedIndexedAccess": true,
 
     /* Module Resolution Options */
-    "baseUrl": ".",
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "types": ["node", "mocha"],
     "esModuleInterop": true,
     "preserveSymlinks": true,
     "paths": {
-      "meteor/*": [
-        //"node_modules/@types/meteor/*",
-        ".meteor/local/types/packages.d.ts"
-        /*
-        Ideally, we'd use first-party types exported from Meteor upstream.
-        Unfortunately, Meteor upstream has yet to ship a sufficiently-correct
-        set of type definitions that we can use them.  Since zodern:types puts
-        all the decls in a single entrypoint, we cannot take only the correct
-        ones without pulling in the incorrect ones, or without getting
-        duplicate declarations.  So we leave this disabled for now.
-        ".meteor/local/types/packages.d.ts"
-        */
-      ]
+      "meteor/*": ["./.meteor/local/types/packages.d.ts"]
     }
   },
   "exclude": [
