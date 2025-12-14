@@ -40,7 +40,6 @@ const authenticator: express.Handler = expressAsyncWrapper(
       void APIKeys.updateAsync({ _id: key._id }, { $set: { lastUsedAt: now } });
     }
 
-    // eslint-disable-next-line no-underscore-dangle
     DDP._CurrentInvocation.withValue(
       {
         userId: key.user,
