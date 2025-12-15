@@ -59,5 +59,3 @@ export type ProfileFields =
   | "discordAccount"
   | "phoneNumber"
   | "dingwords";
-
-export default User;
