@@ -1,10 +1,8 @@
 import noDisallowedSyncMethods from "./rules/no-disallowed-sync-methods";
 
-const { name } = require("./package.json") as typeof import("./package.json");
-
-export = {
+export default {
   meta: {
-    name,
+    name: "eslint-plugin-jolly-roger",
   },
   rules: {
     "no-disallowed-sync-methods": noDisallowedSyncMethods,

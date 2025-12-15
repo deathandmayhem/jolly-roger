@@ -1,10 +1,10 @@
 import { defineConfig } from "eslint/config";
-import jollyRoger from "eslint-plugin-jolly-roger";
 import tseslint from "typescript-eslint";
+import jollyRoger from "./eslint/index";
 
 export default defineConfig(
   {
-    ignores: [".meteor/**", "eslint/dist/**", "**/node_modules/**"],
+    ignores: [".meteor/**", "eslint/dist/**", "**/node_modules/**", "eslint.config.mts", "eslint/**"],
   },
   tseslint.configs.base,
   {
@@ -18,7 +18,7 @@ export default defineConfig(
       reportUnusedInlineConfigs: "error",
     },
     plugins: {
-      "jolly-roger": jollyRoger,
+      "jolly-roger": jollyRoger as any,
     },
     files: ["**/*.ts", "**/*.tsx"],
     rules: {
