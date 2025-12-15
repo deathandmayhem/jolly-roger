@@ -1,5 +1,6 @@
 import { Meteor } from "meteor/meteor";
-import Discord, { Events, GatewayIntentBits } from "discord.js";
+import * as Discord from "discord.js";
+import { Events, GatewayIntentBits } from "discord.js";
 import Flags from "../Flags";
 import DiscordCache from "../lib/models/DiscordCache";
 import MeteorUsers from "../lib/models/MeteorUsers";

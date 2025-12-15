@@ -8,6 +8,7 @@
   "typescript.preferences.preferTypeOnlyAutoImports": true,
   // Use the version of Typescript embedded with the project
   "typescript.tsdk": "node_modules/typescript/lib",
+  "typescript.experimental.useTsgo": true,
   // Make sure to run stylelint on Typescript and SCSS (embedded in Typescript)
   // files
   "stylelint.validate": ["css", "less", "postcss", "typescriptreact", "scss"],
