@@ -1,10 +1,5 @@
 import util from "node:util";
-import { MongoInternals } from "meteor/mongo";
-import type {
-  CommandOperationOptions,
-  CreateIndexesOptions,
-  IndexSpecification,
-} from "mongodb";
+import { NpmModuleMongodb } from "meteor/npm-mongo";
 import Logger from "../Logger";
 import type { ModelIndexSpecification } from "../lib/models/Model";
 import {
@@ -14,7 +9,10 @@ import {
 } from "../lib/models/Model";
 import runIfLatestBuild from "./runIfLatestBuild";
 
-const { MongoError } = MongoInternals.NpmModules.mongodb.module;
+type CommandOperationOptions = NpmModuleMongodb.CommandOperationOptions;
+type CreateIndexesOptions = NpmModuleMongodb.CreateIndexesOptions;
+type IndexSpecification = NpmModuleMongodb.IndexSpecification;
+const { MongoError } = NpmModuleMongodb;
 
 type ListIndexResult = {
   v: number;

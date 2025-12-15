@@ -32,3 +32,4 @@ zodern:standard-minifier-js
 fetch@0.1.6
 zodern:types
 fourseven:scss@5.0.0-beta.1
+npm-mongo

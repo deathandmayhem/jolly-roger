@@ -1,14 +1,14 @@
-import { Mongo, MongoInternals } from "meteor/mongo";
-import type {
-  CreateIndexesOptions,
-  Document,
-  IndexDirection,
-  IndexSpecification,
-} from "mongodb";
+import { Mongo } from "meteor/mongo";
+import { NpmModuleMongodb } from "meteor/npm-mongo";
 import { z } from "zod";
 import { IsInsert, IsUpdate, IsUpsert, stringId } from "./customTypes";
 import type { MongoRecordZodType } from "./generateJsonSchema";
 import validateSchema from "./validateSchema";
+
+type CreateIndexesOptions = NpmModuleMongodb.CreateIndexesOptions;
+type Document = NpmModuleMongodb.Document;
+type IndexDirection = NpmModuleMongodb.IndexDirection;
+type IndexSpecification = NpmModuleMongodb.IndexSpecification;
 
 export type Selector<T extends Document> =
   | Mongo.Selector<T>
@@ -299,7 +299,7 @@ export async function parseMongoModifierAsync<
 // it onto both the message and the first line of the stack trace so it's easier
 // to find.
 export function formatValidationError(error: unknown) {
-  const { MongoError } = MongoInternals.NpmModules.mongodb.module;
+  const { MongoError } = NpmModuleMongodb;
 
   if (!(error instanceof MongoError)) {
     return;
