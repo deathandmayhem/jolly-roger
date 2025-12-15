@@ -1,6 +1,19 @@
 {
   "extends": ["stylelint-config-standard"],
   "customSyntax": "postcss-styled-syntax",
+  "overrides": [
+    {
+      "files": ["**/*.scss"],
+      "customSyntax": "postcss-scss",
+      "extends": ["stylelint-config-standard-scss"],
+      "rules": {
+        "scss/dollar-variable-empty-line-before": [null],
+        "scss/load-no-partial-leading-underscore": null,
+        "at-rule-empty-line-before": null,
+        "import-notation": [null]
+      }
+    }
+  ],
   "reportNeedlessDisables": true,
   "reportInvalidScopeDisables": true,
   "rules": {
