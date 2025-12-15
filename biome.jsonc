@@ -12,7 +12,7 @@
       "!**/.git",
       "!**/.meteor",
       "!eslint",
-      "!eslint.config.mjs"
+      "!eslint.config.mts"
     ]
   },
   "formatter": {
