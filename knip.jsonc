@@ -13,6 +13,8 @@
     "exports": "off",
     "types": "off"
   },
+  // We're using SWC, but we don't depend on it directly because it's provided by meteor
+  "swc": {},
   // Because we're using tsgo, knip will by default ignore our tsconfig.json
   "typescript": {},
   "ignoreBinaries": ["meteor"],
@@ -25,13 +27,7 @@
     // Detected and used by mongodb
     "aws4",
     // Used by test suite
-    "playwright",
-    // knip doesn't know how to read .swcrc
-    "@swc/plugin-styled-components"
-  ],
-  "ignoreUnresolved": [
-    // sass: imports are baked into the compiler
-    "^(\\./)?sass:.*"
+    "playwright"
   ],
   "tags": ["-lintignore"]
 }
