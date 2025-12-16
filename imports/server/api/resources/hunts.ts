@@ -29,13 +29,10 @@ hunts.get(
       return;
     }
 
-    const allHunts = Hunts.find({}, { sort: { createdAt: -1 } });
-    const userHunts = [];
-    for await (const hunt of allHunts) {
-      if (user.hunts?.includes(hunt._id)) {
-        userHunts.push(renderHunt(hunt));
-      }
-    }
+    const userHunts = await Hunts.find(
+      { _id: { $in: user.hunts ?? [] } },
+      { sort: { createdAt: -1 } },
+    ).mapAsync((hunt) => renderHunt(hunt));
     res.json({
       hunts: userHunts,
     });
