@@ -63,8 +63,12 @@ import type { TagType } from "../../lib/models/Tags";
 import Tags from "../../lib/models/Tags";
 import nodeIsImage from "../../lib/nodeIsImage";
 import nodeIsMention from "../../lib/nodeIsMention";
+import nodeIsRoleMention from "../../lib/nodeIsRoleMention";
 import nodeIsText from "../../lib/nodeIsText";
-import { userMayWritePuzzlesForHunt } from "../../lib/permission_stubs";
+import {
+  listAllRolesForHunt,
+  userMayWritePuzzlesForHunt,
+} from "../../lib/permission_stubs";
 import chatMessagesForPuzzle from "../../lib/publications/chatMessagesForPuzzle";
 import puzzleForPuzzlePage from "../../lib/publications/puzzleForPuzzlePage";
 import { computeSolvedness } from "../../lib/solvedness";
@@ -129,7 +133,13 @@ const DEBUG_SHOW_CALL_STATE = false;
 
 const tabId = Random.id();
 
-type FilteredChatFields = "_id" | "puzzle" | "content" | "sender" | "timestamp";
+type FilteredChatFields =
+  | "_id"
+  | "hunt"
+  | "puzzle"
+  | "content"
+  | "sender"
+  | "timestamp";
 type FilteredChatMessageType = Pick<ChatMessageType, FilteredChatFields>;
 
 // It doesn't need to be, but this is consistent with the 576px transition used in other pages' css
@@ -346,6 +356,7 @@ const ChatHistoryMessage = React.memo(
     isHighlighted,
     suppressSender,
     selfUserId,
+    roles,
     imageOnLoad,
   }: {
     message: FilteredChatMessageType;
@@ -354,6 +365,7 @@ const ChatHistoryMessage = React.memo(
     isHighlighted: boolean;
     suppressSender: boolean;
     selfUserId: string;
+    roles: string[];
     imageOnLoad: () => void;
   }) => {
     const ts = shortCalendarTimeFormat(message.timestamp);
@@ -373,6 +385,7 @@ const ChatHistoryMessage = React.memo(
           message={message.content}
           displayNames={displayNames}
           selfUserId={selfUserId}
+          roles={roles}
           imageOnLoad={imageOnLoad}
         />
       </ChatMessageDiv>
@@ -389,10 +402,12 @@ type ChatHistoryHandle = {
 const ChatHistory = React.forwardRef(
   (
     {
+      huntId,
       puzzleId,
       displayNames,
       selfUser,
     }: {
+      huntId: string;
       puzzleId: string;
       displayNames: Map<string, string>;
       selfUser: Meteor.User;
@@ -525,6 +540,11 @@ const ChatHistory = React.forwardRef(
       scrollChat();
     }, [scrollChat]);
 
+    const roles = useMemo(
+      () => listAllRolesForHunt(selfUser, { _id: huntId }),
+      [selfUser, huntId],
+    );
+
     trace("ChatHistory render", { messageCount: chatMessages.length });
     return (
       <ChatHistoryDiv ref={ref} onScroll={onScrollObserved}>
@@ -557,6 +577,7 @@ const ChatHistory = React.forwardRef(
               isHighlighted={isHighlighted}
               suppressSender={suppressSender}
               selfUserId={selfUser._id}
+              roles={roles}
               imageOnLoad={scrollChat}
             />
           );
@@ -655,6 +676,7 @@ const ChatInput = React.memo(
           return (
             nodeIsImage(child) ||
             nodeIsMention(child) ||
+            nodeIsRoleMention(child) ||
             (nodeIsText(child) && child.text.trim().length > 0)
           );
         })
@@ -684,7 +706,7 @@ const ChatInput = React.memo(
           type,
           children: children
             .filter((child) => {
-              if (nodeIsMention(child)) {
+              if (nodeIsMention(child) || nodeIsRoleMention(child)) {
                 return true;
               }
               if (nodeIsImage(child) && child.status !== "success") {
@@ -700,6 +722,11 @@ const ChatInput = React.memo(
                 return {
                   type: child.type,
                   userId: child.userId,
+                };
+              } else if (nodeIsRoleMention(child)) {
+                return {
+                  type: child.type,
+                  roleId: child.roleId,
                 };
               } else if (nodeIsImage(child)) {
                 return {
@@ -954,6 +981,7 @@ const ChatSection = React.forwardRef(
           puzzleId={puzzleId}
           displayNames={displayNames}
           selfUser={selfUser}
+          huntId={huntId}
         />
         <ChatInput
           huntId={huntId}

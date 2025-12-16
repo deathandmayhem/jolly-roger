@@ -49,11 +49,18 @@ export const DEBUG_EDITOR = false;
 export type CustomText = { text: string };
 export type MessageElement = {
   type: "message";
-  children: (MentionElement | ImageElement | CustomText)[];
+  children: (MentionElement | RoleMentionElement | ImageElement | CustomText)[];
 };
 export type MentionElement = {
   type: "mention";
   userId: string; // user._id of the mentioned user
+  children: CustomText[];
+};
+const AllRoles = ["operator"] as const;
+type AllRolesType = (typeof AllRoles)[number];
+export type RoleMentionElement = {
+  type: "role-mention";
+  roleId: AllRolesType; // name of the mentioned role
   children: CustomText[];
 };
 export type ImageStatus = "success" | "error" | "loading";
@@ -64,7 +71,11 @@ export type ImageElement = {
   status: ImageStatus;
   children: CustomText[];
 };
-export type CustomElement = MessageElement | MentionElement | ImageElement;
+export type CustomElement =
+  | MessageElement
+  | RoleMentionElement
+  | MentionElement
+  | ImageElement;
 declare module "slate" {
   interface CustomTypes {
     Editor: BaseEditor & ReactEditor & HistoryEditor;
@@ -101,7 +112,8 @@ interface LeafProps {
   blockquote?: boolean;
 }
 
-interface MentionRendererProps extends ElementRendererProps<MentionElement> {
+interface MentionRendererProps
+  extends ElementRendererProps<MentionElement | RoleMentionElement> {
   users: Map<string, Meteor.User>;
 }
 
@@ -147,12 +159,23 @@ const EditableMentionRenderer = ({
 }: MentionRendererProps) => {
   const selected = useSelected();
   const focused = useFocused();
-  const user = users.get(element.userId);
+  let name;
+  switch (element.type) {
+    case "mention":
+      name = users.get(element.userId)?.displayName ?? element.userId;
+      break;
+    case "role-mention":
+      name = element.roleId;
+      break;
+    default:
+      // biome-ignore lint/nursery/noUnusedExpressions: exhaustive check
+      element satisfies never;
+  }
   const Elem = selected && focused ? SelectedMentionSpan : MentionSpan;
 
   return (
     <Elem {...attributes} contentEditable={false}>
-      {children}@{`${user?.displayName ?? element.userId}`}
+      {children}@{name}
     </Elem>
   );
 };
@@ -207,6 +230,7 @@ const withMentionsAndImages = (
   editor.isInline = (element) => {
     switch (element.type) {
       case "mention":
+      case "role-mention":
       case "image":
         return true;
       default:
@@ -216,6 +240,7 @@ const withMentionsAndImages = (
   editor.isVoid = (element) => {
     switch (element.type) {
       case "mention":
+      case "role-mention":
       case "image":
         return true;
       default:
@@ -225,6 +250,7 @@ const withMentionsAndImages = (
   editor.markableVoid = (element) => {
     switch (element.type) {
       case "mention":
+      case "role-mention":
         return true;
       case "image":
         return false;
@@ -274,6 +300,16 @@ const insertMention = (editor: Editor, userId: string) => {
   Transforms.move(editor);
 };
 
+const insertRoleMention = (editor: Editor, roleId: AllRolesType) => {
+  const roleMention: RoleMentionElement = {
+    type: "role-mention",
+    roleId,
+    children: [{ text: "" }],
+  };
+  Transforms.insertNodes(editor, roleMention);
+  Transforms.move(editor);
+};
+
 const MatchCandidateRow = styled.div<{ $selected: boolean }>`
   padding: 2px 3px;
   border-radius: 3px;
@@ -301,24 +337,58 @@ const StyledAvatar = styled(Avatar)`
 `;
 
 const MatchCandidate = ({
-  user,
+  mention,
   selected,
   onSelected,
 }: {
-  user: Meteor.User;
+  mention: MentionMatch;
   selected: boolean;
-  onSelected: (u: Meteor.User) => void;
+  onSelected: (u: MentionMatch) => void;
 }) => {
   const onClick = useCallback(() => {
-    onSelected(user);
-  }, [onSelected, user]);
-  return (
-    <MatchCandidateRow key={user._id} $selected={selected} onClick={onClick}>
-      <StyledAvatar size={24} {...user} />
-      <MatchCandidateDisplayName>{user.displayName}</MatchCandidateDisplayName>
-    </MatchCandidateRow>
-  );
+    onSelected(mention);
+  }, [onSelected, mention]);
+
+  switch (mention.type) {
+    case "mention":
+      return (
+        <MatchCandidateRow
+          key={mention.user._id}
+          $selected={selected}
+          onClick={onClick}
+        >
+          <StyledAvatar size={24} {...mention.user} />
+          <MatchCandidateDisplayName>
+            {mention.user.displayName}
+          </MatchCandidateDisplayName>
+        </MatchCandidateRow>
+      );
+    case "role-mention":
+      return (
+        <MatchCandidateRow
+          key={mention.roleId}
+          $selected={selected}
+          onClick={onClick}
+        >
+          <strong>@{mention.roleId}</strong>
+        </MatchCandidateRow>
+      );
+    default:
+      // biome-ignore lint/nursery/noUnusedExpressions: exhaustive check
+      mention satisfies never;
+      return null;
+  }
 };
+
+type MentionMatch =
+  | {
+      type: "mention";
+      user: Meteor.User;
+    }
+  | {
+      type: "role-mention";
+      roleId: AllRolesType;
+    };
 
 type AugmentedUser = Meteor.User & {
   foundDisplayName: boolean;
@@ -331,10 +401,10 @@ type AugmentedUser = Meteor.User & {
   startsDiscord: boolean;
 };
 
-function matchUsers(
+function matchMentions(
   users: Meteor.User[],
   searchString: string,
-): AugmentedUser[] {
+): MentionMatch[] {
   // No point doing all this matching work if there's no search string to match against.
   if (!searchString) return [];
 
@@ -385,7 +455,7 @@ function matchUsers(
   // that google email address or discord username.
   // Note that `users` was originally sorted by displayName and that
   // `sortedBy` is a stable sort.
-  return sortedBy(augmentedMatches, (u) => {
+  const sorted = sortedBy(augmentedMatches, (u) => {
     return (
       (u.startsDisplayName ? -10000 : 0) +
       (u.startsGoogle || u.startsEmail || u.startsDiscord ? -5000 : 0) +
@@ -395,6 +465,22 @@ function matchUsers(
       (u.foundDiscord ? -5 : 0)
     );
   });
+
+  const userMentions = sorted.map((u) => {
+    return {
+      type: "mention" as const,
+      user: u,
+    };
+  });
+
+  const roleMentions = AllRoles.filter((roleId) =>
+    roleId.startsWith(needle),
+  ).map((roleId) => ({
+    type: "role-mention" as const,
+    roleId,
+  }));
+
+  return [...userMentions, ...roleMentions];
 }
 
 const StyledMessage = styled.p`
@@ -732,10 +818,13 @@ const FancyEditor = React.forwardRef(
       (props: RenderElementProps) => {
         switch (props.element.type) {
           case "mention":
+          case "role-mention":
             return (
               <EditableMentionRenderer
                 users={usersById}
-                {...(props as ElementRendererProps<MentionElement>)}
+                {...(props as ElementRendererProps<
+                  MentionElement | RoleMentionElement
+                >)}
               />
             );
           case "image":
@@ -797,19 +886,19 @@ const FancyEditor = React.forwardRef(
       [editor, onContentChange],
     );
 
-    const matchingUsers: AugmentedUser[] = useMemo(
-      () => matchUsers(users, completionSearchString),
+    const matchingMentions: MentionMatch[] = useMemo(
+      () => matchMentions(users, completionSearchString),
       [users, completionSearchString],
     );
 
     const onKeyDown: React.KeyboardEventHandler<HTMLDivElement> = useCallback(
       (event) => {
-        if (completionAnchorRange && matchingUsers.length > 0) {
+        if (completionAnchorRange && matchingMentions.length > 0) {
           switch (event.key) {
             case "ArrowDown": {
               event.preventDefault();
               const nextIndex =
-                completionCursorIndex >= matchingUsers.length - 1
+                completionCursorIndex >= matchingMentions.length - 1
                   ? 0
                   : completionCursorIndex + 1;
               setCompletionCursorIndex(nextIndex);
@@ -819,7 +908,7 @@ const FancyEditor = React.forwardRef(
               event.preventDefault();
               const prevIndex =
                 completionCursorIndex === 0
-                  ? matchingUsers.length - 1
+                  ? matchingMentions.length - 1
                   : completionCursorIndex - 1;
               setCompletionCursorIndex(prevIndex);
               return;
@@ -828,8 +917,20 @@ const FancyEditor = React.forwardRef(
             case "Enter": {
               event.preventDefault();
               Transforms.select(editor, completionAnchorRange);
-              const user = matchingUsers[completionCursorIndex]!;
-              insertMention(editor, user._id);
+              const mention = matchingMentions[completionCursorIndex]!;
+              switch (mention.type) {
+                case "mention": {
+                  insertMention(editor, mention.user._id);
+                  break;
+                }
+                case "role-mention": {
+                  insertRoleMention(editor, mention.roleId);
+                  break;
+                }
+                default:
+                  // biome-ignore lint/nursery/noUnusedExpressions: exhaustive check
+                  mention satisfies never;
+              }
               setCompletionAnchorRange(undefined);
               return;
             }
@@ -859,7 +960,7 @@ const FancyEditor = React.forwardRef(
       },
       [
         completionAnchorRange,
-        matchingUsers,
+        matchingMentions,
         completionCursorIndex,
         editor,
         onSubmit,
@@ -868,7 +969,7 @@ const FancyEditor = React.forwardRef(
     );
 
     useEffect(() => {
-      if (completionAnchorRange && matchingUsers.length > 0) {
+      if (completionAnchorRange && matchingMentions.length > 0) {
         const el = ref.current;
         const domRange = ReactEditor.toDOMRange(editor, completionAnchorRange);
         const rect = domRange.getBoundingClientRect();
@@ -905,12 +1006,22 @@ const FancyEditor = React.forwardRef(
           el.style.left = `${left}px`;
         }
       }
-    }, [matchingUsers.length, editor, completionAnchorRange]);
+    }, [matchingMentions.length, editor, completionAnchorRange]);
 
-    const onUserSelected = useCallback(
-      (u: Meteor.User) => {
+    const onMentionSelected = useCallback(
+      (m: MentionMatch) => {
         Transforms.select(editor, completionAnchorRange!);
-        insertMention(editor, u._id);
+        switch (m.type) {
+          case "mention":
+            insertMention(editor, m.user._id);
+            break;
+          case "role-mention":
+            insertRoleMention(editor, m.roleId);
+            break;
+          default:
+            // biome-ignore lint/nursery/noUnusedExpressions: exhaustive check
+            m satisfies never;
+        }
         setCompletionAnchorRange(undefined);
         ReactEditor.focus(editor);
       },
@@ -933,7 +1044,7 @@ const FancyEditor = React.forwardRef(
     return (
       <Slate editor={editor} initialValue={initialContent} onChange={onChange}>
         {debugPane}
-        {completionAnchorRange && matchingUsers.length > 0 && (
+        {completionAnchorRange && matchingMentions.length > 0 && (
           <Portal>
             <AutocompleteContainer
               ref={ref}
@@ -942,13 +1053,17 @@ const FancyEditor = React.forwardRef(
                 left: "-9999px",
               }}
             >
-              {matchingUsers.map((user, i) => {
+              {matchingMentions.map((mention, i) => {
                 return (
                   <MatchCandidate
-                    key={user._id}
-                    user={user}
+                    key={
+                      mention.type === "mention"
+                        ? mention.user._id
+                        : mention.roleId
+                    }
+                    mention={mention}
                     selected={i === completionCursorIndex}
-                    onSelected={onUserSelected}
+                    onSelected={onMentionSelected}
                   />
                 );
               })}

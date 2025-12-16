@@ -10,6 +10,7 @@ import Puzzles from "../../lib/models/Puzzles";
 import Settings from "../../lib/models/Settings";
 import Tags from "../../lib/models/Tags";
 import nodeIsImage from "../../lib/nodeIsImage";
+import nodeIsRoleMention from "../../lib/nodeIsRoleMention";
 import nodeIsText from "../../lib/nodeIsText";
 import { computeSolvedness } from "../../lib/solvedness";
 import { DiscordBot } from "../discord";
@@ -51,6 +52,9 @@ async function renderChatMessageContent(
       }
       if (nodeIsText(child)) {
         return child.text;
+      }
+      if (nodeIsRoleMention(child)) {
+        return ` @${child.roleId} `;
       }
       const user = await MeteorUsers.findOneAsync(child.userId);
       return ` @${user?.displayName ?? child.userId} `;

@@ -1,9 +1,11 @@
 import type { Meteor } from "meteor/meteor";
 import type { ChatMessageType } from "./models/ChatMessages";
 import nodeIsMention from "./nodeIsMention";
+import nodeIsRoleMention from "./nodeIsRoleMention";
 import nodeIsText from "./nodeIsText";
+import { listAllRolesForHunt } from "./permission_stubs";
 
-type NeededChatFields = "content" | "sender";
+type NeededChatFields = "content" | "sender" | "hunt";
 type PartialChatMessageType = Pick<ChatMessageType, NeededChatFields>;
 
 export function normalizedForDingwordSearch(
@@ -58,5 +60,15 @@ export function messageDingsUser(
       }
     },
   );
-  return dingedByDingwords || dingedByMentions;
+  const roles = listAllRolesForHunt(user, { _id: chatMessage.hunt });
+  const dingedByRoleMentions = (chatMessage.content?.children ?? []).some(
+    (child) => {
+      if (nodeIsRoleMention(child)) {
+        return roles.includes(child.roleId);
+      } else {
+        return false;
+      }
+    },
+  );
+  return dingedByDingwords || dingedByMentions || dingedByRoleMentions;
 }

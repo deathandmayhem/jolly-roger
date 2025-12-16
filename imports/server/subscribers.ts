@@ -18,12 +18,14 @@ async function cleanupHook(deadServers: string[]) {
 registerPeriodicCleanupHook(cleanupHook);
 
 const contextMatcher = Match.Where(
-  (val: unknown): val is Record<string, string> => {
+  (val: unknown): val is Record<string, string | boolean> => {
     if (!Match.test(val, Object)) {
       return false;
     }
 
-    return Object.values(val).every((v) => Match.test(v, String));
+    return Object.values(val).every(
+      (v) => Match.test(v, String) || Match.test(v, Boolean),
+    );
   },
 );
 
