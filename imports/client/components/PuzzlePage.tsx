@@ -10,10 +10,9 @@ import { faImage } from "@fortawesome/free-solid-svg-icons/faImage";
 import { faKey } from "@fortawesome/free-solid-svg-icons/faKey";
 import { faPaperPlane } from "@fortawesome/free-solid-svg-icons/faPaperPlane";
 import { faPuzzlePiece } from "@fortawesome/free-solid-svg-icons/faPuzzlePiece";
-import { faSpinner } from "@fortawesome/free-solid-svg-icons/faSpinner";
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import type { ComponentPropsWithRef, FC, MouseEvent } from "react";
+import type { ComponentPropsWithRef, FC } from "react";
 import React, {
   useCallback,
   useEffect,
@@ -77,15 +76,12 @@ import addPuzzleTag from "../../methods/addPuzzleTag";
 import createChatImageUpload from "../../methods/createChatImageUpload";
 import createGuess from "../../methods/createGuess";
 import ensurePuzzleDocument from "../../methods/ensurePuzzleDocument";
-import type { Sheet } from "../../methods/listDocumentSheets";
-import listDocumentSheets from "../../methods/listDocumentSheets";
 import removePuzzleAnswer from "../../methods/removePuzzleAnswer";
 import removePuzzleTag from "../../methods/removePuzzleTag";
 import sendChatMessage from "../../methods/sendChatMessage";
 import undestroyPuzzle from "../../methods/undestroyPuzzle";
 import updatePuzzle from "../../methods/updatePuzzle";
 import EnabledChatImage from "../EnabledChatImage";
-import GoogleScriptInfo from "../GoogleScriptInfo";
 import { useBreadcrumb } from "../hooks/breadcrumb";
 import useBlockUpdate from "../hooks/useBlockUpdate";
 import type { Action, CallState } from "../hooks/useCallState";
@@ -109,8 +105,7 @@ import {
   GuessConfidence,
   GuessDirection,
 } from "./guessDetails";
-import type { ImageInsertModalHandle } from "./InsertImageModal";
-import InsertImageModal from "./InsertImageModal";
+import InsertImage from "./InsertImage";
 import Markdown from "./Markdown";
 import type { ModalFormHandle } from "./ModalForm";
 import ModalForm from "./ModalForm";
@@ -995,92 +990,6 @@ const ChatSection = React.forwardRef(
   },
 );
 const ChatSectionMemo = React.memo(ChatSection);
-
-const InsertImage = ({ documentId }: { documentId: string }) => {
-  useSubscribe("googleScriptInfo");
-  const insertEnabled = useTracker(
-    () => !!GoogleScriptInfo.findOne("googleScriptInfo")?.configured,
-    [],
-  );
-  const [loading, setLoading] = useState(false);
-  const [documentSheets, setDocumentSheets] = useState<Sheet[]>([]);
-  const [renderInsertModal, setRenderInsertModal] = useState(false);
-  const insertModalRef = useRef<ImageInsertModalHandle>(null);
-  const [listSheetsError, setListSheetsError] = useState<string>();
-  const clearListSheetsError = useCallback(
-    () => setListSheetsError(undefined),
-    [],
-  );
-
-  const onStartInsert = useCallback(
-    (e: MouseEvent) => {
-      e.preventDefault();
-      setLoading(true);
-
-      listDocumentSheets.call({ documentId }, (err, sheets) => {
-        setLoading(false);
-        if (err) {
-          setListSheetsError(err.message);
-        } else if (sheets) {
-          setDocumentSheets(sheets);
-          if (renderInsertModal && insertModalRef.current) {
-            insertModalRef.current.show();
-          } else {
-            setRenderInsertModal(true);
-          }
-        }
-      });
-    },
-    [documentId, renderInsertModal],
-  );
-
-  if (!insertEnabled) {
-    return null;
-  }
-
-  const errorModal = (
-    <Modal show onHide={clearListSheetsError}>
-      <Modal.Header closeButton>
-        Error fetching sheets in spreadsheet
-      </Modal.Header>
-      <Modal.Body>
-        <p>
-          Something went wrong while fetching the list of sheets in this
-          spreadsheet (which we need to be able to insert an image). Please try
-          again, or let us know if this keeps happening.
-        </p>
-        <p>Error message: {listSheetsError}</p>
-      </Modal.Body>
-    </Modal>
-  );
-
-  return (
-    <>
-      {renderInsertModal && (
-        <InsertImageModal
-          ref={insertModalRef}
-          documentId={documentId}
-          sheets={documentSheets}
-        />
-      )}
-      {listSheetsError && createPortal(errorModal, document.body)}
-      <Button
-        variant="secondary"
-        size="sm"
-        onClick={onStartInsert}
-        disabled={loading}
-      >
-        <FontAwesomeIcon icon={faImage} /> Insert image
-        {loading && (
-          <>
-            {" "}
-            <FontAwesomeIcon icon={faSpinner} spin />
-          </>
-        )}
-      </Button>
-    </>
-  );
-};
 
 const PuzzlePageMetadata = ({
   puzzle,

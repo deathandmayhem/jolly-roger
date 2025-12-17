@@ -10,6 +10,9 @@ const FolderPermission = withCommon(
     user: foreignKey,
     // This can change, so capture which one we gave permissions to
     googleAccount: z.string().email(),
+    // This is largely a legacy field, as we expect all new grants to use the
+    // "commenter" permission (which results in correct attribution of Drive
+    // activity), but we originally granted the "reader" permission instead
     permissionLevel: z.enum(["reader", "commenter"]).optional(),
   }),
 );
