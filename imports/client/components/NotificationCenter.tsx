@@ -33,7 +33,10 @@ import Hunts from "../../lib/models/Hunts";
 import PendingAnnouncements from "../../lib/models/PendingAnnouncements";
 import type { PuzzleType } from "../../lib/models/Puzzles";
 import Puzzles from "../../lib/models/Puzzles";
-import { huntsUserIsOperatorFor } from "../../lib/permission_stubs";
+import {
+  huntsUserIsOperatorFor,
+  listAllRolesForHunt,
+} from "../../lib/permission_stubs";
 import bookmarkNotificationsForSelf from "../../lib/publications/bookmarkNotificationsForSelf";
 import pendingAnnouncementsForSelf from "../../lib/publications/pendingAnnouncementsForSelf";
 import pendingGuessesForSelf from "../../lib/publications/pendingGuessesForSelf";
@@ -569,12 +572,14 @@ const ChatNotificationMessage = ({
   puzzle,
   displayNames,
   selfUserId,
+  roles,
 }: {
   cn: ChatNotificationType;
   hunt: HuntType;
   puzzle: PuzzleType;
   displayNames: Map<string, string>;
   selfUserId: string;
+  roles: string[];
 }) => {
   const id = cn._id;
   const dismiss = useCallback(
@@ -607,6 +612,7 @@ const ChatNotificationMessage = ({
             message={cn.content}
             displayNames={displayNames}
             selfUserId={selfUserId}
+            roles={roles}
           />
         </div>
       </Toast.Body>
@@ -734,6 +740,14 @@ const NotificationCenter = () => {
   );
 
   const [operatorActionsHidden = {}] = useOperatorActionsHidden();
+  const activeOperatorHunts = operatorHunts.filter(
+    (huntId) => !operatorActionsHidden[huntId],
+  );
+  useSubscribe(
+    activeOperatorHunts.length > 0 ? "subscribers.inc" : undefined,
+    "operators",
+    Object.fromEntries(activeOperatorHunts.map((h) => [h, true])),
+  );
 
   const pendingAnnouncementsLoading = useTypedSubscribe(
     pendingAnnouncementsForSelf,
@@ -847,6 +861,15 @@ const NotificationCenter = () => {
       ? []
       : BookmarkNotifications.find({}, { sort: { createdAt: 1 } }).fetch(),
   );
+  const rolesForChat = useTracker(() => {
+    const hunts = new Set(chatNotifications.map((cn) => cn.hunt));
+    const roles = new Map(
+      [...hunts].map((huntId) => {
+        return [huntId, listAllRolesForHunt(Meteor.user(), { _id: huntId })];
+      }),
+    );
+    return roles;
+  }, [chatNotifications]);
 
   const [hideUpdateGoogleScriptMessage, setHideUpdateGoogleScriptMessage] =
     useState<boolean>(false);
@@ -992,6 +1015,7 @@ const NotificationCenter = () => {
         puzzle={puzzle}
         displayNames={displayNames}
         selfUserId={selfUserId}
+        roles={rolesForChat.get(cn.hunt) ?? []}
       />,
     );
   });

@@ -25,6 +25,10 @@ defineMethod(sendChatMessage, {
             userId: String,
           },
           {
+            type: "role-mention" as const,
+            roleId: "operator" as const,
+          },
+          {
             type: "image" as const,
             url: String,
           },

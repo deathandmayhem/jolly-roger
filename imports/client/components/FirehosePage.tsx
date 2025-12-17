@@ -25,6 +25,7 @@ import type { PuzzleType } from "../../lib/models/Puzzles";
 import Puzzles from "../../lib/models/Puzzles";
 import nodeIsImage from "../../lib/nodeIsImage";
 import nodeIsMention from "../../lib/nodeIsMention";
+import nodeIsRoleMention from "../../lib/nodeIsRoleMention";
 import chatMessagesForFirehose from "../../lib/publications/chatMessagesForFirehose";
 import { useBreadcrumb } from "../hooks/breadcrumb";
 import useFocusRefOnFindHotkey from "../hooks/useFocusRefOnFindHotkey";
@@ -66,6 +67,8 @@ function asFlatString(
     .map((child) => {
       if (nodeIsMention(child)) {
         return ` @${displayNames.get(child.userId) ?? "???"} `;
+      } else if (nodeIsRoleMention(child)) {
+        return ` @${child.roleId} `;
       } else if (nodeIsImage(child)) {
         return `[image]`;
       } else {

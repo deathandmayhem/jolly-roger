@@ -8,6 +8,7 @@ import styled from "styled-components";
 import type { ChatMessageContentType } from "../../lib/models/ChatMessages";
 import nodeIsImage from "../../lib/nodeIsImage";
 import nodeIsMention from "../../lib/nodeIsMention";
+import nodeIsRoleMention from "../../lib/nodeIsRoleMention";
 import { MentionSpan } from "./FancyEditor";
 
 // This file implements standalone rendering for the MessageElement format
@@ -201,11 +202,13 @@ const ChatMessage = ({
   message,
   displayNames,
   selfUserId,
+  roles,
   imageOnLoad,
 }: {
   message: ChatMessageContentType;
   displayNames: Map<string, string>;
   selfUserId: string;
+  roles: string[];
   imageOnLoad?: () => void;
 }) => {
   const children = message.children.map((child, i) => {
@@ -214,6 +217,13 @@ const ChatMessage = ({
       return (
         <MentionSpan key={i} $isSelf={child.userId === selfUserId}>
           @{`${displayName ?? child.userId}`}
+        </MentionSpan>
+      );
+    } else if (nodeIsRoleMention(child)) {
+      const hasRole = roles.includes(child.roleId);
+      return (
+        <MentionSpan key={i} $isSelf={hasRole}>
+          @{child.roleId}
         </MentionSpan>
       );
     } else if (nodeIsImage(child)) {

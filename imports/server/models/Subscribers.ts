@@ -13,7 +13,7 @@ export const Subscriber = withTimestamps(
     connection: z.string().regex(Id),
     user: foreignKey,
     name: nonEmptyString,
-    context: z.record(z.string(), nonEmptyString),
+    context: z.record(z.string(), z.union([nonEmptyString, z.boolean()])),
   }),
 );
 
