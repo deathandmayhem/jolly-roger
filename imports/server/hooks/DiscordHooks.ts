@@ -61,6 +61,8 @@ async function renderChatMessageContent(
 }
 
 const DiscordHooks: Hookset = {
+  name: "DiscordHooks",
+
   async onAnnouncement(announcementId: string) {
     const bot = await makeDiscordBotFromSettings();
     if (!bot) {

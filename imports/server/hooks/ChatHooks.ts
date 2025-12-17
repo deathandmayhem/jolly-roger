@@ -54,6 +54,8 @@ async function sendMessageToPuzzles(puzzles: PuzzleType[], message: string) {
 }
 
 const ChatHooks: Hookset = {
+  name: "ChatHooks",
+
   async onPuzzleSolved(puzzleId: string, answer: string) {
     const puzzle = await Puzzles.findOneAsync(puzzleId);
     if (!puzzle) return;
