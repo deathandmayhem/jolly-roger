@@ -37,15 +37,14 @@ defineMethod(generateHuntInvitationCode, {
 
     const newInvitationCode = Random.id();
 
-    await withLock(`invitation_code:${huntId}`, async () => {
-      for await (const code of InvitationCodes.find({ hunt: huntId })) {
-        await InvitationCodes.destroyAsync(code._id);
-      }
+    await using _ = await withLock(`invitation_code:${huntId}`);
+    for await (const code of InvitationCodes.find({ hunt: huntId })) {
+      await InvitationCodes.destroyAsync(code._id);
+    }
 
-      await InvitationCodes.insertAsync({
-        code: newInvitationCode,
-        hunt: huntId,
-      });
+    await InvitationCodes.insertAsync({
+      code: newInvitationCode,
+      hunt: huntId,
     });
 
     return newInvitationCode;

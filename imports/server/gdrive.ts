@@ -200,28 +200,26 @@ export async function ensureHuntFolder(hunt: { _id: string; name: string }) {
   if (!folder) {
     await checkClientOk();
 
-    folder = await withLock(`hunt:${hunt._id}:folder`, async () => {
-      let lockedFolder = await HuntFolders.findOneAsync(hunt._id);
-      if (!lockedFolder) {
-        Logger.info("Creating missing folder for hunt", {
-          huntId: hunt._id,
-        });
+    await using _ = await withLock(`hunt:${hunt._id}:folder`);
+    folder = await HuntFolders.findOneAsync(hunt._id);
+    if (!folder) {
+      Logger.info("Creating missing folder for hunt", {
+        huntId: hunt._id,
+      });
 
-        const root = (await Settings.findOneAsync({ name: "gdrive.root" })) as
-          | undefined
-          | (SettingType & { name: "gdrive.root" });
-        const folderId = await createFolder(
-          await huntFolderName(hunt.name),
-          root?.value.id,
-        );
-        const huntFolderId = await HuntFolders.insertAsync({
-          _id: hunt._id,
-          folder: folderId,
-        });
-        lockedFolder = (await HuntFolders.findOneAsync(huntFolderId))!;
-      }
-      return lockedFolder;
-    });
+      const root = (await Settings.findOneAsync({ name: "gdrive.root" })) as
+        | undefined
+        | (SettingType & { name: "gdrive.root" });
+      const folderId = await createFolder(
+        await huntFolderName(hunt.name),
+        root?.value.id,
+      );
+      const huntFolderId = await HuntFolders.insertAsync({
+        _id: hunt._id,
+        folder: folderId,
+      });
+      folder = (await HuntFolders.findOneAsync(huntFolderId))!;
+    }
   }
 
   return folder.folder;
@@ -269,28 +267,27 @@ export async function ensureDocument(
   if (!doc) {
     await checkClientOk();
 
-    await withLock(`puzzle:${puzzle._id}:documents`, async () => {
-      doc = await Documents.findOneAsync({ puzzle: puzzle._id });
-      if (!doc) {
-        Logger.info("Creating missing document for puzzle", {
-          puzzle: puzzle._id,
-        });
+    await using _ = await withLock(`puzzle:${puzzle._id}:documents`);
+    doc = await Documents.findOneAsync({ puzzle: puzzle._id });
+    if (!doc) {
+      Logger.info("Creating missing document for puzzle", {
+        puzzle: puzzle._id,
+      });
 
-        const googleDocId = await createDocument(
-          await puzzleDocumentName(puzzle.title),
-          type,
-          folderId,
-        );
-        const newDoc = {
-          hunt: puzzle.hunt,
-          puzzle: puzzle._id,
-          provider: "google" as const,
-          value: { type, id: googleDocId, folder: folderId },
-        };
-        const docId = await Documents.insertAsync(newDoc);
-        doc = (await Documents.findOneAsync(docId))!;
-      }
-    });
+      const googleDocId = await createDocument(
+        await puzzleDocumentName(puzzle.title),
+        type,
+        folderId,
+      );
+      const newDoc = {
+        hunt: puzzle.hunt,
+        puzzle: puzzle._id,
+        provider: "google" as const,
+        value: { type, id: googleDocId, folder: folderId },
+      };
+      const docId = await Documents.insertAsync(newDoc);
+      doc = (await Documents.findOneAsync(docId))!;
+    }
   }
 
   if (doc && folderId && doc.value.folder !== folderId) {

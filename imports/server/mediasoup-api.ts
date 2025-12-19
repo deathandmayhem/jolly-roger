@@ -33,24 +33,23 @@ registerPeriodicCleanupHook(async (deadServers) => {
   // see a consistent view (and everyone else does too), then check if there
   // are still peers joined to this room
   for await (const room of Rooms.find({ routedServer: { $in: deadServers } })) {
-    await withLock(`mediasoup:room:${room.call}`, async () => {
-      const removed = !!(await Rooms.removeAsync(room._id));
-      if (!removed) {
-        return;
-      }
+    await using _ = await withLock(`mediasoup:room:${room.call}`);
+    const removed = !!(await Rooms.removeAsync(room._id));
+    if (!removed) {
+      continue;
+    }
 
-      const peer = await Peers.findOneAsync({ call: room.call });
-      if (peer) {
-        await ignoringDuplicateKeyErrors(async () => {
-          await Rooms.insertAsync({
-            hunt: room.hunt,
-            call: room.call,
-            routedServer: serverId,
-            createdBy: peer.createdBy,
-          });
+    const peer = await Peers.findOneAsync({ call: room.call });
+    if (peer) {
+      await ignoringDuplicateKeyErrors(async () => {
+        await Rooms.insertAsync({
+          hunt: room.hunt,
+          call: room.call,
+          routedServer: serverId,
+          createdBy: peer.createdBy,
         });
-      }
-    });
+      });
+    }
   }
 });
 
@@ -125,7 +124,10 @@ Meteor.publish("mediasoup:join", async function (hunt, call, tab) {
   }
 
   let peerId: string;
-  await withLock(`mediasoup:room:${call}`, async () => {
+  {
+    await using _ = await withLock(
+      `mediasoup:user:${this.userId}:call:${call}`,
+    );
     if (!(await Rooms.findOneAsync({ call }))) {
       await Rooms.insertAsync({
         hunt,
@@ -198,7 +200,7 @@ Meteor.publish("mediasoup:join", async function (hunt, call, tab) {
       createdBy: this.userId,
       state: initialPeerState,
     });
-  });
+  }
 
   this.onStop(async () => {
     Logger.info("Peer left call", {
@@ -206,14 +208,13 @@ Meteor.publish("mediasoup:join", async function (hunt, call, tab) {
       call,
     });
 
-    await withLock(`mediasoup:room:${call}`, async () => {
-      await Peers.removeAsync(peerId);
+    await using _ = await withLock(`mediasoup:room:${call}`);
+    await Peers.removeAsync(peerId);
 
-      // If the room is empty, remove it.
-      if (!(await Peers.findOneAsync({ call }))) {
-        await Rooms.removeAsync({ call });
-      }
-    });
+    // If the room is empty, remove it.
+    if (!(await Peers.findOneAsync({ call }))) {
+      await Rooms.removeAsync({ call });
+    }
   });
 
   return [Rooms.find({ call }), Routers.find({ call }), Peers.find({ call })];

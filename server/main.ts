@@ -2,6 +2,9 @@
 import "../imports/server/bugsnag";
 import "../imports/server/configureLogger";
 
+// Polyfills
+import "disposablestack/auto";
+
 // setup database management
 import "../imports/server/schemas";
 import "../imports/server/indexes";

@@ -34,10 +34,9 @@ defineMethod(clearHuntInvitationCode, {
       );
     }
 
-    await withLock(`invitation_code:${huntId}`, async () => {
-      for await (const code of InvitationCodes.find({ hunt: huntId })) {
-        await InvitationCodes.destroyAsync(code._id);
-      }
-    });
+    await using _ = await withLock(`invitation_code:${huntId}`);
+    for await (const code of InvitationCodes.find({ hunt: huntId })) {
+      await InvitationCodes.destroyAsync(code._id);
+    }
   },
 });

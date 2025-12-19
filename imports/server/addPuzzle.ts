@@ -132,19 +132,18 @@ export default async function addPuzzle({
   } else {
     // With a lock, look for a puzzle with the same URL. If present, we reject the insertion
     // unless the client overrides it.
-    await withLock(`hunts:${huntId}:puzzle-url:${url}`, async () => {
-      if (!allowDuplicateUrls) {
-        await checkForDuplicatePuzzle(huntId, url);
-      }
-      puzzleId = await createDocumentAndInsertPuzzle(
-        huntId,
-        title,
-        expectedAnswerCount,
-        tags,
-        url,
-        docType,
-      );
-    });
+    await using _ = await withLock(`hunts:${huntId}:puzzle-url:${url}`);
+    if (!allowDuplicateUrls) {
+      await checkForDuplicatePuzzle(huntId, url);
+    }
+    puzzleId = await createDocumentAndInsertPuzzle(
+      huntId,
+      title,
+      expectedAnswerCount,
+      tags,
+      url,
+      docType,
+    );
   }
 
   // Run any puzzle-creation hooks, like creating a default document

@@ -88,6 +88,7 @@ class DiscordClientRefresher {
       // won't connect to the websocket gateway
       client.token = this.token;
       this.client = client;
+      return;
 
       Meteor.defer(() => {
         void withLock("discord-bot", async (renew) => {
