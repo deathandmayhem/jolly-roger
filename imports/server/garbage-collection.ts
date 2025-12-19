@@ -74,7 +74,9 @@ export async function cleanupDeadServer(id: string) {
 
 function periodic() {
   Meteor.setTimeout(periodic, 15000 + 15000 * Random.fraction());
-  void cleanup();
+  cleanup().catch((error) => {
+    Logger.error("Error performing garbage-collection cleanup()", { error });
+  });
 }
 
 // Defer the first run to give other startup hooks a chance to run

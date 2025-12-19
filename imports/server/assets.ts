@@ -162,6 +162,7 @@ router.post(
     req.on(
       "end",
       Meteor.bindEnvironment(() => {
+        // Entire function body is wrapped in a try/catch, so voiding future is safe.
         void (async () => {
           try {
             // Concatenate chunks into a single buffer representing the entire file contents

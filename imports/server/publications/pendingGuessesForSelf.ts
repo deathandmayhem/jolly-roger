@@ -1,3 +1,4 @@
+import Logger from "../../Logger";
 import type { GuessType } from "../../lib/models/Guesses";
 import Guesses from "../../lib/models/Guesses";
 import Hunts from "../../lib/models/Hunts";
@@ -60,9 +61,15 @@ definePublication(pendingGuessesForSelf, {
           if (!huntGuessWatchers.has(huntId)) {
             const subSubscription = merger.newSub();
             huntGuessWatchers.set(huntId, subSubscription);
-            void publishJoinedQuery(subSubscription, huntGuessSpec, {
+            publishJoinedQuery(subSubscription, huntGuessSpec, {
               state: "pending",
               hunt: huntId,
+            }).catch((error) => {
+              Logger.error(
+                "pendingGuessesForSelf: publishJoinedQuery(hunt) failed in added()",
+                { error, hunt: huntId },
+              );
+              this.error(error);
             });
           }
         }
@@ -80,9 +87,15 @@ definePublication(pendingGuessesForSelf, {
           if (!huntGuessWatchers.has(huntId)) {
             const subSubscription = merger.newSub();
             huntGuessWatchers.set(huntId, subSubscription);
-            void publishJoinedQuery(subSubscription, huntGuessSpec, {
+            publishJoinedQuery(subSubscription, huntGuessSpec, {
               state: "pending",
               hunt: huntId,
+            }).catch((error) => {
+              Logger.error(
+                "pendingGuessesForSelf: publishJoinedQuery(hunt) failed in changed()",
+                { error, hunt: huntId },
+              );
+              this.error(error);
             });
           }
         }

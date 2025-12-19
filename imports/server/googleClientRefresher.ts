@@ -1,3 +1,4 @@
+import { Meteor } from "meteor/meteor";
 import type { Mongo } from "meteor/mongo";
 import { OAuth } from "meteor/oauth";
 import type { Configuration } from "meteor/service-configuration";
@@ -46,17 +47,20 @@ class GoogleClientRefresher {
       httpMethodsToRetry: ["GET", "PUT", "HEAD", "OPTIONS", "DELETE", "POST"],
     };
 
-    // Watch for config changes, and refresh the gdrive instance if anything changes
     this.oauthConfigCursor = ServiceConfiguration.configurations.find({
       service: "google",
     });
     this.oauthCredentialCursor = Settings.find({ name: "gdrive.credential" });
-    void this.oauthConfigCursor.observeAsync({
+  }
+
+  async startObservers() {
+    // Watch for config changes, and refresh the gdrive instance if anything changes
+    await this.oauthConfigCursor.observeAsync({
       added: (doc) => this.updateOauthConfig(doc),
       changed: (doc) => this.updateOauthConfig(doc),
       removed: () => this.updateOauthConfig(undefined),
     });
-    void this.oauthCredentialCursor.observeAsync({
+    await this.oauthCredentialCursor.observeAsync({
       added: (doc) => this.updateOauthCredentials(doc),
       changed: (doc) => this.updateOauthCredentials(doc),
       removed: () => this.clearOauthCredentials(),
@@ -129,5 +133,8 @@ class GoogleClientRefresher {
 }
 
 const googleClientRefresher = new GoogleClientRefresher();
+Meteor.startup(async () => {
+  await googleClientRefresher.startObservers();
+});
 
 export default googleClientRefresher;

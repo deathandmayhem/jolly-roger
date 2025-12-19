@@ -2,6 +2,7 @@ import { Meteor } from "meteor/meteor";
 import * as Discord from "discord.js";
 import { Events, GatewayIntentBits } from "discord.js";
 import Flags from "../Flags";
+import Logger from "../Logger";
 import DiscordCache from "../lib/models/DiscordCache";
 import MeteorUsers from "../lib/models/MeteorUsers";
 import type { SettingType } from "../lib/models/Settings";
@@ -36,7 +37,12 @@ class DiscordClientRefresher {
     this.featureFlagObserveHandle = await Flags.observeChangesAsync(
       "disable.discord",
       () => {
-        void this.refreshClient();
+        this.refreshClient().catch((error) => {
+          Logger.error(
+            "discordClientRefresher refreshClient failed on circuit breaker change",
+            { error },
+          );
+        });
       },
     );
   }
@@ -57,12 +63,22 @@ class DiscordClientRefresher {
     }
 
     this.token = doc.value.token;
-    void this.refreshClient();
+    this.refreshClient().catch((error) => {
+      Logger.error(
+        "discordClientRefresher refreshClient failed in updateBotConfig",
+        { error },
+      );
+    });
   }
 
   clearBotConfig() {
     this.token = undefined;
-    void this.refreshClient();
+    this.refreshClient().catch((error) => {
+      Logger.error(
+        "discordClientRefresher refreshClient failed in clearBotConfig",
+        { error },
+      );
+    });
   }
 
   async refreshClient() {
@@ -90,7 +106,7 @@ class DiscordClientRefresher {
       this.client = client;
 
       Meteor.defer(() => {
-        void withLock("discord-bot", async (renew) => {
+        withLock("discord-bot", async (renew) => {
           // The token gets set to null when the gateway is destroyed. If it's
           // been destroyed, bail, since that means that the config changed and
           // another defer function will have been scheduled
@@ -196,6 +212,8 @@ class DiscordClientRefresher {
           } finally {
             Meteor.clearInterval(renewInterval);
           }
+        }).catch((error) => {
+          Logger.error("discordClientRefresher main loop failed", { error });
         });
       });
     }
