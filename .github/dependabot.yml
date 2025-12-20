@@ -28,13 +28,15 @@ updates:
         patterns:
           - "react"
           - "react-dom"
-          - "@types/react"
-          - "@types/react-dom"
       slate:
         patterns:
           - "slate"
           - "slate-history"
           - "slate-react"
+      typescript-eslint:
+        patterns:
+          - "typescript-eslint"
+          - "@typescript-eslint/*"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
