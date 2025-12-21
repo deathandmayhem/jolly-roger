@@ -3,6 +3,7 @@ import type { Subscription } from "meteor/meteor";
 import { Meteor } from "meteor/meteor";
 import { Mongo } from "meteor/mongo";
 import type { z } from "zod";
+import Logger from "../Logger";
 import type { MongoRecordZodType } from "../lib/models/generateJsonSchema";
 import type Model from "../lib/models/Model";
 
@@ -263,9 +264,19 @@ class JoinedObjectObserver<T extends { _id: string }> {
         this.values.delete(id);
       },
     });
-    void this.watcherPromise.then(() => {
-      observeReady = true;
-    });
+    this.watcherPromise.then(
+      () => {
+        observeReady = true;
+      },
+      (error) => {
+        Logger.error("JoinedObjectObserver watcherPromise error", {
+          error,
+          model: this.modelName,
+          id: this.id,
+        });
+        this.sub.error(error);
+      },
+    );
   }
 
   async readyPromise() {
@@ -279,9 +290,19 @@ class JoinedObjectObserver<T extends { _id: string }> {
   }
 
   destroy() {
-    void this.watcherPromise.then((watcher) => {
-      watcher.stop();
-    });
+    this.watcherPromise.then(
+      (watcher) => {
+        watcher.stop();
+      },
+      (error) => {
+        Logger.error("JoinedObjectObserver watcherPromise error in teardown", {
+          error,
+          model: this.modelName,
+          id: this.id,
+        });
+        this.sub.error(error);
+      },
+    );
     if (this.exists) {
       this.sub.removed(this.modelName, this.id);
       const fkValues = this.values.get(this.id)!;

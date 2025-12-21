@@ -3,6 +3,7 @@ import { check } from "meteor/check";
 import type { Subscription } from "meteor/meteor";
 import { Meteor } from "meteor/meteor";
 import type { Mongo } from "meteor/mongo";
+import Logger from "../Logger";
 import { GLOBAL_SCOPE } from "../lib/isAdmin";
 import Hunts from "../lib/models/Hunts";
 import MeteorUsers from "../lib/models/MeteorUsers";
@@ -61,7 +62,7 @@ const republishOnUserChange = async (
     projection,
   }).observeAsync({
     changed: (doc) => {
-      void (async () => {
+      (async () => {
         const newCursor = await makeCursor(doc);
         let newSub;
         if (newCursor) {
@@ -77,7 +78,13 @@ const republishOnUserChange = async (
           merger.removeSub(currentSub);
         }
         currentSub = newSub;
-      })();
+      })().catch((error) => {
+        Logger.error("Error republishing on user change", {
+          error,
+          user: sub.userId,
+        });
+        sub.error(error);
+      });
     },
   });
 

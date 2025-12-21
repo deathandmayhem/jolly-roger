@@ -241,5 +241,8 @@ Meteor.startup(() => {
     // but this will do for now
     return;
   }
+
+  // The entire body of fetchActivityLoop is a while loop wrapping a try-catch,
+  // so voiding this promise is safe.
   void fetchActivityLoop();
 });

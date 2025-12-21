@@ -1,5 +1,6 @@
 import { Meteor } from "meteor/meteor";
 import { Random } from "meteor/random";
+import Logger from "../Logger";
 import isAdmin from "../lib/isAdmin";
 import MeteorUsers from "../lib/models/MeteorUsers";
 import type { SettingType } from "../lib/models/Settings";
@@ -120,23 +121,29 @@ Meteor.publish("googleScriptInfo", async function () {
   };
   const handle: Meteor.LiveQueryHandle = await cursor.observeAsync({
     added: (doc) => {
-      void (async () => {
+      (async () => {
         tracked = true;
         this.added(
           "googleScriptInfo",
           "googleScriptInfo",
           await formatDoc(doc),
         );
-      })();
+      })().catch((error) => {
+        Logger.error("googleScriptInfo added() failed", { error });
+        this.error(error);
+      });
     },
     changed: (newDoc) => {
-      void (async () => {
+      (async () => {
         this.changed(
           "googleScriptInfo",
           "googleScriptInfo",
           await formatDoc(newDoc),
         );
-      })();
+      })().catch((error) => {
+        Logger.error("googleScriptInfo changed() failed", { error });
+        this.error(error);
+      });
     },
     removed: () => {
       if (tracked) {
