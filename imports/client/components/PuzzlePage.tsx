@@ -2118,14 +2118,14 @@ const PuzzlePage = React.memo(() => {
 
   if (puzzleDataLoading) {
     return (
-      <FixedLayout className="puzzle-page" ref={puzzlePageDivRef}>
+      <FixedLayout ref={puzzlePageDivRef}>
         <span>loading...</span>
       </FixedLayout>
     );
   }
   if (!activePuzzle) {
     return (
-      <FixedLayout className="puzzle-page" ref={puzzlePageDivRef}>
+      <FixedLayout ref={puzzlePageDivRef}>
         <span>No puzzle found :( Did you get that URL right?</span>
       </FixedLayout>
     );
@@ -2204,7 +2204,7 @@ const PuzzlePage = React.memo(() => {
     return (
       <>
         {deletedModal}
-        <FixedLayout className="puzzle-page" ref={puzzlePageDivRef}>
+        <FixedLayout ref={puzzlePageDivRef}>
           <SplitPaneMinus
             split="vertical"
             minSize={MinimumSidebarWidth}
@@ -2233,7 +2233,7 @@ const PuzzlePage = React.memo(() => {
   return (
     <>
       {deletedModal}
-      <FixedLayout className="puzzle-page narrow">
+      <FixedLayout $narrow>
         {metadata}
         {chat}
       </FixedLayout>
