@@ -85,10 +85,10 @@ const LabelledRadioGroup = ({
     );
   });
   return (
-    <div className="radio-group">
+    <div>
       <RadioHeader>{header}</RadioHeader>
       <fieldset>{buttons}</fieldset>
-      {help && <span className="help-block">{help}</span>}
+      {help && <span>{help}</span>}
     </div>
   );
 };

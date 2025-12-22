@@ -26,7 +26,6 @@ const Reset = createGlobalStyle`
 
 Meteor.startup(() => {
   const container = document.createElement("div");
-  container.className = "jolly-roger";
   document.body.appendChild(container);
   const root = createRoot(container);
   root.render(
