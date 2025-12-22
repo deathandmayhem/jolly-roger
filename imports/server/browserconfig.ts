@@ -1,5 +1,4 @@
 import type http from "node:http";
-import { Meteor } from "meteor/meteor";
 import { WebApp } from "meteor/webapp";
 import type { NextFunction } from "express";
 import lookupUrl from "./lookupUrl";
@@ -30,7 +29,4 @@ const serveBrowserConfig = (
   res.end(body);
 };
 
-WebApp.handlers.use(
-  "/browserconfig.xml",
-  Meteor.bindEnvironment(serveBrowserConfig),
-);
+WebApp.handlers.use("/browserconfig.xml", serveBrowserConfig);

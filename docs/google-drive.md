@@ -32,7 +32,7 @@ files:
   - imports/server/models/DriveActivityLatests.ts
   - imports/server/setup.ts
   - private/google-script/main.js
-updated: 2025-12-16
+updated: 2025-12-22
 ---
 
 # Google Drive Integration
