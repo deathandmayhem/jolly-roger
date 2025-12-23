@@ -1624,28 +1624,28 @@ const getLocalIPAddresses = (): ListenIp[] => {
     });
 };
 
-registerPeriodicCleanupHook(async (deadServers) => {
+registerPeriodicCleanupHook(async (deadServer) => {
   await MonitorConnectAcks.removeAsync({
-    receivingServer: { $in: deadServers },
+    receivingServer: deadServer,
   });
   await MonitorConnectRequests.removeAsync({
-    initiatingServer: { $in: deadServers },
+    initiatingServer: deadServer,
   });
 
-  await ConsumerAcks.removeAsync({ createdServer: { $in: deadServers } });
-  await Consumers.removeAsync({ createdServer: { $in: deadServers } });
+  await ConsumerAcks.removeAsync({ createdServer: deadServer });
+  await Consumers.removeAsync({ createdServer: deadServer });
 
-  await ProducerServers.removeAsync({ createdServer: { $in: deadServers } });
-  await ProducerClients.removeAsync({ createdServer: { $in: deadServers } });
+  await ProducerServers.removeAsync({ createdServer: deadServer });
+  await ProducerClients.removeAsync({ createdServer: deadServer });
 
-  await ConnectAcks.removeAsync({ createdServer: { $in: deadServers } });
-  await ConnectRequests.removeAsync({ createdServer: { $in: deadServers } });
+  await ConnectAcks.removeAsync({ createdServer: deadServer });
+  await ConnectRequests.removeAsync({ createdServer: deadServer });
 
-  await TransportStates.removeAsync({ createdServer: { $in: deadServers } });
-  await Transports.removeAsync({ createdServer: { $in: deadServers } });
-  await TransportRequests.removeAsync({ createdServer: { $in: deadServers } });
+  await TransportStates.removeAsync({ createdServer: deadServer });
+  await Transports.removeAsync({ createdServer: deadServer });
+  await TransportRequests.removeAsync({ createdServer: deadServer });
 
-  await Routers.removeAsync({ createdServer: { $in: deadServers } });
+  await Routers.removeAsync({ createdServer: deadServer });
 });
 
 // A note: the current behavior of Meteor.startup is that it blocks the
