@@ -602,47 +602,35 @@ class SFU {
   // Using the observer API makes the bookkeeping much more reliable
 
   onWorkerCreated(worker: types.Worker) {
-    worker.observer.on(
-      "newrouter",
-      Meteor.bindEnvironment(this.onRouterCreated.bind(this)),
-    );
+    worker.observer.on("newrouter", this.onRouterCreated.bind(this));
   }
 
   onMonitorRouterCreated(router: types.Router) {
     router.observer.on(
       "newtransport",
-      Meteor.bindEnvironment(this.onMonitorTransportCreated.bind(this)),
+      this.onMonitorTransportCreated.bind(this),
     );
   }
 
   onRouterCreated(router: types.Router) {
-    router.observer.on(
-      "newtransport",
-      Meteor.bindEnvironment(this.onTransportCreated.bind(this)),
-    );
+    router.observer.on("newtransport", this.onTransportCreated.bind(this));
 
     const routerAppData = router.appData as RouterAppData;
 
-    router.observer.on(
-      "close",
-      Meteor.bindEnvironment(() => {
-        Logger.info("Router was shut down", {
-          call: routerAppData.call,
-          router: router.id,
+    router.observer.on("close", () => {
+      Logger.info("Router was shut down", {
+        call: routerAppData.call,
+        router: router.id,
+      });
+      this.routers.delete(routerAppData.call);
+      Routers.removeAsync({ routerId: router.id }).catch((error) => {
+        Logger.error("mediasoup failed to remove shutdown router", {
+          error,
+          routerId: router.id,
         });
-        this.routers.delete(routerAppData.call);
-        Routers.removeAsync({ routerId: router.id }).catch((error) => {
-          Logger.error("mediasoup failed to remove shutdown router", {
-            error,
-            routerId: router.id,
-          });
-        });
-      }),
-    );
-    router.observer.on(
-      "newrtpobserver",
-      Meteor.bindEnvironment(this.onRtpObserverCreated.bind(this)),
-    );
+      });
+    });
+    router.observer.on("newrtpobserver", this.onRtpObserverCreated.bind(this));
 
     this.routers.set(routerAppData.call, router);
     const appData: AudioLevelObserverAppData = {
@@ -682,51 +670,48 @@ class SFU {
     const observerAppData = observer.appData as AudioLevelObserverAppData;
 
     const lastWriteByUser = new Map<string, number>();
-    const updateCallActivity = Meteor.bindEnvironment(
-      async (volumes: types.AudioLevelObserverVolume[]) => {
-        const users = new Set(
-          volumes.map((v) => {
-            const { producer } = v;
-            const producerAppData = producer.appData as ProducerAppData;
-            return producerAppData.createdBy;
-          }),
-        );
-        for (const user of users) {
-          // Update the database at max once per second per user
-          const lastWrite = lastWriteByUser.get(user) ?? 0;
-          if (lastWrite < Date.now() - 1000) {
-            lastWriteByUser.set(user, Date.now());
-            await ignoringDuplicateKeyErrors(async () => {
-              await CallActivities.insertAsync({
-                hunt: observerAppData.hunt,
-                call: observerAppData.call,
-                user,
-                ts: roundedTime(ACTIVITY_GRANULARITY),
-              });
+    const updateCallActivity = async (
+      volumes: types.AudioLevelObserverVolume[],
+    ) => {
+      const users = new Set(
+        volumes.map((v) => {
+          const { producer } = v;
+          const producerAppData = producer.appData as ProducerAppData;
+          return producerAppData.createdBy;
+        }),
+      );
+      for (const user of users) {
+        // Update the database at max once per second per user
+        const lastWrite = lastWriteByUser.get(user) ?? 0;
+        if (lastWrite < Date.now() - 1000) {
+          lastWriteByUser.set(user, Date.now());
+          await ignoringDuplicateKeyErrors(async () => {
+            await CallActivities.insertAsync({
+              hunt: observerAppData.hunt,
+              call: observerAppData.call,
+              user,
+              ts: roundedTime(ACTIVITY_GRANULARITY),
             });
-          }
-        }
-      },
-    );
-
-    const updateCallHistory = throttle(
-      Meteor.bindEnvironment(() => {
-        CallHistories.upsertAsync(
-          {
-            hunt: observerAppData.hunt,
-            call: observerAppData.call,
-          },
-          { $set: { lastActivity: new Date() } },
-        ).catch((error) => {
-          Logger.error("mediasoup CallHistories upsert failed", {
-            error,
-            hunt: observerAppData.hunt,
-            call: observerAppData.call,
           });
+        }
+      }
+    };
+
+    const updateCallHistory = throttle(() => {
+      CallHistories.upsertAsync(
+        {
+          hunt: observerAppData.hunt,
+          call: observerAppData.call,
+        },
+        { $set: { lastActivity: new Date() } },
+      ).catch((error) => {
+        Logger.error("mediasoup CallHistories upsert failed", {
+          error,
+          hunt: observerAppData.hunt,
+          call: observerAppData.call,
         });
-      }),
-      RECENT_ACTIVITY_TIME_WINDOW_MS,
-    );
+      });
+    }, RECENT_ACTIVITY_TIME_WINDOW_MS);
 
     observer.observer.on("close", () => {
       updateCallHistory.cancel();
@@ -762,37 +747,28 @@ class SFU {
       return;
     }
 
-    transport.observer.on(
-      "newproducer",
-      Meteor.bindEnvironment(this.onProducerCreated.bind(this)),
-    );
-    transport.observer.on(
-      "newconsumer",
-      Meteor.bindEnvironment(this.onConsumerCreated.bind(this)),
-    );
+    transport.observer.on("newproducer", this.onProducerCreated.bind(this));
+    transport.observer.on("newconsumer", this.onConsumerCreated.bind(this));
 
-    transport.observer.on(
-      "close",
-      Meteor.bindEnvironment(() => {
-        this.transports.delete(
-          `${transportAppData.transportRequest}:${transportAppData.direction}`,
-        );
-        Transports.removeAsync({ transportId: transport.id }).catch((error) => {
-          Logger.error("mediasoup failed to remove transport", {
+    transport.observer.on("close", () => {
+      this.transports.delete(
+        `${transportAppData.transportRequest}:${transportAppData.direction}`,
+      );
+      Transports.removeAsync({ transportId: transport.id }).catch((error) => {
+        Logger.error("mediasoup failed to remove transport", {
+          error,
+          transportId: transport.id,
+        });
+      });
+      TransportStates.removeAsync({ transportId: transport.id }).catch(
+        (error) => {
+          Logger.error("mediasoup failed to remove transport states", {
             error,
             transportId: transport.id,
           });
-        });
-        TransportStates.removeAsync({ transportId: transport.id }).catch(
-          (error) => {
-            Logger.error("mediasoup failed to remove transport states", {
-              error,
-              transportId: transport.id,
-            });
-          },
-        );
-      }),
-    );
+        },
+      );
+    });
 
     if (!(transport.type === "webrtc")) {
       Logger.warn("Ignoring unexpected non-WebRTC transport", {
@@ -805,31 +781,28 @@ class SFU {
 
     const wtransport = transport as types.WebRtcTransport;
 
-    wtransport.observer.on(
-      "icestatechange",
-      Meteor.bindEnvironment((iceState: types.IceState) => {
-        TransportStates.upsertAsync(
-          {
-            createdServer: serverId,
-            transportId: transport.id,
+    wtransport.observer.on("icestatechange", (iceState: types.IceState) => {
+      TransportStates.upsertAsync(
+        {
+          createdServer: serverId,
+          transportId: transport.id,
+        },
+        {
+          $set: {
+            iceState,
+            createdBy: transportAppData.createdBy,
           },
-          {
-            $set: {
-              iceState,
-              createdBy: transportAppData.createdBy,
-            },
-          },
-        ).catch((error) => {
-          Logger.error(
-            "mediasoup failed to upsert TransportStates on icestatechange",
-            { error, transportId: transport.id },
-          );
-        });
-      }),
-    );
+        },
+      ).catch((error) => {
+        Logger.error(
+          "mediasoup failed to upsert TransportStates on icestatechange",
+          { error, transportId: transport.id },
+        );
+      });
+    });
     wtransport.observer.on(
       "iceselectedtuplechange",
-      Meteor.bindEnvironment((iceSelectedTuple?: types.TransportTuple) => {
+      (iceSelectedTuple?: types.TransportTuple) => {
         TransportStates.upsertAsync(
           {
             createdServer: serverId,
@@ -849,30 +822,27 @@ class SFU {
             { error, transportId: transport.id },
           );
         });
-      }),
+      },
     );
-    wtransport.observer.on(
-      "dtlsstatechange",
-      Meteor.bindEnvironment((dtlsState: types.DtlsState) => {
-        TransportStates.upsertAsync(
-          {
-            createdServer: serverId,
-            transportId: transport.id,
+    wtransport.observer.on("dtlsstatechange", (dtlsState: types.DtlsState) => {
+      TransportStates.upsertAsync(
+        {
+          createdServer: serverId,
+          transportId: transport.id,
+        },
+        {
+          $set: {
+            dtlsState,
+            createdBy: transportAppData.createdBy,
           },
-          {
-            $set: {
-              dtlsState,
-              createdBy: transportAppData.createdBy,
-            },
-          },
-        ).catch((error) => {
-          Logger.error(
-            "mediasoup failed to upsert TransportStates on dtlsstatechange",
-            { error, transportId: transport.id },
-          );
-        });
-      }),
-    );
+        },
+      ).catch((error) => {
+        Logger.error(
+          "mediasoup failed to upsert TransportStates on dtlsstatechange",
+          { error, transportId: transport.id },
+        );
+      });
+    });
 
     // This casts a wide net, but `createConsumer` will filter it down
     this.producers.forEach((producer) => {
@@ -917,20 +887,17 @@ class SFU {
 
   onProducerCreated(producer: types.Producer) {
     const producerAppData = producer.appData as ProducerAppData;
-    producer.observer.on(
-      "close",
-      Meteor.bindEnvironment(() => {
-        this.producers.delete(producerAppData.producerClient);
-        ProducerServers.removeAsync({ producerId: producer.id }).catch(
-          (error) => {
-            Logger.error("mediasoup ProducerServers.removeAsync failed", {
-              error,
-              producerId: producer.id,
-            });
-          },
-        );
-      }),
-    );
+    producer.observer.on("close", () => {
+      this.producers.delete(producerAppData.producerClient);
+      ProducerServers.removeAsync({ producerId: producer.id }).catch(
+        (error) => {
+          Logger.error("mediasoup ProducerServers.removeAsync failed", {
+            error,
+            producerId: producer.id,
+          });
+        },
+      );
+    });
 
     // Create consumers for other existing transports (this is way more
     // transports than we actually want to use, but `createConsumer` will filter
@@ -980,49 +947,40 @@ class SFU {
 
   onConsumerCreated(consumer: types.Consumer) {
     const consumerAppData = consumer.appData as ConsumerAppData;
-    consumer.observer.on(
-      "close",
-      Meteor.bindEnvironment(() => {
-        this.consumers.delete(
-          `${consumerAppData.transportRequest}:${consumer.producerId}`,
-        );
-        Consumers.removeAsync({ consumerId: consumer.id }).catch((error) => {
-          Logger.error("mediasoup Consumers.removeAsync failed", {
-            error,
-            consumerId: consumer.id,
-          });
+    consumer.observer.on("close", () => {
+      this.consumers.delete(
+        `${consumerAppData.transportRequest}:${consumer.producerId}`,
+      );
+      Consumers.removeAsync({ consumerId: consumer.id }).catch((error) => {
+        Logger.error("mediasoup Consumers.removeAsync failed", {
+          error,
+          consumerId: consumer.id,
         });
-      }),
-    );
+      });
+    });
 
-    consumer.observer.on(
-      "pause",
-      Meteor.bindEnvironment(() => {
-        Consumers.updateAsync(
-          { consumerId: consumer.id },
-          { $set: { paused: true } },
-        ).catch((error) => {
-          Logger.error(
-            "mediasoup Consumers.updateAsync failed on consumer pause",
-            { error, consumerId: consumer.id },
-          );
-        });
-      }),
-    );
-    consumer.observer.on(
-      "resume",
-      Meteor.bindEnvironment(() => {
-        Consumers.updateAsync(
-          { consumerId: consumer.id },
-          { $set: { paused: false } },
-        ).catch((error) => {
-          Logger.error(
-            "mediasoup Consumers.updateAsync failed on consumer resume",
-            { error, consumerId: consumer.id },
-          );
-        });
-      }),
-    );
+    consumer.observer.on("pause", () => {
+      Consumers.updateAsync(
+        { consumerId: consumer.id },
+        { $set: { paused: true } },
+      ).catch((error) => {
+        Logger.error(
+          "mediasoup Consumers.updateAsync failed on consumer pause",
+          { error, consumerId: consumer.id },
+        );
+      });
+    });
+    consumer.observer.on("resume", () => {
+      Consumers.updateAsync(
+        { consumerId: consumer.id },
+        { $set: { paused: false } },
+      ).catch((error) => {
+        Logger.error(
+          "mediasoup Consumers.updateAsync failed on consumer resume",
+          { error, consumerId: consumer.id },
+        );
+      });
+    });
 
     this.consumers.set(
       `${consumerAppData.transportRequest}:${consumer.producerId}`,
@@ -1076,19 +1034,16 @@ class SFU {
     const ptransport = transport as types.PipeTransport;
 
     if (transportAppData.type === "monitor-initiated") {
-      transport.observer.on(
-        "close",
-        Meteor.bindEnvironment(() => {
-          MonitorConnectRequests.removeAsync({
+      transport.observer.on("close", () => {
+        MonitorConnectRequests.removeAsync({
+          transportId: transport.id,
+        }).catch((error) => {
+          Logger.error("Failed to remove MonitorConnectRequests", {
+            error,
             transportId: transport.id,
-          }).catch((error) => {
-            Logger.error("Failed to remove MonitorConnectRequests", {
-              error,
-              transportId: transport.id,
-            });
           });
-        }),
-      );
+        });
+      });
 
       (async () => {
         const consumer = await transport.consumeData({
@@ -1131,19 +1086,16 @@ class SFU {
         });
       });
     } else if (transportAppData.type === "monitor-received") {
-      ptransport.observer.on(
-        "close",
-        Meteor.bindEnvironment(() => {
-          MonitorConnectAcks.removeAsync({ transportId: transport.id }).catch(
-            (error) => {
-              Logger.error("mediasoup failed to remove MonitorConnectAcks", {
-                error,
-                transportId: transport.id,
-              });
-            },
-          );
-        }),
-      );
+      ptransport.observer.on("close", () => {
+        MonitorConnectAcks.removeAsync({ transportId: transport.id }).catch(
+          (error) => {
+            Logger.error("mediasoup failed to remove MonitorConnectAcks", {
+              error,
+              transportId: transport.id,
+            });
+          },
+        );
+      });
 
       (async () => {
         try {
@@ -1162,15 +1114,12 @@ class SFU {
           const consumer = await this.heartbeatDirectTransport.consumeData({
             dataProducerId: producer.id,
           });
-          consumer.on(
-            "message",
-            Meteor.bindEnvironment(() => {
-              const watchdog = this.heartbeatWatchdogs.get(
-                transportAppData.server,
-              );
-              watchdog?.resetTimeout();
-            }),
-          );
+          consumer.on("message", () => {
+            const watchdog = this.heartbeatWatchdogs.get(
+              transportAppData.server,
+            );
+            watchdog?.resetTimeout();
+          });
 
           await MonitorConnectAcks.insertAsync({
             initiatingServer: transportAppData.server,
@@ -1434,24 +1383,21 @@ class SFU {
     // transport, but we actually only receive heartbeats when the _inbound_
     // pipe transport is initiated by the other server.
     const watchdog = new Watchdog(heartbeatTimeout, heartbeatInitialTimeout);
-    watchdog.on(
-      "timeout",
-      Meteor.bindEnvironment(() => {
-        Logger.warn(
-          "Have not received heartbeat from server, marking as offline",
-          {
-            since: watchdog.lastActivity,
-            server: server._id,
-          },
-        );
-        cleanupDeadServer(server._id).catch((error) => {
-          Logger.error("mediasoup cleanupDeadServer failed", {
-            error,
-            serverId: server._id,
-          });
+    watchdog.on("timeout", () => {
+      Logger.warn(
+        "Have not received heartbeat from server, marking as offline",
+        {
+          since: watchdog.lastActivity,
+          server: server._id,
+        },
+      );
+      cleanupDeadServer(server._id).catch((error) => {
+        Logger.error("mediasoup cleanupDeadServer failed", {
+          error,
+          serverId: server._id,
         });
-      }),
-    );
+      });
+    });
     this.heartbeatWatchdogs.set(server._id, watchdog);
 
     const appData: TransportAppData = {
@@ -1743,10 +1689,8 @@ Meteor.startup(async () => {
     },
   );
 
-  onExit(
-    Meteor.bindEnvironment(async () => {
-      observer.stop();
-      await sfu?.close();
-    }),
-  );
+  onExit(async () => {
+    observer.stop();
+    await sfu?.close();
+  });
 });

@@ -79,11 +79,9 @@ defineMethod(updatePuzzle, {
     await Puzzles.updateAsync(puzzleId, update);
 
     // Run any puzzle update hooks
-    Meteor.defer(
-      Meteor.bindEnvironment(() => {
-        void GlobalHooks.runPuzzleUpdatedHooks(puzzleId, oldPuzzle);
-      }),
-    );
+    Meteor.defer(() => {
+      void GlobalHooks.runPuzzleUpdatedHooks(puzzleId, oldPuzzle);
+    });
 
     if (oldPuzzle.title !== title) {
       Meteor.defer(

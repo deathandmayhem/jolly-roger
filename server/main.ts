@@ -47,7 +47,3 @@ import "../imports/server/mediasoup-api";
 import ModelsFacade from "../imports/lib/models/facade";
 
 (global as any).Models = ModelsFacade;
-
-// Very last thing: run latest build hooks to actually create indexes and
-// schemas
-import "../imports/server/runLatestBuildHooks";

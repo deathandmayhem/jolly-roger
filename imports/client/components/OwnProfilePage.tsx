@@ -371,7 +371,7 @@ const OwnProfilePage = ({
 
       <AudioConfig />
 
-      <section className="advanced-section mt-3">
+      <section className="mt-3">
         <h2>Advanced</h2>
         <APIKeysSection apiKeys={apiKeys} />
       </section>

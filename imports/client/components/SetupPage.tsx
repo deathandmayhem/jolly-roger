@@ -2371,7 +2371,7 @@ const CircuitBreakerControl = ({
           />
         </CircuitBreakerButtons>
       </CircuitBreakerRow>
-      <div className="circuit-breaker-description">{children}</div>
+      <div>{children}</div>
     </CircuitBreaker>
   );
 };

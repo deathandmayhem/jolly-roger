@@ -194,7 +194,7 @@ const AudioConfig = () => {
   const idPrefix = useId();
 
   return (
-    <section className="audio-self-test-section">
+    <section>
       <h2>Audio</h2>
 
       <FormGroup
