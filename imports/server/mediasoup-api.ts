@@ -25,14 +25,14 @@ import { registerPeriodicCleanupHook, serverId } from "./garbage-collection";
 import ignoringDuplicateKeyErrors from "./ignoringDuplicateKeyErrors";
 import withLock from "./withLock";
 
-registerPeriodicCleanupHook(async (deadServers) => {
-  await Peers.removeAsync({ createdServer: { $in: deadServers } });
+registerPeriodicCleanupHook(async (deadServer) => {
+  await Peers.removeAsync({ createdServer: deadServer });
 
   // Deleting a room creates a potential inconsistency, since we might still
   // have peers on other servers. Therefore, take out a lock to make sure we
   // see a consistent view (and everyone else does too), then check if there
   // are still peers joined to this room
-  for await (const room of Rooms.find({ routedServer: { $in: deadServers } })) {
+  for await (const room of Rooms.find({ routedServer: deadServer })) {
     await withLock(`mediasoup:room:${room.call}`, async () => {
       const removed = !!(await Rooms.removeAsync(room._id));
       if (!removed) {
