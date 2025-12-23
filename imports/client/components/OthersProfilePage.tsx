@@ -1,8 +1,8 @@
 import type { Meteor } from "meteor/meteor";
 import { useTracker } from "meteor/react-meteor-data";
 import { useId } from "react";
-import Tooltip from "react-bootstrap/esm/Tooltip";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
+import Tooltip from "react-bootstrap/Tooltip";
 import styled from "styled-components";
 import { formatDiscordName } from "../../lib/discord";
 import { indexedById } from "../../lib/listUtils";

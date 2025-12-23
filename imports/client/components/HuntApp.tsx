@@ -1,10 +1,10 @@
 import { Meteor } from "meteor/meteor";
 import { useTracker } from "meteor/react-meteor-data";
 import React, { useCallback, useMemo } from "react";
-import { Modal, ModalBody, ModalFooter } from "react-bootstrap";
 import Alert from "react-bootstrap/Alert";
 import Button from "react-bootstrap/Button";
 import ButtonToolbar from "react-bootstrap/ButtonToolbar";
+import Modal from "react-bootstrap/Modal";
 import { createPortal } from "react-dom";
 import { Outlet, useNavigate, useParams } from "react-router-dom";
 import type { HuntType } from "../../lib/models/Hunts";
@@ -159,14 +159,14 @@ const HuntApp = React.memo(() => {
   if (mustAcceptTerms) {
     termsModal = createPortal(
       <Modal show size="lg">
-        <ModalBody>
+        <Modal.Body>
           <Markdown text={hunt.termsOfUse!} />
-        </ModalBody>
-        <ModalFooter>
+        </Modal.Body>
+        <Modal.Footer>
           <Button variant="primary" onClick={acceptTerms}>
             Accept
           </Button>
-        </ModalFooter>
+        </Modal.Footer>
       </Modal>,
       document.body,
     );
