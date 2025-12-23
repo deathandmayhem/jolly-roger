@@ -3,7 +3,6 @@ import { faInfo } from "@fortawesome/free-solid-svg-icons/faInfo";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import type React from "react";
 import { useCallback, useId, useRef, useState } from "react";
-import { Modal, ModalBody, ModalFooter } from "react-bootstrap";
 import Alert from "react-bootstrap/Alert";
 import Button from "react-bootstrap/Button";
 import Col from "react-bootstrap/Col";
@@ -16,6 +15,7 @@ import FormControl from "react-bootstrap/FormControl";
 import FormGroup from "react-bootstrap/FormGroup";
 import FormLabel from "react-bootstrap/FormLabel";
 import FormText from "react-bootstrap/FormText";
+import Modal from "react-bootstrap/Modal";
 import Row from "react-bootstrap/Row";
 import { createPortal } from "react-dom";
 import { useNavigate, useParams } from "react-router-dom";
@@ -413,14 +413,14 @@ const HuntEditPage = () => {
       size="lg"
       onHide={toggleShowTermsOfUsePreview}
     >
-      <ModalBody>
+      <Modal.Body>
         <Markdown text={termsOfUse} />
-      </ModalBody>
-      <ModalFooter>
+      </Modal.Body>
+      <Modal.Footer>
         <Button variant="primary" onClick={toggleShowTermsOfUsePreview}>
           Close
         </Button>
-      </ModalFooter>
+      </Modal.Footer>
     </Modal>,
     document.body,
   );

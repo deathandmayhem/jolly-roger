@@ -11,7 +11,7 @@ import React, {
   useState,
 } from "react";
 import Button from "react-bootstrap/Button";
-import ButtonGroup from "react-bootstrap/esm/ButtonGroup";
+import ButtonGroup from "react-bootstrap/ButtonGroup";
 import { Link } from "react-router-dom";
 import styled, { css } from "styled-components";
 import { difference, indexedById } from "../../lib/listUtils";

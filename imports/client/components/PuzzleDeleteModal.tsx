@@ -6,7 +6,7 @@ import React, {
   useState,
 } from "react";
 import Button from "react-bootstrap/Button";
-import Modal from "react-bootstrap/esm/Modal";
+import Modal from "react-bootstrap/Modal";
 import { createPortal } from "react-dom";
 import Peers from "../../lib/models/mediasoup/Peers";
 import type { PuzzleType } from "../../lib/models/Puzzles";

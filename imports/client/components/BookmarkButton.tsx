@@ -2,7 +2,7 @@ import { faStar as faStarRegular } from "@fortawesome/free-regular-svg-icons/faS
 import { faStar as faStarSolid } from "@fortawesome/free-solid-svg-icons/faStar";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { useCallback, useState } from "react";
-import { Button } from "react-bootstrap";
+import Button from "react-bootstrap/Button";
 import bookmarkPuzzle from "../../methods/bookmarkPuzzle";
 
 interface BookmarkButtonProps<As extends React.ElementType = React.ElementType>
