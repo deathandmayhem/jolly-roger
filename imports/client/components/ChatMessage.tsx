@@ -1,5 +1,5 @@
 // biome-ignore-all lint/suspicious/noArrayIndexKey: migrated from eslint
-import * as he from "he";
+import { decodeHTML } from "entities";
 import type { Token, Tokens } from "marked";
 import { marked } from "marked";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -131,7 +131,7 @@ const MarkdownToken = ({
     const children = (token as Tokens.Paragraph).tokens.map((t, i) => (
       <MarkdownToken key={i} token={t} />
     ));
-    const decodedText = he.decode(token.text);
+    const decodedText = decodeHTML(token.text);
     if (token.raw.length > decodedText.length) {
       const trail = token.raw.substring(decodedText.length);
       if (trail.trim() === "") {
@@ -183,7 +183,7 @@ const MarkdownToken = ({
     ));
     return <del>{children}</del>;
   } else if (token.type === "codespan") {
-    const decodedText = he.decode(token.text);
+    const decodedText = decodeHTML(token.text);
     return <code>{decodedText}</code>;
   } else if (token.type === "code") {
     // Text in code blocks is _not_ encoded, so pass it through as is.
