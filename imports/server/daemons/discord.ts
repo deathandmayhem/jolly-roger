@@ -1,4 +1,4 @@
-import { EventEmitter } from "node:events";
+import { EventEmitter, once } from "node:events";
 import { setTimeout } from "node:timers/promises";
 import { Meteor } from "meteor/meteor";
 import * as Discord from "discord.js";
@@ -77,18 +77,7 @@ class DiscordDaemon extends EventEmitter<DiscordDaemonEvents> {
       return;
     }
 
-    const aborted = new Promise<void>((res) => {
-      if (abort.aborted) {
-        res();
-      }
-      abort.addEventListener(
-        "abort",
-        () => {
-          res();
-        },
-        { once: true },
-      );
-    });
+    const aborted = abort.aborted ? Promise.resolve() : once(abort, "abort");
 
     await withLock("discord-bot", async (renew) => {
       using cleanup = new DisposableStack();
@@ -104,10 +93,8 @@ class DiscordDaemon extends EventEmitter<DiscordDaemonEvents> {
         intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers],
       });
 
-      const clientFailure = new Promise<void>((_, rej) => {
-        client.once(Events.Invalidated, () => {
-          rej(new Error("Discord client invalidated"));
-        });
+      const clientFailure = once(client, Events.Invalidated).then(() => {
+        throw new Error("Discord client invalidated");
       });
 
       const unseen = new Map<string /* type */, Set<string /* snowflake */>>();
@@ -152,9 +139,7 @@ class DiscordDaemon extends EventEmitter<DiscordDaemonEvents> {
         await updateUser(u);
       });
 
-      const ready = new Promise<void>((r) => {
-        client.once(Events.ClientReady, () => r());
-      });
+      const ready = once(client, Events.ClientReady);
       await client.login(token);
 
       // renewalFailure and clientFailure will reject, which will cause this to
