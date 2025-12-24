@@ -1,5 +1,5 @@
+import { setImmediate } from "node:timers/promises";
 import { Accounts } from "meteor/accounts-base";
-import { Meteor } from "meteor/meteor";
 import { MongoInternals } from "meteor/mongo";
 import { assert } from "chai";
 import Flags from "../../../../imports/Flags";
@@ -25,7 +25,7 @@ async function waitUntilOplogCaughtUp() {
   await oplogHandle.waitUntilCaughtUp();
 
   // Wait an extra tick to ensure any observers have fired
-  await new Promise((resolve) => Meteor.defer(resolve));
+  await setImmediate();
 }
 
 describe("Flags", function () {
