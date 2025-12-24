@@ -4,11 +4,11 @@
       "owner": "eslint-stylish",
       "pattern": [
         {
-          "regexp": "^([^\\s].*)$",
+          "regexp": "^(?:\\[eslint\\] )?([^\\s].*)$",
           "file": 1
         },
         {
-          "regexp": "^\\s+(\\d+):(\\d+)\\s+(error|warning|info)\\s+(.*)\\s\\s+(.*)$",
+          "regexp": "^(?:\\[eslint\\] )?\\s+(\\d+):(\\d+)\\s+(error|warning|info)\\s+(.*)\\s\\s+(.*)$",
           "line": 1,
           "column": 2,
           "severity": 3,
