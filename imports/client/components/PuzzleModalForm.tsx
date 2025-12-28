@@ -18,6 +18,7 @@ import FormGroup from "react-bootstrap/FormGroup";
 import FormLabel from "react-bootstrap/FormLabel";
 import Row from "react-bootstrap/Row";
 import type { ActionMeta } from "react-select";
+import { useTheme } from "styled-components";
 import type { GdriveMimeTypesType } from "../../lib/GdriveMimeTypes";
 import type { PuzzleType } from "../../lib/models/Puzzles";
 import type { TagType } from "../../lib/models/Tags";
@@ -75,6 +76,7 @@ const PuzzleModalForm = React.forwardRef(
     },
     forwardedRef: React.Ref<PuzzleModalFormHandle>,
   ) => {
+    const theme = useTheme();
     const tagNamesForIds = useCallback(
       (tagIds: string[]) => {
         const tagNames: Record<string, string> = {};
@@ -413,6 +415,7 @@ const PuzzleModalForm = React.forwardRef(
                 value={currentTags.map((t) => {
                   return { label: t, value: t };
                 })}
+                theme={theme.reactSelectTheme}
               />
             </Col>
           </FormGroup>

@@ -8,6 +8,7 @@ import React, {
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 import { createPortal } from "react-dom";
+import { useTheme } from "styled-components";
 import Peers from "../../lib/models/mediasoup/Peers";
 import type { PuzzleType } from "../../lib/models/Puzzles";
 import Puzzles from "../../lib/models/Puzzles";
@@ -38,6 +39,7 @@ const PuzzleDeleteModal = React.forwardRef(
     { puzzle }: { puzzle: PuzzleType },
     forwardedRef: React.Ref<PuzzleDeleteModalHandle>,
   ) => {
+    const theme = useTheme();
     const [visible, setVisible] = useState(true);
     const show = useCallback(() => setVisible(true), []);
     const hide = useCallback(() => setVisible(false), []);
@@ -141,6 +143,7 @@ const PuzzleDeleteModal = React.forwardRef(
                 options={replacementOptions}
                 value={replacementId}
                 onChange={setReplacementIdCallback}
+                theme={theme.reactSelectTheme}
               />
             </p>
             <p>

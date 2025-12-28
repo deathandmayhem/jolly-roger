@@ -15,7 +15,7 @@ import FormGroup from "react-bootstrap/FormGroup";
 import FormLabel from "react-bootstrap/FormLabel";
 import FormText from "react-bootstrap/FormText";
 import Creatable from "react-select/creatable";
-import styled from "styled-components";
+import styled, { useTheme } from "styled-components";
 import Flags from "../../Flags";
 import isAdmin from "../../lib/isAdmin";
 import DiscordCache from "../../lib/models/DiscordCache";
@@ -1063,6 +1063,7 @@ const S3ImageBucketForm = ({
 }: {
   initialConfig?: SettingType & { name: "s3.image_bucket" };
 }) => {
+  const theme = useTheme();
   const defaultValue = initialConfig?.value.bucketName;
 
   const [loading, setLoading] = useState(true);
@@ -1147,6 +1148,7 @@ const S3ImageBucketForm = ({
             defaultValue ? { value: defaultValue, label: defaultValue } : null
           }
           onChange={(v) => setSelectedBucket(v?.value ?? undefined)}
+          theme={theme.reactSelectTheme}
         />
       </FormGroup>
       <ActionButtonRow>
