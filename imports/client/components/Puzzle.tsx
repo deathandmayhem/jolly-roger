@@ -27,15 +27,14 @@ import PuzzleAnswer from "./PuzzleAnswer";
 import PuzzleDeleteModal from "./PuzzleDeleteModal";
 import type { PuzzleModalFormSubmitPayload } from "./PuzzleModalForm";
 import PuzzleModalForm from "./PuzzleModalForm";
-import { backgroundColorLookupTable } from "./styling/constants";
 import { mediaBreakpointDown } from "./styling/responsive";
 import TagList from "./TagList";
 
 const PuzzleDiv = styled.div<{
   $solvedness: Solvedness;
 }>`
-  ${({ $solvedness }) => css`
-    background-color: ${backgroundColorLookupTable[$solvedness]};
+  ${({ $solvedness, theme }) => css`
+    background-color: ${theme.colors.solvedness[$solvedness]};
   `}
 
   display: flex;

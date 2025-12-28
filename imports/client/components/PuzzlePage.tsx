@@ -114,10 +114,7 @@ import type { PuzzleModalFormSubmitPayload } from "./PuzzleModalForm";
 import PuzzleModalForm from "./PuzzleModalForm";
 import SplitPaneMinus from "./SplitPaneMinus";
 import Breakable from "./styling/Breakable";
-import {
-  MonospaceFontFamily,
-  SolvedPuzzleBackgroundColor,
-} from "./styling/constants";
+import { MonospaceFontFamily } from "./styling/constants";
 import FixedLayout from "./styling/FixedLayout";
 import { mediaBreakpointDown } from "./styling/responsive";
 import TagList from "./TagList";
@@ -266,7 +263,7 @@ const PuzzleMetadata = styled.div`
 `;
 
 const PuzzleMetadataAnswer = styled.span`
-  background-color: ${SolvedPuzzleBackgroundColor};
+  background-color: ${({ theme }) => theme.colors.solvedness.solved};
   color: #000;
   overflow: hidden;
 

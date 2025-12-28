@@ -1,5 +1,6 @@
 import type { ThemeConfig } from "react-select";
 import type { GuessType } from "../lib/models/Guesses";
+import type { Solvedness } from "../lib/solvedness";
 
 export type Colors = {
   background: string;
@@ -11,6 +12,8 @@ type GuessColorLookupTable = Record<
   { background: string; hoverBackground: string; icon: string }
 >;
 
+type SolvednessColorLookupTable = Record<Solvedness, string>;
+
 export interface Theme {
   colors: {
     avatarSelfBorder: string;
@@ -20,6 +23,7 @@ export interface Theme {
     guess: GuessColorLookupTable;
     mention: Colors;
     highlightedMention: Colors;
+    solvedness: SolvednessColorLookupTable;
   };
   reactSelectTheme: ThemeConfig;
 }
@@ -67,6 +71,11 @@ export const defaultTheme: Theme = {
     highlightedMention: {
       background: "#4649ef",
       text: "#fff",
+    },
+    solvedness: {
+      noAnswers: "#dfdfff",
+      solved: "#dfffdf",
+      unsolved: "#f0f0f0",
     },
   },
   reactSelectTheme: {

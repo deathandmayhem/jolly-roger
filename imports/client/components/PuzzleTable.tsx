@@ -6,7 +6,6 @@ import type { Solvedness } from "../../lib/solvedness";
 import { computeSolvedness } from "../../lib/solvedness";
 import PuzzleAnswer from "./PuzzleAnswer";
 import Breakable from "./styling/Breakable";
-import { backgroundColorLookupTable } from "./styling/constants";
 
 const PuzzleTableEl = styled.table`
   width: 100%;
@@ -18,8 +17,8 @@ const PuzzleTableEl = styled.table`
 const PuzzleTableTr = styled.tr<{
   $solvedness: Solvedness;
 }>`
-  ${({ $solvedness }) => css`
-    background-color: ${backgroundColorLookupTable[$solvedness]};
+  ${({ $solvedness, theme }) => css`
+    background-color: ${theme.colors.solvedness[$solvedness]};
   `}
 `;
 
