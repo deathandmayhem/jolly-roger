@@ -115,7 +115,6 @@ import PuzzleModalForm from "./PuzzleModalForm";
 import SplitPaneMinus from "./SplitPaneMinus";
 import Breakable from "./styling/Breakable";
 import {
-  guessColorLookupTable,
   MonospaceFontFamily,
   SolvedPuzzleBackgroundColor,
 } from "./styling/constants";
@@ -1256,8 +1255,7 @@ const GuessTableSmallRow = styled.div`
 
 const GuessRow = styled.div<{ $state: GuessType["state"] }>`
   display: contents;
-  background-color: ${(props) =>
-    guessColorLookupTable[props.$state].background};
+  background-color: ${({ $state, theme }) => theme.colors.guess[$state].background};
 
   &::before {
     content: " ";
@@ -1266,8 +1264,7 @@ const GuessRow = styled.div<{ $state: GuessType["state"] }>`
   }
 
   :hover {
-    background-color: ${(props) =>
-      guessColorLookupTable[props.$state].hoverBackground};
+    background-color: ${({ $state, theme }) => theme.colors.guess[$state].hoverBackground};
   }
 `;
 

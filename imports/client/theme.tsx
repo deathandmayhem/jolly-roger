@@ -1,9 +1,15 @@
 import type { ThemeConfig } from "react-select";
+import type { GuessType } from "../lib/models/Guesses";
 
 export type Colors = {
   background: string;
   text: string;
 };
+
+type GuessColorLookupTable = Record<
+  GuessType["state"],
+  { background: string; hoverBackground: string; icon: string }
+>;
 
 export interface Theme {
   colors: {
@@ -11,6 +17,7 @@ export interface Theme {
     avatarSelfShadow: string;
     breadcrumbText: string;
     codeBlock: Colors;
+    guess: GuessColorLookupTable;
     mention: Colors;
     highlightedMention: Colors;
   };
@@ -25,6 +32,33 @@ export const defaultTheme: Theme = {
     codeBlock: {
       background: "#eee",
       text: "black",
+    },
+    guess: {
+      correct: {
+        background: "#f0fff0",
+        hoverBackground: "#d0ffd0",
+        icon: "#00ff00",
+      },
+      intermediate: {
+        background: "#fffff0",
+        hoverBackground: "#ffffd0",
+        icon: "#dddd00",
+      },
+      incorrect: {
+        background: "#fff0f0",
+        hoverBackground: "#ffd0d0",
+        icon: "#ff0000",
+      },
+      rejected: {
+        background: "#f0f0f0",
+        hoverBackground: "#d0d0d0",
+        icon: "#000000",
+      },
+      pending: {
+        background: "#f0f0ff",
+        hoverBackground: "#d0d0ff",
+        icon: "#0000ff",
+      },
     },
     mention: {
       background: "#ced0ed",
