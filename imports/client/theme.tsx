@@ -1,10 +1,16 @@
 import type { ThemeConfig } from "react-select";
 
 export interface Theme {
+  colors: {
+    breadcrumbText: string;
+  };
   reactSelectTheme: ThemeConfig;
 }
 
 export const defaultTheme: Theme = {
+  colors: {
+    breadcrumbText: "rgb(0 0 0 / 65%)",
+  },
   reactSelectTheme: {
     borderRadius: 4,
     colors: {

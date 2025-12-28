@@ -69,7 +69,7 @@ const BreadcrumbList = styled.ol`
 const BreadcrumbItem = styled.li`
   display: inline;
   text-indent: 0;
-  color: rgb(0 0 0 / 65%);
+  color: ${({ theme }) => theme.colors.breadcrumbText};
 
   + li {
     padding-left: 0.5rem;
