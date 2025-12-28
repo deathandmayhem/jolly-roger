@@ -1,8 +1,15 @@
 import type { ThemeConfig } from "react-select";
 
+export type Colors = {
+  background: string;
+  text: string;
+};
+
 export interface Theme {
   colors: {
     breadcrumbText: string;
+    mention: Colors;
+    highlightedMention: Colors;
   };
   reactSelectTheme: ThemeConfig;
 }
@@ -10,6 +17,14 @@ export interface Theme {
 export const defaultTheme: Theme = {
   colors: {
     breadcrumbText: "rgb(0 0 0 / 65%)",
+    mention: {
+      background: "#ced0ed",
+      text: "#4649e",
+    },
+    highlightedMention: {
+      background: "#4649ef",
+      text: "#fff",
+    },
   },
   reactSelectTheme: {
     borderRadius: 4,

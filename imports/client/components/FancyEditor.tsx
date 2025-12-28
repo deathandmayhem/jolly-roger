@@ -126,13 +126,13 @@ export const MentionSpan = styled.span<{
   display: inline-block;
   overflow-wrap: break-word;
   border-radius: 4px;
-  color: #4649ef;
-  background-color: #ced0ed;
+  color: ${({ theme }) => theme.colors.mention.text};
+  background-color: ${({ theme }) => theme.colors.mention.background};
   ${({ $isSelf }) =>
     $isSelf &&
     css`
-      background-color: #4649ef;
-      color: #fff;
+      background-color: ${({ theme }) => theme.colors.highlightedMention.background};
+      color: ${({ theme }) => theme.colors.highlightedMention.text};
     `}
   font-size: 0.8rem;
 `;
