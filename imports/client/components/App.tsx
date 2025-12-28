@@ -23,10 +23,11 @@ import * as RRBS from "react-router-bootstrap";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import type { StackFrame } from "stacktrace-js";
 import StackTrace from "stacktrace-js";
-import styled, { css } from "styled-components";
+import styled, { css, ThemeProvider } from "styled-components";
 import isAdmin from "../../lib/isAdmin";
 import { useBreadcrumbItems } from "../hooks/breadcrumb";
 import lookupUrl from "../lookupUrl";
+import { defaultTheme } from "../theme";
 import ConnectionStatus from "./ConnectionStatus";
 import HuntNav from "./HuntNav";
 import Loading from "./Loading";
@@ -319,15 +320,19 @@ const App = ({ children }: { children: React.ReactNode }) => {
     );
   }
 
+  const theme = defaultTheme;
+
   return (
-    <div>
-      <NotificationCenter />
-      <AppNavbar />
-      <ConnectionStatus />
-      <ContentContainer className="container-fluid">
-        {errorBoundary}
-      </ContentContainer>
-    </div>
+    <ThemeProvider theme={theme}>
+      <div>
+        <NotificationCenter />
+        <AppNavbar />
+        <ConnectionStatus />
+        <ContentContainer className="container-fluid">
+          {errorBoundary}
+        </ContentContainer>
+      </div>
+    </ThemeProvider>
   );
 };
 
