@@ -36,8 +36,8 @@ const StyledCodeBlock = styled.code`
   border-radius: 4px;
   padding: 4px;
   width: 100%;
-  background-color: #eee;
-  color: black;
+  background-color: ${({ theme }) => theme.colors.codeBlock.background};
+  color: ${({ theme }) => theme.colors.codeBlock.text};
   margin-bottom: 0;
 `;
 

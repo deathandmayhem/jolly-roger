@@ -8,6 +8,7 @@ export type Colors = {
 export interface Theme {
   colors: {
     breadcrumbText: string;
+    codeBlock: Colors;
     mention: Colors;
     highlightedMention: Colors;
   };
@@ -17,6 +18,10 @@ export interface Theme {
 export const defaultTheme: Theme = {
   colors: {
     breadcrumbText: "rgb(0 0 0 / 65%)",
+    codeBlock: {
+      background: "#eee",
+      text: "black",
+    },
     mention: {
       background: "#ced0ed",
       text: "#4649e",

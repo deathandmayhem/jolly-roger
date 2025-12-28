@@ -94,8 +94,8 @@ interface ElementRendererProps<T> {
 const StyledEditorCodeBlock = styled.code`
   display: inline-block;
   width: 100%;
-  background-color: #eee;
-  color: black;
+  background-color: ${({ theme }) => theme.colors.codeBlock.background};
+  color: ${({ theme }) => theme.colors.codeBlock.text};
   margin-bottom: 0;
 `;
 
