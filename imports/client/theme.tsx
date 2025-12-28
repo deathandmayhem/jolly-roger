@@ -7,6 +7,8 @@ export type Colors = {
 
 export interface Theme {
   colors: {
+    avatarSelfBorder: string;
+    avatarSelfShadow: string;
     breadcrumbText: string;
     codeBlock: Colors;
     mention: Colors;
@@ -17,6 +19,8 @@ export interface Theme {
 
 export const defaultTheme: Theme = {
   colors: {
+    avatarSelfBorder: "#0d6efd",
+    avatarSelfShadow: "rgba(13, 110, 253, 0.5)",
     breadcrumbText: "rgb(0 0 0 / 65%)",
     codeBlock: {
       background: "#eee",
