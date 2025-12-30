@@ -43,6 +43,11 @@ type DocError =
   | {
       type: "missing-files";
       doc: string;
+    }
+  | {
+      type: "file-not-found";
+      doc: string;
+      files: string[];
     };
 
 const checkDoc = async (doc: string): Promise<DocError | undefined> => {
@@ -82,6 +87,26 @@ const checkDoc = async (doc: string): Promise<DocError | undefined> => {
     return {
       type: "missing-files",
       doc,
+    };
+  }
+
+  // First check that all files exist in the repository
+  const fileExistenceChecks = await Promise.all(
+    files.map(async (file) => {
+      try {
+        await execFile("git", ["ls-files", "--error-unmatch", file]);
+        return { file, exists: true };
+      } catch {
+        return { file, exists: false };
+      }
+    }),
+  );
+  const missingFiles = fileExistenceChecks.filter((fc) => !fc.exists);
+  if (missingFiles.length > 0) {
+    return {
+      type: "file-not-found",
+      doc,
+      files: missingFiles.map((mf) => mf.file),
     };
   }
 
@@ -154,6 +179,14 @@ const main = async () => {
           break;
         case "missing-files":
           process.stderr.write(`  ${error.doc} is missing files field\n`);
+          break;
+        case "file-not-found":
+          process.stderr.write(
+            `  ${error.doc} references a file that does not exist\n`,
+          );
+          for (const file of error.files) {
+            process.stderr.write(`    Missing file: ${file}\n`);
+          }
           break;
         default:
           process.stderr.write(`  unknown error type ${error}\n`);

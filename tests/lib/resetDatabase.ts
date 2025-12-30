@@ -1,4 +1,4 @@
-import { promisify } from "util";
+import { promisify } from "node:util";
 import { check } from "meteor/check";
 import { Meteor } from "meteor/meteor";
 import { MongoInternals } from "meteor/mongo";
@@ -8,7 +8,6 @@ const resetDatabaseMethod = new TypedMethod<{ testName: string }, void>(
   "test.methods.resetDatabase",
 );
 
-// eslint-disable-next-line import/no-mutable-exports
 let resetDatabase: (testName: string) => Promise<void>;
 
 if (Meteor.isServer) {

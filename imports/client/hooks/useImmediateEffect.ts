@@ -1,5 +1,5 @@
-import { useEffect, useRef } from "react";
 import type { EffectCallback } from "react";
+import { useEffect, useRef } from "react";
 
 function depsDiffer<T>(deps1?: Array<T>, deps2?: Array<T>) {
   return !(
@@ -15,7 +15,7 @@ export default function useImmediateEffect<T>(
   deps?: Array<T>,
 ) {
   const cleanupRef = useRef<ReturnType<EffectCallback>>(undefined);
-  const depsRef = useRef<Array<T> | undefined>();
+  const depsRef = useRef<Array<T> | undefined>(undefined);
 
   if (!depsRef.current || depsDiffer(depsRef.current, deps)) {
     depsRef.current = deps;

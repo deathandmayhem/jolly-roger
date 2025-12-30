@@ -1,4 +1,5 @@
-import { Meteor, Subscription } from "meteor/meteor";
+import { setImmediate } from "node:timers/promises";
+import type { Meteor, Subscription } from "meteor/meteor";
 import { Random } from "meteor/random";
 import { assert } from "chai";
 import Guesses from "../../../../imports/lib/models/Guesses";
@@ -179,14 +180,10 @@ describe("publishJoinedQuery", function () {
             }
           },
         })
-        .then(
-          (handle) => {
-            handleThunk = handle;
-          },
-          (error) => {
-            reject(error);
-          },
-        );
+        .then((handle) => {
+          handleThunk = handle;
+        })
+        .catch(reject);
       after(() => handleThunk?.stop());
     });
 
@@ -208,9 +205,7 @@ describe("publishJoinedQuery", function () {
     // testing, this generally completes within 10 turns and 2ms.
     for (let i = 0; i < 1000; i++) {
       // console.log(`tick ${i}`);
-      await new Promise<void>((r) => {
-        Meteor.defer(r);
-      });
+      await setImmediate();
       // Exit early if condition is satisfied
       const observed = [...tagCollection.keys()];
       const newSortedTagIds = newTagIds.toSorted();

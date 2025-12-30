@@ -1,13 +1,16 @@
 import { Meteor } from "meteor/meteor";
 import Flags from "../../Flags";
-import ChatMessages from "../../lib/models/ChatMessages";
+import Announcements from "../../lib/models/Announcements";
 import type { ChatMessageContentType } from "../../lib/models/ChatMessages";
+import ChatMessages from "../../lib/models/ChatMessages";
 import Hunts from "../../lib/models/Hunts";
 import MeteorUsers from "../../lib/models/MeteorUsers";
 import type { PuzzleType } from "../../lib/models/Puzzles";
 import Puzzles from "../../lib/models/Puzzles";
 import Settings from "../../lib/models/Settings";
 import Tags from "../../lib/models/Tags";
+import nodeIsImage from "../../lib/nodeIsImage";
+import nodeIsRoleMention from "../../lib/nodeIsRoleMention";
 import nodeIsText from "../../lib/nodeIsText";
 import { computeSolvedness } from "../../lib/solvedness";
 import { DiscordBot } from "../discord";
@@ -20,7 +23,7 @@ async function makeDiscordBotFromSettings(): Promise<DiscordBot | undefined> {
   }
 
   const botSettings = await Settings.findOneAsync({ name: "discord.bot" });
-  if (!botSettings || botSettings.name !== "discord.bot") {
+  if (botSettings?.name !== "discord.bot") {
     return undefined;
   }
 
@@ -32,23 +35,61 @@ async function makeDiscordBotFromSettings(): Promise<DiscordBot | undefined> {
   return new DiscordBot(token);
 }
 
+type DescriptionContent = { description: string };
+type ImageContent = { image: { url: string } };
+type Content = DescriptionContent | ImageContent;
 async function renderChatMessageContent(
   content: ChatMessageContentType,
-): Promise<string> {
+): Promise<Content> {
+  if (content.children.length === 1 && nodeIsImage(content.children[0]!)) {
+    return { image: { url: content.children[0].url } };
+  }
+
   const chunks = await Promise.all(
     content.children.map(async (child) => {
+      if (nodeIsImage(child)) {
+        return ` ${child.url} `;
+      }
       if (nodeIsText(child)) {
         return child.text;
-      } else {
-        const user = await MeteorUsers.findOneAsync(child.userId);
-        return ` @${user?.displayName ?? child.userId} `;
       }
+      if (nodeIsRoleMention(child)) {
+        return ` @${child.roleId} `;
+      }
+      const user = await MeteorUsers.findOneAsync(child.userId);
+      return ` @${user?.displayName ?? child.userId} `;
     }),
   );
-  return chunks.join("");
+
+  return { description: chunks.join("") };
 }
 
 const DiscordHooks: Hookset = {
+  name: "DiscordHooks",
+
+  async onAnnouncement(announcementId: string) {
+    const bot = await makeDiscordBotFromSettings();
+    if (!bot) {
+      return;
+    }
+
+    const announcement = (await Announcements.findOneAsync(announcementId))!;
+    const sender = (await MeteorUsers.findOneAsync(announcement.createdBy))!;
+    const hunt = (await Hunts.findOneAsync(announcement.hunt))!;
+    const messageObj = {
+      embed: {
+        title: `Announcement from ${sender.displayName ?? sender._id}`,
+        description: announcement.message,
+      },
+    };
+    if (hunt.announcementDiscordChannel) {
+      await bot.postMessageToChannel(
+        hunt.announcementDiscordChannel.id,
+        messageObj,
+      );
+    }
+  },
+
   async onPuzzleCreated(puzzleId: string) {
     const bot = await makeDiscordBotFromSettings();
     if (!bot) {
@@ -207,7 +248,7 @@ const DiscordHooks: Hookset = {
           },
           url,
           title,
-          description,
+          ...description,
         },
         nonce: chatMessageId,
         allowed_mentions: {

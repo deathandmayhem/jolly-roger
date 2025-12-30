@@ -1,5 +1,5 @@
 import { Accounts } from "meteor/accounts-base";
-import { Match, check } from "meteor/check";
+import { check, Match } from "meteor/check";
 import { Google } from "meteor/google-oauth";
 import { Meteor } from "meteor/meteor";
 import Mustache from "mustache";
@@ -273,7 +273,7 @@ async function makeView(user: Meteor.User, url: string) {
   const huntNames = hunts.map((h) => h.name);
   const huntNamesCount = huntNames.length;
   const huntNamesCommaSeparated = huntNames.join(", ");
-  const mailingLists = [...new Set(hunts.map((h) => h.mailingLists).flat())];
+  const mailingLists = [...new Set(hunts.flatMap((h) => h.mailingLists))];
   const mailingListsCount = mailingLists.length;
   const mailingListsCommaSeparated = mailingLists.join(", ");
   return {
@@ -292,9 +292,7 @@ async function makeView(user: Meteor.User, url: string) {
 function updateEmailTemplatesHooks(
   doc: SettingType & { name: "email.branding" },
 ) {
-  Accounts.emailTemplates.from = doc.value.from
-    ? doc.value.from
-    : "no-reply@example.com";
+  Accounts.emailTemplates.from = doc.value.from ?? "no-reply@example.com";
   Accounts.emailTemplates.enrollAccount.subject = (user: Meteor.User) => {
     const view = {
       user,

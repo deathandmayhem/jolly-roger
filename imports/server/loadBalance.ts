@@ -1,7 +1,7 @@
-import http from "http";
-import os from "os";
+import http from "node:http";
+import os from "node:os";
 import { WebApp } from "meteor/webapp";
-import HttpProxy from "http-proxy";
+import HttpProxy from "http-proxy-3";
 import LoadBalancer from "./LoadBalancer";
 import WorkerPool from "./WorkerPool";
 
@@ -39,7 +39,6 @@ const getWorkersCount = () => {
   return parseInt(maybeWorkerCountString, 10) || 0;
 };
 
-// eslint-disable-next-line import/prefer-default-export
 export const workersCount = getWorkersCount();
 
 WebApp.onListening(() => {

@@ -2,7 +2,7 @@ import { Accounts } from "meteor/accounts-base";
 import { Meteor } from "meteor/meteor";
 import { useTracker } from "meteor/react-meteor-data";
 import type { FormEvent } from "react";
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Button from "react-bootstrap/Button";
 import Col from "react-bootstrap/Col";
 import Form from "react-bootstrap/Form";
@@ -20,11 +20,11 @@ import {
   AccountFormFrame,
   AccountFormSubmitState,
   useEmailField,
-  usePasswordField,
   useGoogleSignInCredentialsField,
+  usePasswordField,
 } from "./AccountFormHelpers";
-import SplashPage from "./SplashPage";
 import { useAuthenticated } from "./authentication";
+import SplashPage from "./SplashPage";
 
 type LoginOptionsResult = { exists: boolean; loginMethods?: string[] };
 
@@ -96,7 +96,6 @@ const JoinHunt = () => {
     LoginOptionsResult | undefined
   >(undefined);
 
-  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- we actually want to test the chained booleans
   const loading = authLoading || huntLoading;
 
   const onGoogleLoginCompleted = useCallback(

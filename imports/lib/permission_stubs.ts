@@ -1,7 +1,10 @@
 import { Meteor } from "meteor/meteor";
+import type z from "zod";
 import isAdmin, { GLOBAL_SCOPE } from "./isAdmin";
 import type { HuntType } from "./models/Hunts";
 import MeteorUsers from "./models/MeteorUsers";
+import type { Selector } from "./models/Model";
+import type { User } from "./models/User";
 
 function huntHasDefaultRole(
   hunt: Pick<HuntType, "defaultRoles">,
@@ -58,6 +61,14 @@ export function huntsUserIsOperatorFor(
       acc.add(huntId);
       return acc;
     }, new Set<string>());
+}
+
+export function queryOperatorsForHunt(
+  hunt: Pick<HuntType, "_id">,
+): Selector<z.output<typeof User>> {
+  return {
+    [`roles.${hunt._id}`]: "operator",
+  };
 }
 
 // admins and operators are always allowed to join someone to a hunt

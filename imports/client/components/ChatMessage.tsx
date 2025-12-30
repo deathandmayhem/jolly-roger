@@ -1,4 +1,4 @@
-/* eslint-disable react/no-array-index-key */
+// biome-ignore-all lint/suspicious/noArrayIndexKey: migrated from eslint
 import {
   faChevronLeft,
   faChevronRight,
@@ -8,10 +8,15 @@ import {
 import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload";
 import { faPuzzlePiece } from "@fortawesome/free-solid-svg-icons/faPuzzlePiece";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import * as he from "he";
 import type { Token, Tokens } from "marked";
 import { marked } from "marked";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  useRef,
+} from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { shortCalendarTimeFormat } from "../../lib/calendarTimeFormat";
@@ -32,6 +37,10 @@ import {
   LightboxImage,
   TopRightButtonGroup,
 } from "./Lightbox";
+import { decodeHTML } from "entities";
+import BSImage from "react-bootstrap/Image";
+import nodeIsImage from "../../lib/nodeIsImage";
+import nodeIsRoleMention from "../../lib/nodeIsRoleMention";
 
 // This file implements standalone rendering for the MessageElement format
 // defined by FancyEditor, for use in the chat pane.
@@ -78,14 +87,88 @@ const AttachmentLinkTrigger = styled.a`
     color: inherit;
   }
 `;
+const ResponsiveImage = ({
+  src,
+  onLoadCB,
+}: {
+  src: string;
+  onLoadCB?: () => void;
+}) => {
+  const [isLarge, setIsLarge] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const imgRef = useRef<HTMLImageElement>(null);
+
+  const handleLoad = useCallback(() => {
+    if (imgRef.current && containerRef.current) {
+      const imgWidth = imgRef.current.naturalWidth;
+      const containerWidth = containerRef.current.offsetWidth;
+      setIsLarge(imgWidth > containerWidth);
+    }
+    onLoadCB?.();
+  }, [onLoadCB]);
+
+  // update on container resize
+  useEffect(() => {
+    const container = containerRef.current;
+    const observer = container ? new ResizeObserver(() => handleLoad()) : null;
+
+    if (observer && container) {
+      observer.observe(container);
+    }
+
+    return () => {
+      if (observer) observer.disconnect();
+    };
+  }, [handleLoad]);
+
+  return (
+    <div ref={containerRef} style={{ width: "100%" }}>
+      {isLarge ? (
+        <a href={src} target="_blank" rel="noopener noreferrer">
+          <BSImage
+            ref={imgRef}
+            src={src}
+            onLoad={handleLoad}
+            className={isLarge ? "img-thumbnail" : ""}
+            style={{
+              width: "100%",
+              height: "auto",
+              display: "block",
+            }}
+          />
+        </a>
+      ) : (
+        <BSImage
+          ref={imgRef}
+          src={src}
+          onLoad={handleLoad}
+          style={{
+            display: "block",
+          }}
+        />
+      )}
+    </div>
+  );
+};
 
 // Renders a markdown token to React components.
-const MarkdownToken = ({ token }: { token: Token }) => {
+const MarkdownToken = ({
+  token,
+  truncate,
+}: {
+  token: Token;
+  // truncate only applies to this immediate node; it isn't propagated
+  truncate?: boolean;
+}) => {
   // NOTE: Marked's lexer encodes using HTML entities in the text; see:
   // https://github.com/markedjs/marked/discussions/1737
   // We need to decode the text since React will apply its own escaping.
   if (token.type === "text") {
-    return <PreWrapSpan>{token.raw}</PreWrapSpan>;
+    const text =
+      truncate && token.raw.length > 100
+        ? `${token.raw.slice(0, 100)}…`
+        : token.raw;
+    return <PreWrapSpan>{text}</PreWrapSpan>;
   } else if (token.type === "space") {
     return <PreWrapSpan>{token.raw}</PreWrapSpan>;
   } else if (token.type === "paragraph") {
@@ -94,7 +177,7 @@ const MarkdownToken = ({ token }: { token: Token }) => {
     const children = (token as Tokens.Paragraph).tokens.map((t, i) => (
       <MarkdownToken key={i} token={t} />
     ));
-    const decodedText = he.decode(token.text);
+    const decodedText = decodeHTML(token.text);
     if (token.raw.length > decodedText.length) {
       const trail = token.raw.substring(decodedText.length);
       if (trail.trim() === "") {
@@ -109,13 +192,13 @@ const MarkdownToken = ({ token }: { token: Token }) => {
     }
     return <PreWrapParagraph>{children}</PreWrapParagraph>;
   } else if (token.type === "link") {
-    // Truncate the link href
-    let displayedHref = token.href;
-    const pathStart = token.href.indexOf("/", rootStart + 2); // Find the start of the path
-    if (pathStart !== -1 && token.href.length - pathStart > 50) {
-      displayedHref = `${token.href.slice(0, pathStart + 10)}... [truncated]`;
-    }
-
+    const linkToken = token as Tokens.Link;
+    // If the link text and the href are identical, this is probably an auto-link, so truncate it
+    const truncate =
+      linkToken.tokens.length === 1 && linkToken.text === linkToken.href;
+    const children = linkToken.tokens.map((t, i) => (
+      <MarkdownToken key={i} token={t} truncate={truncate} />
+    ));
     return (
       <a
         target="_blank"
@@ -157,7 +240,7 @@ const MarkdownToken = ({ token }: { token: Token }) => {
     ));
     return <del>{children}</del>;
   } else if (token.type === "codespan") {
-    const decodedText = he.decode(token.text);
+    const decodedText = decodeHTML(token.text);
     return <code>{decodedText}</code>;
   } else if (token.type === "code") {
     // Text in code blocks is _not_ encoded, so pass it through as is.
@@ -179,13 +262,17 @@ const ChatMessage = ({
   selfUserId,
   timestamp,
   attachments,
+  roles,
+  imageOnLoad,
 }: {
   message: ChatMessageContentType;
   displayNames: Map<string, string>;
   puzzleData: Map<string, PuzzleType> | object;
   selfUserId: string;
   timestamp?: Date;
-  attachments: ChatAttachmentType[];
+  attachments?: ChatAttachmentType[];
+  roles: string[];
+  imageOnLoad?: () => void;
 }) => {
   const [isLightboxOpen, setIsLightboxOpen] = useState<boolean>(false);
   const [currentImageIndex, setCurrentImageIndex] = useState<number>(0);
@@ -271,6 +358,15 @@ const ChatMessage = ({
           {puzzle?.title ?? "(unknown puzzle)"}
         </MentionSpan>
       );
+    } else if (nodeIsRoleMention(child)) {
+      const hasRole = roles.includes(child.roleId);
+      return (
+        <MentionSpan key={i} $isSelf={hasRole}>
+          @{child.roleId}
+        </MentionSpan>
+      );
+    } else if (nodeIsImage(child)) {
+      return <ResponsiveImage key={i} src={child.url} onLoadCB={imageOnLoad} />;
     } else {
       const tokensList = marked.lexer(child.text);
       return tokensList.map((token, j) => {

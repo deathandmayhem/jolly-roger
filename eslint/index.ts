@@ -1,6 +1,9 @@
 import noDisallowedSyncMethods from "./rules/no-disallowed-sync-methods";
 
-export = {
+export default {
+  meta: {
+    name: "eslint-plugin-jolly-roger",
+  },
   rules: {
     "no-disallowed-sync-methods": noDisallowedSyncMethods,
   },

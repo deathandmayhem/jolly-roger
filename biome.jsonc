@@ -1,0 +1,175 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.3.10/schema.json",
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true
+  },
+  "files": {
+    "includes": [
+      "**",
+      "!**/node_modules",
+      "!**/.git",
+      "!**/.meteor",
+      "!eslint",
+      "!eslint.config.mts"
+    ]
+  },
+  "formatter": {
+    "enabled": true,
+    "formatWithErrors": false,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineEnding": "lf",
+    "lineWidth": 80,
+    "attributePosition": "auto",
+    "bracketSameLine": false,
+    "bracketSpacing": true,
+    "expand": "auto"
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+      "a11y": {
+        "noSvgWithoutTitle": "off"
+      },
+      "complexity": {
+        // We use the void operator to explicitly throw away promises
+        "noVoid": "off",
+        // Explicit function declarations can be easier to read
+        "useArrowFunction": "off",
+        // Useless switch cases are good for exhaustiveness
+        "noUselessSwitchCase": "off"
+      },
+      "correctness": {
+        // We don't use imports with extensions
+        "useImportExtensions": "off",
+        // This doesn't know about Meteor packages and there's no way to teach it
+        "noUndeclaredDependencies": "off",
+
+        "noNestedComponentDefinitions": "error",
+
+        "useExhaustiveDependencies": {
+          "level": "error",
+          "options": {
+            "hooks": [
+              {
+                "name": "useTracker",
+                "closureIndex": 0,
+                "dependenciesIndex": 1
+              }
+            ]
+          }
+        }
+      },
+      "nursery": {
+        "noDeprecatedImports": "warn",
+        "noFloatingPromises": "error",
+        "noMisusedPromises": "error",
+        "noUnusedExpressions": "error",
+        "noUselessCatchBinding": "error",
+        "useExhaustiveSwitchCases": "error"
+      },
+      "security": {
+        // This rule is well-intentioned, but it's sufficiently clear when you use dangerouslySetInnerHTML that you should be careful
+        "noDangerouslySetInnerHtml": "off"
+      },
+      "style": {
+        // We often export utility types and hooks from the same modules as components
+        "useComponentExportOnlyModules": "off",
+        // We use this operator a lot
+        "noNonNullAssertion": "off",
+        "useDefaultSwitchClause": "error",
+        // Use deep imports to avoid dependence on tree shaking
+        "noRestrictedImports": {
+          "level": "warn",
+          "options": {
+            "paths": {
+              "react-bootstrap": "Please import from 'react-bootstrap/Component' instead to reduce bundle size.",
+              "@fortawesome/free-solid-svg-icons": "Please import from '@fortawesome/free-solid-svg-icons/IconName' instead to reduce bundle size."
+            },
+            "patterns": [
+              {
+                "group": "react-bootstrap/esm/*",
+                "message": "Please import from 'react-bootstrap/Component' instead of 'react-bootstrap/esm/Component'."
+              }
+            ]
+          }
+        }
+      },
+      "suspicious": {
+        // This is a good idea, but isn't type aware so complains even if the lambda returns void
+        "useIterableCallbackReturn": "off",
+        // This rule seems flawed - TypeScript is perfectly capable of inferring types in let declarations
+        "noImplicitAnyLet": "off",
+        "noConsole": "warn",
+        "noUnassignedVariables": "warn",
+        "noVar": "warn",
+        // We use any too often to account for unknown types
+        "noExplicitAny": "off",
+        // We use void in various generics and intermediate types for its actual meaning of a function return type
+        "noConfusingVoidType": "off"
+      }
+    },
+    "domains": {
+      "react": "all",
+      "project": "all"
+    }
+  },
+  "javascript": {
+    "formatter": {
+      "jsxQuoteStyle": "double",
+      "quoteProperties": "asNeeded",
+      "trailingCommas": "all",
+      "arrowParentheses": "always"
+    }
+  },
+  "html": {
+    "formatter": {
+      "indentScriptAndStyle": true,
+      "selfCloseVoidElements": "always"
+    }
+  },
+  "assist": {
+    "enabled": true,
+    "actions": {
+      "source": {
+        "organizeImports": {
+          "level": "on",
+          "options": {
+            "groups": [":NODE:", "meteor/**", ":PACKAGE:", ":PATH:"]
+          }
+        }
+      }
+    }
+  },
+  "overrides": [
+    {
+      "includes": ["tests/**"],
+      "linter": {
+        "rules": {
+          "complexity": {
+            // Arrow functions with mocha are discouraged
+            "useArrowFunction": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["types/**"],
+      "linter": {
+        // Type declarations for other libraries have to conform to those libraries
+        "rules": {
+          "correctness": {
+            "noUnusedImports": "off"
+          },
+          "suspicious": {
+            "noVar": "off",
+            "useNamespaceKeyword": "off"
+          }
+        }
+      }
+    }
+  ]
+}

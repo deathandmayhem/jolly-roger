@@ -1,18 +1,17 @@
-import React, { useCallback, useRef, useState } from "react";
+import { useCallback, useId, useRef, useState } from "react";
 import Button, { type ButtonProps } from "react-bootstrap/Button";
 import OverlayTrigger, {
   type OverlayTriggerProps,
 } from "react-bootstrap/OverlayTrigger";
-import Tooltip, { type TooltipProps } from "react-bootstrap/Tooltip";
+import Tooltip from "react-bootstrap/Tooltip";
 
 interface CopyToClipboardProps extends ButtonProps {
-  tooltipId: TooltipProps["id"];
   tooltipPlacement?: OverlayTriggerProps["placement"];
   text: string | (() => string); // the text to copy, or a function that will generate it lazily
 }
 
 const CopyToClipboardButton = (props: CopyToClipboardProps) => {
-  const { tooltipId, tooltipPlacement, text, children, ...rest } = props;
+  const { tooltipPlacement, text, children, ...rest } = props;
   const [copied, setCopied] = useState<boolean>(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(
     undefined,
@@ -31,11 +30,12 @@ const CopyToClipboardButton = (props: CopyToClipboardProps) => {
         }, 3000);
       },
       (error) => {
-        // eslint-disable-next-line no-console
+        // biome-ignore lint/suspicious/noConsole: migration from eslint
         console.error("could not copy to clipboard:", error.message);
       },
     );
   }, [text]);
+  const tooltipId = useId();
 
   const copyTooltip = (
     <Tooltip id={tooltipId}>{copied ? "Copied!" : "Copy to clipboard"}</Tooltip>

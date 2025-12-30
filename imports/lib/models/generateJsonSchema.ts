@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-use-before-define */
 import { z } from "zod";
 import { Email, URL, UUID } from "./regexes";
 
@@ -37,11 +36,11 @@ type BsonType =
   | "maxKey"
   | "number";
 
-export interface JsonSchema {
+interface JsonSchema {
   bsonType?: BsonType;
-  enum?: readonly any[];
-  allOf?: readonly JsonSchema[];
-  anyOf?: readonly JsonSchema[];
+  enum?: any[];
+  allOf?: JsonSchema[];
+  anyOf?: JsonSchema[];
   not?: JsonSchema;
 
   // string
@@ -57,7 +56,7 @@ export interface JsonSchema {
   multipleOf?: number;
 
   // array/tuple
-  items?: JsonSchema | readonly JsonSchema[];
+  items?: JsonSchema | JsonSchema[];
   additionalItems?: boolean | JsonSchema;
   minItems?: number;
   maxItems?: number;
@@ -66,44 +65,39 @@ export interface JsonSchema {
   // object
   properties?: Record<string, JsonSchema>;
   additionalProperties?: boolean | JsonSchema;
-  required?: readonly string[];
+  required?: string[];
 }
 
 function stringToSchema(def: z.ZodStringDef): JsonSchema {
   const bsonType = "string";
 
-  const constraints = def.checks.reduce<Partial<JsonSchema>>((acc, check) => {
+  const constraints: Partial<JsonSchema> = {};
+  def.checks.forEach((check) => {
     switch (check.kind) {
       case "min":
-        return {
-          ...acc,
-          minLength: acc.minLength
-            ? Math.max(acc.minLength, check.value)
-            : check.value,
-        };
+        constraints.minLength = constraints.minLength
+          ? Math.max(constraints.minLength, check.value)
+          : check.value;
+        break;
       case "max":
-        return {
-          ...acc,
-          maxLength: acc.maxLength
-            ? Math.min(acc.maxLength, check.value)
-            : check.value,
-        };
+        constraints.maxLength = constraints.maxLength
+          ? Math.min(constraints.maxLength, check.value)
+          : check.value;
+        break;
       case "length":
-        return {
-          ...acc,
-          minLength: acc.minLength
-            ? Math.max(acc.minLength, check.value)
-            : check.value,
-          maxLength: acc.maxLength
-            ? Math.min(acc.maxLength, check.value)
-            : check.value,
-        };
+        constraints.minLength = constraints.minLength
+          ? Math.max(constraints.minLength, check.value)
+          : check.value;
+        constraints.maxLength = constraints.maxLength
+          ? Math.min(constraints.maxLength, check.value)
+          : check.value;
+        break;
       case "regex":
       case "email":
       case "uuid":
       case "url": {
         let pattern;
-        // eslint-disable-next-line default-case
+        // biome-ignore lint/style/useDefaultSwitchClause: migration from eslint
         switch (check.kind) {
           case "regex":
             pattern = check.regex;
@@ -122,19 +116,18 @@ function stringToSchema(def: z.ZodStringDef): JsonSchema {
           throw new Error("Regex flags are not supported");
         }
 
-        return {
-          ...acc,
-          ...(acc.pattern
-            ? {
-                allOf: [...(acc.allOf ?? []), { pattern: pattern.source }],
-              }
-            : { pattern: pattern.source }),
-        };
+        if (constraints.pattern) {
+          constraints.allOf = constraints.allOf || [];
+          constraints.allOf.push({ pattern: pattern.source });
+        } else {
+          constraints.pattern = pattern.source;
+        }
+        break;
       }
       default:
         throw new Error(`Unsupported string check: ${check.kind}`);
     }
-  }, {});
+  });
 
   return {
     bsonType,
@@ -143,64 +136,58 @@ function stringToSchema(def: z.ZodStringDef): JsonSchema {
 }
 
 function numberToSchema(def: z.ZodNumberDef): JsonSchema {
-  const constraints = def.checks.reduce<Partial<JsonSchema>>((acc, check) => {
+  const constraints: Partial<JsonSchema> = {};
+  def.checks.forEach((check) => {
     switch (check.kind) {
       case "int":
-        return {
-          ...acc,
-          bsonType: "int",
-        };
+        constraints.bsonType = "int";
+        break;
       case "min": {
         let value;
         let exclusive;
-        if (check.value > (acc.minimum ?? -Infinity)) {
+        if (check.value > (constraints.minimum ?? -Infinity)) {
           value = check.value;
           exclusive = !check.inclusive;
-        } else if (check.value === acc.minimum) {
+        } else if (check.value === constraints.minimum) {
           value = check.value;
-          exclusive = acc.exclusiveMinimum! || !check.inclusive;
+          exclusive = constraints.exclusiveMinimum! || !check.inclusive;
         } else {
-          value = acc.minimum;
-          exclusive = acc.exclusiveMinimum;
+          value = constraints.minimum;
+          exclusive = constraints.exclusiveMinimum;
         }
-        return {
-          ...acc,
-          minimum: value,
-          exclusiveMinimum: exclusive,
-        };
+        constraints.minimum = value;
+        constraints.exclusiveMinimum = exclusive;
+        break;
       }
       case "max": {
         let value;
         let exclusive;
-        if (check.value < (acc.maximum ?? Infinity)) {
+        if (check.value < (constraints.maximum ?? Infinity)) {
           value = check.value;
           exclusive = !check.inclusive;
-        } else if (check.value === acc.maximum) {
+        } else if (check.value === constraints.maximum) {
           value = check.value;
-          exclusive = acc.exclusiveMaximum! || !check.inclusive;
+          exclusive = constraints.exclusiveMaximum! || !check.inclusive;
         } else {
-          value = acc.maximum;
-          exclusive = acc.exclusiveMaximum;
+          value = constraints.maximum;
+          exclusive = constraints.exclusiveMaximum;
         }
-        return {
-          ...acc,
-          maximum: value,
-          exclusiveMaximum: exclusive,
-        };
+        constraints.maximum = value;
+        constraints.exclusiveMaximum = exclusive;
+        break;
       }
       case "multipleOf":
-        return {
-          ...acc,
-          ...(acc.multipleOf
-            ? {
-                allOf: [...(acc.allOf ?? []), { multipleOf: check.value }],
-              }
-            : { multipleOf: check.value }),
-        };
+        if (constraints.multipleOf) {
+          constraints.allOf = constraints.allOf || [];
+          constraints.allOf.push({ multipleOf: check.value });
+        } else {
+          constraints.multipleOf = check.value;
+        }
+        break;
       default:
         throw new Error(`Unsupported number check: ${check.kind}`);
     }
-  }, {});
+  });
 
   return {
     // Default to accepting any numeric type, but this will be overwritten by
@@ -446,7 +433,7 @@ function recordToSchema(def: z.ZodRecordDef<any>): JsonSchema {
 
 function enumToSchema(def: z.ZodEnumDef): JsonSchema {
   return {
-    enum: def.values,
+    enum: [...def.values],
   };
 }
 
@@ -514,7 +501,7 @@ export function schemaToJsonSchema<T extends z.ZodFirstPartySchemaTypes>(
   schema: T,
   allowedKeys: Set<string> = new Set(),
   catchall = false,
-): JsonSchema {
+): Readonly<JsonSchema> {
   if ("customJsonSchema" in schema && schema.customJsonSchema) {
     return schema.customJsonSchema;
   }
@@ -583,6 +570,6 @@ export function attachCustomJsonSchema<T extends z.ZodTypeAny>(
 
 export default function generateJsonSchema<T extends MongoRecordZodType>(
   schema: T,
-): JsonSchema {
+): Readonly<JsonSchema> {
   return schemaToJsonSchema(schema);
 }

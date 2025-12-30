@@ -1,11 +1,11 @@
-/* eslint-disable @typescript-eslint/no-use-before-define */
-import { isDeepStrictEqual } from "util";
+import { isDeepStrictEqual } from "node:util";
 import type { Subscription } from "meteor/meteor";
 import { Meteor } from "meteor/meteor";
 import { Mongo } from "meteor/mongo";
 import type { z } from "zod";
-import type Model from "../lib/models/Model";
+import Logger from "../Logger";
 import type { MongoRecordZodType } from "../lib/models/generateJsonSchema";
+import type Model from "../lib/models/Model";
 
 type Projection<T> = Partial<Record<keyof T, 0 | 1>>;
 
@@ -175,7 +175,7 @@ class JoinedObjectObserver<T extends { _id: string }> {
             this.values.set(id, fkValues);
           },
           (err) => {
-            // eslint-disable-next-line no-console
+            // biome-ignore lint/suspicious/noConsole: migration from eslint
             console.log("incref promise rejected:", err);
           },
         );
@@ -207,7 +207,7 @@ class JoinedObjectObserver<T extends { _id: string }> {
             const fkValues = this.values.get(id)!;
             foreignKeys?.forEach(({ field, join }) => {
               // Only remove foreign key values that actually got updated to undefined
-              if (Object.prototype.hasOwnProperty.call(fields, field)) {
+              if (Object.hasOwn(fields, field)) {
                 const val = fkValues.get(field);
                 if (!val) {
                   // Nothing to decref -- foreign key was absent previously.
@@ -227,7 +227,7 @@ class JoinedObjectObserver<T extends { _id: string }> {
 
             // finally update this.values (through inner object fkValues)
             foreignKeys?.forEach(({ field }) => {
-              if (Object.prototype.hasOwnProperty.call(fields, field)) {
+              if (Object.hasOwn(fields, field)) {
                 const val = fields[field] as unknown as
                   | undefined
                   | string
@@ -241,7 +241,7 @@ class JoinedObjectObserver<T extends { _id: string }> {
             });
           },
           (err) => {
-            // eslint-disable-next-line no-console
+            // biome-ignore lint/suspicious/noConsole: migration from eslint
             console.log("incref promise rejected:", err);
           },
         );
@@ -264,9 +264,19 @@ class JoinedObjectObserver<T extends { _id: string }> {
         this.values.delete(id);
       },
     });
-    void this.watcherPromise.then(() => {
-      observeReady = true;
-    });
+    this.watcherPromise.then(
+      () => {
+        observeReady = true;
+      },
+      (error) => {
+        Logger.error("JoinedObjectObserver watcherPromise error", {
+          error,
+          model: this.modelName,
+          id: this.id,
+        });
+        this.sub.error(error);
+      },
+    );
   }
 
   async readyPromise() {
@@ -280,9 +290,19 @@ class JoinedObjectObserver<T extends { _id: string }> {
   }
 
   destroy() {
-    void this.watcherPromise.then((watcher) => {
-      watcher.stop();
-    });
+    this.watcherPromise.then(
+      (watcher) => {
+        watcher.stop();
+      },
+      (error) => {
+        Logger.error("JoinedObjectObserver watcherPromise error in teardown", {
+          error,
+          model: this.modelName,
+          id: this.id,
+        });
+        this.sub.error(error);
+      },
+    );
     if (this.exists) {
       this.sub.removed(this.modelName, this.id);
       const fkValues = this.values.get(this.id)!;

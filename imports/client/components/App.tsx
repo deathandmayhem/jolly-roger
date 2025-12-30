@@ -10,21 +10,21 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge } from "react-bootstrap";
 import Alert from "react-bootstrap/Alert";
+import Button from "react-bootstrap/Button";
+import Container from "react-bootstrap/Container";
 import Dropdown from "react-bootstrap/Dropdown";
 import DropdownItem from "react-bootstrap/DropdownItem";
 import DropdownMenu from "react-bootstrap/DropdownMenu";
 import DropdownToggle from "react-bootstrap/DropdownToggle";
 import Nav from "react-bootstrap/Nav";
-import NavItem from "react-bootstrap/NavItem";
-import NavLink from "react-bootstrap/NavLink";
 import Navbar from "react-bootstrap/Navbar";
 import NavbarBrand from "react-bootstrap/NavbarBrand";
-import Button from "react-bootstrap/esm/Button";
-import Container from "react-bootstrap/esm/Container";
+import NavItem from "react-bootstrap/NavItem";
+import NavLink from "react-bootstrap/NavLink";
 import type { FallbackProps } from "react-error-boundary";
 import { ErrorBoundary as ReactErrorBoundary } from "react-error-boundary";
 import * as RRBS from "react-router-bootstrap";
-import { useNavigate, Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import type { StackFrame } from "stacktrace-js";
 import StackTrace from "stacktrace-js";
 import styled, {
@@ -345,7 +345,7 @@ const AppNavbar = ({
       )}
       <Nav className="ml-auto">
         <Dropdown as={NavItem}>
-          <DropdownToggle id="profileDropdown" as={NavLink}>
+          <DropdownToggle as={NavLink}>
             <FontAwesomeIcon icon={faUser} />{" "}
             <NavUsername>
               {displayName} {userProfileBadge}

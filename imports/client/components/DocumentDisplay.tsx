@@ -4,7 +4,6 @@ import { faFileAlt } from "@fortawesome/free-solid-svg-icons/faFileAlt";
 import { faFilePen } from "@fortawesome/free-solid-svg-icons/faFilePen";
 import { faTable } from "@fortawesome/free-solid-svg-icons/faTable";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import React from "react";
 import styled from "styled-components";
 import type { DocumentType } from "../../lib/models/Documents";
 import type { Theme } from "../theme";

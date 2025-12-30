@@ -1,3 +1,4 @@
+import { setTimeout } from "node:timers/promises";
 import Flags from "../Flags";
 import Logger from "../Logger";
 import DiscordRoleGrants from "../lib/models/DiscordRoleGrants";
@@ -97,9 +98,7 @@ export default async (
 
       // Discord seems to start rate limiting at around 20 requests per second;
       // to be safe, we'll limit to 2 per second
-      await new Promise((r) => {
-        setTimeout(r, 500);
-      });
+      await setTimeout(500);
     } catch (error) {
       Logger.warn("Error while adding user to Discord role", {
         error,

@@ -1,7 +1,7 @@
 import { z } from "zod";
+import { nonEmptyString } from "../../lib/models/customTypes";
 import type { ModelType } from "../../lib/models/Model";
 import Model from "../../lib/models/Model";
-import { nonEmptyString } from "../../lib/models/customTypes";
 import withTimestamps from "../../lib/models/withTimestamps";
 
 // LatestDeploymentTimestamp captures the most recent build timestamp that we've

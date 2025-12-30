@@ -4,6 +4,7 @@ import type { Subscription } from "meteor/meteor";
 import { Meteor } from "meteor/meteor";
 import type { Mongo } from "meteor/mongo";
 import isAdmin, { GLOBAL_SCOPE } from "../lib/isAdmin";
+import Logger from "../Logger";
 import Hunts from "../lib/models/Hunts";
 import MeteorUsers from "../lib/models/MeteorUsers";
 import type { ProfileFields } from "../lib/models/User";
@@ -43,11 +44,9 @@ const republishOnUserChange = async (
     | Mongo.Cursor<Meteor.User>
     | undefined
     | Promise<Mongo.Cursor<Meteor.User> | undefined>,
-  makeTransform?:
-    | undefined
-    | ((
-        user: Meteor.User,
-      ) => undefined | ((u: Partial<Meteor.User>) => Partial<Meteor.User>)),
+  makeTransform?: (
+    user: Meteor.User,
+  ) => undefined | ((u: Partial<Meteor.User>) => Partial<Meteor.User>),
 ) => {
   const u = (await MeteorUsers.findOneAsync(sub.userId!))!;
   const merger = new PublicationMerger(sub);
@@ -66,7 +65,7 @@ const republishOnUserChange = async (
     projection,
   }).observeAsync({
     changed: (doc) => {
-      void (async () => {
+      (async () => {
         const newCursor = await makeCursor(doc);
         let newSub;
         if (newCursor) {
@@ -82,7 +81,13 @@ const republishOnUserChange = async (
           merger.removeSub(currentSub);
         }
         currentSub = newSub;
-      })();
+      })().catch((error) => {
+        Logger.error("Error republishing on user change", {
+          error,
+          user: sub.userId,
+        });
+        sub.error(error);
+      });
     },
   });
 
@@ -265,7 +270,7 @@ Meteor.publish("invitedUsers", async function () {
     return [];
   }
 
-  await republishOnUserChange(this, { "services.password.enroll": 1 }, (u) => {
+  await republishOnUserChange(this, { "services.password.enroll": 1 }, (_u) => {
     return MeteorUsers.find(
       { "services.password.enroll.reason": "enroll" },
       // Currently, because this is limited to admins only, we don't check that

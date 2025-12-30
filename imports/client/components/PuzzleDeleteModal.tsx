@@ -6,11 +6,11 @@ import React, {
   useState,
 } from "react";
 import Button from "react-bootstrap/Button";
-import Modal from "react-bootstrap/esm/Modal";
+import Modal from "react-bootstrap/Modal";
 import { createPortal } from "react-dom";
-import Puzzles from "../../lib/models/Puzzles";
-import type { PuzzleType } from "../../lib/models/Puzzles";
 import Peers from "../../lib/models/mediasoup/Peers";
+import type { PuzzleType } from "../../lib/models/Puzzles";
+import Puzzles from "../../lib/models/Puzzles";
 import puzzlesForHunt from "../../lib/publications/puzzlesForHunt";
 import destroyPuzzle from "../../methods/destroyPuzzle";
 import useSubscribeDisplayNames from "../hooks/useSubscribeDisplayNames";
@@ -22,7 +22,6 @@ import Loading from "./Loading";
 // Casting away the React.lazy because otherwise we lose access to the generic parameter
 const Select = React.lazy(
   () => import("react-select"),
-  // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 ) as typeof import("react-select").default;
 
 export type PuzzleDeleteModalHandle = {

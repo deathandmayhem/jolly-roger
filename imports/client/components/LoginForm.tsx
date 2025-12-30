@@ -1,7 +1,7 @@
 import { Accounts } from "meteor/accounts-base";
 import { Meteor } from "meteor/meteor";
 import type { FormEvent } from "react";
-import React, { useCallback, useState } from "react";
+import { useCallback, useState } from "react";
 import Button from "react-bootstrap/Button";
 import { Link, useLocation } from "react-router-dom";
 import type { LoginOptions } from "../../lib/loginOptions";

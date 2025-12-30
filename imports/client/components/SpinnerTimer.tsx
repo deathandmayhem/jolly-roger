@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 // A component which animates a grey spinner between startTime and endTime like
 //     _____         __            __            __            __            __
@@ -70,9 +70,7 @@ const SpinnerTimer = ({
   }, [startTime, endTime, width, height]);
 
   useEffect(() => {
-    if (!periodicHandle.current) {
-      periodicHandle.current = window.requestAnimationFrame(drawSpinner);
-    }
+    periodicHandle.current ??= window.requestAnimationFrame(drawSpinner);
     return () => {
       if (periodicHandle.current) {
         window.cancelAnimationFrame(periodicHandle.current);

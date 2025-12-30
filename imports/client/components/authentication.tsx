@@ -75,7 +75,7 @@ export const UnauthenticatedPage = ({
   }
 
   if (loggedIn) {
-    const { pathname = "/", search = undefined } = location.state || {};
+    const { pathname = "/", search = undefined } = location.state ?? {};
     return <Navigate to={{ pathname, search }} />;
   }
 

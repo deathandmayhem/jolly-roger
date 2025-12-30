@@ -1,5 +1,4 @@
-import type http from "http";
-import { Meteor } from "meteor/meteor";
+import type http from "node:http";
 import { WebApp } from "meteor/webapp";
 import type { NextFunction } from "express";
 import lookupUrl from "./lookupUrl";
@@ -41,7 +40,4 @@ const serveSiteManifest = (
   res.end(body);
 };
 
-WebApp.handlers.use(
-  "/site.webmanifest",
-  Meteor.bindEnvironment(serveSiteManifest),
-);
+WebApp.handlers.use("/site.webmanifest", serveSiteManifest);

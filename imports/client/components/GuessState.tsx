@@ -6,7 +6,7 @@ import { faExclamationCircle } from "@fortawesome/free-solid-svg-icons/faExclama
 import { faQuestionCircle } from "@fortawesome/free-solid-svg-icons/faQuestionCircle";
 import { faTimesCircle } from "@fortawesome/free-solid-svg-icons/faTimesCircle";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import React from "react";
+import { useId } from "react";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Tooltip from "react-bootstrap/Tooltip";
 import { useTheme } from "styled-components";
@@ -29,11 +29,9 @@ const stateDescriptionTable: Record<GuessType["state"], string> = {
 };
 
 const GuessState = ({
-  id,
   state,
   short = false,
 }: {
-  id: string;
   state: GuessType["state"];
   short?: boolean;
 }) => {
@@ -55,6 +53,8 @@ const GuessState = ({
     }
   };
 
+  const tooltipId = useId();
+
   if (!short) {
     return (
       <>
@@ -69,7 +69,7 @@ const GuessState = ({
   }
 
   const tooltip = (
-    <Tooltip id={`${id}-tooltip`}>
+    <Tooltip id={tooltipId}>
       {stateDescriptionTable[state] ?? "unknown"}
     </Tooltip>
   );

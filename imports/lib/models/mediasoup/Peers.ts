@@ -1,8 +1,8 @@
 import { z } from "zod";
-import type { ModelType } from "../Model";
-import SoftDeletedModel from "../SoftDeletedModel";
 import { foreignKey } from "../customTypes";
+import type { ModelType } from "../Model";
 import { Id } from "../regexes";
+import SoftDeletedModel from "../SoftDeletedModel";
 import withCommon from "../withCommon";
 
 // Peer tracks room membership. When the first peer for a call is created,

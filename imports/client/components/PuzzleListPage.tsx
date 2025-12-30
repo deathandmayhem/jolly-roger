@@ -14,11 +14,12 @@ import { faPencilAlt } from "@fortawesome/free-solid-svg-icons/faPencilAlt";
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus";
 import { faStar } from "@fortawesome/free-solid-svg-icons/faStar";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import React, {
+import {
   type ComponentPropsWithRef,
   type FC,
   useCallback,
   useEffect,
+  useId,
   useRef,
 } from "react";
 import Alert from "react-bootstrap/Alert";
@@ -37,8 +38,8 @@ import isAdmin from "../../lib/isAdmin";
 import { sortedBy } from "../../lib/listUtils";
 import Bookmarks from "../../lib/models/Bookmarks";
 import Hunts from "../../lib/models/Hunts";
-import Puzzles from "../../lib/models/Puzzles";
 import type { PuzzleType } from "../../lib/models/Puzzles";
+import Puzzles from "../../lib/models/Puzzles";
 import Tags from "../../lib/models/Tags";
 import UserStatuses from "../../lib/models/UserStatuses";
 import Peers from "../../lib/models/mediasoup/Peers";
@@ -259,7 +260,7 @@ const PuzzleListView = ({
 
       createPuzzle.call({ docType, ...rest }, onAddComplete);
     },
-    [addModalRef],
+    [],
   );
 
   const setSearchString = useCallback(
@@ -332,7 +333,7 @@ const PuzzleListView = ({
       .forEach((s) => {
         const puzzle = s.call;
         const user = displayNames.get(s.createdBy);
-        if (!Object.prototype.hasOwnProperty.call(puzzleSubs, puzzle)) {
+        if (!Object.hasOwn(puzzleSubs, puzzle)) {
           puzzleSubs[puzzle] = {
             viewers: [],
             callers: [],
@@ -346,7 +347,7 @@ const PuzzleListView = ({
     Subscribers.find({}).forEach((s) => {
       const puzzle = s.name.replace(/^puzzle:/, "");
       const user = displayNames.get(s.user);
-      if (!Object.prototype.hasOwnProperty.call(puzzleSubs, puzzle)) {
+      if (!Object.hasOwn(puzzleSubs, puzzle)) {
         puzzleSubs[puzzle] = {
           viewers: [],
           callers: [],
@@ -501,19 +502,16 @@ const PuzzleListView = ({
     }
   }, []);
 
-  const showAddModalWithTags = useCallback(
-    (initialTags: string[]) => {
-      if (addModalRef.current) {
-        addModalRef.current.show();
-        addModalRef.current.populateForm({
-          title: "",
-          url: "",
-          tagIds: initialTags,
-        });
-      }
-    },
-    [addModalRef],
-  );
+  const showAddModalWithTags = useCallback((initialTags: string[]) => {
+    if (addModalRef.current) {
+      addModalRef.current.show();
+      addModalRef.current.populateForm({
+        title: "",
+        url: "",
+        tagIds: initialTags,
+      });
+    }
+  }, []);
 
   const navigate = useNavigate();
 
@@ -570,7 +568,7 @@ const PuzzleListView = ({
 
       let listComponent;
       let listControls;
-      // eslint-disable-next-line default-case
+      // biome-ignore lint/style/useDefaultSwitchClause: migration from eslint
       switch (displayMode) {
         case "group": {
           // We group and sort first, and only filter afterward, to avoid losing the
@@ -709,6 +707,8 @@ const PuzzleListView = ({
     ],
   );
 
+  const idPrefix = useId();
+
   const addPuzzleContent = canAdd && (
     <>
       <PuzzleModalForm
@@ -728,14 +728,14 @@ const PuzzleListView = ({
             onChange={setOperatorActionsHiddenString}
           >
             <ToggleButton
-              id="operator-actions-hide-button"
+              id={`${idPrefix}-operator-actions-hide-button`}
               variant="outline-info"
               value="hide"
             >
               <FontAwesomeIcon icon={faPencilAlt} key="view-solver" /> Solver
             </ToggleButton>
             <ToggleButton
-              id="operator-actions-show-button"
+              id={`${idPrefix}-operator-actions-show-button`}
               variant="outline-info"
               value="show"
             >
@@ -799,14 +799,14 @@ const PuzzleListView = ({
               onChange={setDisplayMode}
             >
               <ToggleButton
-                id="view-group-button"
+                id={`${idPrefix}-view-group-button`}
                 variant="outline-info"
                 value="group"
               >
                 <FontAwesomeIcon icon={faFolderOpen} key="sort-group" /> Group
               </ToggleButton>
               <ToggleButton
-                id="view-unlock-button"
+                id={`${idPrefix}-view-unlock-button`}
                 variant="outline-info"
                 value="unlock"
               >
@@ -827,7 +827,7 @@ const PuzzleListView = ({
               onChange={setShowSolvedString}
             >
               <ToggleButton
-                id="solved-hide-button"
+                id={`${idPrefix}-solved-hide-button`}
                 variant="outline-info"
                 value="hide"
               >
@@ -835,7 +835,7 @@ const PuzzleListView = ({
                 Unsolved
               </ToggleButton>
               <ToggleButton
-                id="solved-show-button"
+                id={`${idPrefix}-solved-show-button`}
                 variant="outline-info"
                 value="show"
               >
@@ -855,21 +855,21 @@ const PuzzleListView = ({
               onChange={setShowSolversString}
             >
               <ToggleButton
-                id="solvers-hide-button"
+                id={`${idPrefix}-solvers-hide-button`}
                 variant="outline-info"
                 value="hide"
               >
                 <FontAwesomeIcon icon={faEyeSlash} key="hunters-hide" /> Hide
               </ToggleButton>
               <ToggleButton
-                id="solvers-show-button"
+                id={`${idPrefix}-solvers-show-button`}
                 variant="outline-info"
                 value="viewers"
               >
                 <FontAwesomeIcon icon={faEye} key="hunters-show" /> Viewers
               </ToggleButton>
               <ToggleButton
-                id="active-show-button"
+                id={`${idPrefix}-solvers-active-button`}
                 variant="outline-info"
                 value="active"
               >
@@ -879,11 +879,13 @@ const PuzzleListView = ({
           </ButtonToolbar>
         </FormGroup>
         {addPuzzleContent}
-        <SearchFormGroup $canAdd={canAdd}>
+        <SearchFormGroup
+          $canAdd={canAdd}
+          controlId={`${idPrefix}-puzzle-search`}
+        >
           <SearchFormLabel $canAdd={canAdd}>Search</SearchFormLabel>
           <InputGroup>
             <FormControl
-              id="jr-puzzle-search"
               as="input"
               type="text"
               ref={searchBarRef}

@@ -1,7 +1,8 @@
-/* eslint-disable camelcase */
-import child_process from "child_process";
+import child_process from "node:child_process";
+import { mkdtemp } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { WebApp } from "meteor/webapp";
-import portscanner from "portscanner";
 import Logger from "../Logger";
 
 type HandledSignal = "SIGINT" | "SIGHUP" | "SIGTERM";
@@ -9,7 +10,7 @@ type HandledSignal = "SIGINT" | "SIGHUP" | "SIGTERM";
 export type Worker = {
   process: child_process.ChildProcess;
   id: number;
-  port: number;
+  path: string;
 };
 
 type ProxyWsMessage = {
@@ -89,14 +90,15 @@ export default class WorkerPool {
   }
 
   createWorker() {
-    this.fork((worker) => {
-      Logger.info("Multiprocess: worker starting on port", {
+    (async () => {
+      const worker = await this.fork();
+      Logger.info("Multiprocess: worker starting on socket", {
         workerId: worker.id,
-        port: worker.port,
+        socket: worker.path,
       });
 
       const registerWorker = (message: any) => {
-        if (message && message.type === "ready") {
+        if (message?.type === "ready") {
           this.workers.push(worker);
           this.workersMap[worker.id] = worker;
 
@@ -126,6 +128,8 @@ export default class WorkerPool {
           }
         }
       });
+    })().catch((error) => {
+      Logger.error("Error creating worker process", { error });
     });
   }
 
@@ -143,34 +147,30 @@ export default class WorkerPool {
     return reconnectTime;
   }
 
-  fork(callback: (w: Worker) => void) {
+  async fork(): Promise<Worker> {
     const id = this.ids;
     this.ids += 1;
 
-    const firstPort = Math.ceil(Math.random() * 20000) + 2000;
-    const secondPort = firstPort + 1;
+    const socketDir = await mkdtemp(join(tmpdir(), "worker-socket-"));
+    const socketPath = join(socketDir, "worker.sock");
 
-    const withPort = (error: Error | null, port: number) => {
-      if (error) throw error;
-      const env = {
-        ...process.env,
-        PORT: `${port}`,
-        CLUSTER_WORKER_ID: `${id}`,
-      };
-      const child = child_process.fork(this.exec, this.args, {
-        env,
-        silent: false,
-      });
-      const worker = {
-        process: child,
-        id,
-        port,
-      };
-
-      callback(worker);
+    const env = {
+      ...process.env,
+      CLUSTER_WORKER_ID: `${id}`,
+      // Meteor checks this envvar and, if set, uses it instead of opening a TCP
+      // port for its HTTP server.
+      UNIX_SOCKET_PATH: socketPath,
     };
+    const child = child_process.fork(this.exec, this.args, {
+      env,
+      silent: false,
+    });
 
-    portscanner.findAPortNotInUse(firstPort, secondPort, "127.0.0.1", withPort);
+    return {
+      process: child,
+      id,
+      path: socketPath,
+    };
   }
 
   cleanup(signal: NodeJS.Signals) {
@@ -187,9 +187,7 @@ export default class WorkerPool {
     const index = Math.floor(workerCount * Math.random());
     const worker = this.workers[index]!;
     return {
-      id: worker.id,
-      port: worker.port,
-      process: worker.process,
+      ...worker,
     };
   }
 }

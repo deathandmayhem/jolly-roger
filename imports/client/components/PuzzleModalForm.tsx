@@ -3,6 +3,7 @@ import React, {
   Suspense,
   useCallback,
   useEffect,
+  useId,
   useImperativeHandle,
   useMemo,
   useRef,
@@ -30,7 +31,6 @@ import ModalForm from "./ModalForm";
 // Casting away the React.lazy because otherwise we lose access to the generic parameter
 const Creatable = React.lazy(
   () => import("react-select/creatable"),
-  // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 ) as typeof import("react-select/creatable").default;
 
 type TagSelectOption = { value: string; label: string };
@@ -379,16 +379,17 @@ const PuzzleModalForm = React.forwardRef(
       (x) => !x.label.includes(":"),
     );
 
+    const idPrefix = useId();
+
     const docTypeSelector =
       !puzzle && docType ? (
         <FormGroup as={Row} className="mb-3">
-          <FormLabel column xs={3} htmlFor="jr-new-puzzle-doc-type">
+          <FormLabel column xs={3}>
             Document type
           </FormLabel>
           <Col xs={9}>
             <LabelledRadioGroup
               header=""
-              name="jr-new-puzzle-doc-type"
               options={[
                 {
                   value: "spreadsheet",
@@ -444,7 +445,7 @@ const PuzzleModalForm = React.forwardRef(
     const allowDuplicateUrlsCheckbox =
       !puzzle && allowDuplicateUrls !== undefined && confirmingDuplicateUrl ? (
         <FormCheck
-          id="jr-new-puzzle-allow-duplicate-urls"
+          id={`${idPrefix}-allow-duplicate-urls`}
           label="Allow puzzles with identical URLs"
           type="checkbox"
           disabled={disableForm}
@@ -469,13 +470,16 @@ const PuzzleModalForm = React.forwardRef(
           onSubmit={onFormSubmit}
           submitDisabled={disableForm}
         >
-          <FormGroup as={Row} className="mb-3">
-            <FormLabel column xs={3} htmlFor="jr-new-puzzle-title">
+          <FormGroup
+            as={Row}
+            className="mb-3"
+            controlId={`${idPrefix}-new-puzzle-title`}
+          >
+            <FormLabel column xs={3}>
               Title
             </FormLabel>
             <Col xs={9}>
               <FormControl
-                id="jr-new-puzzle-title"
                 type="text"
                 autoFocus
                 disabled={disableForm}
@@ -485,13 +489,16 @@ const PuzzleModalForm = React.forwardRef(
             </Col>
           </FormGroup>
 
-          <FormGroup as={Row} className="mb-3">
-            <FormLabel column xs={3} htmlFor="jr-new-puzzle-url">
+          <FormGroup
+            as={Row}
+            className="mb-3"
+            controlId={`${idPrefix}-new-puzzle-url`}
+          >
+            <FormLabel column xs={3}>
               URL
             </FormLabel>
             <Col xs={9}>
               <FormControl
-                id="jr-new-puzzle-url"
                 type="text"
                 disabled={disableForm}
                 onChange={onUrlChange}
@@ -501,14 +508,17 @@ const PuzzleModalForm = React.forwardRef(
             </Col>
           </FormGroup>
           <hr />
-          <FormGroup as={Row} className="mb-3">
+          <FormGroup
+            as={Row}
+            className="mb-3"
+            controlId={`${idPrefix}-new-puzzle-tags-function`}
+          >
             <FormLabel column xs={3} htmlFor="jr-new-puzzle-tags-function">
               Functional Tags
             </FormLabel>
             <Col xs={9}>
               <Creatable
                 theme={theme.reactSelectTheme}
-                id="jr-new-puzzle-tags"
                 options={functionSelectOptions}
                 isMulti
                 placeholder="Type to search/create"
@@ -527,14 +537,17 @@ const PuzzleModalForm = React.forwardRef(
             </Col>
           </FormGroup>
 
-          <FormGroup as={Row} className="mb-3">
+          <FormGroup
+            as={Row}
+            className="mb-3"
+            controlId={`${idPrefix}-new-puzzle-tags-content`}
+          >
             <FormLabel column xs={3} htmlFor="jr-new-puzzle-tags-content">
               Content Tags
             </FormLabel>
             <Col xs={9}>
               <Creatable
                 theme={theme.reactSelectTheme}
-                id="jr-new-puzzle-tags"
                 options={contentSelectOptions}
                 isMulti
                 placeholder="Type to search/create"
@@ -555,17 +568,16 @@ const PuzzleModalForm = React.forwardRef(
 
           {docTypeSelector}
 
-          <FormGroup as={Row} className="mb-3">
-            <FormLabel
-              column
-              xs={3}
-              htmlFor="jr-new-puzzle-expected-answer-count"
-            >
+          <FormGroup
+            as={Row}
+            className="mb-3"
+            controlId={`${idPrefix}-new-puzzle-expected-answer-count`}
+          >
+            <FormLabel column xs={3}>
               Expected # of answers
             </FormLabel>
             <Col xs={9}>
               <FormControl
-                id="jr-new-puzzle-expected-answer-count"
                 type="number"
                 disabled={disableForm}
                 onChange={onExpectedAnswerCountChange}

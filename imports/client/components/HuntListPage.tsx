@@ -17,8 +17,8 @@ import Modal from "react-bootstrap/Modal";
 import { createPortal } from "react-dom";
 import { LinkContainer } from "react-router-bootstrap";
 import { Link } from "react-router-dom";
-import Hunts from "../../lib/models/Hunts";
 import type { HuntType } from "../../lib/models/Hunts";
+import Hunts from "../../lib/models/Hunts";
 import {
   userMayCreateHunt,
   userMayUpdateHunt,
@@ -185,7 +185,7 @@ const HuntListPage = () => {
         setRenderCreateFixtureModal(true);
       }
     },
-    [renderCreateFixtureModal, createFixtureModalRef],
+    [renderCreateFixtureModal],
   );
 
   const body: ReactNode[] = [];
@@ -235,7 +235,7 @@ const HuntListPage = () => {
   }
 
   return (
-    <div id="jr-hunts">
+    <div>
       <h1>Hunts</h1>
       {canAdd && (
         <>

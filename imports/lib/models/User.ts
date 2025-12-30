@@ -1,7 +1,7 @@
 import { z } from "zod";
+import { foreignKey, nonEmptyString, stringId } from "./customTypes";
 import type { DiscordAccountType } from "./DiscordAccount";
 import DiscordAccount from "./DiscordAccount";
-import { foreignKey, nonEmptyString, stringId } from "./customTypes";
 import validateSchema from "./validateSchema";
 
 declare module "meteor/meteor" {
@@ -13,6 +13,11 @@ declare module "meteor/meteor" {
       roles?: Record<string, string[]>; // scope -> roles
       displayName?: string;
       googleAccount?: string;
+      /**
+       * A historical note: we have not always collected googleAccountId, so it
+       * is possible that googleAccount is populated while googleAccountId is
+       * not. However, the reverse should not happen
+       */
       googleAccountId?: string;
       googleProfilePicture?: string; // Never guaranteed to be set, even if googleAccount and googleAccountId are
       discordAccount?: DiscordAccountType;

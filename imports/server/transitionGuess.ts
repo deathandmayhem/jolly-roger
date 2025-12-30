@@ -1,7 +1,7 @@
 import type { Mongo } from "meteor/mongo";
 import { contentFromMessage } from "../lib/models/ChatMessages";
-import Guesses from "../lib/models/Guesses";
 import type { GuessType } from "../lib/models/Guesses";
+import Guesses from "../lib/models/Guesses";
 import Puzzles from "../lib/models/Puzzles";
 import GlobalHooks from "./GlobalHooks";
 import sendChatMessageInternal from "./sendChatMessageInternal";

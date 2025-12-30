@@ -8,12 +8,15 @@ import type { ComponentPropsWithRef, FC, MouseEvent } from "react";
 import React, {
   useCallback,
   useEffect,
+  useId,
   useImperativeHandle,
   useMemo,
   useRef,
   useState,
 } from "react";
-import { ButtonGroup, OverlayTrigger, Tooltip } from "react-bootstrap";
+import OverlayTrigger from "react-bootstrap/OverlayTrigger";
+import Tooltip from "react-bootstrap/Tooltip";
+import ButtonGroup from "react-bootstrap/ButtonGroup";
 import Alert from "react-bootstrap/Alert";
 import Badge from "react-bootstrap/Badge";
 import Button from "react-bootstrap/Button";
@@ -42,9 +45,9 @@ import useFocusRefOnFindHotkey from "../hooks/useFocusRefOnFindHotkey";
 import Avatar from "./Avatar";
 import useTypedSubscribe from "../hooks/useTypedSubscribe";
 import puzzlesForHunt from "../../lib/publications/puzzlesForHunt";
-import Puzzles, { PuzzleType } from "../../lib/models/Puzzles";
+import Puzzles, { type PuzzleType } from "../../lib/models/Puzzles";
 import RelativeTime from "./RelativeTime";
-import { faPuzzlePiece } from "@fortawesome/free-solid-svg-icons";
+import { faPuzzlePiece } from "@fortawesome/free-solid-svg-icons/faPuzzlePiece";
 import { shortCalendarTimeFormat } from "../../lib/calendarTimeFormat";
 import MeteorUsers from "../../lib/models/MeteorUsers";
 import CopyToClipboardButton from "./CopyToClipboardButton";
@@ -265,7 +268,7 @@ const OperatorControls = ({
         setRenderPromoteModal(true);
       }
     },
-    [renderPromoteModal, promoteModalRef],
+    [renderPromoteModal],
   );
   const showDemoteModal = useCallback(
     (e: MouseEvent) => {
@@ -575,7 +578,6 @@ const ProfileList = ({
       // A user is interesting if for every search key, that search key matches
       // one of their fields.
       return toMatch.every((searchKey) => {
-        /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
         return (
           user.displayName?.toLowerCase().includes(searchKey) ||
           user.emails?.some((e) =>
@@ -587,7 +589,6 @@ const ProfileList = ({
             role.toLowerCase().includes(searchKey),
           )
         );
-        /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
       });
     };
 
@@ -642,7 +643,7 @@ const ProfileList = ({
         setRenderGenerateInvitationLinkModal(true);
       }
     },
-    [renderGenerateInvitationLinkModal, generateInvitationLinkModalRef],
+    [renderGenerateInvitationLinkModal],
   );
 
   const [
@@ -663,7 +664,7 @@ const ProfileList = ({
         setRenderDisableInvitationLinkModal(true);
       }
     },
-    [renderDisableInvitationLinkModal, disableInvitationLinkModalRef],
+    [renderDisableInvitationLinkModal],
   );
 
   const invitationLink = useMemo(() => {
@@ -677,7 +678,6 @@ const ProfileList = ({
       <p>
         Invitation link:{" "}
         <StyledCopyToClipboardButton
-          tooltipId={`invitation-code-${invitationCode}`}
           text={invitationUrl}
           variant="link"
           aria-label="Copy"
@@ -775,6 +775,8 @@ const ProfileList = ({
     );
   }, [hunt]);
 
+  const searchId = useId();
+
   const matching = users.filter(matcher);
 
   const huntId = hunt?._id;
@@ -826,11 +828,10 @@ const ProfileList = ({
       {invitationLink}
       {invitationLinkManagementButtons}
 
-      <FormGroup className="mb-3">
-        <FormLabel htmlFor="jr-profile-list-search">Search</FormLabel>
+      <FormGroup className="mb-3" controlId={searchId}>
+        <FormLabel>Search</FormLabel>
         <InputGroup>
           <FormControl
-            id="jr-profile-list-search"
             type="text"
             ref={searchBarRef}
             placeholder="search by name, email, phone, Discord..."

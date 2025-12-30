@@ -7,7 +7,7 @@ files:
   - imports/server/lookupUrl.ts
   - imports/server/models/Blobs.ts
   - imports/server/publications/blobMappingsAll.ts
-updated: 2025-09-12
+updated: 2025-12-22
 ---
 
 # Custom Asset Pipeline

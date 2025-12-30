@@ -15,8 +15,54 @@ import { deleteUnusedDocument, ensureDocument } from "./gdrive";
 import getOrCreateTagByName from "./getOrCreateTagByName";
 import GoogleClient from "./googleClientRefresher";
 
+async function checkForDuplicatePuzzle(huntId: string, url: string) {
+  const existingPuzzleWithUrl = await Puzzles.findOneAsync({
+    hunt: huntId,
+    url,
+  });
+  if (existingPuzzleWithUrl) {
+    throw new Meteor.Error(409, `Puzzle with URL ${url} already exists`);
+  }
+}
+
+async function createDocumentAndInsertPuzzle(
+  huntId: string,
+  title: string,
+  expectedAnswerCount: number,
+  tags: string[],
+  url: string | undefined,
+  docType: GdriveMimeTypesType,
+): Promise<string> {
+  // Look up each tag by name and map them to tag IDs.
+  const tagIds = await Promise.all(
+    tags.map(async (tagName) => {
+      return getOrCreateTagByName(huntId, tagName);
+    }),
+  );
+
+  const fullPuzzle = {
+    hunt: huntId,
+    title,
+    expectedAnswerCount,
+    _id: Random.id(),
+    tags: [...new Set(tagIds)],
+    answers: [],
+    url,
+  };
+
+  // By creating the document before we save the puzzle, we make sure nobody
+  // else has a chance to create a document with the wrong config. (This
+  // requires us to have an _id for the puzzle, which is why we generate it
+  // manually above instead of letting Meteor do it)
+  if (GoogleClient.ready() && !(await Flags.activeAsync("disable.google"))) {
+    await ensureDocument(fullPuzzle, docType);
+  }
+
+  await Puzzles.insertAsync(fullPuzzle);
+  return fullPuzzle._id;
+}
+
 export default async function addPuzzle({
-  userId,
   huntId,
   title,
   tags,
@@ -65,6 +111,13 @@ export default async function addPuzzle({
       return getOrCreateTagByName(userId, huntId, tagName);
     }),
   );
+  // Before we do any writes, try an opportunistic check for duplicates. If a
+  // puzzle with this URL already exists, we can short-circuit without
+  // creating tags or the Google Doc. We'll still need to repeat this check
+  // with the lock held.
+  if (url && !allowDuplicateUrls) {
+    await checkForDuplicatePuzzle(huntId, url);
+  }
 
   Logger.info("Creating a new puzzle", {
     hunt: huntId,
@@ -123,11 +176,9 @@ export default async function addPuzzle({
 
   // Run any puzzle-creation hooks, like creating a default document
   // attachment or announcing the puzzle to Slack.
-  Meteor.defer(
-    Meteor.bindEnvironment(() => {
-      void GlobalHooks.runPuzzleCreatedHooks(fullPuzzle._id);
-    }),
-  );
+  Meteor.defer(() => {
+    void GlobalHooks.runPuzzleCreatedHooks(puzzleId);
+  });
 
   return fullPuzzle._id;
 }

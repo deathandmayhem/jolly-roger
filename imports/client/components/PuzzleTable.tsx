@@ -46,7 +46,6 @@ const PuzzleTableRow = ({
   const answers = puzzle.answers.map((answer, i) => {
     return (
       <PuzzleAnswer
-        // eslint-disable-next-line react/no-array-index-key
         key={`${i}-${answer}`}
         answer={answer}
         respace={segmentAnswers}

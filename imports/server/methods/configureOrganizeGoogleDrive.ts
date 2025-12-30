@@ -9,7 +9,7 @@ import Puzzles from "../../lib/models/Puzzles";
 import Settings from "../../lib/models/Settings";
 import { userMayConfigureGdrive } from "../../lib/permission_stubs";
 import configureOrganizeGoogleDrive from "../../methods/configureOrganizeGoogleDrive";
-import { moveDocument, ensureHuntFolder, ensureDocument } from "../gdrive";
+import { ensureDocument, ensureHuntFolder, moveDocument } from "../gdrive";
 import HuntFolders from "../models/HuntFolders";
 import defineMethod from "./defineMethod";
 

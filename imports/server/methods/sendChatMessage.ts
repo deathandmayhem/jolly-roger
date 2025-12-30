@@ -1,6 +1,6 @@
 import { check, Match } from "meteor/check";
 import ChatMessages, {
-  ChatAttachmentType,
+  type ChatAttachmentType,
 } from "../../lib/models/ChatMessages";
 import sendChatMessage from "../../methods/sendChatMessage";
 import sendChatMessageInternal from "../sendChatMessageInternal";
@@ -47,8 +47,12 @@ defineMethod(sendChatMessage, {
             userId: String,
           },
           {
-            type: "puzzle" as const,
-            puzzleId: String,
+            type: "role-mention" as const,
+            roleId: "operator" as const,
+          },
+          {
+            type: "image" as const,
+            url: String,
           },
           {
             text: String,

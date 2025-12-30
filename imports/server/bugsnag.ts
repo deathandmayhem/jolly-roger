@@ -1,13 +1,12 @@
-import { promises as fs } from "fs";
-import os from "os";
-import path from "path";
-import { promisify } from "util";
+import { promises as fs } from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import { fetch } from "meteor/fetch";
 import { Meteor } from "meteor/meteor";
 import { WebApp } from "meteor/webapp";
 import Bugsnag from "@bugsnag/js";
 import FormData from "form-data";
-import glob from "glob";
+import { glob } from "glob";
 import Logger from "../Logger";
 import isAdmin from "../lib/isAdmin";
 import MeteorUsers from "../lib/models/MeteorUsers";
@@ -78,7 +77,7 @@ if (apiKey) {
 
     // Our current working directory is programs/server/, which contains the
     // server-side code bundle
-    const sourceMapPaths = await promisify(glob)("**/*.map", {
+    const sourceMapPaths = await glob("**/*.map", {
       cwd: process.cwd(),
     });
     await Promise.all(

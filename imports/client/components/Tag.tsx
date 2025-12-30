@@ -1,4 +1,3 @@
-/* eslint-disable react/destructuring-assignment */
 import { faAlignJustify } from "@fortawesome/free-solid-svg-icons/faAlignJustify";
 import { faCopy } from "@fortawesome/free-solid-svg-icons/faCopy";
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes";
@@ -6,13 +5,14 @@ import { faFolderOpen } from "@fortawesome/free-regular-svg-icons/faFolderOpen";
 import { faMapPin } from "@fortawesome/free-solid-svg-icons/faMapPin";
 import { faStar } from "@fortawesome/free-solid-svg-icons/faStar";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import type { ModifierArguments, Modifier, Padding } from "@popperjs/core";
+import type { Modifier, ModifierArguments, Padding } from "@popperjs/core";
 import detectOverflow from "@popperjs/core/lib/utils/detectOverflow";
 import React, {
   type ComponentPropsWithRef,
   type FC,
   useCallback,
   useEffect,
+  useId,
   useState,
 } from "react";
 import Button from "react-bootstrap/Button";
@@ -356,7 +356,6 @@ const Tag = (props: TagProps) => {
       nameWithBreaks.push(`${part}${withColon ? ":" : ""}`);
     }
     if (withColon) {
-      // eslint-disable-next-line react/no-array-index-key
       nameWithBreaks.push(<wbr key={`wbr-${i}-${part}`} />);
     }
   });
@@ -397,6 +396,7 @@ const Tag = (props: TagProps) => {
     </TagDiv>
   );
 
+  const popoverId = useId();
   if (props.popoverRelated) {
     const sharedTagName = getRelatedPuzzlesSharedTagName(props.tag.name);
     const relatedPuzzles = getRelatedPuzzles();
@@ -405,7 +405,7 @@ const Tag = (props: TagProps) => {
       : "outline-secondary";
     const popover = (
       <StyledPopover
-        id={`tag-${props.tag._id}`}
+        id={popoverId}
         onMouseEnter={doShowPopover}
         onMouseLeave={doHidePopover}
       >
@@ -425,7 +425,6 @@ const Tag = (props: TagProps) => {
               <CopyToClipboardButton
                 variant="secondary"
                 size="sm"
-                tooltipId={`copy-related-puzzles-${props.tag._id}`}
                 text={relatedPuzzlesForClipboard}
               >
                 <FontAwesomeIcon icon={faCopy} />

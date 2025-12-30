@@ -1,5 +1,6 @@
 import { Meteor } from "meteor/meteor";
 import { Random } from "meteor/random";
+import Logger from "../Logger";
 import isAdmin from "../lib/isAdmin";
 import MeteorUsers from "../lib/models/MeteorUsers";
 import type { SettingType } from "../lib/models/Settings";
@@ -70,6 +71,34 @@ Meteor.publish("teamName", async function () {
   this.ready();
 });
 
+Meteor.publish("enabledChatImage", async function () {
+  const cursor = Settings.find({ name: "s3.image_bucket" });
+  let tracked = false;
+  const handle: Meteor.LiveQueryHandle = await cursor.observeAsync({
+    added: (doc) => {
+      tracked = true;
+      this.added("enabledChatImage", "enabledChatImage", {
+        enabled: doc.value.bucketName !== undefined,
+      });
+    },
+    changed: (newDoc) => {
+      this.changed("enabledChatImage", "enabledChatImage", {
+        enabled: newDoc.value.bucketName !== undefined,
+      });
+    },
+    removed: () => {
+      if (tracked) {
+        this.removed("enabledChatImage", "enabledChatImage");
+      }
+    },
+  });
+  this.onStop(() => {
+    handle.stop();
+  });
+
+  this.ready();
+});
+
 Meteor.publish("googleScriptInfo", async function () {
   if (!this.userId) {
     return [];
@@ -92,23 +121,29 @@ Meteor.publish("googleScriptInfo", async function () {
   };
   const handle: Meteor.LiveQueryHandle = await cursor.observeAsync({
     added: (doc) => {
-      void (async () => {
+      (async () => {
         tracked = true;
         this.added(
           "googleScriptInfo",
           "googleScriptInfo",
           await formatDoc(doc),
         );
-      })();
+      })().catch((error) => {
+        Logger.error("googleScriptInfo added() failed", { error });
+        this.error(error);
+      });
     },
     changed: (newDoc) => {
-      void (async () => {
+      (async () => {
         this.changed(
           "googleScriptInfo",
           "googleScriptInfo",
           await formatDoc(newDoc),
         );
-      })();
+      })().catch((error) => {
+        Logger.error("googleScriptInfo changed() failed", { error });
+        this.error(error);
+      });
     },
     removed: () => {
       if (tracked) {

@@ -1,3 +1,4 @@
+import Logger from "../../Logger";
 import type { PuzzleType } from "../../lib/models/Puzzles";
 import type HookSet from "./Hookset";
 
@@ -21,10 +22,26 @@ class HooksRegistry {
     }
   }
 
+  async runAnnouncementHooks(announcementId: string) {
+    for (const hook of this.registeredHooks) {
+      if (hook.onAnnouncement) {
+        await hook.onAnnouncement(announcementId);
+      }
+    }
+  }
+
   async runPuzzleCreatedHooks(puzzleId: string) {
     for (const hook of this.registeredHooks) {
       if (hook.onPuzzleCreated) {
-        await hook.onPuzzleCreated(puzzleId);
+        try {
+          await hook.onPuzzleCreated(puzzleId);
+        } catch (error) {
+          Logger.error("Error while running hook", {
+            hook: "onPuzzleCreated",
+            hookSet: hook.name,
+            error,
+          });
+        }
       }
     }
   }
@@ -32,7 +49,15 @@ class HooksRegistry {
   async runPuzzleUpdatedHooks(puzzleId: string, oldPuzzle: PuzzleType) {
     for (const hook of this.registeredHooks) {
       if (hook.onPuzzleUpdated) {
-        await hook.onPuzzleUpdated(puzzleId, oldPuzzle);
+        try {
+          await hook.onPuzzleUpdated(puzzleId, oldPuzzle);
+        } catch (error) {
+          Logger.error("Error while running hook", {
+            hook: "onPuzzleUpdated",
+            hookSet: hook.name,
+            error,
+          });
+        }
       }
     }
   }
@@ -40,7 +65,15 @@ class HooksRegistry {
   async runPuzzleSolvedHooks(puzzleId: string, answer: string) {
     for (const hook of this.registeredHooks) {
       if (hook.onPuzzleSolved) {
-        await hook.onPuzzleSolved(puzzleId, answer);
+        try {
+          await hook.onPuzzleSolved(puzzleId, answer);
+        } catch (error) {
+          Logger.error("Error while running hook", {
+            hook: "onPuzzleSolved",
+            hookSet: hook.name,
+            error,
+          });
+        }
       }
     }
   }
@@ -48,7 +81,15 @@ class HooksRegistry {
   async runPuzzleNoLongerSolvedHooks(puzzleId: string, answer: string) {
     for (const hook of this.registeredHooks) {
       if (hook.onPuzzleNoLongerSolved) {
-        await hook.onPuzzleNoLongerSolved(puzzleId, answer);
+        try {
+          await hook.onPuzzleNoLongerSolved(puzzleId, answer);
+        } catch (error) {
+          Logger.error("Error while running hook", {
+            hook: "onPuzzleNoLongerSolved",
+            hookSet: hook.name,
+            error,
+          });
+        }
       }
     }
   }
@@ -56,7 +97,15 @@ class HooksRegistry {
   async runChatMessageCreatedHooks(chatMessageId: string) {
     for (const hook of this.registeredHooks) {
       if (hook.onChatMessageCreated) {
-        await hook.onChatMessageCreated(chatMessageId);
+        try {
+          await hook.onChatMessageCreated(chatMessageId);
+        } catch (error) {
+          Logger.error("Error while running hook", {
+            hook: "onChatMessageCreated",
+            hookSet: hook.name,
+            error,
+          });
+        }
       }
     }
   }

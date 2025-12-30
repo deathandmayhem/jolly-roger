@@ -33,21 +33,19 @@ defineMethod(bulkAddHuntUsers, {
     }
 
     const errors: { email: string; error: any }[] = [];
-    await Promise.all(
-      emails.map(async (email) => {
-        try {
-          await addUserToHunt({ hunt, email, invitedBy: userId });
-        } catch (error) {
-          errors.push({ email, error });
-        }
-      }),
-    );
+    for (const email of emails) {
+      try {
+        await addUserToHunt({ hunt, email, invitedBy: userId });
+      } catch (error) {
+        errors.push({ email, error });
+      }
+    }
 
     if (errors.length > 0) {
       const message = errors
         .map(({ email, error }) => {
           const err = error.sanitizedError ?? error;
-          return `${email}: ${err.reason}`;
+          return `${email}: ${err}`;
         })
         .join("\n");
       throw new Meteor.Error(

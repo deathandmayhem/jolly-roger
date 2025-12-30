@@ -7,6 +7,7 @@ import MeteorUsers from "../../lib/models/MeteorUsers";
 import PendingAnnouncements from "../../lib/models/PendingAnnouncements";
 import { userMayAddAnnouncementToHunt } from "../../lib/permission_stubs";
 import postAnnouncement from "../../methods/postAnnouncement";
+import GlobalHooks from "../GlobalHooks";
 import defineMethod from "./defineMethod";
 
 defineMethod(postAnnouncement, {
@@ -47,5 +48,7 @@ defineMethod(postAnnouncement, {
         user: user._id,
       });
     }
+
+    await GlobalHooks.runAnnouncementHooks(id);
   },
 });

@@ -1,10 +1,5 @@
-import util from "util";
-import { MongoInternals } from "meteor/mongo";
-import type {
-  IndexSpecification,
-  CreateIndexesOptions,
-  CommandOperationOptions,
-} from "mongodb";
+import util from "node:util";
+import { NpmModuleMongodb } from "meteor/npm-mongo";
 import Logger from "../Logger";
 import type { ModelIndexSpecification } from "../lib/models/Model";
 import {
@@ -14,7 +9,10 @@ import {
 } from "../lib/models/Model";
 import runIfLatestBuild from "./runIfLatestBuild";
 
-const { MongoError } = MongoInternals.NpmModules.mongodb.module;
+type CommandOperationOptions = NpmModuleMongodb.CommandOperationOptions;
+type CreateIndexesOptions = NpmModuleMongodb.CreateIndexesOptions;
+type IndexSpecification = NpmModuleMongodb.IndexSpecification;
+const { MongoError } = NpmModuleMongodb;
 
 type ListIndexResult = {
   v: number;
@@ -155,10 +153,13 @@ runIfLatestBuild(async () => {
       });
       // Prefer createIndexes to createIndex so we can specify an explicit name
       // to match the one in our spec
-      await collection.createIndexes(
-        [{ key: Object.fromEntries(index), name }],
-        Object.fromEntries(options),
-      );
+      await collection.createIndexes([
+        {
+          key: Object.fromEntries(index),
+          name,
+          ...Object.fromEntries(options),
+        },
+      ]);
     }
     // Finally, drop non-conflicting indexes.
     for (const extraIndex of extraNonConflicting) {

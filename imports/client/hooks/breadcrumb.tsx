@@ -132,7 +132,7 @@ const BreadcrumbsProvider = ({ children }: { children: React.ReactNode }) => {
 
     return {
       unsubscribe() {
-        const index = listenersRef.current.findIndex((l) => l === listener);
+        const index = listenersRef.current.indexOf(listener);
         listenersRef.current.splice(index, 1);
       },
     };
@@ -200,4 +200,4 @@ const useBreadcrumbItems = () => {
   return crumbs;
 };
 
-export { Crumb, BreadcrumbsProvider, useBreadcrumb, useBreadcrumbItems };
+export { type Crumb, BreadcrumbsProvider, useBreadcrumb, useBreadcrumbItems };

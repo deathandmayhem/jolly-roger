@@ -1,15 +1,14 @@
-import { Mongo, MongoInternals } from "meteor/mongo";
-import type {
-  Document,
-  IndexDirection,
-  IndexSpecification,
-  CreateIndexesOptions,
-  ClientSession,
-} from "mongodb";
+import { Mongo } from "meteor/mongo";
+import { NpmModuleMongodb } from "meteor/npm-mongo";
 import { z } from "zod";
 import { IsInsert, IsUpdate, IsUpsert, stringId } from "./customTypes";
 import type { MongoRecordZodType } from "./generateJsonSchema";
 import validateSchema from "./validateSchema";
+
+type CreateIndexesOptions = NpmModuleMongodb.CreateIndexesOptions;
+type Document = NpmModuleMongodb.Document;
+type IndexDirection = NpmModuleMongodb.IndexDirection;
+type IndexSpecification = NpmModuleMongodb.IndexSpecification;
 
 export type Selector<T extends Document> =
   | Mongo.Selector<T>
@@ -145,7 +144,7 @@ export function getSchemaForField<Schema extends z.ZodTypeAny>(
       let index;
       try {
         index = parseInt(field, 10);
-      } catch (e) {
+      } catch {
         return z.never();
       }
       return def.items[index] ?? z.never();
@@ -155,7 +154,7 @@ export function getSchemaForField<Schema extends z.ZodTypeAny>(
         parseInt(field, 10);
         // if the field is a number, it's a valid array index
         return def.type;
-      } catch (e) {
+      } catch {
         return z.never();
       }
     }
@@ -190,7 +189,7 @@ export async function parseMongoOperationAsync(
   for (const [key, value] of Object.entries(operation)) {
     const [prefix, next, ...rest] = key.split(".");
     if (prefix && next) {
-      dotSeparatedKeys[prefix] = dotSeparatedKeys[prefix] || {};
+      dotSeparatedKeys[prefix] = dotSeparatedKeys[prefix] ?? {};
       dotSeparatedKeys[prefix][[next, ...rest].join(".")] = value;
     } else {
       nonDotSeparatedKeys[key] = value;
@@ -300,7 +299,7 @@ export async function parseMongoModifierAsync<
 // it onto both the message and the first line of the stack trace so it's easier
 // to find.
 export function formatValidationError(error: unknown) {
-  const { MongoError } = MongoInternals.NpmModules.mongodb.module;
+  const { MongoError } = NpmModuleMongodb;
 
   if (!(error instanceof MongoError)) {
     return;
@@ -598,7 +597,6 @@ class Model<
       "limit" | "transform"
     >,
   >(selector?: S, options?: O) {
-    // eslint-disable-next-line deprecation/deprecation -- findOne is still perfectly valid for client code
     return this.collection.findOne(selector ?? {}, options) as
       | SelectorToResultType<z.output<this["schema"]>, S>
       | undefined;

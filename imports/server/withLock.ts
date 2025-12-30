@@ -61,14 +61,10 @@ export default async function withLock<T>(
               resolve(undefined);
             },
           })
-          .then(
-            (handleThunk) => {
-              handle = handleThunk;
-            },
-            (error) => {
-              reject(error);
-            },
-          );
+          .then((handleThunk) => {
+            handle = handleThunk;
+          })
+          .catch(reject);
       });
 
       lock = await tryAcquire(name);
@@ -101,7 +97,9 @@ export default async function withLock<T>(
           // Otherwise wait until expiration and then check again
           timeoutHandle = Meteor.setTimeout(waitForDeadline, timeout);
         };
-        void waitForDeadline();
+        waitForDeadline().catch((error) => {
+          Logger.error("withLock waitForDeadline() threw", { name, error });
+        });
       });
 
       // If we time out, then preempt

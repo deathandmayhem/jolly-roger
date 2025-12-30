@@ -2,8 +2,9 @@ import { Google } from "meteor/google-oauth";
 import { OAuth } from "meteor/oauth";
 import { useTracker } from "meteor/react-meteor-data";
 import { ServiceConfiguration } from "meteor/service-configuration";
+import type React from "react";
 import type { ChangeEvent, ComponentPropsWithRef, FC, FormEvent } from "react";
-import React, { useCallback, useState } from "react";
+import { useCallback, useId, useState } from "react";
 import Alert from "react-bootstrap/Alert";
 import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
@@ -53,10 +54,11 @@ export const useEmailField = ({
   const onEmailChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     setEmail(e.target.value);
   }, []);
+  const controlId = useId();
   return {
     email,
     emailField: (
-      <Form.Group className="mb-3" controlId="at-field-email">
+      <Form.Group className="mb-3" controlId={controlId}>
         <Form.Label>Email</Form.Label>
         <Form.Control
           type="email"
@@ -78,10 +80,11 @@ export const usePasswordField = ({ disabled }: { disabled: boolean }) => {
   const onPasswordChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     setPassword(e.target.value);
   }, []);
+  const controlId = useId();
   return {
     password,
     passwordField: (
-      <Form.Group className="mb-3" controlId="at-field-password">
+      <Form.Group className="mb-3" controlId={controlId}>
         <Form.Label>Password</Form.Label>
         <Form.Control
           type="password"
@@ -172,10 +175,11 @@ export const useDisplayNameField = ({ disabled }: { disabled: boolean }) => {
     },
     [],
   );
+  const controlId = useId();
   return {
     displayName,
     displayNameField: (
-      <Form.Group className="mb-3" controlId="at-field-displayname">
+      <Form.Group className="mb-3" controlId={controlId}>
         <Form.Label>Full name</Form.Label>
         <Form.Control
           type="text"
@@ -200,10 +204,11 @@ export const usePhoneNumberField = ({ disabled }: { disabled: boolean }) => {
     },
     [],
   );
+  const controlId = useId();
   return {
     phoneNumber,
     phoneNumberField: (
-      <Form.Group className="mb-3" controlId="at-field-phonenumber">
+      <Form.Group className="mb-3" controlId={controlId}>
         <Form.Label>Phone Number</Form.Label>
         <Form.Control
           type="tel"

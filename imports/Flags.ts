@@ -1,4 +1,4 @@
-import { Match, check } from "meteor/check";
+import { check, Match } from "meteor/check";
 import type { FeatureFlagType } from "./lib/models/FeatureFlags";
 import FeatureFlags, { FlagNames } from "./lib/models/FeatureFlags";
 

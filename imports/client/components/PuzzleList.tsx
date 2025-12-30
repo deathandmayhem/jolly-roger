@@ -34,7 +34,7 @@ const PuzzleList = React.memo(
     // Adjusting order based on tags, tag groups, etc. is to be done at
     // a higher layer.
     return (
-      <div className="puzzle-list">
+      <div>
         {puzzles.map((puzzle) => {
           const puzzleId = puzzle._id;
           return (

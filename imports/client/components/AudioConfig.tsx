@@ -1,4 +1,5 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import type React from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import Alert from "react-bootstrap/Alert";
 import Button from "react-bootstrap/Button";
 import FormCheck from "react-bootstrap/FormCheck";
@@ -190,11 +191,16 @@ const AudioConfig = () => {
     setLoopback((prevLoopback) => !prevLoopback);
   }, []);
 
+  const idPrefix = useId();
+
   return (
-    <section className="audio-self-test-section">
+    <section>
       <h2>Audio</h2>
 
-      <FormGroup className="mb-3" controlId="default-capture-device">
+      <FormGroup
+        className="mb-3"
+        controlId={`${idPrefix}-default-capture-device`}
+      >
         <FormLabel>Selected audio input device</FormLabel>
         <FormControl
           as="select"
@@ -251,7 +257,10 @@ const AudioConfig = () => {
         speakers, but if you&apos;re not wearing headphones, you&apos;ll likely
         produce feedback. You have been warned!
       </p>
-      <FormGroup className="mb-3" controlId="audio-self-test-loopback">
+      <FormGroup
+        className="mb-3"
+        controlId={`${idPrefix}-audio-self-test-loopback`}
+      >
         <FormCheck
           type="checkbox"
           label="Play captured audio"

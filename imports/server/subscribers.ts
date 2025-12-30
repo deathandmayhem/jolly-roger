@@ -13,19 +13,20 @@ import { serverId, registerPeriodicCleanupHook } from "./garbage-collection";
 import Subscribers from "./models/Subscribers";
 
 // Clean up leaked subscribers from dead servers periodically.
-async function cleanupHook(deadServers: string[]) {
-  await Subscribers.removeAsync({ server: { $in: deadServers } });
+async function cleanupHook(deadServer: string) {
+  await Subscribers.removeAsync({ server: deadServer });
 }
 registerPeriodicCleanupHook(cleanupHook);
 
-// eslint-disable-next-line new-cap
 const contextMatcher = Match.Where(
-  (val: unknown): val is Record<string, string> => {
+  (val: unknown): val is Record<string, string | boolean> => {
     if (!Match.test(val, Object)) {
       return false;
     }
 
-    return Object.values(val).every((v) => Match.test(v, String));
+    return Object.values(val).every(
+      (v) => Match.test(v, String) || Match.test(v, Boolean),
+    );
   },
 );
 
@@ -78,7 +79,7 @@ Meteor.publish("subscribers.counts", async function (q: Record<string, any>) {
   const handle = await cursor.observeAsync({
     added: (doc) => {
       const { name, user } = doc;
-      if (!Object.prototype.hasOwnProperty.call(counters, name)) {
+      if (!Object.hasOwn(counters, name)) {
         counters[name] = {};
 
         if (initialized) {
@@ -86,7 +87,7 @@ Meteor.publish("subscribers.counts", async function (q: Record<string, any>) {
         }
       }
 
-      if (!Object.prototype.hasOwnProperty.call(counters[name], user)) {
+      if (!Object.hasOwn(counters[name]!, user)) {
         counters[name]![user] = 0;
       }
 
@@ -140,7 +141,7 @@ Meteor.publish("subscribers.fetch", async function (name) {
     added: (doc) => {
       const { user } = doc;
 
-      if (!Object.prototype.hasOwnProperty.call(users, user)) {
+      if (!Object.hasOwn(users, user)) {
         users[user] = 0;
         this.added("subscribers", `${name}:${user}`, { name, user });
       }
@@ -186,7 +187,7 @@ Meteor.publish("subscribers.fetchAll", async function (hunt) {
       const name = doc.name;
       const key = `${name}:${user}`;
 
-      if (!Object.prototype.hasOwnProperty.call(users, key)) {
+      if (!Object.hasOwn(users, key)) {
         users[key] = 0;
         this.added("subscribers", key, { name, user });
       }

@@ -3,24 +3,24 @@ import { useTracker } from "meteor/react-meteor-data";
 import type { types } from "mediasoup-client";
 import type React from "react";
 import {
+  useCallback,
   useEffect,
   useMemo,
   useReducer,
   useRef,
   useState,
-  useCallback,
 } from "react";
 import { logger as defaultLogger } from "../../Logger";
 import { groupedBy } from "../../lib/listUtils";
 import ConnectAcks from "../../lib/models/mediasoup/ConnectAcks";
 import Consumers from "../../lib/models/mediasoup/Consumers";
-import Peers from "../../lib/models/mediasoup/Peers";
 import type { PeerType } from "../../lib/models/mediasoup/Peers";
+import Peers from "../../lib/models/mediasoup/Peers";
 import ProducerServers from "../../lib/models/mediasoup/ProducerServers";
-import Routers from "../../lib/models/mediasoup/Routers";
 import type { RouterType } from "../../lib/models/mediasoup/Routers";
-import Transports from "../../lib/models/mediasoup/Transports";
+import Routers from "../../lib/models/mediasoup/Routers";
 import type { TransportType } from "../../lib/models/mediasoup/Transports";
+import Transports from "../../lib/models/mediasoup/Transports";
 import mediasoupAckConsumer from "../../methods/mediasoupAckConsumer";
 import mediasoupAckPeerRemoteMute from "../../methods/mediasoupAckPeerRemoteMute";
 import mediasoupConnectTransport from "../../methods/mediasoupConnectTransport";
@@ -66,7 +66,7 @@ export type AudioState = {
   audioContext: AudioContext | undefined;
   mediaSource: MediaStream | undefined;
 };
-export type Transports = {
+export type TransportState = {
   send: types.Transport | undefined;
   recv: types.Transport | undefined;
 };
@@ -85,7 +85,7 @@ export type CallState = (
     }
 ) & {
   device: types.Device | undefined;
-  transports: Transports;
+  transports: TransportState;
   transportStates: {
     send?: types.ConnectionState;
     recv?: types.ConnectionState;
@@ -362,7 +362,7 @@ const useTransport = (
   transportParams: TransportType | undefined,
   dispatch: React.Dispatch<Action>,
 ) => {
-  const connectRef = useRef<() => void>();
+  const connectRef = useRef<(() => void) | undefined>(undefined);
 
   const hasParams = !!device && !!transportParams;
   useEffect(() => {
@@ -507,9 +507,10 @@ const useCallState = ({
       : undefined,
   );
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies(huntId): We want to reset if the user navigates to a new puzzle
+  // biome-ignore lint/correctness/useExhaustiveDependencies(puzzleId): See above
+  // biome-ignore lint/correctness/useExhaustiveDependencies(tabId): See above
   useEffect(() => {
-    // If huntId, puzzleId, or tabId change (but mostly puzzleId), reset
-    // call state.
     return () => {
       logger.debug("huntId/puzzleId/tabId changed, resetting call state");
       dispatch({ type: "reset" });
@@ -867,6 +868,7 @@ const useCallState = ({
 
   const producerShouldBePaused =
     state.audioControls?.muted || state.audioControls?.deafened;
+  // biome-ignore lint/correctness/useExhaustiveDependencies(producerParamsGeneration): We want to force this effect to run when producerParams changes
   useEffect(() => {
     logger.debug("producerTracks", { tracks: producerTracks.map((t) => t.id) });
     const activeTrackIds = new Set();
@@ -951,6 +953,7 @@ const useCallState = ({
   ]);
 
   // Ensure mute state is respected by mediasoup.
+  // biome-ignore lint/correctness/useExhaustiveDependencies(producerGeneration): We want to force this effect to run when we create a new producer
   useEffect(() => {
     if (producerShouldBePaused !== undefined) {
       // Update producer pause state
@@ -1149,7 +1152,6 @@ const useCallState = ({
     state.callState,
     recvTransport,
     otherPeers,
-    puzzleConsumers,
     groupedConsumers,
     cleanupConsumer,
   ]);

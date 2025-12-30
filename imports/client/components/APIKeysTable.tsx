@@ -2,7 +2,7 @@ import { faCopy } from "@fortawesome/free-solid-svg-icons/faCopy";
 import { faEye } from "@fortawesome/free-solid-svg-icons/faEye";
 import { faEyeSlash } from "@fortawesome/free-solid-svg-icons/faEyeSlash";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import React, { useCallback, useRef, useState } from "react";
+import { useCallback, useId, useRef, useState } from "react";
 import Alert from "react-bootstrap/Alert";
 import Button from "react-bootstrap/Button";
 import FormControl from "react-bootstrap/FormControl";
@@ -12,7 +12,7 @@ import Table from "react-bootstrap/Table";
 import Tooltip from "react-bootstrap/Tooltip";
 import { styled } from "styled-components";
 import { calendarTimeFormat } from "../../lib/calendarTimeFormat";
-import { type APIKeyType } from "../../lib/models/APIKeys";
+import type { APIKeyType } from "../../lib/models/APIKeys";
 import destroyAPIKey from "../../methods/destroyAPIKey";
 import CopyToClipboardButton from "./CopyToClipboardButton";
 import ModalForm, { type ModalFormHandle } from "./ModalForm";
@@ -51,10 +51,10 @@ const APIKeyRow = ({ apiKey }: { apiKey: APIKeyType }) => {
     });
   }, [apiKey._id]);
 
-  const controlId = `jr-profile-api-key-${apiKey._id}`;
+  const idPrefix = useId();
 
   const lastUsedTooltip = apiKey.lastUsedAt ? (
-    <Tooltip id={`api-key-last-used-${apiKey._id}`}>
+    <Tooltip id={`${idPrefix}-last-used-tooltip`}>
       {calendarTimeFormat(apiKey.lastUsedAt)}
     </Tooltip>
   ) : (
@@ -68,7 +68,7 @@ const APIKeyRow = ({ apiKey }: { apiKey: APIKeyType }) => {
   const showHideAction = keyShown ? "Hide" : "Show";
   const showHideOverlay = (
     <Tooltip
-      id={`api-key-show-hide-${apiKey._id}`}
+      id={`${idPrefix}-show-hide-tooltip`}
       key={`api-key-show-hide-${keyShown}`}
     >
       {showHideAction}
@@ -82,7 +82,6 @@ const APIKeyRow = ({ apiKey }: { apiKey: APIKeyType }) => {
           <CopyToClipboardButton
             variant="outline-secondary"
             aria-label="Copy to clipboard"
-            tooltipId={`api-key-copy-${apiKey._id}`}
             text={apiKey.key}
           >
             <FontAwesomeIcon icon={faCopy} fixedWidth />
@@ -100,7 +99,7 @@ const APIKeyRow = ({ apiKey }: { apiKey: APIKeyType }) => {
             </Button>
           </OverlayTrigger>
           <FormControl
-            id={controlId}
+            id={`${idPrefix}-api-key-value`}
             type={keyShown ? "text" : "password"}
             readOnly
             disabled

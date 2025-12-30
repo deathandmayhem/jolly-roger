@@ -1,5 +1,7 @@
 import type { Meteor } from "meteor/meteor";
-import { type Tokens, type Token } from "marked";
+import { faFileCircleExclamation } from "@fortawesome/free-solid-svg-icons/faFileCircleExclamation";
+import { faSpinner } from "@fortawesome/free-solid-svg-icons/faSpinner";
+import type { Token, Tokens } from "marked";
 import { marked } from "marked";
 import React, {
   useCallback,
@@ -10,22 +12,28 @@ import React, {
   useState,
 } from "react";
 import { createPortal } from "react-dom";
-import type { BaseEditor, Descendant, NodeEntry, Node, Path } from "slate";
-import { createEditor, Editor, Text, Transforms, Range } from "slate";
+import type {
+  BaseEditor,
+  Descendant,
+  NodeEntry,
+  Path,
+  Node as SlateNode,
+} from "slate";
+import { createEditor, Editor, Node, Range, Text, Transforms } from "slate";
 import type { HistoryEditor } from "slate-history";
 import { withHistory } from "slate-history";
 import type {
-  RenderLeafProps,
   RenderElementProps,
+  RenderLeafProps,
   RenderPlaceholderProps,
 } from "slate-react";
 import {
-  Slate,
   Editable,
   ReactEditor,
-  withReact,
-  useSelected,
+  Slate,
   useFocused,
+  useSelected,
+  withReact,
 } from "slate-react";
 import styled, { css } from "styled-components";
 import { formatDiscordName } from "../../lib/discord";
@@ -45,19 +53,33 @@ export const DEBUG_EDITOR = false;
 export type CustomText = { text: string };
 export type MessageElement = {
   type: "message";
-  children: (MentionElement | CustomText | PuzzleElement)[];
+  children: (MentionElement | RoleMentionElement | ImageElement | CustomText)[];
 };
 export type MentionElement = {
   type: "mention";
   userId: string; // user._id of the mentioned user
   children: CustomText[];
 };
-export type PuzzleElement = {
-  type: "puzzle";
-  puzzleId: string; // puzzle._id of the mentioned puzzle
+const AllRoles = ["operator"] as const;
+type AllRolesType = (typeof AllRoles)[number];
+export type RoleMentionElement = {
+  type: "role-mention";
+  roleId: AllRolesType; // name of the mentioned role
   children: CustomText[];
 };
-export type CustomElement = MessageElement | MentionElement | PuzzleElement;
+export type ImageStatus = "success" | "error" | "loading";
+export type ImageElement = {
+  type: "image";
+  url: string;
+  tempId: string;
+  status: ImageStatus;
+  children: CustomText[];
+};
+export type CustomElement =
+  | MessageElement
+  | RoleMentionElement
+  | MentionElement
+  | ImageElement;
 declare module "slate" {
   interface CustomTypes {
     Editor: BaseEditor & ReactEditor & HistoryEditor;
@@ -94,7 +116,8 @@ interface LeafProps {
   blockquote?: boolean;
 }
 
-interface MentionRendererProps extends ElementRendererProps<MentionElement> {
+interface MentionRendererProps
+  extends ElementRendererProps<MentionElement | RoleMentionElement> {
   users: Map<string, Meteor.User>;
 }
 
@@ -144,6 +167,16 @@ const SelectedMentionSpan = styled(MentionSpan)<{ theme: Theme }>`
   box-shadow: 0 0 0 2px ${({ theme }) => theme.colors.selectedMentionSpanShadow};
 `;
 
+export const ImageSpan = styled.span<{
+  $isSelf: boolean;
+}>`
+  padding: 2px;
+`;
+
+const SelectedImageSpan = styled(ImageSpan)`
+  border: 1px solid red;
+`;
+
 const EditableMentionRenderer = ({
   attributes,
   children,
@@ -152,55 +185,114 @@ const EditableMentionRenderer = ({
 }: MentionRendererProps) => {
   const selected = useSelected();
   const focused = useFocused();
-  const user = users.get(element.userId);
+  let name;
+  switch (element.type) {
+    case "mention":
+      name = users.get(element.userId)?.displayName ?? element.userId;
+      break;
+    case "role-mention":
+      name = element.roleId;
+      break;
+    default:
+      // biome-ignore lint/nursery/noUnusedExpressions: exhaustive check
+      element satisfies never;
+  }
   const Elem = selected && focused ? SelectedMentionSpan : MentionSpan;
 
   return (
     <Elem {...attributes} contentEditable={false}>
-      {children}@{`${user?.displayName ?? element.userId}`}
+      {children}@{name}
     </Elem>
   );
 };
 
-const EditablePuzzleRenderer = ({
+const Image = styled.img`
+  max-height: 20px;
+  vertical-align: top;
+`;
+const ChatImageRenderer = ({
   attributes,
-  children,
   element,
-  puzzles,
-}: PuzzleRendererProps) => {
+}: ElementRendererProps<ImageElement>) => {
   const selected = useSelected();
   const focused = useFocused();
-  const puzzle = puzzles.get(element.puzzleId);
-  // Reuse the same styling components for consistency
-  const Elem = selected && focused ? SelectedMentionSpan : MentionSpan;
 
-  return (
-    // Use ! prefix for puzzles
-    <Elem {...attributes} contentEditable={false} isSelf={false}>
-      {children}
-      <FontAwesomeIcon icon={faPuzzlePiece} />{" "}
-      {`${puzzle?.title ?? element.puzzleId}`}
-    </Elem>
-  );
+  const Elem = selected && focused ? SelectedImageSpan : ImageSpan;
+
+  switch (element.status) {
+    case "loading":
+      return (
+        <Elem {...attributes} contentEditable={false}>
+          <FontAwesomeIcon icon={faSpinner} spin />
+        </Elem>
+      );
+    case "error":
+      return (
+        <Elem {...attributes} contentEditable={false}>
+          <FontAwesomeIcon
+            icon={faFileCircleExclamation}
+            title="Image upload failed"
+            color="red"
+          />
+        </Elem>
+      );
+    case "success":
+      return (
+        <Elem {...attributes} contentEditable={false}>
+          <Image {...attributes} src={element.url} />
+        </Elem>
+      );
+    default:
+      return null;
+  }
 };
 
 // Composed, layered reassignment is how Slate plugins are designed to work.
-const withInlines = (editor: Editor) => {
-  const { isInline, isVoid, markableVoid } = editor;
+const withMentionsAndImages = (
+  editor: Editor,
+  uploadImageFile: (file: File) => void,
+) => {
+  const { isInline, isVoid, markableVoid, insertData } = editor;
   editor.isInline = (element) => {
-    return element.type === "mention" || element.type === "puzzle"
-      ? true
-      : isInline(element);
+    switch (element.type) {
+      case "mention":
+      case "role-mention":
+      case "image":
+        return true;
+      default:
+        return isInline(element);
+    }
   };
   editor.isVoid = (element) => {
-    return element.type === "mention" || element.type === "puzzle"
-      ? true
-      : isVoid(element);
+    switch (element.type) {
+      case "mention":
+      case "role-mention":
+      case "image":
+        return true;
+      default:
+        return isVoid(element);
+    }
   };
   editor.markableVoid = (element) => {
-    return element.type === "mention" || element.type === "puzzle"
-      ? true
-      : markableVoid(element);
+    switch (element.type) {
+      case "mention":
+      case "role-mention":
+        return true;
+      case "image":
+        return false;
+      default:
+        return markableVoid(element);
+    }
+  };
+  editor.insertData = (data: DataTransfer) => {
+    if (!data) return;
+    for (const file of Array.from(data.files)) {
+      if (file.type.startsWith("image/")) {
+        uploadImageFile(file);
+        return;
+      }
+    }
+    insertData(data);
   };
   return editor;
 };
@@ -234,17 +326,17 @@ const insertMention = (editor: Editor, userId: string) => {
   Transforms.move(editor);
 };
 
-const insertPuzzle = (editor: Editor, puzzleId: string) => {
-  const puzzleMention: PuzzleElement = {
-    type: "puzzle",
-    puzzleId,
+const insertRoleMention = (editor: Editor, roleId: AllRolesType) => {
+  const roleMention: RoleMentionElement = {
+    type: "role-mention",
+    roleId,
     children: [{ text: "" }],
   };
-  Transforms.insertNodes(editor, puzzleMention);
+  Transforms.insertNodes(editor, roleMention);
   Transforms.move(editor);
 };
 
-const MatchCandidateRow = styled.div<{ $selected: boolean; theme: Theme }>`
+const MatchCandidateRow = styled.div<{ $selected: boolean }>`
   padding: 2px 3px;
   border-radius: 3px;
   height: 28px;
@@ -273,61 +365,58 @@ const StyledAvatar = styled(Avatar)`
 `;
 
 const MatchCandidate = ({
-  user,
+  mention,
   selected,
   onSelected,
 }: {
-  user: Meteor.User;
+  mention: MentionMatch;
   selected: boolean;
-  onSelected: (u: Meteor.User) => void;
+  onSelected: (u: MentionMatch) => void;
 }) => {
   const onClick = useCallback(() => {
-    onSelected(user);
-  }, [onSelected, user]);
-  return (
-    <MatchCandidateRow key={user._id} $selected={selected} onClick={onClick}>
-      <StyledAvatar size={24} {...user} />
-      <MatchCandidateDisplayName>{user.displayName}</MatchCandidateDisplayName>
-    </MatchCandidateRow>
-  );
+    onSelected(mention);
+  }, [onSelected, mention]);
+
+  switch (mention.type) {
+    case "mention":
+      return (
+        <MatchCandidateRow
+          key={mention.user._id}
+          $selected={selected}
+          onClick={onClick}
+        >
+          <StyledAvatar size={24} {...mention.user} />
+          <MatchCandidateDisplayName>
+            {mention.user.displayName}
+          </MatchCandidateDisplayName>
+        </MatchCandidateRow>
+      );
+    case "role-mention":
+      return (
+        <MatchCandidateRow
+          key={mention.roleId}
+          $selected={selected}
+          onClick={onClick}
+        >
+          <strong>@{mention.roleId}</strong>
+        </MatchCandidateRow>
+      );
+    default:
+      // biome-ignore lint/nursery/noUnusedExpressions: exhaustive check
+      mention satisfies never;
+      return null;
+  }
 };
 
-const PuzzleMatchCandidate = ({
-  puzzle,
-  selected,
-  onSelected,
-}: {
-  puzzle: PuzzleType;
-  selected: boolean;
-  onSelected: (p: PuzzleType) => void;
-}) => {
-  const onClick = useCallback(() => {
-    onSelected(puzzle);
-  }, [onSelected, puzzle]);
-  return (
-    <MatchCandidateRow key={puzzle._id} $selected={selected} onClick={onClick}>
-      <MatchCandidateDisplayName>{puzzle.title}</MatchCandidateDisplayName>
-    </MatchCandidateRow>
-  );
-};
-
-function matchPuzzles(
-  puzzles: PuzzleType[],
-  searchString: string,
-): PuzzleType[] {
-  if (!searchString) return [];
-
-  const needle = searchString.toLowerCase();
-  const matches = puzzles.filter((p) => {
-    const title = p.title?.toLowerCase() ?? "";
-    return title.includes(needle);
-  });
-
-  return sortedBy(matches, (p) => {
-    const title = p.title?.toLowerCase() ?? "";
-    return title.startsWith(needle) ? -1 : 0;
-  });
-}
+type MentionMatch =
+  | {
+      type: "mention";
+      user: Meteor.User;
+    }
+  | {
+      type: "role-mention";
+      roleId: AllRolesType;
+    };
 
 type AugmentedUser = Meteor.User & {
   foundDisplayName: boolean;
@@ -340,10 +429,10 @@ type AugmentedUser = Meteor.User & {
   startsDiscord: boolean;
 };
 
-function matchUsers(
+function matchMentions(
   users: Meteor.User[],
   searchString: string,
-): AugmentedUser[] {
+): MentionMatch[] {
   // No point doing all this matching work if there's no search string to match against.
   if (!searchString) return [];
 
@@ -391,10 +480,10 @@ function matchUsers(
 
   // Sort the remaining users by relevancy, with extra weight given to
   // matching at the start of the field, and with display name more important
-  // that google email address or discord username#discriminator.
+  // that google email address or discord username.
   // Note that `users` was originally sorted by displayName and that
   // `sortedBy` is a stable sort.
-  return sortedBy(augmentedMatches, (u) => {
+  const sorted = sortedBy(augmentedMatches, (u) => {
     return (
       (u.startsDisplayName ? -10000 : 0) +
       (u.startsGoogle || u.startsEmail || u.startsDiscord ? -5000 : 0) +
@@ -404,6 +493,22 @@ function matchUsers(
       (u.foundDiscord ? -5 : 0)
     );
   });
+
+  const userMentions = sorted.map((u) => {
+    return {
+      type: "mention" as const,
+      user: u,
+    };
+  });
+
+  const roleMentions = AllRoles.filter((roleId) =>
+    roleId.startsWith(needle),
+  ).map((roleId) => ({
+    type: "role-mention" as const,
+    roleId,
+  }));
+
+  return [...userMentions, ...roleMentions];
 }
 
 const StyledMessage = styled.p`
@@ -436,7 +541,6 @@ const walkTokenList = (
   let end = start;
   tokens.forEach((token) => {
     // mutual recursion requires this
-    // eslint-disable-next-line @typescript-eslint/no-use-before-define
     walkToken(token, callback, end);
     end += token.raw.length;
   });
@@ -489,7 +593,7 @@ const renderLeaf = (props: RenderLeafProps) => {
 // associated with them, and then when renderLeaf is called the leaf elements
 // will have the additional properties available.  So we run the marked lexer
 // on the text to determine what ranges should have what annotations.
-const decorate = ([node, path]: [Node, Path]) => {
+const decorate = ([node, path]: [SlateNode, Path]) => {
   const ranges: (LeafProps & Range)[] = [];
   if (!Text.isText(node)) {
     // No decorations needed for non-text elements.
@@ -571,7 +675,7 @@ const decorate = ([node, path]: [Node, Path]) => {
   );
 
   if (DEBUG_EDITOR) {
-    // eslint-disable-next-line no-console
+    // biome-ignore lint/suspicious/noConsole: migration from eslint
     console.log("decorated", ranges);
   }
   return ranges;
@@ -602,7 +706,8 @@ const Portal = ({ children }: { children: React.ReactNode }) => {
 
 export interface FancyEditorHandle {
   clearInput: () => void;
-  focus: () => void;
+  insertImage: (url: string, id: string, status: ImageStatus) => void;
+  replaceImage: (url: string, id: string, status: ImageStatus) => void;
 }
 
 const FancyEditor = React.forwardRef(
@@ -615,6 +720,7 @@ const FancyEditor = React.forwardRef(
       puzzles,
       onContentChange,
       onSubmit,
+      uploadImageFile,
       disabled,
       onPaste,
     }: {
@@ -624,7 +730,8 @@ const FancyEditor = React.forwardRef(
       users: Meteor.User[];
       puzzles: PuzzleType[];
       onContentChange: (content: Descendant[]) => void;
-      onSubmit: () => void;
+      uploadImageFile: (file: File) => void;
+      onSubmit: () => boolean;
       disabled?: boolean;
       onPaste: React.ClipboardEventHandler<HTMLDivElement>;
     },
@@ -632,7 +739,9 @@ const FancyEditor = React.forwardRef(
   ) => {
     const [editor] = useState(() => {
       const upstreamEditor = withReact(withHistory(createEditor()));
-      return withSingleMessage(withInlines(upstreamEditor));
+      return withSingleMessage(
+        withMentionsAndImages(upstreamEditor, uploadImageFile),
+      );
     });
 
     // The floating autocomplete box for @-mentions
@@ -653,6 +762,62 @@ const FancyEditor = React.forwardRef(
     const usersById = useMemo(() => indexedById(users), [users]);
     const puzzlesById = useMemo(() => indexedById(puzzles), [puzzles]);
     const editableRef = useRef<React.ElementRef<typeof Editable>>(null);
+
+    const insertImage = useCallback(
+      (url: string, tempId: string, status: ImageStatus) => {
+        const image: ImageElement = {
+          type: "image",
+          url,
+          tempId,
+          status,
+          children: [{ text: "" }],
+        };
+        if (!editor.selection) {
+          Transforms.select(editor, Editor.end(editor, []));
+        }
+        Transforms.insertNodes(editor, image);
+
+        // find the image node we just inserted by matching tempId
+        const matches = Array.from(
+          Editor.nodes(editor, {
+            at: [],
+            match: (n) =>
+              "type" in n && n.type === "image" && n.tempId === tempId,
+          }),
+        );
+
+        const imageEntry = matches.length ? matches[0] : null;
+
+        if (imageEntry) {
+          const [, imagePath] = imageEntry;
+
+          // try to get a point *after* the image
+          const pointAfter = Editor.after(editor, imagePath);
+          if (pointAfter) {
+            // select that point (places caret after the image)
+            Transforms.select(editor, pointAfter);
+            ReactEditor.focus(editor);
+          }
+        }
+      },
+      [editor],
+    );
+
+    const replaceImage = useCallback(
+      (url: string, tempId: string, status: ImageStatus) => {
+        for (const [node, path] of Node.nodes(editor)) {
+          if (
+            "type" in node &&
+            node.type === "image" &&
+            node.tempId === tempId
+          ) {
+            Transforms.setNodes(editor, { url, status }, { at: path });
+            return;
+          }
+        }
+      },
+      [editor],
+    );
 
     const clearInput = useCallback(() => {
       // Reset the document by removing all nodes under the root editor node.
@@ -682,11 +847,8 @@ const FancyEditor = React.forwardRef(
     }, [editor]);
     useImperativeHandle(forwardedRef, () => ({
       clearInput,
-      focus: () => {
-        if (editableRef.current) {
-          ReactEditor.focus(editor);
-        }
-      },
+      insertImage,
+      replaceImage,
     }));
 
     const renderElement = useCallback(
@@ -701,10 +863,19 @@ const FancyEditor = React.forwardRef(
               />
             );
           case "mention":
+          case "role-mention":
             return (
               <EditableMentionRenderer
                 users={usersById}
-                {...(props as ElementRendererProps<MentionElement>)}
+                {...(props as ElementRendererProps<
+                  MentionElement | RoleMentionElement
+                >)}
+              />
+            );
+          case "image":
+            return (
+              <ChatImageRenderer
+                {...(props as ElementRendererProps<ImageElement>)}
               />
             );
           case "message":
@@ -759,28 +930,19 @@ const FancyEditor = React.forwardRef(
       [editor, onContentChange],
     );
 
-    const matchingUsers: AugmentedUser[] = useMemo(
-      () => matchUsers(users, completionSearchString),
+    const matchingMentions: MentionMatch[] = useMemo(
+      () => matchMentions(users, completionSearchString),
       [users, completionSearchString],
-    );
-
-    const matchingPuzzles: PuzzleType[] = useMemo(
-      () => matchPuzzles(puzzles, completionSearchString),
-      [puzzles, completionSearchString],
     );
 
     const onKeyDown: React.KeyboardEventHandler<HTMLDivElement> = useCallback(
       (event) => {
-        const isActive = completionAnchorRange && completionType;
-        const currentMatches =
-          completionType === "user" ? matchingUsers : matchingPuzzles;
-
-        if (isActive && currentMatches.length > 0) {
+        if (completionAnchorRange && matchingMentions.length > 0) {
           switch (event.key) {
             case "ArrowDown": {
               event.preventDefault();
               const nextIndex =
-                completionCursorIndex >= currentMatches.length - 1
+                completionCursorIndex >= matchingMentions.length - 1
                   ? 0
                   : completionCursorIndex + 1;
               setCompletionCursorIndex(nextIndex);
@@ -790,7 +952,7 @@ const FancyEditor = React.forwardRef(
               event.preventDefault();
               const prevIndex =
                 completionCursorIndex === 0
-                  ? currentMatches.length - 1
+                  ? matchingMentions.length - 1
                   : completionCursorIndex - 1;
               setCompletionCursorIndex(prevIndex);
               return;
@@ -799,12 +961,19 @@ const FancyEditor = React.forwardRef(
             case "Enter": {
               event.preventDefault();
               Transforms.select(editor, completionAnchorRange);
-              if (completionType === "user") {
-                const user = matchingUsers[completionCursorIndex]!;
-                insertMention(editor, user._id);
-              } else if (completionType === "puzzle") {
-                const puzzle = matchingPuzzles[completionCursorIndex]!;
-                insertPuzzle(editor, puzzle._id);
+              const mention = matchingMentions[completionCursorIndex]!;
+              switch (mention.type) {
+                case "mention": {
+                  insertMention(editor, mention.user._id);
+                  break;
+                }
+                case "role-mention": {
+                  insertRoleMention(editor, mention.roleId);
+                  break;
+                }
+                default:
+                  // biome-ignore lint/nursery/noUnusedExpressions: exhaustive check
+                  mention satisfies never;
               }
               setCompletionAnchorRange(undefined);
               setCompletionType(null);
@@ -827,16 +996,15 @@ const FancyEditor = React.forwardRef(
             editor.insertText("\n");
           } else {
             event.preventDefault();
-            onSubmit();
-            clearInput();
+            if (onSubmit()) {
+              clearInput();
+            }
           }
         }
       },
       [
         completionAnchorRange,
-        completionType,
-        matchingUsers,
-        matchingPuzzles,
+        matchingMentions,
         completionCursorIndex,
         editor,
         onSubmit,
@@ -845,10 +1013,7 @@ const FancyEditor = React.forwardRef(
     );
 
     useEffect(() => {
-      if (
-        completionAnchorRange &&
-        (matchingPuzzles.length > 0 || matchingUsers.length > 0)
-      ) {
+      if (completionAnchorRange && matchingMentions.length > 0) {
         const el = ref.current;
         const domRange = ReactEditor.toDOMRange(editor, completionAnchorRange);
         const rect = domRange.getBoundingClientRect();
@@ -885,18 +1050,22 @@ const FancyEditor = React.forwardRef(
           el.style.left = `${left}px`;
         }
       }
-    }, [
-      matchingUsers.length,
-      editor,
-      completionCursorIndex,
-      completionSearchString,
-      completionAnchorRange,
-    ]);
+    }, [matchingMentions.length, editor, completionAnchorRange]);
 
-    const onUserSelected = useCallback(
-      (u: Meteor.User) => {
+    const onMentionSelected = useCallback(
+      (m: MentionMatch) => {
         Transforms.select(editor, completionAnchorRange!);
-        insertMention(editor, u._id);
+        switch (m.type) {
+          case "mention":
+            insertMention(editor, m.user._id);
+            break;
+          case "role-mention":
+            insertRoleMention(editor, m.roleId);
+            break;
+          default:
+            // biome-ignore lint/nursery/noUnusedExpressions: exhaustive check
+            m satisfies never;
+        }
         setCompletionAnchorRange(undefined);
         ReactEditor.focus(editor);
       },
@@ -930,50 +1099,32 @@ const FancyEditor = React.forwardRef(
     return (
       <Slate editor={editor} initialValue={initialContent} onChange={onChange}>
         {debugPane}
-        {completionAnchorRange &&
-          completionType === "user" &&
-          matchingUsers.length > 0 && (
-            <Portal>
-              <AutocompleteContainer
-                ref={ref}
-                style={{
-                  top: "-9999px",
-                  left: "-9999px",
-                }}
-              >
-                {matchingUsers.map((user, i) => (
+        {completionAnchorRange && matchingMentions.length > 0 && (
+          <Portal>
+            <AutocompleteContainer
+              ref={ref}
+              style={{
+                top: "-9999px",
+                left: "-9999px",
+              }}
+            >
+              {matchingMentions.map((mention, i) => {
+                return (
                   <MatchCandidate
-                    key={user._id}
-                    user={user}
+                    key={
+                      mention.type === "mention"
+                        ? mention.user._id
+                        : mention.roleId
+                    }
+                    mention={mention}
                     selected={i === completionCursorIndex}
-                    onSelected={onUserSelected}
+                    onSelected={onMentionSelected}
                   />
-                ))}
-              </AutocompleteContainer>
-            </Portal>
-          )}
-        {completionAnchorRange &&
-          completionType === "puzzle" &&
-          matchingPuzzles.length > 0 && (
-            <Portal>
-              <AutocompleteContainer
-                ref={ref}
-                style={{
-                  top: "-9999px",
-                  left: "-9999px",
-                }}
-              >
-                {matchingPuzzles.map((puzzle, i) => (
-                  <PuzzleMatchCandidate
-                    key={puzzle._id}
-                    puzzle={puzzle}
-                    selected={i === completionCursorIndex}
-                    onSelected={onPuzzleSelected}
-                  />
-                ))}
-              </AutocompleteContainer>
-            </Portal>
-          )}
+                );
+              })}
+            </AutocompleteContainer>
+          </Portal>
+        )}
         <Editable
           ref={editableRef}
           className={className}

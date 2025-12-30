@@ -1,14 +1,14 @@
 import { Meteor } from "meteor/meteor";
 import { useSubscribe, useTracker } from "meteor/react-meteor-data";
 import React, { useCallback, useEffect, useMemo } from "react";
-import { Modal, ModalBody, ModalFooter } from "react-bootstrap";
 import Alert from "react-bootstrap/Alert";
 import Button from "react-bootstrap/Button";
 import ButtonToolbar from "react-bootstrap/ButtonToolbar";
+import Modal from "react-bootstrap/Modal";
 import { createPortal } from "react-dom";
 import { Outlet, useNavigate, useParams } from "react-router-dom";
-import Hunts from "../../lib/models/Hunts";
 import type { HuntType } from "../../lib/models/Hunts";
+import Hunts from "../../lib/models/Hunts";
 import {
   userMayAddUsersToHunt,
   userMayUpdateHunt,
@@ -115,19 +115,24 @@ const HuntApp = React.memo(() => {
 
   useEffect(() => {
     const handleVisibilityChange = () => {
-      const status = document.visibilityState === 'visible' ? 'online' : 'away';
-      setUserStatus.call({hunt:huntId, type:'status', status:status});
+      const status = document.visibilityState === "visible" ? "online" : "away";
+      setUserStatus.call({ hunt: huntId, type: "status", status: status });
     };
     handleVisibilityChange();
-    document.addEventListener('visibilitychange', handleVisibilityChange);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      setUserStatus.call({hunt:huntId, type:'status', status:'offline'});
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      setUserStatus.call({ hunt: huntId, type: "status", status: "offline" });
     };
   }, [huntId]);
 
-  useSubscribe('userStatus.inc', huntId, 'status', document.visibilityState === 'visible' ? 'online' : 'away');
+  useSubscribe(
+    "userStatus.inc",
+    huntId,
+    "status",
+    document.visibilityState === "visible" ? "online" : "away",
+  );
 
   const hunt = useTracker(() => Hunts.findOneAllowingDeleted(huntId), [huntId]);
   const { member, canUndestroy, canJoin, mustAcceptTerms } = useTracker(() => {
@@ -175,14 +180,14 @@ const HuntApp = React.memo(() => {
   if (mustAcceptTerms) {
     termsModal = createPortal(
       <Modal show size="lg">
-        <ModalBody>
+        <Modal.Body>
           <Markdown text={hunt.termsOfUse!} />
-        </ModalBody>
-        <ModalFooter>
+        </Modal.Body>
+        <Modal.Footer>
           <Button variant="primary" onClick={acceptTerms}>
             Accept
           </Button>
-        </ModalFooter>
+        </Modal.Footer>
       </Modal>,
       document.body,
     );

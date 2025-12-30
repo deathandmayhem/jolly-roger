@@ -1,6 +1,11 @@
+import { useSubscribe, useTracker } from "meteor/react-meteor-data";
+import { faImage } from "@fortawesome/free-solid-svg-icons/faImage";
+import { faSpinner } from "@fortawesome/free-solid-svg-icons/faSpinner";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import type { ChangeEvent, MouseEvent } from "react";
 import React, {
   useCallback,
+  useId,
   useImperativeHandle,
   useMemo,
   useRef,
@@ -21,8 +26,10 @@ import createDocumentImageUpload from "../../methods/createDocumentImageUpload";
 import type { ImageSource } from "../../methods/insertDocumentImage";
 import insertDocumentImage from "../../methods/insertDocumentImage";
 import type { Sheet } from "../../methods/listDocumentSheets";
+import listDocumentSheets from "../../methods/listDocumentSheets";
+import GoogleScriptInfo from "../GoogleScriptInfo";
 
-export type ImageInsertModalHandle = {
+type ImageInsertModalHandle = {
   show: () => void;
 };
 
@@ -34,7 +41,9 @@ enum InsertImageSubmitState {
 
 class InvalidImage extends Error {}
 
-const validateImageForDirectUpload = async (file: File): Promise<string> => {
+export const validateImageForDirectUpload = async (
+  file: File,
+): Promise<string> => {
   if (file.size > 2 * 1024 * 1024) {
     throw new InvalidImage("Image must be less than 2MB");
   }
@@ -220,17 +229,17 @@ const InsertImageModal = React.forwardRef(
 
     const submitDisabled = submitState === InsertImageSubmitState.SUBMITTING;
 
+    const idPrefix = useId();
+
     const modal = (
       <Modal show={visible} onHide={hide}>
         <Modal.Header closeButton>Insert image</Modal.Header>
         <Form onSubmit={onSubmit}>
           <Modal.Body>
-            <FormGroup className="mb-3">
-              <FormLabel htmlFor="jr-puzzle-insert-image-sheet">
-                Choose a sheet
-              </FormLabel>
+            <FormGroup className="mb-3" controlId={`${idPrefix}-sheet-select`}>
+              <FormLabel>Choose a sheet</FormLabel>
               <FormSelect
-                id="jr-puzzle-insert-image-sheet"
+                id={`${idPrefix}-sheet-select`}
                 onChange={onChangeSheet}
                 value={sheet}
               >
@@ -253,12 +262,12 @@ const InsertImageModal = React.forwardRef(
                 />
               </Tab>
               <Tab eventKey="link" title="Link">
-                <FormGroup className="mb-3">
-                  <FormLabel htmlFor="jr-puzzle-insert-image-link">
-                    Image URL
-                  </FormLabel>
+                <FormGroup
+                  className="mb-3"
+                  controlId={`${idPrefix}-image-link`}
+                >
+                  <FormLabel>Image URL</FormLabel>
                   <FormControl
-                    id="jr-puzzle-insert-image-link"
                     type="url"
                     required={imageSource === "link"}
                     onChange={onChangeUrl}
@@ -288,4 +297,90 @@ const InsertImageModal = React.forwardRef(
   },
 );
 
-export default InsertImageModal;
+const InsertImage = ({ documentId }: { documentId: string }) => {
+  useSubscribe("googleScriptInfo");
+  const insertEnabled = useTracker(
+    () => !!GoogleScriptInfo.findOne("googleScriptInfo")?.configured,
+    [],
+  );
+  const [loading, setLoading] = useState(false);
+  const [documentSheets, setDocumentSheets] = useState<Sheet[]>([]);
+  const [renderInsertModal, setRenderInsertModal] = useState(false);
+  const insertModalRef = useRef<ImageInsertModalHandle>(null);
+  const [listSheetsError, setListSheetsError] = useState<string>();
+  const clearListSheetsError = useCallback(
+    () => setListSheetsError(undefined),
+    [],
+  );
+
+  const onStartInsert = useCallback(
+    (e: MouseEvent) => {
+      e.preventDefault();
+      setLoading(true);
+
+      listDocumentSheets.call({ documentId }, (err, sheets) => {
+        setLoading(false);
+        if (err) {
+          setListSheetsError(err.message);
+        } else if (sheets) {
+          setDocumentSheets(sheets);
+          if (renderInsertModal && insertModalRef.current) {
+            insertModalRef.current.show();
+          } else {
+            setRenderInsertModal(true);
+          }
+        }
+      });
+    },
+    [documentId, renderInsertModal],
+  );
+
+  if (!insertEnabled) {
+    return null;
+  }
+
+  const errorModal = (
+    <Modal show onHide={clearListSheetsError}>
+      <Modal.Header closeButton>
+        Error fetching sheets in spreadsheet
+      </Modal.Header>
+      <Modal.Body>
+        <p>
+          Something went wrong while fetching the list of sheets in this
+          spreadsheet (which we need to be able to insert an image). Please try
+          again, or let us know if this keeps happening.
+        </p>
+        <p>Error message: {listSheetsError}</p>
+      </Modal.Body>
+    </Modal>
+  );
+
+  return (
+    <>
+      {renderInsertModal && (
+        <InsertImageModal
+          ref={insertModalRef}
+          documentId={documentId}
+          sheets={documentSheets}
+        />
+      )}
+      {listSheetsError && createPortal(errorModal, document.body)}
+      <Button
+        variant="secondary"
+        size="sm"
+        onClick={onStartInsert}
+        disabled={loading}
+      >
+        <FontAwesomeIcon icon={faImage} /> Insert image
+        {loading && (
+          <>
+            {" "}
+            <FontAwesomeIcon icon={faSpinner} spin />
+          </>
+        )}
+      </Button>
+    </>
+  );
+};
+
+export default InsertImage;

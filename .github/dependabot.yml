@@ -7,24 +7,12 @@ updates:
       day: "friday"
     open-pull-requests-limit: 20
     ignore:
-      # All of these dependencies require Node v16 or greater
-      - dependency-name: "@typescript-eslint/eslint-plugin"
-        versions: [">=6"]
-      - dependency-name: "@typescript-eslint/parser"
-        versions: [">=6"]
-      - dependency-name: "@typescript-eslint/utils"
-        versions: [">=6"]
-      - dependency-name: "eslint-plugin-deprecation"
-        versions: [">=2"]
-      - dependency-name: "discord.js"
-        versions: [">=13"]
-      - dependency-name: "glob"
-        versions: [">=9"]
-      - dependency-name: "puppeteer"
-      - dependency-name: "@testing-library/react"
-        versions: [">=15"]
-      - dependency-name: "chai"
-        versions: [">=5"]
+      # Keep this pinned to the version of Node that we're running
+      - dependency-name: "@types/node"
+        versions: [">=23"]
+      # This has tight coupling to the version of SWC, which is provided by
+      # Meteor. Assume we'll upgrade this when we take Meteor upgrades.
+      - dependency-name: "@swc/plugin-styled-components"
     groups:
       aws:
         patterns:
@@ -32,14 +20,23 @@ updates:
       google:
         patterns:
           - "@googleapis/*"
+          - gaxios
       fontawesome:
         patterns:
           - "@fortawesome/*"
+      react:
+        patterns:
+          - "react"
+          - "react-dom"
       slate:
         patterns:
           - "slate"
           - "slate-history"
           - "slate-react"
+      typescript-eslint:
+        patterns:
+          - "typescript-eslint"
+          - "@typescript-eslint/*"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:

@@ -9,9 +9,14 @@ import ChatNotifications from "../../lib/models/ChatNotifications";
 import MeteorUsers from "../../lib/models/MeteorUsers";
 import UserStatuses from "../../lib/models/UserStatuses";
 import nodeIsMention from "../../lib/nodeIsMention";
+import nodeIsRoleMention from "../../lib/nodeIsRoleMention";
+import { queryOperatorsForHunt } from "../../lib/permission_stubs";
+import Subscribers from "../models/Subscribers";
 import type Hookset from "./Hookset";
 
 const ChatNotificationHooks: Hookset = {
+  name: "ChatNotificationHooks",
+
   async onChatMessageCreated(chatMessageId: string) {
     // This method implements notifications for both Dingwords and @-mentions together,
     // so that we do not generate duplicate notifications if a user is both @-mentioned
@@ -45,6 +50,38 @@ const ChatNotificationHooks: Hookset = {
             if (mentionedUser?.hunts?.includes(chatMessage.hunt)) {
               usersToNotify.add(mentionedUserId);
             }
+          }
+        }
+        if (nodeIsRoleMention(child)) {
+          const roleId = child.roleId;
+          if (roleId === "operator") {
+            // First check for all active operators
+            const subscribed = await Subscribers.find({
+              name: "operators",
+              [`context.${chatMessage.hunt}`]: true,
+            }).mapAsync((l) => l.user as string);
+
+            const allOperators = await MeteorUsers.find(
+              queryOperatorsForHunt({ _id: chatMessage.hunt }),
+            ).mapAsync((u) => u._id);
+
+            const active = new Set(allOperators).intersection(
+              new Set(subscribed),
+            );
+            active.delete(sender); // don't notify self
+            if (active.size > 0) {
+              active.forEach((userId) => usersToNotify.add(userId));
+            } else {
+              // No active operators; fall back to all operators
+              allOperators.forEach((userId) => {
+                if (userId !== sender) {
+                  usersToNotify.add(userId);
+                }
+              });
+            }
+          } else {
+            // biome-ignore lint/nursery/noUnusedExpressions: exhaustive check
+            roleId satisfies never;
           }
         }
       }),

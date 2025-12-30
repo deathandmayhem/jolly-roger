@@ -1,4 +1,3 @@
-/* eslint-disable jolly-roger/no-disallowed-sync-methods */
 import { check, Match } from "meteor/check";
 import type { Subscription } from "meteor/meteor";
 import { Meteor } from "meteor/meteor";
@@ -30,6 +29,11 @@ function maxDate(d1: Date | null, d2: Date | null): Date | null {
 class UserPuzzleHistoryAggregator {
   static aggregators = new Map<string, UserPuzzleHistoryAggregator>();
 
+  static pendingAggregators = new Map<
+    string,
+    Promise<UserPuzzleHistoryAggregator>
+  >();
+
   userId: string;
 
   puzzleHistoryMap: Map<string, PuzzleHistoryItem> = new Map();
@@ -48,33 +52,42 @@ class UserPuzzleHistoryAggregator {
 
   private constructor(userId: string) {
     this.userId = userId;
-    this.initializeLookupsAndData();
+  }
+
+  private async initialize() {
+    await this.initializeLookupsAndData();
     this.initializeObservers();
     this.ready = true;
   }
 
-  private initializeLookupsAndData() {
-    Hunts.find().forEach((h) => {
+  private async initializeLookupsAndData() {
+    const hunts = await Hunts.find().fetchAsync();
+    hunts.forEach((h) => {
       this.huntNames[h._id] = h.name;
     });
-    Tags.find().forEach((t) => {
+    const tags = await Tags.find().fetchAsync();
+    tags.forEach((t) => {
       this.tagNames[t._id] = t.name;
     });
 
-    const userBookmarks = Bookmarks.find({ user: this.userId }).fetch();
-    const userCallActivities = CallActivities.find({
+    const userBookmarks = await Bookmarks.find({
       user: this.userId,
-    }).fetch();
-    const userChatMessages = ChatMessages.find({
+    }).fetchAsync();
+    const userCallActivities = await CallActivities.find({
+      user: this.userId,
+    }).fetchAsync();
+    const userChatMessages = await ChatMessages.find({
       $or: [
         { sender: this.userId },
         { "content.children.userId": this.userId },
       ],
-    }).fetch();
-    const userDocumentActivities = DocumentActivities.find({
+    }).fetchAsync();
+    const userDocumentActivities = await DocumentActivities.find({
       user: this.userId,
-    }).fetch();
-    const userGuesses = Guesses.find({ createdBy: this.userId }).fetch();
+    }).fetchAsync();
+    const userGuesses = await Guesses.find({
+      createdBy: this.userId,
+    }).fetchAsync();
 
     userBookmarks.forEach((b) => this.involvedPuzzleIds.add(b.puzzle));
     userCallActivities.forEach((c) => this.involvedPuzzleIds.add(c.call));
@@ -82,9 +95,12 @@ class UserPuzzleHistoryAggregator {
     userDocumentActivities.forEach((d) => this.involvedPuzzleIds.add(d.puzzle));
     userGuesses.forEach((g) => this.involvedPuzzleIds.add(g.puzzle));
 
-    this.involvedPuzzleIds.forEach((puzzleId) => {
-      this.recomputePuzzleSummary(puzzleId, true);
-    });
+    // Recompute puzzle summaries in parallel for initial data
+    await Promise.all(
+      [...this.involvedPuzzleIds].map((puzzleId) =>
+        this.recomputePuzzleSummary(puzzleId, true),
+      ),
+    );
   }
 
   private initializeObservers() {
@@ -226,31 +242,45 @@ class UserPuzzleHistoryAggregator {
       return;
     }
 
-    const activities = [
-      ...Bookmarks.find({ user: this.userId, puzzle: puzzleId }).map((b) => ({
+    const [
+      bookmarks,
+      callActivities,
+      chatMessages,
+      documentActivities,
+      guesses,
+    ] = await Promise.all([
+      Bookmarks.find({ user: this.userId, puzzle: puzzleId }).mapAsync((b) => ({
         type: "bookmark" as const,
         ts: b.updatedAt,
       })),
-      ...CallActivities.find({ user: this.userId, call: puzzleId }).map(
+      CallActivities.find({ user: this.userId, call: puzzleId }).mapAsync(
         (c) => ({ type: "call" as const, ts: c.ts }),
       ),
-      ...ChatMessages.find({
+      ChatMessages.find({
         puzzle: puzzleId,
         $or: [
           { sender: this.userId },
           { "content.children.userId": this.userId },
         ],
-      }).map((c) => ({ type: "chat" as const, ts: c.createdAt })),
-      ...DocumentActivities.find({ user: this.userId, puzzle: puzzleId }).map(
+      }).mapAsync((c) => ({ type: "chat" as const, ts: c.createdAt })),
+      DocumentActivities.find({ user: this.userId, puzzle: puzzleId }).mapAsync(
         (d) => ({ type: "document" as const, ts: d.ts }),
       ),
-      ...Guesses.find({ createdBy: this.userId, puzzle: puzzleId }).map(
+      Guesses.find({ createdBy: this.userId, puzzle: puzzleId }).mapAsync(
         (g) => ({
           type: "guess" as const,
           ts: g.createdAt,
           correct: g.state === "correct",
         }),
       ),
+    ]);
+
+    const activities = [
+      ...bookmarks,
+      ...callActivities,
+      ...chatMessages,
+      ...documentActivities,
+      ...guesses,
     ];
 
     if (activities.length === 0) {
@@ -281,7 +311,6 @@ class UserPuzzleHistoryAggregator {
           bookmarkCounter += 1;
           break;
         case "call":
-          cases;
           callCounter += 1;
           break;
         case "document":
@@ -427,13 +456,31 @@ class UserPuzzleHistoryAggregator {
     );
   }
 
-  static get(userId: string): UserPuzzleHistoryAggregator {
+  static async get(userId: string): Promise<UserPuzzleHistoryAggregator> {
+    // Check if we already have an initialized aggregator
     let aggregator = UserPuzzleHistoryAggregator.aggregators.get(userId);
-    if (!aggregator) {
-      aggregator = new UserPuzzleHistoryAggregator(userId);
-      UserPuzzleHistoryAggregator.aggregators.set(userId, aggregator);
+    if (aggregator) {
+      return aggregator;
     }
-    return aggregator;
+
+    // Check if initialization is already in progress
+    let pendingPromise =
+      UserPuzzleHistoryAggregator.pendingAggregators.get(userId);
+    if (pendingPromise) {
+      return pendingPromise;
+    }
+
+    // Create and initialize a new aggregator
+    const initPromise = (async () => {
+      const newAggregator = new UserPuzzleHistoryAggregator(userId);
+      await newAggregator.initialize();
+      UserPuzzleHistoryAggregator.aggregators.set(userId, newAggregator);
+      UserPuzzleHistoryAggregator.pendingAggregators.delete(userId);
+      return newAggregator;
+    })();
+
+    UserPuzzleHistoryAggregator.pendingAggregators.set(userId, initPromise);
+    return initPromise;
   }
 }
 
@@ -443,13 +490,13 @@ definePublication(PuzzleHistorySummaryForUser, {
     return arg as { userId: string };
   },
 
-  run({ userId }) {
+  async run({ userId }) {
     // Authorization: User can only view their own summary (maybe we allow
     // users or admins to browse other users' histories in future?)
     if (!this.userId || this.userId !== userId) {
       throw new Meteor.Error("unauthorized");
     }
-    const aggregator = UserPuzzleHistoryAggregator.get(userId);
+    const aggregator = await UserPuzzleHistoryAggregator.get(userId);
     aggregator.addSubscription(this);
 
     return undefined;

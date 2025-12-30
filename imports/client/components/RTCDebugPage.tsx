@@ -21,7 +21,7 @@ import { faVolumeOff } from "@fortawesome/free-solid-svg-icons/faVolumeOff";
 import { faVolumeUp } from "@fortawesome/free-solid-svg-icons/faVolumeUp";
 import { faWifi } from "@fortawesome/free-solid-svg-icons/faWifi";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useId, useMemo, useState } from "react";
 import Accordion from "react-bootstrap/Accordion";
 import Alert from "react-bootstrap/Alert";
 import Button from "react-bootstrap/Button";
@@ -38,38 +38,37 @@ import { RECENT_ACTIVITY_TIME_WINDOW_MS } from "../../lib/config/webrtc";
 import isAdmin from "../../lib/isAdmin";
 import { groupedBy } from "../../lib/listUtils";
 import MeteorUsers from "../../lib/models/MeteorUsers";
-import Puzzles from "../../lib/models/Puzzles";
-import type { ServerType } from "../../lib/models/Servers";
-import Servers from "../../lib/models/Servers";
 import CallHistories from "../../lib/models/mediasoup/CallHistories";
 import ConnectAcks from "../../lib/models/mediasoup/ConnectAcks";
 import ConnectRequests from "../../lib/models/mediasoup/ConnectRequests";
 import ConsumerAcks from "../../lib/models/mediasoup/ConsumerAcks";
-import Consumers from "../../lib/models/mediasoup/Consumers";
 import type { ConsumerType } from "../../lib/models/mediasoup/Consumers";
-import Peers from "../../lib/models/mediasoup/Peers";
+import Consumers from "../../lib/models/mediasoup/Consumers";
 import type { PeerType } from "../../lib/models/mediasoup/Peers";
-import ProducerClients from "../../lib/models/mediasoup/ProducerClients";
+import Peers from "../../lib/models/mediasoup/Peers";
 import type { ProducerClientType } from "../../lib/models/mediasoup/ProducerClients";
+import ProducerClients from "../../lib/models/mediasoup/ProducerClients";
 import ProducerServers from "../../lib/models/mediasoup/ProducerServers";
-import Rooms from "../../lib/models/mediasoup/Rooms";
 import type { RoomType } from "../../lib/models/mediasoup/Rooms";
-import Routers from "../../lib/models/mediasoup/Routers";
+import Rooms from "../../lib/models/mediasoup/Rooms";
 import type { RouterType } from "../../lib/models/mediasoup/Routers";
+import Routers from "../../lib/models/mediasoup/Routers";
 import TransportRequests from "../../lib/models/mediasoup/TransportRequests";
 import TransportStates from "../../lib/models/mediasoup/TransportStates";
 import type { TransportType } from "../../lib/models/mediasoup/Transports";
 import Transports from "../../lib/models/mediasoup/Transports";
+import Puzzles from "../../lib/models/Puzzles";
+import type { ServerType } from "../../lib/models/Servers";
+import Servers from "../../lib/models/Servers";
 import Avatar from "./Avatar";
 import CopyToClipboardButton from "./CopyToClipboardButton";
 import Loading from "./Loading";
 
-const ClipButton = ({ text, id }: { text: string; id: string }) => {
+const ClipButton = ({ text }: { text: string }) => {
   return (
     <>
       <CopyToClipboardButton
         text={text}
-        tooltipId={id}
         variant="secondary"
         aria-label="Copy"
         size="sm"
@@ -175,14 +174,14 @@ const StyledJSONDisplayPre = styled.pre<{ $collapsed?: boolean }>`
     `}
 `;
 
-const JSONDisplay = ({ id, json }: { id: string; json: string }) => {
+const JSONDisplay = ({ json }: { json: string }) => {
   const [collapse, setCollapse] = useState(true);
 
   return (
     <StyledJSONDisplayContainer fluid>
       <Row>
         <StyledJSONDisplayButtonCol xs="auto">
-          <ClipButton id={id} text={json} />
+          <ClipButton text={json} />
           <Button variant="link" onClick={() => setCollapse(!collapse)}>
             <FontAwesomeIcon icon={collapse ? faCaretRight : faCaretDown} />
           </Button>
@@ -213,17 +212,22 @@ const Producer = ({ producer }: { producer: ProducerClientType }) => {
     if (!producerServer) {
       return [
         "Connecting",
-        <FontAwesomeIcon icon={faSpinner} spin fixedWidth />,
+        <FontAwesomeIcon key="spinner" icon={faSpinner} spin fixedWidth />,
       ];
     } else if (producer.paused) {
-      return ["Paused", <FontAwesomeIcon icon={faPause} fixedWidth />];
+      return [
+        "Paused",
+        <FontAwesomeIcon key="pause" icon={faPause} fixedWidth />,
+      ];
     } else {
       return [
         "Broadcasting",
-        <FontAwesomeIcon icon={faBroadcastTower} fixedWidth />,
+        <FontAwesomeIcon key="broadcast" icon={faBroadcastTower} fixedWidth />,
       ];
     }
   }, [producer.paused, producerServer]);
+
+  const tooltipIdPrefix = useId();
 
   return (
     <Accordion.Item eventKey={producer._id}>
@@ -231,7 +235,7 @@ const Producer = ({ producer }: { producer: ProducerClientType }) => {
         <OverlayTrigger
           placement="top"
           overlay={
-            <Tooltip id={`tooltip-producer-kind-${producer._id}`}>
+            <Tooltip id={`${tooltipIdPrefix}-kind`}>
               {producer.kind === "audio" ? "Audio" : "Video"}
             </Tooltip>
           }
@@ -244,9 +248,7 @@ const Producer = ({ producer }: { producer: ProducerClientType }) => {
         <OverlayTrigger
           placement="top"
           overlay={
-            <Tooltip id={`tooltip-producer-status-${producer._id}`}>
-              {statusTooltip}
-            </Tooltip>
+            <Tooltip id={`${tooltipIdPrefix}-status`}>{statusTooltip}</Tooltip>
           }
         >
           {statusIcon}
@@ -274,20 +276,14 @@ const Producer = ({ producer }: { producer: ProducerClientType }) => {
                 Producer ID (Meteor server-side)
               </Col>
               <Col as="dd" xs={10}>
-                <ClipButton
-                  id={`producer-server-${producerServer._id}`}
-                  text={producerServer._id}
-                />
+                <ClipButton text={producerServer._id} />
                 <code>{producerServer._id}</code>
               </Col>
               <Col as="dt" xs={2}>
                 Producer ID (Mediasoup)
               </Col>
               <Col as="dd" xs={10}>
-                <ClipButton
-                  id={`producer-server-producer-id-${producerServer.producerId}`}
-                  text={producerServer.producerId}
-                />
+                <ClipButton text={producerServer.producerId} />
                 <code>{producerServer.producerId}</code>
               </Col>
             </>
@@ -296,20 +292,14 @@ const Producer = ({ producer }: { producer: ProducerClientType }) => {
             Track ID (client-side)
           </Col>
           <Col as="dd" xs={10}>
-            <ClipButton
-              id={`producer-track-id-${producer._id}`}
-              text={producer.trackId}
-            />
+            <ClipButton text={producer.trackId} />
             <code>{producer.trackId}</code>
           </Col>
           <Col as="dt" xs={2}>
             RTP parameters
           </Col>
           <Col as="dd" xs={10}>
-            <JSONDisplay
-              id={`producer-rtp-parameters-${producer._id}`}
-              json={producer.rtpParameters}
-            />
+            <JSONDisplay json={producer.rtpParameters} />
           </Col>
         </Row>
       </Accordion.Body>
@@ -327,12 +317,18 @@ const Consumer = ({ consumer }: { consumer: ConsumerType }) => {
     if (!consumerAcked) {
       return [
         "Connecting",
-        <FontAwesomeIcon icon={faSpinner} spin fixedWidth />,
+        <FontAwesomeIcon key="spinner" icon={faSpinner} spin fixedWidth />,
       ];
     } else if (consumer.paused) {
-      return ["Paused", <FontAwesomeIcon icon={faPause} fixedWidth />];
+      return [
+        "Paused",
+        <FontAwesomeIcon key="pause" icon={faPause} fixedWidth />,
+      ];
     } else {
-      return ["Active", <FontAwesomeIcon icon={faPlay} fixedWidth />];
+      return [
+        "Active",
+        <FontAwesomeIcon key="play" icon={faPlay} fixedWidth />,
+      ];
     }
   }, [consumer.paused, consumerAcked]);
 
@@ -341,13 +337,15 @@ const Consumer = ({ consumer }: { consumer: ConsumerType }) => {
     [consumer.producerPeer],
   );
 
+  const tooltipIdPrefix = useId();
+
   return (
     <Accordion.Item eventKey={consumer._id}>
       <Accordion.Header>
         <OverlayTrigger
           placement="top"
           overlay={
-            <Tooltip id={`tooltip-consumer-kind-${consumer._id}`}>
+            <Tooltip id={`${tooltipIdPrefix}-kind`}>
               {consumer.kind === "audio" ? "Audio" : "Video"}
             </Tooltip>
           }
@@ -360,9 +358,7 @@ const Consumer = ({ consumer }: { consumer: ConsumerType }) => {
         <OverlayTrigger
           placement="top"
           overlay={
-            <Tooltip id={`tooltip-consumer-status-${consumer._id}`}>
-              {statusTooltip}
-            </Tooltip>
+            <Tooltip id={`${tooltipIdPrefix}-status`}>{statusTooltip}</Tooltip>
           }
         >
           {statusIcon}
@@ -393,20 +389,14 @@ const Consumer = ({ consumer }: { consumer: ConsumerType }) => {
             Consumer ID (Mediasoup)
           </Col>
           <Col as="dd" xs={10}>
-            <ClipButton
-              id={`consumer-id-${consumer._id}`}
-              text={consumer.consumerId}
-            />
+            <ClipButton text={consumer.consumerId} />
             <code>{consumer.consumerId}</code>
           </Col>
           <Col as="dt" xs={2}>
             RTP parameters
           </Col>
           <Col as="dd" xs={10}>
-            <JSONDisplay
-              id={`consumer-rtp-parameters-${consumer._id}`}
-              json={consumer.rtpParameters}
-            />
+            <JSONDisplay json={consumer.rtpParameters} />
           </Col>
         </Row>
       </Accordion.Body>
@@ -452,16 +442,19 @@ const Transport = ({ transport }: { transport: TransportType }) => {
 
   const [statusTooltip, statusIcon] = useMemo(() => {
     if (connectionCompleted) {
-      return ["Connected", <FontAwesomeIcon icon={faWifi} fixedWidth />];
+      return [
+        "Connected",
+        <FontAwesomeIcon key="wifi" icon={faWifi} fixedWidth />,
+      ];
     } else if (connectionStarted) {
       return [
         "Connecting",
-        <FontAwesomeIcon icon={faSpinner} fixedWidth spin />,
+        <FontAwesomeIcon key="spinner" icon={faSpinner} fixedWidth spin />,
       ];
     } else {
       return [
         "Not connected",
-        <span className="fa-layers fa-fw">
+        <span key="not-connected" className="fa-layers fa-fw">
           <FontAwesomeIcon icon={faWifi} fixedWidth />
           <FontAwesomeIcon icon={faSlash} fixedWidth />
         </span>,
@@ -477,15 +470,15 @@ const Transport = ({ transport }: { transport: TransportType }) => {
     }
   }, [transport.direction]);
 
+  const tooltipIdPrefix = useId();
+
   return (
     <Accordion.Item eventKey={transport._id}>
       <Accordion.Header>
         <OverlayTrigger
           placement="top"
           overlay={
-            <Tooltip id={`tooltip-transport-status-${transport._id}`}>
-              {statusTooltip}
-            </Tooltip>
+            <Tooltip id={`${tooltipIdPrefix}-status`}>{statusTooltip}</Tooltip>
           }
         >
           {statusIcon}
@@ -493,7 +486,7 @@ const Transport = ({ transport }: { transport: TransportType }) => {
         <OverlayTrigger
           placement="top"
           overlay={
-            <Tooltip id={`tooltip-transport-direction-${transport._id}`}>
+            <Tooltip id={`${tooltipIdPrefix}-direction`}>
               {directionTooltip}
             </Tooltip>
           }
@@ -520,38 +513,26 @@ const Transport = ({ transport }: { transport: TransportType }) => {
             Transport ID (Mediasoup)
           </Col>
           <Col as="dd" xs={10}>
-            <ClipButton
-              id={`transport-id-${transport.transportId}`}
-              text={transport.transportId}
-            />
+            <ClipButton text={transport.transportId} />
             <code>{transport.transportId}</code>
           </Col>
           <Col as="dt" xs={2}>
             ICE Parameters
           </Col>
           <Col as="dd" xs={10}>
-            <JSONDisplay
-              id={`transport-ice-parameters-${transport._id}`}
-              json={transport.iceParameters}
-            />
+            <JSONDisplay json={transport.iceParameters} />
           </Col>
           <Col as="dt" xs={2}>
             ICE Candidates
           </Col>
           <Col as="dd" xs={10}>
-            <JSONDisplay
-              id={`transport-ice-candidates-${transport._id}`}
-              json={transport.iceCandidates}
-            />
+            <JSONDisplay json={transport.iceCandidates} />
           </Col>
           <Col as="dt" xs={2}>
             Server DTLS Parameters
           </Col>
           <Col as="dd" xs={10}>
-            <JSONDisplay
-              id={`transport-dtlsparameters-${transport._id}`}
-              json={transport.dtlsParameters}
-            />
+            <JSONDisplay json={transport.dtlsParameters} />
           </Col>
           {connectionParams && (
             <>
@@ -559,10 +540,7 @@ const Transport = ({ transport }: { transport: TransportType }) => {
                 Client DTLS Parameters
               </Col>
               <Col as="dd" xs={10}>
-                <JSONDisplay
-                  id={`connection-params-${connectionParams._id}`}
-                  json={connectionParams.dtlsParameters}
-                />
+                <JSONDisplay json={connectionParams.dtlsParameters} />
               </Col>
             </>
           )}
@@ -579,10 +557,7 @@ const Transport = ({ transport }: { transport: TransportType }) => {
               </Col>
               <Col as="dd" xs={10}>
                 {transportState.iceSelectedTuple ? (
-                  <JSONDisplay
-                    id={`transport-state-ice-selected-tuple-${transportState._id}`}
-                    json={transportState.iceSelectedTuple}
-                  />
+                  <JSONDisplay json={transportState.iceSelectedTuple} />
                 ) : (
                   <code>undefined</code>
                 )}
@@ -650,13 +625,15 @@ const Peer = ({ peer }: { peer: PeerType }) => {
     [peer._id],
   );
 
+  const tooltipIdPrefix = useId();
+
   return (
     <Accordion.Item eventKey={peer._id}>
       <Accordion.Header>
         <OverlayTrigger
           placement="top"
           overlay={
-            <Tooltip id={`tooltip-peer-muted-${peer._id}`}>
+            <Tooltip id={`${tooltipIdPrefix}-muted`}>
               {peer.muted ? "Muted" : "Unmuted"}
             </Tooltip>
           }
@@ -669,7 +646,7 @@ const Peer = ({ peer }: { peer: PeerType }) => {
         <OverlayTrigger
           placement="top"
           overlay={
-            <Tooltip id={`tooltip-peer-deafened-${peer._id}`}>
+            <Tooltip id={`${tooltipIdPrefix}-deafened`}>
               {peer.deafened ? "Deafened" : "Undeafened"}
             </Tooltip>
           }
@@ -707,7 +684,7 @@ const Peer = ({ peer }: { peer: PeerType }) => {
             <ul>
               {transportRequests.map(({ _id: id }) => (
                 <li key={id}>
-                  <ClipButton id={`transport-request-${id}`} text={id} />
+                  <ClipButton text={id} />
                   <code>{id}</code>
                 </li>
               ))}
@@ -719,17 +696,14 @@ const Peer = ({ peer }: { peer: PeerType }) => {
             Meteor Server
           </Col>
           <Col as="dd" xs={10}>
-            <ClipButton
-              id={`peer-created-server-${peer._id}`}
-              text={peer.createdServer}
-            />
+            <ClipButton text={peer.createdServer} />
             <code>{peer.createdServer}</code>
           </Col>
           <Col as="dt" xs={2}>
             Tab
           </Col>
           <Col as="dd" xs={10}>
-            <ClipButton id={`peer-created-tab-${peer._id}`} text={peer.tab} />
+            <ClipButton text={peer.tab} />
             <code>{peer.tab}</code>
           </Col>
           {transportRequests.length > 0 && (
@@ -738,10 +712,7 @@ const Peer = ({ peer }: { peer: PeerType }) => {
                 RTP capabilities
               </Col>
               <Col as="dd" xs={10}>
-                <JSONDisplay
-                  id={`transport-requests-${transportRequests[0]!._id}`}
-                  json={transportRequests[0]!.rtpCapabilities}
-                />
+                <JSONDisplay json={transportRequests[0]!.rtpCapabilities} />
               </Col>
             </>
           )}
@@ -777,27 +748,21 @@ const RouterDetails = ({ router }: { router: RouterType }) => {
         Router ID (Meteor)
       </Col>
       <Col as="dd" xs={10}>
-        <ClipButton id={`router-${router._id}`} text={router._id} />
+        <ClipButton text={router._id} />
         <code>{router._id}</code>
       </Col>
       <Col as="dt" xs={2}>
         Router ID (Mediasoup)
       </Col>
       <Col as="dd" xs={10}>
-        <ClipButton
-          id={`router-router-id-${router._id}`}
-          text={router.routerId}
-        />
+        <ClipButton text={router.routerId} />
         <code>{router.routerId}</code>
       </Col>
       <Col as="dt" xs={2}>
         RTP capabilities
       </Col>
       <Col as="dd" xs={10}>
-        <JSONDisplay
-          id={`router-${router._id}`}
-          json={router.rtpCapabilities}
-        />
+        <JSONDisplay json={router.rtpCapabilities} />
       </Col>
     </>
   );
@@ -835,13 +800,14 @@ const Room = ({ room }: { room: RoomType }) => {
     () => Peers.find({ call: room.call }, { sort: { createdAt: 1 } }).fetch(),
     [room.call],
   );
+  const tooltipIdPrefix = useId();
   return (
     <Accordion.Item eventKey={room._id}>
       <Accordion.Header>
         <OverlayTrigger
           placement="top"
           overlay={
-            <Tooltip id={`tooltip-room-active-${room._id}`}>
+            <Tooltip id={`${tooltipIdPrefix}-active`}>
               {recentActivity
                 ? `Recent activity in the last ${
                     RECENT_ACTIVITY_TIME_WINDOW_MS / 1000
@@ -873,7 +839,7 @@ const Room = ({ room }: { room: RoomType }) => {
             Room ID
           </Col>
           <Col as="dd" xs={10}>
-            <ClipButton id={`room-id-${room._id}`} text={room._id} />
+            <ClipButton text={room._id} />
             <code>{room._id}</code>
           </Col>
           <Col as="dt" xs={2}>
@@ -886,10 +852,7 @@ const Room = ({ room }: { room: RoomType }) => {
             Server
           </Col>
           <Col as="dd" xs={10}>
-            <ClipButton
-              id={`room-routed-server-${room._id}`}
-              text={room.routedServer}
-            />
+            <ClipButton text={room.routedServer} />
             <code>{room.routedServer}</code>
           </Col>
           <Col as="dt" xs={2}>
@@ -965,18 +928,15 @@ const RoomlessPeers = ({ calls }: { calls: string[] }) => {
                   <UserDisplay userId={p.createdBy} />
                 </td>
                 <td>
-                  <ClipButton id={`roomless-peer-${p._id}`} text={p._id} />
+                  <ClipButton text={p._id} />
                   <code>{p._id}</code>
                 </td>
                 <td>
-                  <ClipButton id={`roomless-peer-tab-${p._id}`} text={p.tab} />
+                  <ClipButton text={p.tab} />
                   <code>{p.tab}</code>
                 </td>
                 <td>
-                  <ClipButton
-                    id={`roomless-peer-created-server-${p._id}`}
-                    text={p.createdServer}
-                  />
+                  <ClipButton text={p.createdServer} />
                   <code>{p.createdServer}</code>
                 </td>
                 <td>{p.createdAt.toISOString()}</td>
@@ -1021,21 +981,15 @@ const ServerTable = ({ servers }: { servers: ServerType[] }) => {
             return (
               <tr key={s._id}>
                 <td>
-                  <ClipButton id={`server-id-${s._id}`} text={s._id} />
+                  <ClipButton text={s._id} />
                   <code>{s._id}</code>
                 </td>
                 <td>
-                  <ClipButton
-                    id={`server-hostname-${s._id}`}
-                    text={s.hostname}
-                  />
+                  <ClipButton text={s.hostname} />
                   <code>{s.hostname}</code>
                 </td>
                 <td>
-                  <ClipButton
-                    id={`server-pid-${s._id}`}
-                    text={s.pid.toString()}
-                  />
+                  <ClipButton text={s.pid.toString()} />
                   <code>{s.pid}</code>
                 </td>
                 <td>{s.updatedAt.toISOString()}</td>

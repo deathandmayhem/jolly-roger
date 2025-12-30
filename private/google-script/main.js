@@ -145,7 +145,7 @@ const METHODS = {
   },
 };
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+// biome-ignore lint/correctness/noUnusedVariables: This is part of the Apps Script API
 function doPost(e) {
   if (e.postData?.type !== "application/json") {
     return ContentService.createTextOutput(

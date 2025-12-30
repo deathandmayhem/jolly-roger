@@ -1,9 +1,8 @@
-import { Google } from "meteor/google-oauth";
 import type { Meteor } from "meteor/meteor";
 import { OAuth } from "meteor/oauth";
 import { useTracker } from "meteor/react-meteor-data";
 import { ServiceConfiguration } from "meteor/service-configuration";
-import React, { useCallback, useMemo, useState } from "react";
+import { useCallback, useId, useMemo, useState } from "react";
 import Alert from "react-bootstrap/Alert";
 import Button from "react-bootstrap/Button";
 import Container from "react-bootstrap/Container";
@@ -17,137 +16,16 @@ import { formatDiscordName } from "../../lib/discord";
 import type { APIKeyType } from "../../lib/models/APIKeys";
 import createAPIKey from "../../methods/createAPIKey";
 import linkUserDiscordAccount from "../../methods/linkUserDiscordAccount";
-import linkUserGoogleAccount from "../../methods/linkUserGoogleAccount";
 import unlinkUserDiscordAccount from "../../methods/unlinkUserDiscordAccount";
-import unlinkUserGoogleAccount from "../../methods/unlinkUserGoogleAccount";
 import updateProfile from "../../methods/updateProfile";
 import { requestDiscordCredential } from "../discord";
 import useTeamName from "../hooks/useTeamName";
-import APIKeysTable from "./APIKeysTable";
 import ActionButtonRow from "./ActionButtonRow";
+import APIKeysTable from "./APIKeysTable";
 import AudioConfig from "./AudioConfig";
 import Avatar from "./Avatar";
+import GoogleLinkBlock from "./GoogleLinkBlock";
 import LabelledRadioGroup from "./LabelledRadioGroup";
-
-enum GoogleLinkBlockLinkState {
-  IDLE = "idle",
-  LINKING = "linking",
-  ERROR = "error",
-}
-
-type GoogleLinkBlockState =
-  | { state: GoogleLinkBlockLinkState.IDLE | GoogleLinkBlockLinkState.LINKING }
-  | { state: GoogleLinkBlockLinkState.ERROR; error: Error };
-
-const GoogleLinkBlock = ({ user }: { user: Meteor.User }) => {
-  const [state, setState] = useState<GoogleLinkBlockState>({
-    state: GoogleLinkBlockLinkState.IDLE,
-  });
-
-  const config = useTracker(
-    () => ServiceConfiguration.configurations.findOne({ service: "google" }),
-    [],
-  );
-  const googleDisabled = useTracker(() => Flags.active("disable.google"), []);
-
-  const requestComplete = useCallback((token: string) => {
-    const secret = OAuth._retrieveCredentialSecret(token);
-    if (!secret) {
-      setState({ state: GoogleLinkBlockLinkState.IDLE });
-      return;
-    }
-
-    linkUserGoogleAccount.call({ key: token, secret }, (error) => {
-      if (error) {
-        setState({ state: GoogleLinkBlockLinkState.ERROR, error });
-      } else {
-        setState({ state: GoogleLinkBlockLinkState.IDLE });
-      }
-    });
-  }, []);
-
-  const onLink = useCallback(() => {
-    setState({ state: GoogleLinkBlockLinkState.LINKING });
-    Google.requestCredential(requestComplete);
-  }, [requestComplete]);
-
-  const onUnlink = useCallback(() => {
-    unlinkUserGoogleAccount.call();
-  }, []);
-
-  const dismissAlert = useCallback(() => {
-    setState({ state: GoogleLinkBlockLinkState.IDLE });
-  }, []);
-
-  const linkButton = () => {
-    if (state.state === GoogleLinkBlockLinkState.LINKING) {
-      return (
-        <Button variant="primary" disabled>
-          Linking...
-        </Button>
-      );
-    }
-
-    if (googleDisabled) {
-      return (
-        <Button variant="primary" disabled>
-          Google integration currently disabled
-        </Button>
-      );
-    }
-
-    const text = user.googleAccount
-      ? "Link a different Google account"
-      : "Link your Google account";
-
-    return (
-      <Button variant="primary" onClick={onLink}>
-        {text}
-      </Button>
-    );
-  };
-
-  if (!config) {
-    return <div />;
-  }
-
-  return (
-    <FormGroup className="mb-3">
-      <FormLabel>Google Account</FormLabel>
-      {state.state === "error" ? (
-        <Alert variant="danger" dismissible onClose={dismissAlert}>
-          Linking Google account failed: {state.error.message}
-        </Alert>
-      ) : undefined}
-      <div>
-        {user.googleAccount ? (
-          <div>Currently linked to {user.googleAccount}</div>
-        ) : undefined}
-        {linkButton()}{" "}
-        {user.googleAccount ? (
-          <Button variant="danger" onClick={onUnlink}>
-            Unlink
-          </Button>
-        ) : undefined}
-      </div>
-      <FormText>
-        Linking your Google account isn&apos;t required, but this will let other
-        people see who you are on puzzles&apos; Google Spreadsheet docs (instead
-        of being an{" "}
-        <a
-          href="https://support.google.com/docs/answer/2494888?visit_id=1-636184745566842981-35709989&hl=en&rd=1"
-          rel="noopener noreferrer"
-          target="_blank"
-        >
-          anonymous animal
-        </a>
-        ), and we&apos;ll use it to give you access to our practice puzzles.
-        (You can only have one Google account linked, so linking a new one will
-        cause us to forget the old one).
-      </FormText>
-    </FormGroup>
-  );
-};
 
 enum DiscordLinkBlockLinkState {
   IDLE = "idle",
@@ -258,7 +136,7 @@ const DiscordLinkBlock = ({ user }: { user: Meteor.User }) => {
   return (
     <FormGroup className="mb-3">
       <FormLabel>Discord account</FormLabel>
-      {state.state === "error" ? (
+      {state.state === DiscordLinkBlockLinkState.ERROR ? (
         <Alert variant="danger" dismissible onClose={dismissAlert}>
           Linking Discord account failed: {state.error.message}
         </Alert>
@@ -433,37 +311,18 @@ const OwnProfilePage = ({
     setSubmitState(OwnProfilePageSubmitState.IDLE);
   }, []);
 
-  const shouldDisableForm = submitState === "submitting";
+  const shouldDisableForm =
+    submitState === OwnProfilePageSubmitState.SUBMITTING;
 
-  const linkGoogleAlert = !initialUser.googleAccount ? (
-    <Alert variant="danger">
-      Please link your Google account below for full functionality.
-    </Alert>
-  ) : null;
-
-  const discordConfig = useTracker(
-    () => ServiceConfiguration.configurations.findOne({ service: "discord" }),
-    [],
-  );
-  const discordDisabled = useTracker(() => Flags.active("disable.discord"), []);
-
-  const linkDiscordAlert =
-    discordConfig && !discordDisabled && !initialUser.discordAccount ? (
-      <Alert variant="danger">
-        Please link your Discord account below for full functionality.
-      </Alert>
-    ) : null;
+  const idPrefix = useId();
 
   return (
     <Container>
-      {linkGoogleAlert}
-      {linkDiscordAlert}
       <h1>Account information</h1>
       <Avatar {...initialUser} size={64} />
-      <FormGroup className="mb-3">
-        <FormLabel htmlFor="jr-profile-edit-email">Email address</FormLabel>
+      <FormGroup className="mb-3" controlId={`${idPrefix}-email`}>
+        <FormLabel>Email address</FormLabel>
         <FormControl
-          id="jr-profile-edit-email"
           type="text"
           value={initialUser.emails![0]!.address}
           disabled
@@ -474,12 +333,9 @@ const OwnProfilePage = ({
 
       <DiscordLinkBlock user={initialUser} />
 
-      <FormGroup className="mb-3">
-        <FormLabel htmlFor="jr-profile-edit-display-name">
-          Display name
-        </FormLabel>
+      <FormGroup className="mb-3" controlId={`${idPrefix}-display-name`}>
+        <FormLabel>Display name</FormLabel>
         <FormControl
-          id="jr-profile-edit-display-name"
           type="text"
           value={displayName}
           disabled={shouldDisableForm}
@@ -488,12 +344,9 @@ const OwnProfilePage = ({
         <FormText>We suggest your full name, to avoid ambiguity.</FormText>
       </FormGroup>
 
-      <FormGroup className="mb-3">
-        <FormLabel htmlFor="jr-profile-edit-phone">
-          Phone number (optional)
-        </FormLabel>
+      <FormGroup className="mb-3" controlId={`${idPrefix}-phone`}>
+        <FormLabel>Phone number (optional)</FormLabel>
         <FormControl
-          id="jr-profile-edit-phone"
           type="text"
           value={phoneNumber}
           disabled={shouldDisableForm}
@@ -502,12 +355,11 @@ const OwnProfilePage = ({
         <FormText>In case we need to reach you via phone.</FormText>
       </FormGroup>
 
-      <FormGroup className="mb-3">
+      <FormGroup className="mb-3" controlId={`${idPrefix}-dingwords`}>
         <FormLabel htmlFor="jr-profile-edit-dingwords">
           Dingwords (comma-separated)
         </FormLabel>
         <FormControl
-          id="jr-profile-edit-dingwords"
           type="text"
           value={dingwordsFlat}
           disabled={shouldDisableForm}
@@ -521,12 +373,14 @@ const OwnProfilePage = ({
         </FormText>
       </FormGroup>
 
-      <FormGroup className="mb-3">
-        <FormLabel htmlFor="jr-profile-edit-dingwords">
+      <FormGroup
+        className="mb-3"
+        controlId={`${idPrefix}-dingwords-match-once`}
+      >
+        <FormLabel htmlFor={`${idPrefix}-dingwords-match-once`}>
           Dingwords <strong>once per puzzle</strong> (comma-separated)
         </FormLabel>
         <FormControl
-          id="jr-profile-edit-dingwords"
           type="text"
           value={dingwordsMatchOnceFlat}
           disabled={shouldDisableForm}
@@ -539,13 +393,13 @@ const OwnProfilePage = ({
         </FormText>
       </FormGroup>
 
-      <FormGroup className="mb-3">
-        <FormLabel htmlFor="jr-profile-dingwords-open">
+      <FormGroup className="mb-3" controlId={`${idPrefix}-dingwords-open`}>
+        <FormLabel htmlFor={`${idPrefix}-dingwords-open`}>
           Dingwords matching mode
         </FormLabel>
         <LabelledRadioGroup
           header=""
-          name="jr-new-puzzle-doc-type"
+          name={`${idPrefix}-dingwords-open`}
           options={[
             {
               value: "exact",
@@ -604,7 +458,7 @@ const OwnProfilePage = ({
 
       <AudioConfig />
 
-      <section className="advanced-section mt-3">
+      <section className="mt-3">
         <h2>Advanced</h2>
         <APIKeysSection apiKeys={apiKeys} />
       </section>

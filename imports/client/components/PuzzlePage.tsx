@@ -14,7 +14,6 @@ import { faKey } from "@fortawesome/free-solid-svg-icons/faKey";
 import { faMapPin } from "@fortawesome/free-solid-svg-icons/faMapPin";
 import { faPaperPlane } from "@fortawesome/free-solid-svg-icons/faPaperPlane";
 import { faPuzzlePiece } from "@fortawesome/free-solid-svg-icons/faPuzzlePiece";
-import { faSpinner } from "@fortawesome/free-solid-svg-icons/faSpinner";
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes";
 import { faXmark } from "@fortawesome/free-solid-svg-icons/faXmark";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -27,6 +26,7 @@ import React, {
   ReactElement,
   useCallback,
   useEffect,
+  useId,
   useImperativeHandle,
   useLayoutEffect,
   useMemo,
@@ -44,8 +44,9 @@ import FormLabel from "react-bootstrap/FormLabel";
 import FormText from "react-bootstrap/FormText";
 import InputGroup from "react-bootstrap/InputGroup";
 import Modal from "react-bootstrap/Modal";
+import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Row from "react-bootstrap/Row";
-import Tooltip from "react-bootstrap/esm/Tooltip";
+import Tooltip from "react-bootstrap/Tooltip";
 import { createPortal } from "react-dom";
 import { Link, useLocation, useParams } from "react-router-dom";
 import { select, type Descendant } from "slate";
@@ -61,22 +62,28 @@ import type { ChatAttachmentType, ChatMessageType } from "../../lib/models/ChatM
 import ChatMessages from "../../lib/models/ChatMessages";
 import Documents, { DOCUMENT_TYPES } from "../../lib/models/Documents";
 import type { DocumentType } from "../../lib/models/Documents";
-import Guesses from "../../lib/models/Guesses";
 import type { GuessType } from "../../lib/models/Guesses";
+import Guesses from "../../lib/models/Guesses";
 import Hunts from "../../lib/models/Hunts";
 import MeteorUsers from "../../lib/models/MeteorUsers";
-import Puzzles from "../../lib/models/Puzzles";
 import type { PuzzleType } from "../../lib/models/Puzzles";
-import Tags from "../../lib/models/Tags";
+import Puzzles from "../../lib/models/Puzzles";
 import type { TagType } from "../../lib/models/Tags";
+import Tags from "../../lib/models/Tags";
+import nodeIsImage from "../../lib/nodeIsImage";
 import nodeIsMention from "../../lib/nodeIsMention";
+import nodeIsRoleMention from "../../lib/nodeIsRoleMention";
 import nodeIsText from "../../lib/nodeIsText";
-import { userMayWritePuzzlesForHunt } from "../../lib/permission_stubs";
+import {
+  listAllRolesForHunt,
+  userMayWritePuzzlesForHunt,
+} from "../../lib/permission_stubs";
 import chatMessagesForPuzzle from "../../lib/publications/chatMessagesForPuzzle";
 import puzzleForPuzzlePage from "../../lib/publications/puzzleForPuzzlePage";
 import { computeSolvedness } from "../../lib/solvedness";
 import addPuzzleAnswer from "../../methods/addPuzzleAnswer";
 import addPuzzleTag from "../../methods/addPuzzleTag";
+import createChatImageUpload from "../../methods/createChatImageUpload";
 import createGuess from "../../methods/createGuess";
 import ensurePuzzleDocument from "../../methods/ensurePuzzleDocument";
 import type { Sheet } from "../../methods/listDocumentSheets";
@@ -87,7 +94,7 @@ import removePuzzleTag from "../../methods/removePuzzleTag";
 import sendChatMessage from "../../methods/sendChatMessage";
 import undestroyPuzzle from "../../methods/undestroyPuzzle";
 import updatePuzzle from "../../methods/updatePuzzle";
-import GoogleScriptInfo from "../GoogleScriptInfo";
+import EnabledChatImage from "../EnabledChatImage";
 import { useBreadcrumb } from "../hooks/breadcrumb";
 import useBlockUpdate from "../hooks/useBlockUpdate";
 import type { Action, CallState } from "../hooks/useCallState";
@@ -117,15 +124,15 @@ import PuzzleModalForm from "./PuzzleModalForm";
 import SplitPaneMinus from "./SplitPaneMinus";
 import TagList from "./TagList";
 import Breakable from "./styling/Breakable";
-import FixedLayout from "./styling/FixedLayout";
 import {
   MonospaceFontFamily,
   SolvedPuzzleBackgroundColor,
 } from "./styling/constants";
+import FixedLayout from "./styling/FixedLayout";
 import { mediaBreakpointDown } from "./styling/responsive";
-import { ButtonGroup, Dropdown, DropdownButton, Offcanvas, OverlayTrigger, Tab, Tabs, ToggleButton, ToggleButtonGroup } from "react-bootstrap";
+import { ButtonGroup, Dropdown, DropdownButton, Offcanvas, Tab, Tabs, ToggleButton, ToggleButtonGroup } from "react-bootstrap";
 import removeChatMessage from "../../methods/removeChatMessage";
-import { Theme } from "../theme";
+import type { Theme } from "../theme";
 import puzzlesForHunt from "../../lib/publications/puzzlesForHunt";
 import chatMessageNodeType from "../../lib/chatMessageNodeType";
 import createChatAttachmentUpload from "../../methods/createChatAttachmentUpload";
@@ -594,7 +601,7 @@ const isReaction = (message: ChatMessageType | FilteredChatMessageType): boolean
     ) {
       return true;
     }
-  } catch (e) {
+  } catch {
     return false;
   }
   return false;
@@ -704,6 +711,8 @@ const ChatHistoryMessage = React.memo(
     shownEmojiPicker,
     setShownEmojiPicker,
     puzzles,
+    roles,
+    imageOnLoad,
   }: {
     message: FilteredChatMessageType;
     displayNames: Map<string, string>;
@@ -721,6 +730,8 @@ const ChatHistoryMessage = React.memo(
     shownEmojiPicker: string | null;
     setShownEmojiPicker: (messageId: string | null) => void;
     puzzles: PuzzleType[];
+    roles: string[];
+    imageOnLoad: () => void;
   }) => {
     const ts = shortCalendarTimeFormat(message.timestamp);
 
@@ -1029,6 +1040,8 @@ const ChatHistoryMessage = React.memo(
           displayNames={displayNames}
           puzzleData={puzzlesById}
           selfUserId={selfUserId}
+          roles={roles}
+          imageOnLoad={imageOnLoad}
         />
         <ReactionContainer>
           {Array.from(reactionCounts.entries()).map(([emoji, count]) => {
@@ -1083,6 +1096,7 @@ type ChatHistoryHandle = {
 const ChatHistory = React.forwardRef(
   (
     {
+      huntId,
       puzzleId,
       displayNames,
       selfUser,
@@ -1093,6 +1107,7 @@ const ChatHistory = React.forwardRef(
       puzzles,
       chatMessages,
     }: {
+      huntId: string;
       puzzleId: string;
       displayNames: Map<string, string>;
       selfUser: Meteor.User;
@@ -1231,7 +1246,7 @@ const ChatHistory = React.forwardRef(
       };
     }, [scrollToTarget]);
 
-    useLayoutEffect(() => {
+    const scrollChat = useCallback(() => {
       // Whenever we rerender due to new messages arriving, make our
       // distance-from-bottom match the previous one, if it's larger than some
       // small fudge factor.  But if the user has actually scrolled into the backlog,
@@ -1252,7 +1267,11 @@ const ChatHistory = React.forwardRef(
 
     const [shownEmojiPicker, setShownEmojiPicker] = useState<string | null>(null);
 
-    trace("ChatHistory render", { messageCount: chatMessages.length });
+    const roles = useMemo(
+      () => listAllRolesForHunt(selfUser, { _id: huntId }),
+      [selfUser, huntId],
+    );
+
     return (
       <ChatHistoryDiv ref={ref} onScroll={onScrollObserved}>
         {chatMessages.length === 0 ? (
@@ -1303,6 +1322,8 @@ const ChatHistory = React.forwardRef(
               shownEmojiPicker={shownEmojiPicker}
               setShownEmojiPicker={setShownEmojiPicker}
               puzzles={puzzles}
+              roles={roles}
+              imageOnLoad={scrollChat}
             />
           );
         })}
@@ -1535,6 +1556,11 @@ const ChatInput = React.memo(
     // We want to have hunt profile data around so we can autocomplete from multiple fields.
     const profilesLoadingFunc = useSubscribe("huntProfiles", huntId);
     const profilesLoading = profilesLoadingFunc();
+    const [uploadImageError, setUploadImageError] = useState<string>();
+    const clearUploadImageError = useCallback(
+      () => setUploadImageError(undefined),
+      [],
+    );
     const users = useTracker(() => {
       return profilesLoading
         ? []
@@ -1614,77 +1640,93 @@ const ChatInput = React.memo(
         content.length > 0 &&
         (content[0]! as MessageElement).children.some((child) => {
           return (
-            nodeIsMention(child) || chatMessageNodeType(child) !== "text" ||
+            nodeIsImage(child) ||
+            nodeIsMention(child) ||
+            nodeIsRoleMention(child) ||
             (nodeIsText(child) && child.text.trim().length > 0)
           );
         });
       return hasText || uploadingImages.length > 0;
     }, [content, uploadingImages]);
 
-    const addFilesForUpload = useCallback((files: FileList | File[]) => {
-      const validFiles: File[] = [];
-      const newPreviews: string[] = [];
-      let error = null;
+    const hasLoadingImage = useMemo(() => {
+      return (
+        content.length > 0 &&
+        (content[0]! as MessageElement).children.some((child) => {
+          return nodeIsImage(child) && child.status === "loading";
+        })
+      );
+    }, [content]);
 
-      for (const file of Array.from(files)) {
-        if (!file.type.startsWith("image/")) {
-          continue;
-        }
-        if (file.size > MAX_ATTACHMENT_SIZE) {
-          error = `File "${file.name}" is too large (max ${MAX_ATTACHMENT_SIZE / 1024 / 1024}MB).`;
-          break;
-        }
-        validFiles.push(file);
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setImagePreviews((prev) => [...prev, reader.result as string]);
+    const sendContentMessage = useCallback(() => {
+      if (hasNonTrivialContent && !hasLoadingImage) {
+        // Prepare to send message to server.
+
+        // Take only the first Descendant; we normalize the input to a single
+        // block with type "message".
+        const message = content[0]! as MessageElement;
+        // Strip out children from mention elements.  We only need the type and
+        // userId for display purposes.
+        const { type, children } = message;
+        const cleanedMessage = {
+          type,
+          children: children
+            .filter((child) => {
+              if (nodeIsMention(child) || nodeIsRoleMention(child)) {
+                return true;
+              }
+              if (nodeIsImage(child) && child.status !== "success") {
+                return false;
+              }
+              if (nodeIsText(child) && child.text === "") {
+                return false;
+              }
+              return true;
+            })
+            .map((child) => {
+              if (nodeIsMention(child)) {
+                return {
+                  type: child.type,
+                  userId: child.userId,
+                };
+              } else if (nodeIsRoleMention(child)) {
+                return {
+                  type: child.type,
+                  roleId: child.roleId,
+                };
+              } else if (nodeIsImage(child)) {
+                return {
+                  type: child.type,
+                  url: child.url,
+                };
+              } else {
+                return child;
+              }
+            }),
         };
-        reader.readAsDataURL(file);
+
+        // Send chat message.
+        sendChatMessage.call({
+          puzzleId,
+          content: JSON.stringify(cleanedMessage),
+          parentId: replyingTo,
+        });
+        setContent(initialValue);
+        fancyEditorRef.current?.clearInput();
+        if (onMessageSent) {
+          onMessageSent();
+        }
+        return true;
       }
-
-      if (error) {
-        setUploadError(error);
-      } else {
-        setUploadingImages((prev) => [...prev, ...validFiles]);
-        setUploadError(null);
-      }
-    }, []);
-
-    const handleFileSelect = useCallback(
-      (event: React.ChangeEvent<HTMLInputElement>) => {
-        if (event.target.files) {
-          addFilesForUpload(event.target.files);
-          event.target.value = "";
-        }
-      },
-      [addFilesForUpload]
-    );
-
-    const handlePaste = useCallback(
-      (event: React.ClipboardEvent<HTMLDivElement>) => {
-        if (!s3Configured) return;
-
-        const items = (event.clipboardData || (window as any).clipboardData)?.items;
-        if (!items) return;
-
-        const filesToProcess: File[] = [];
-        for (let index in items) {
-          const item = items[index];
-          if (item.kind === 'file' && item.type.startsWith('image/')) {
-            const file = item.getAsFile();
-            if (file) {
-              filesToProcess.push(file);
-            }
-          }
-        }
-
-        if (filesToProcess.length > 0) {
-          event.preventDefault();
-          addFilesForUpload(filesToProcess);
-        }
-      },
-      [s3Configured, addFilesForUpload],
-    );
+      return false;
+    }, [
+      hasNonTrivialContent,
+      hasLoadingImage,
+      content,
+      puzzleId,
+      onMessageSent,
+      replyingTo,
+    ]);
 
     const handleRemoveImage = useCallback((indexToRemove: number) => {
       setUploadingImages((prev) => prev.filter((_, index) => index !== indexToRemove));
@@ -1696,163 +1738,90 @@ const ChatInput = React.memo(
       fileInputRef.current?.click();
     }, []);
 
-    const sendContentMessage = useCallback(async () => {
-      if (!hasNonTrivialContent || isUploading) {
-        return;
-      }
-
-      setIsUploading(true);
-      setUploadError(null);
-      let attachments: ChatAttachmentType[] = [];
-
-      try {
-        // 1. Upload images if any
-        if (uploadingImages.length > 0) {
-          if (!s3Configured) {
-             throw new Error("Image upload is not configured on the server.");
-          }
-
-          const uploadPromises = uploadingImages.map(async (file) => {
-            try {
-              const uploadParams = await createChatAttachmentUpload.call({
-                huntId: huntId,
-                puzzleId: puzzleId,
-                filename: file.name,
-                mimeType: file.type,
-              });
-
-              if (!uploadParams) {
-                throw new Error("Failed to get upload parameters from server.");
-              }
-
-              const { publicUrl, uploadUrl, fields } = uploadParams;
-              const formData = new FormData();
-              for (const [key, value] of Object.entries(fields)) {
-                formData.append(key, value as string);
-              }
-              formData.append("file", file);
-
-              const response = await fetch(uploadUrl, {
-                method: "POST",
-                body: formData,
-              });
-
-              if (!response.ok) {
-                let errorBody = `Status: ${response.status}`;
-                try {
-                  const text = await response.text();
-                  errorBody += `, Body: ${text.substring(0, 500)}`;
-                } catch (e) { /* ignore */ }
-                throw new Error(`Failed to upload ${file.name}. ${errorBody}`);
-              }
-
-              return {
-                url: publicUrl,
-                filename: file.name,
-                mimeType: file.type,
-                size: file.size,
-              };
-            } catch (err: any) { // Catch specific error type if possible
-              throw new Error(`Failed to upload ${file.name}: ${err.message}`);
-            }
-          });
-
-          attachments = await Promise.all(uploadPromises);
-        }
-
-        // 2. Prepare text content
-        const message = content[0]! as MessageElement;
-        const { type, children } = message;
-        const cleanedMessage = {
-          type,
-          children: children.map((child) => {
-            if (nodeIsMention(child)) {
-              return { type: child.type, userId: child.userId };
-            } else {
-              switch (chatMessageNodeType(child)) {
-                case "puzzle":
-                  return {
-                    type: child.type,
-                    puzzleId: child.puzzleId,
-                  }
-                  break;
-              }
-              return child;
-            }
-          }),
-        };
-
-        const finalChildren = cleanedMessage.children.length > 0 || attachments.length === 0
-          ? cleanedMessage.children
-          : [{ text: "" }];
-
-        // 3. Send the message
-        await sendChatMessage.call({
-          puzzleId,
-          content: JSON.stringify({ ...cleanedMessage, children: finalChildren }),
-          parentId: replyingTo,
-          // Ensure attachments is an array or undefined, not null
-          attachments: attachments.length > 0 ? attachments : [],
-        });
-
-        // 4. Cleanup on success
-        setContent(initialValue);
-        fancyEditorRef.current?.clearInput();
-        setUploadingImages([]);
-        setImagePreviews([]);
-        setReplyingTo(null);
-        if (onMessageSent) {
-          onMessageSent();
-        }
-      } catch (error: any) {
-        console.error("Failed to send message:", error);
-        setUploadError(error.message || "An unknown error occurred during upload or message sending.");
-      } finally {
-        setIsUploading(false);
-      }
-    }, [
-      hasNonTrivialContent,
-      isUploading,
-      uploadingImages,
-      s3Configured,
-      huntId,
-      puzzleId,
-      content,
-      replyingTo,
-      onMessageSent,
-      setReplyingTo,
-      // Add state setters used within the function
-      setIsUploading,
-      setUploadError,
-      setContent,
-      setUploadingImages,
-      setImagePreviews,
-    ]);
-
     useBlockUpdate(
       hasNonTrivialContent
         ? "You're in the middle of typing a message."
         : undefined,
     );
 
- // Handle image selection
-    const handleImageSelect = useCallback(
-      (event: React.ChangeEvent<HTMLInputElement>) => {
-        if (!s3Configured) return;
-        const files = event.target.files;
-        if (files) {
-          for (let i = 0; i < files.length; i++) {
-            const file = files[i];
-            setUploadingImages((prev) => [...prev, file]);
-            const reader = new FileReader();
-            reader.onloadend = () => {
-              setImagePreviews((prev) => [...prev, reader.result as string]);
-            };
-            reader.readAsDataURL(file);
-          }
-        }
+    const handleButtonClick = useCallback(() => {
+      fileInputRef.current?.click();
+    }, []);
+
+    const uploadImageFile = useCallback(
+      (file: File) => {
+        const tempId = Random.id();
+        fancyEditorRef.current?.insertImage("", tempId, "loading");
+
+        createChatImageUpload.call(
+          {
+            puzzleId,
+            mimeType: file.type,
+          },
+          (err, upload) => {
+            if (err || !upload) {
+              fancyEditorRef.current?.replaceImage("", tempId, "error");
+              setUploadImageError(
+                err?.message ??
+                  "S3 presignedPost creation failed, check server settings to ensure S3 image bucket is configured correctly.",
+              );
+            } else {
+              const { publicUrl, uploadUrl, fields } = upload;
+              const formData = new FormData();
+              for (const [key, value] of Object.entries(fields)) {
+                formData.append(key, value);
+              }
+              formData.append("file", file);
+              fetch(uploadUrl, {
+                method: "POST",
+                mode: "no-cors",
+                body: formData,
+              })
+                .then(() => {
+                  fancyEditorRef.current?.replaceImage(
+                    publicUrl,
+                    tempId,
+                    "success",
+                  );
+                })
+                .catch((uploadErr) => {
+                  fancyEditorRef.current?.replaceImage("", tempId, "error");
+                  setUploadImageError(`S3 upload failed: ${uploadErr.message}`);
+                });
+            }
+          },
+        );
       },
-      [s3Configured],
+      [puzzleId],
+    );
+
+    function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      if (!file.type.startsWith("image/")) {
+        setUploadImageError("Only image files can be uploaded in chat.");
+        return;
+      }
+      uploadImageFile(file);
+    }
+
+    useSubscribe("enabledChatImage");
+    const enabledChatImage = useTracker(
+      () => EnabledChatImage.findOne("enabledChatImage")?.enabled ?? false,
+      [],
+    );
+
+    const errorModal = (
+      <Modal show onHide={clearUploadImageError}>
+        <Modal.Header closeButton>Error uploading image to chat</Modal.Header>
+        <Modal.Body>
+          <p>
+            Something went wrong while uploading images to the chat. Contact
+            admin with the error message for help.
+          </p>
+          <p>Error message: {uploadImageError}</p>
+        </Modal.Body>
+      </Modal>
     );
 
     const parentMessage = useTracker(() => {
@@ -1864,41 +1833,30 @@ const ChatInput = React.memo(
 
     const parentSenderName = useTracker(() => {
       if (parentMessage) {
-        return parentMessage.sender ? displayNames.get(parentMessage.sender) ?? "???" : "jolly-roger";
+        return parentMessage.sender
+          ? (displayNames.get(parentMessage.sender) ?? "???")
+          : "jolly-roger";
       }
       return undefined;
-    }, [parentMessage, displayNames]);
+    }, [displayNames, parentMessage]);
+
 
     return (
       <ChatInputRow>
-      {replyingTo && parentSenderName && (
-        <ReplyingTo onClick={() => scrollToMessage(replyingTo)}>
-          Replying to {parentSenderName}
-          <ReplyingToCancel
-            icon={faTimes}
-            onClick={(e) => {
-              e.stopPropagation();
-              setReplyingTo(null);
-            }}
-          />
-        </ReplyingTo>
-      )}
-      {imagePreviews.map((preview, index) => (
-        <ImagePreviewWrapper>
-          <RemoveImageButton variant="danger" onClick={() => handleRemoveImage(index)}>
-            <FontAwesomeIcon icon={faXmark} />
-          </RemoveImageButton>
-          <ImagePreview key={index} src={preview} alt="Preview" />
-        </ImagePreviewWrapper>
-        ))}
-        {uploadingImages.length > 0 && !s3Configured && (
-          <ImagePlaceholder>
-            <FontAwesomeIcon icon={faImage} />
-            <br />
-            Image upload not configured
-          </ImagePlaceholder>
+        {replyingTo && parentSenderName && (
+          <ReplyingTo onClick={() => scrollToMessage(replyingTo)}>
+            Replying to {parentSenderName}
+            <ReplyingToCancel
+              icon={faTimes}
+              onClick={(e) => {
+                e.stopPropagation();
+                setReplyingTo(null);
+              }}
+            />
+          </ReplyingTo>
         )}
-        <InputGroup size="sm">
+        {uploadImageError && createPortal(errorModal, document.body)}
+        <InputGroup>
           <StyledFancyEditor
             ref={fancyEditorRef}
             className="form-control"
@@ -1908,39 +1866,37 @@ const ChatInput = React.memo(
             puzzles={puzzles}
             onContentChange={onContentChange}
             onSubmit={sendContentMessage}
+            uploadImageFile={uploadImageFile}
             disabled={disabled}
-            onPaste={handlePaste}
           />
-            <FormGroup>
-          <ButtonGroup vertical>
-            <Button
-              variant="secondary"
-              onClick={sendContentMessage}
-              onMouseDown={preventDefaultCallback}
-              disabled={disabled || !hasNonTrivialContent}
-              size={s3Configured ? "sm" : "lg"}
-            >
-            {isUploading ? <FontAwesomeIcon icon={faSpinner} spin /> : <FontAwesomeIcon icon={faPaperPlane} />}
-            </Button>
-          {s3Configured && (
+          <Button
+            variant="secondary"
+            onClick={sendContentMessage}
+            onMouseDown={preventDefaultCallback}
+            disabled={disabled || !hasNonTrivialContent || hasLoadingImage}
+          >
+            <FontAwesomeIcon icon={faPaperPlane} />
+          </Button>
+          {enabledChatImage && (
             <>
-              <FormControl
-                type="file"
-                multiple
-                accept="image/*"
-                onChange={handleFileSelect}
-                style={{ display: "none" }}
-                id="image-upload-input"
-              />
-              <Button variant="secondary" onClick={triggerFileInput} size="sm" disabled={isUploading}>
+              <Button variant="secondary" onClick={handleButtonClick}>
                 <FontAwesomeIcon icon={faImage} />
               </Button>
+              <input
+                type="file"
+                accept="image/*"
+                style={{ display: "none" }}
+                ref={fileInputRef}
+                onChange={handleImageUpload}
+              />
             </>
           )}
-          </ButtonGroup>
-          </FormGroup>
         </InputGroup>
-        {uploadError && <Alert variant="danger" className="mt-2 p-1">{uploadError}</Alert>}
+        {uploadError && (
+          <Alert variant="danger" className="mt-2 p-1">
+            {uploadError}
+          </Alert>
+        )}
       </ChatInputRow>
     );
   },
@@ -2165,10 +2121,11 @@ const ChatSection = React.forwardRef(
 
     const onMessageSent = useCallback(() => {
       trace("ChatSection onMessageSent", { hasRef: !!historyRef.current });
+      setReplyingTo(null);
       if (historyRef.current) {
         historyRef.current.snapToBottom();
       }
-    }, []);
+    }, [setReplyingTo]);
 
     const scrollToMessage = useCallback((messageId: string, callback?: () => void) => {
       if (historyRef.current) {
@@ -2250,6 +2207,7 @@ const ChatSection = React.forwardRef(
           setReplyingTo={setReplyingTo}
           replyingTo={replyingTo}
           chatMessages={chatMessages}
+          huntId={huntId}
         />
         <ChatInput
           huntId={huntId}
@@ -2280,90 +2238,12 @@ const ChatSection = React.forwardRef(
 const ChatSectionMemo = React.memo(ChatSection);
 const AttachmentsMemo = React.memo(AttachmentsSection);
 
-const InsertImage = ({ documentId }: { documentId: string }) => {
-  useSubscribe("googleScriptInfo");
-  const insertEnabled = useTracker(
-    () => !!GoogleScriptInfo.findOne("googleScriptInfo")?.configured,
-    [],
-  );
-  const [loading, setLoading] = useState(false);
-  const [documentSheets, setDocumentSheets] = useState<Sheet[]>([]);
-  const [renderInsertModal, setRenderInsertModal] = useState(false);
-  const insertModalRef = useRef<ImageInsertModalHandle>(null);
-  const [listSheetsError, setListSheetsError] = useState<string>();
-  const clearListSheetsError = useCallback(
-    () => setListSheetsError(undefined),
-    [],
-  );
-
-  const onStartInsert = useCallback(
-    (e: React.MouseEvent) => {
-      e.preventDefault();
-      setLoading(true);
-
-      listDocumentSheets.call({ documentId }, (err, sheets) => {
-        setLoading(false);
-        if (err) {
-          setListSheetsError(err.message);
-        } else if (sheets) {
-          setDocumentSheets(sheets);
-          if (renderInsertModal && insertModalRef.current) {
-            insertModalRef.current.show();
-          } else {
-            setRenderInsertModal(true);
-          }
-        }
-      });
-    },
-    [documentId, renderInsertModal],
-  );
-
-  if (!insertEnabled) {
-    return null;
-  }
-
-  const errorModal = (
-    <Modal show onHide={clearListSheetsError}>
-      <Modal.Header closeButton>
-        Error fetching sheets in spreadsheet
-      </Modal.Header>
-      <Modal.Body>
-        <p>
-          Something went wrong while fetching the list of sheets in this
-          spreadsheet (which we need to be able to insert an image). Please try
-          again, or let us know if this keeps happening.
-        </p>
-        <p>Error message: {listSheetsError}</p>
-      </Modal.Body>
-    </Modal>
-  );
-
-  return (
-    <>
-      {renderInsertModal && (
-        <InsertImageModal
-          ref={insertModalRef}
-          documentId={documentId}
-          sheets={documentSheets}
-        />
-      )}
-      {listSheetsError && createPortal(errorModal, document.body)}
-      <Button
-        variant="secondary"
-        size="sm"
-        onClick={onStartInsert}
-        disabled={loading}
-      >
-        <FontAwesomeIcon icon={faImage} /> Insert image
-        {loading && (
-          <>
-            {" "}
-            <FontAwesomeIcon icon={faSpinner} spin />
-          </>
-        )}
-      </Button>
-    </>
-  );
+const toTitleCase = (str: string): string => {
+  return str
+    .toLowerCase()
+    .split(" ")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
 };
 
 const PuzzlePageMetadata = ({
@@ -2565,28 +2445,25 @@ const PuzzlePageMetadata = ({
     return hunt?.allowPuzzleEmbed ?? false;
   }, [hunt])
 
-  const handleShowButtonClick = () => {
+  const handleShowButtonClick = useCallback(() => {
     if (!hasIframeBeenLoaded) {
       setHasIframeBeenLoaded(true);
     }
     setShowDocument(!showDocument);
-  };
+  }, [
+    hasIframeBeenLoaded,
+    setHasIframeBeenLoaded,
+    setShowDocument,
+    showDocument,
+  ]);
 
-  const handleShowButtonHover = () => {
+  const handleShowButtonHover = useCallback(() => {
     if (!hasIframeBeenLoaded) {
       setHasIframeBeenLoaded(true);
     }
-  }
+  }, [hasIframeBeenLoaded, setHasIframeBeenLoaded]);
 
-  const togglePuzzleInsetDD = (puzzle.url && isDesktop && canEmbedPuzzle) || !showDocument ? (
-    <Dropdown.Item
-    onClick={handleShowButtonClick}
-    onMouseEnter={handleShowButtonHover}
-    title={showDocument ? "Show puzzle page" : "Hide puzzle page"}
-    >
-      {showDocument ? "Show puzzle page" : "Hide puzzle page"}
-    </Dropdown.Item>
-  ) : null;
+
 
   let guessButton = null;
   if (puzzle.expectedAnswerCount > 0) {
@@ -2599,7 +2476,6 @@ const PuzzlePageMetadata = ({
             {numGuesses}
           </Badge>
         </Button>
-        {/* eslint-disable-next-line @typescript-eslint/no-use-before-define */}
         <PuzzleGuessModal
           ref={guessModalRef}
           puzzle={puzzle}
@@ -2613,7 +2489,6 @@ const PuzzlePageMetadata = ({
           <FontAwesomeIcon icon={faKey} />
           {" Answer"}
         </Button>
-        {/* eslint-disable-next-line @typescript-eslint/no-use-before-define */}
         <PuzzleAnswerModal
           ref={answerModalRef}
           puzzle={puzzle}
@@ -2651,7 +2526,7 @@ const PuzzlePageMetadata = ({
   // Check layout on mount and when tags change
   useLayoutEffect(() => {
     checkTagLayout();
-  }, [tags, checkTagLayout]); // Depend on tags
+  }, [checkTagLayout]); // Depend on tags
 
   // Check layout on window resize
   useEffect(() => {
@@ -2679,13 +2554,7 @@ const PuzzlePageMetadata = ({
     />
   );
 
-  const toTitleCase = (str: string): string => {
-    return str
-      .toLowerCase()
-      .split(' ')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ');
-  };
+
 
   const unusedDocumentTypes = useTracker(()=>{
     return DOCUMENT_TYPES.filter((dt)=>{
@@ -2715,7 +2584,7 @@ const PuzzlePageMetadata = ({
 
   const toggleSecondaryDocument = useCallback((e:number, newstate: "horizontal" | "vertical" | "hide")=>{
     if(!e) return;
-    switch(newstate){
+    switch (newstate) {
       case "horizontal":
         setSplitDirection("horizontal");
         setSecondaryDocument(e);
@@ -2728,73 +2597,111 @@ const PuzzlePageMetadata = ({
         setSplitDirection("horizontal");
         setSecondaryDocument(null);
         break;
+      default:
+        break;
     }
   },[selectedSecondaryDocument, selectedDocumentIndex, setSecondaryDocument, unusedDocumentTypes, setSplitDirection])
 
-
-  const resourceSelectorButton = useTracker(()=>{
-    return allDocs && (
-      <DropdownButton
-        as={ButtonGroup}
-        key="puzzle-resource-selector"
-        id="puzzle-resource-selector"
-        size="sm"
-        variant={allDocs.length > 1 ? "primary" : "secondary"}
-        onSelect={switchOrCreateDocument}
-        title={toTitleCase(allDocs[selectedDocumentIndex]?.value.type ?? "")}
-        className={pulseButton ? "resource-selector-pulse" : ""}
-      >
-        <Dropdown.Header>
-          Documents
-        </Dropdown.Header>
-        {allDocs?.map((doc, idx)=>{
-          let nextState: "horizontal" | "vertical" | "hide" = "horizontal";
-          let nextIcon = faTableColumns;
-          let nextTooltip = "Split current view";
-          if (selectedSecondaryDocument === null) {
-            nextState = isTall ? "horizontal" : "vertical";
-            nextIcon = isTall ? faList : faTableColumns;
-          } else if (isTall && splitDirection === "horizontal") {
-            nextState = "vertical";
-            nextIcon = faTableColumns;
-          } else if (!isTall && splitDirection === "vertical") {
-            nextState = "horizontal";
-            nextIcon = faList;
-          } else {
-            nextState = "hide";
-            nextIcon = faClose;
-            nextTooltip = "Hide split view";
-          }
-          return (
-            <Dropdown.Item eventKey={idx}>
-              {toTitleCase(doc.value.type)}
-              {(isDesktop && idx !== selectedDocumentIndex && (selectedSecondaryDocument === null || selectedSecondaryDocument === idx)) &&(
-                <Button size="sm" onClick={(evt)=>{
-                  evt.stopPropagation();
-                  toggleSecondaryDocument(idx, nextState);
-                }}>
-                  <FontAwesomeIcon icon={nextIcon} title={nextTooltip}/>
-                </Button>
-              )}
-            </Dropdown.Item>
-          )
-        })}
-        {unusedDocumentTypes.length > 0 && <>
-            <Dropdown.Header>
-              Add new
-            </Dropdown.Header>
-          {unusedDocumentTypes.map((doc,idx)=>{
+  const idPrefix = useId();
+  const resourceSelectorButton = useTracker(() => {
+    return (
+      allDocs && (
+        <DropdownButton
+          as={ButtonGroup}
+          key="puzzle-resource-selector"
+          id={`puzzle-resource-selector-${puzzle._id}`}
+          size="sm"
+          variant={allDocs.length > 1 ? "primary" : "secondary"}
+          onSelect={switchOrCreateDocument}
+          title={toTitleCase(allDocs[selectedDocumentIndex]?.value.type ?? "")}
+          className={pulseButton ? "resource-selector-pulse" : ""}
+        >
+          <Dropdown.Header>Documents</Dropdown.Header>
+          {allDocs?.map((doc, idx) => {
+            let nextState: "horizontal" | "vertical" | "hide" = "horizontal";
+            let nextIcon = faTableColumns;
+            let nextTooltip = "Split current view";
+            if (selectedSecondaryDocument === null) {
+              nextState = isTall ? "horizontal" : "vertical";
+              nextIcon = isTall ? faList : faTableColumns;
+            } else if (isTall && splitDirection === "horizontal") {
+              nextState = "vertical";
+              nextIcon = faTableColumns;
+            } else if (!isTall && splitDirection === "vertical") {
+              nextState = "horizontal";
+              nextIcon = faList;
+            } else {
+              nextState = "hide";
+              nextIcon = faClose;
+              nextTooltip = "Hide split view";
+            }
             return (
-              <Dropdown.Item eventKey={doc}>
-                {toTitleCase(doc)}
+              <Dropdown.Item key={`${idPrefix}-dropdown`} eventKey={idx}>
+                {toTitleCase(doc.value.type)}
+                {isDesktop &&
+                  idx !== selectedDocumentIndex &&
+                  (selectedSecondaryDocument === null ||
+                    selectedSecondaryDocument === idx) && (
+                    <Button
+                      size="sm"
+                      onClick={(evt) => {
+                        evt.stopPropagation();
+                        toggleSecondaryDocument(idx, nextState);
+                      }}
+                    >
+                      <FontAwesomeIcon icon={nextIcon} title={nextTooltip} />
+                    </Button>
+                  )}
               </Dropdown.Item>
-            )
-          })}</>}
+            );
+          })}
+          {unusedDocumentTypes.length > 0 && (
+            <>
+              <Dropdown.Header>Add new</Dropdown.Header>
+              {unusedDocumentTypes.map((doc, idx) => {
+                return (
+                  <Dropdown.Item
+                    key={`${idPrefix}-dropdown-add`}
+                    eventKey={doc}
+                  >
+                    {toTitleCase(doc)}
+                  </Dropdown.Item>
+                );
+              })}
+            </>
+          )}
           {canEmbedPuzzle && <Dropdown.Divider />}
-        {togglePuzzleInsetDD}
-      </DropdownButton>
-    )
-  }, [allDocs, selectedDocumentIndex, unusedDocumentTypes, showDocument, splitDirection, selectedSecondaryDocument, isTall, selectedSecondaryDocument, pulseButton])
+          {((puzzle.url && isDesktop && canEmbedPuzzle) || !showDocument) && (
+            <Dropdown.Item
+              onClick={handleShowButtonClick}
+              onMouseEnter={handleShowButtonHover}
+              title={showDocument ? "Show puzzle page" : "Hide puzzle page"}
+            >
+              {showDocument ? "Show puzzle page" : "Hide puzzle page"}
+            </Dropdown.Item>
+          )}
+        </DropdownButton>
+      )
+    );
+  }, [
+    allDocs,
+    selectedDocumentIndex,
+    unusedDocumentTypes,
+    splitDirection,
+    selectedSecondaryDocument,
+    isTall,
+    pulseButton,
+    canEmbedPuzzle,
+    isDesktop,
+    puzzle._id,
+    puzzle.url,
+    switchOrCreateDocument,
+    toggleSecondaryDocument,
+    idPrefix,
+    showDocument,
+    handleShowButtonClick,
+    handleShowButtonHover,
+  ]);
 
   const minimizeMetadataButton = (<OverlayTrigger placement="bottom-end" overlay={<Tooltip>Hide puzzle information</Tooltip>}><Button onClick={toggleMetadataMinimize} size="sm">
     <FontAwesomeIcon icon={faAngleDoubleUp} />
@@ -3119,15 +3026,21 @@ const PuzzleGuessModal = React.forwardRef(
       haveSetConfidence,
     ]);
 
+    const idPrefix = useId();
+
     const copyTooltip = (
-      <Tooltip id="jr-puzzle-guess-copy-tooltip">Copy to clipboard</Tooltip>
+      <Tooltip id={`${idPrefix}-jr-puzzle-guess-copy-tooltip`}>
+        Copy to clipboard
+      </Tooltip>
+    );
+
     const directionTooltip = (
-      <Tooltip id="jr-puzzle-guess-direction-tooltip">
+      <Tooltip id={`${idPrefix}-direction-tooltip`}>
         <strong>Solve direction:</strong> {formatGuessDirection(directionInput)}
       </Tooltip>
     );
     const confidenceTooltip = (
-      <Tooltip id="jr-puzzle-guess-confidence-tooltip">
+      <Tooltip id={`${idPrefix}-confidence-tooltip`}>
         <strong>Confidence:</strong> {formatConfidence(confidenceInput)}
       </Tooltip>
     );
@@ -3152,14 +3065,14 @@ const PuzzleGuessModal = React.forwardRef(
         submitLabel={confirmingSubmit ? "Confirm Submit" : "Submit"}
         size="lg"
       >
-        <FormGroup as={Row} className="mb-3">
-          <FormLabel column xs={3} htmlFor="jr-puzzle-guess">
+        <FormGroup as={Row} className="mb-3" controlId={`${idPrefix}-guess`}>
+          <FormLabel column xs={3}>
             Guess
           </FormLabel>
           <Col xs={9}>
             <AnswerFormControl
               type="text"
-              id="jr-puzzle-guess"
+              id={`${idPrefix}-guess`}
               autoFocus
               autoComplete="off"
               onChange={onGuessInputChange}
@@ -3169,35 +3082,40 @@ const PuzzleGuessModal = React.forwardRef(
           </Col>
         </FormGroup>
 
-        <FormGroup as={Row} className="mb-3">
-          <FormLabel column xs={3} htmlFor="jr-puzzle-guess-direction">
+        <FormGroup
+          as={Row}
+          className="mb-3"
+          controlId={`${idPrefix}-guess-direction`}
+        >
+          <FormLabel column xs={3}>
             Solve direction
           </FormLabel>
           <Col xs={9}>
 
             <ValidatedSliderContainer>
               <ToggleButtonGroup name='solve-dir' onChange={onDirectionInputChange} defaultValue={10}>
-                <ToggleButton variant="outline-primary" value={-10} id='guess-direction-back' checked={directionInput===-10}>
+                <ToggleButton variant="outline-primary" value={-10}
+                id={`${idPrefix}-guess-direction-back`}
+                  checked={directionInput===-10}>
                   Backsolve
                 </ToggleButton>
-                <ToggleButton variant="outline-dark" value={-5} id='guess-direction-mostly-back' checked={directionInput===-5}>
+                <ToggleButton variant="outline-dark" value={-5}
+                id={`${idPrefix}-guess-direction-mostly-back`}
+                  checked={directionInput===-5}>
                   Mostly back
                 </ToggleButton>
-                <ToggleButton variant="outline-secondary" value={0} id='guess-direction-mixed' checked={directionInput===0}>
+                <ToggleButton variant="outline-secondary" value={0}
+                id={`${idPrefix}-guess-direction-mixed`}
+                  checked={directionInput===0}>
                   Mixed
                 </ToggleButton>
-                <ToggleButton variant="outline-dark" value={5} id='guess-direction-mostly-forward' checked={directionInput===5}>
+                <ToggleButton variant="outline-dark" value={5} id={`${idPrefix}-guess-direction-mostly-forward`} checked={directionInput===5}>
                   Mostly forward
                 </ToggleButton>
-                <ToggleButton variant="outline-primary" value={10} id='guess-direction-forward' checked={directionInput===10}>
+                <ToggleButton variant="outline-primary" value={10} id={`${idPrefix}-guess-direction-forward`} checked={directionInput===10}>
                   Forwardsolve
                 </ToggleButton>
               </ToggleButtonGroup>
-              {/* <FontAwesomeIcon
-                icon={faCheck}
-                color={haveSetDirection ? "green" : "transparent"}
-                fixedWidth
-              /> */}
             </ValidatedSliderContainer>
             <FormText>
               Select the direction of your solve.
@@ -3212,21 +3130,16 @@ const PuzzleGuessModal = React.forwardRef(
           <Col xs={9}>
             <ValidatedSliderContainer>
               <ToggleButtonGroup name='guess-confidence' onChange={onConfidenceInputChange} defaultValue={100}>
-                <ToggleButton variant="outline-danger" value={0} id='guess-confidence-low' checked={confidenceInput===0}>
+                <ToggleButton variant="outline-danger" value={0} id={`${idPrefix}-guess-confidence-low`} checked={confidenceInput===0}>
                   Low
                 </ToggleButton>
-                <ToggleButton variant="outline-warning" value={50} id='guess-confidence-medium' checked={confidenceInput===50}>
+                <ToggleButton variant="outline-warning" value={50} id={`${idPrefix}-guess-confidence-medium`} checked={confidenceInput===50}>
                   Medium
                 </ToggleButton>
-                <ToggleButton variant="outline-success" value={100} id='guess-confidence-high' checked={confidenceInput===100}>
+                <ToggleButton variant="outline-success" value={100} id={`${idPrefix}-guess-confidence-high`} checked={confidenceInput===100}>
                   High
                 </ToggleButton>
               </ToggleButtonGroup>
-              {/* <FontAwesomeIcon
-                icon={faCheck}
-                color={haveSetConfidence ? "green" : "transparent"}
-                fixedWidth
-              /> */}
             </ValidatedSliderContainer>
             <FormText>
               Tell us how confident you are about your guess.
@@ -3237,7 +3150,6 @@ const PuzzleGuessModal = React.forwardRef(
         {guesses.length === 0 ? (
           <div>No previous submissions.</div>
         ) : (
-          [
             <div key="label">Previous submissions</div>,
             <GuessTable key="table">
               {sortedBy(guesses, (g) => g.createdAt)
@@ -3255,17 +3167,12 @@ const PuzzleGuessModal = React.forwardRef(
                     <GuessRow $state={guess.state} key={guess._id}>
                       <GuessTableSmallRow>
                         <GuessCell>
-                          <GuessState
-                            id={`guess-${guess._id}-state`}
-                            state={guess.state}
-                            short
-                          />
+                          <GuessState state={guess.state} short />
                         </GuessCell>
                         <GuessAnswerCell>
                           <StyledCopyToClipboardButton
                             variant="link"
                             aria-label="Copy"
-                            tooltipId={`jr-puzzle-guess-${guess._id}-copy-tooltip`}
                             text={guess.guess}
                           >
                             <FontAwesomeIcon icon={faCopy} fixedWidth />
@@ -3324,8 +3231,8 @@ const PuzzleGuessModal = React.forwardRef(
                   );
                 })}
             </GuessTable>,
-            <br />,
-            <Alert variant="info">
+            <br key={`${idPrefix}-br`} />,
+            <Alert variant="info" key={`${idPrefix}-deputy-warning`}>
               To mark answers correct or incorrect, you must have the <Link to={`/hunts/${huntId}`}>Deputy View</Link> toggled on. As Deputy, alerts will popup for all pending submissions. To view alerts you've dismissed, just reload the site.
             </Alert>
         )}
@@ -3449,6 +3356,8 @@ const PuzzleAnswerModal = React.forwardRef(
       );
     }, [puzzle._id, confirmingSubmit, guesses, solvedness, answer, hide]);
 
+    const idPrefix = useId();
+
     return (
       <ModalForm
         ref={formRef}
@@ -3456,14 +3365,14 @@ const PuzzleAnswerModal = React.forwardRef(
         onSubmit={onSubmit}
         submitLabel={confirmingSubmit ? "Confirm Submit" : "Submit"}
       >
-        <FormGroup as={Row} className="mb-3">
-          <FormLabel column xs={3} htmlFor="jr-puzzle-answer">
+        <FormGroup as={Row} className="mb-3" controlId={`${idPrefix}-answer`}>
+          <FormLabel column xs={3}>
             Answer
           </FormLabel>
           <Col xs={9}>
             <AnswerFormControl
               type="text"
-              id="jr-puzzle-answer"
+              id={`${idPrefix}-answer`}
               autoFocus
               autoComplete="off"
               onChange={onAnswerChange}
@@ -3540,7 +3449,7 @@ const PuzzlePageMultiplayerDocument = React.memo(
   },
 );
 
-const PuzzleDeletedModal = ({
+const PuzzleDeletedModal = (({
   puzzleId,
   huntId,
   replacedBy,
@@ -3611,7 +3520,7 @@ const PuzzleDeletedModal = ({
   );
 
   return createPortal(modal, document.body);
-};
+});
 
 const PuzzlePage = React.memo(() => {
   const puzzlePageDivRef = useRef<HTMLDivElement | null>(null);
@@ -3787,7 +3696,7 @@ const PuzzlePage = React.memo(() => {
     if (chatSectionRef.current) {
       chatSectionRef.current.scrollHistoryToTarget();
     }
-  }, [puzzleId]);
+  }, []);
 
   const onCommitSidebarSize = useCallback((newSidebarWidth: number, collapsed: 0 | 1 | 2, cause: 'drag' | 'resize') => {
     if (cause === 'drag' && isChatMinimized && newSidebarWidth > 0) {
@@ -3804,7 +3713,7 @@ const PuzzlePage = React.memo(() => {
         setIsChatMinimized(true);
       }
     }
-  }, [isChatMinimized]);
+  }, [isChatMinimized, setPersistentWidth]);
 
   const onCommitSplitWidth = useCallback((newSplitWidth: number, collapsed: 0 | 1 | 2, cause: 'drag' | 'resize') => {
     if (cause === 'drag') {
@@ -3855,7 +3764,7 @@ const PuzzlePage = React.memo(() => {
         setPulsingMessageId(messageId);
       });
     }, 100);
-  }, [setShowHighlights]);
+  }, []);
 
 
   const handleClose = useCallback(() => setShowHighlights(false), []);
@@ -3875,8 +3784,9 @@ const PuzzlePage = React.memo(() => {
 
   const toggleMetadata = useCallback(()=>{
     setIsMetadataMinimized(prev => !prev);
-  },[setIsMetadataMinimized])
+  },[])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies(sidebarWidth): When the sidebar width changes, we want to scroll to the target.
   useLayoutEffect(() => {
     trace("PuzzlePage useLayoutEffect", { hasRef: !!chatSectionRef.current });
     if (chatSectionRef.current) {
@@ -3899,7 +3809,7 @@ const PuzzlePage = React.memo(() => {
     return () => {
       window.removeEventListener("resize", onResize);
     };
-  }, [onResize]);
+  }, [onResize, sidebarWidth]);
 
   useEffect(() => {
     prevIsChatMinimized.current = isChatMinimized;
@@ -3918,7 +3828,7 @@ const PuzzlePage = React.memo(() => {
 
       return () => cancelAnimationFrame(animationFrameId);
     }
-  }, [isChatMinimized, sidebarWidth]);
+  }, [isChatMinimized]);
 
   useEffect((): (() => void) | undefined => {
     if (!isChatMinimized && !isRestoring) {
@@ -3950,14 +3860,14 @@ const PuzzlePage = React.memo(() => {
 
   if (puzzleDataLoading) {
     return (
-      <FixedLayout className="puzzle-page" ref={puzzlePageDivRef}>
+      <FixedLayout ref={puzzlePageDivRef}>
         <span>loading...</span>
       </FixedLayout>
     );
   }
   if (!activePuzzle) {
     return (
-      <FixedLayout className="puzzle-page" ref={puzzlePageDivRef}>
+      <FixedLayout ref={puzzlePageDivRef}>
         <span>No puzzle found :( Did you get that URL right?</span>
       </FixedLayout>
     );
@@ -4154,7 +4064,7 @@ const PuzzlePage = React.memo(() => {
   return (
     <>
       {deletedModal}
-      <FixedLayout className="puzzle-page narrow">
+      <FixedLayout $narrow>
         {metadata}
         {chat}
       </FixedLayout>

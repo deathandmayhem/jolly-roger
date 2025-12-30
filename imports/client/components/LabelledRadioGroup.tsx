@@ -1,4 +1,5 @@
-import React, { useCallback, useState } from "react";
+import type React from "react";
+import { useCallback, useId, useState } from "react";
 import styled from "styled-components";
 
 const RadioHeader = styled.span`
@@ -18,27 +19,25 @@ const Radio = styled.input`
 // does it produce accessibility-friendly markup, so here's a touch of our own
 // instead.  Uses some bootstrap styles.
 const LabelledRadio = ({
-  id,
-  name,
+  group,
   value,
   label,
   defaultChecked,
   onChange,
 }: {
-  id: string;
-  // The name of the exclusive group for the radio buttons
-  name: string;
+  group: string;
   value: string;
   label: string | Element;
   defaultChecked: boolean;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }) => {
+  const id = useId();
   return (
     <RadioLabel htmlFor={id}>
       <Radio
         id={id}
         type="radio"
-        name={name}
+        name={group}
         onChange={onChange}
         value={value}
         defaultChecked={!!defaultChecked}
@@ -50,20 +49,19 @@ const LabelledRadio = ({
 
 const LabelledRadioGroup = ({
   header,
-  name,
   options,
   onChange,
   initialValue,
   help,
 }: {
   header: string;
-  name: string; // The name of the exclusive group for the radio buttons
   options: { label: string; value: string }[];
   onChange: (value: string) => void;
   initialValue: string;
   help: string;
 }) => {
   const [value, setValue] = useState<string>(initialValue);
+  const group = useId();
 
   const onValueChanged = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -74,12 +72,11 @@ const LabelledRadioGroup = ({
     [onChange],
   );
 
-  const buttons = options.map((option, index) => {
+  const buttons = options.map((option) => {
     return (
       <LabelledRadio
-        id={`radiobutton-${name}-${index}`}
         key={option.value}
-        name={name}
+        group={group}
         onChange={onValueChanged}
         label={option.label}
         value={option.value}
@@ -88,10 +85,10 @@ const LabelledRadioGroup = ({
     );
   });
   return (
-    <div className="radio-group">
+    <div>
       <RadioHeader>{header}</RadioHeader>
       <fieldset>{buttons}</fieldset>
-      {help && <span className="help-block">{help}</span>}
+      {help && <span>{help}</span>}
     </div>
   );
 };

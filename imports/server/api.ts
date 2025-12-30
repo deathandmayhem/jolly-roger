@@ -17,7 +17,7 @@ api.use(authenticator);
 api.use("/users", users);
 api.use("/hunts", hunts);
 api.use("/tags", tags);
-api.use("/puzzles", puzzles); // Add the new puzzles API
+api.use("/puzzles", puzzles);
 api.use("/createPuzzle", createPuzzle);
 
 export default api;

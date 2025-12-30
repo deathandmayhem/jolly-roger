@@ -8,7 +8,7 @@ import { faKey } from "@fortawesome/free-solid-svg-icons/faKey";
 import { faPuzzlePiece } from "@fortawesome/free-solid-svg-icons/faPuzzlePiece";
 import { faSpinner } from "@fortawesome/free-solid-svg-icons/faSpinner";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useId, useState } from "react";
 import Button from "react-bootstrap/Button";
 import Dropdown from "react-bootstrap/Dropdown";
 import Form from "react-bootstrap/Form";
@@ -23,23 +23,26 @@ import Flags from "../../Flags";
 import { calendarTimeFormat } from "../../lib/calendarTimeFormat";
 import isAdmin from "../../lib/isAdmin";
 import { indexedById } from "../../lib/listUtils";
-import Announcements from "../../lib/models/Announcements";
 import type { AnnouncementType } from "../../lib/models/Announcements";
+import Announcements from "../../lib/models/Announcements";
 import type { BookmarkNotificationType } from "../../lib/models/BookmarkNotifications";
 import BookmarkNotifications from "../../lib/models/BookmarkNotifications";
 import bookmarkPuzzle from "../../methods/bookmarkPuzzle";
 import type { ChatNotificationType } from "../../lib/models/ChatNotifications";
 import ChatNotifications from "../../lib/models/ChatNotifications";
-import Guesses from "../../lib/models/Guesses";
 import type { GuessType } from "../../lib/models/Guesses";
-import Hunts from "../../lib/models/Hunts";
+import Guesses from "../../lib/models/Guesses";
 import type { HuntType } from "../../lib/models/Hunts";
+import Hunts from "../../lib/models/Hunts";
 import PendingAnnouncements from "../../lib/models/PendingAnnouncements";
 import type { PuzzleNotificationType } from "../../lib/models/PuzzleNotifications";
 import PuzzleNotifications from "../../lib/models/PuzzleNotifications";
 import Puzzles from "../../lib/models/Puzzles";
 import type { PuzzleType } from "../../lib/models/Puzzles";
-import { huntsUserIsOperatorFor } from "../../lib/permission_stubs";
+import {
+  huntsUserIsOperatorFor,
+  listAllRolesForHunt,
+} from "../../lib/permission_stubs";
 import bookmarkNotificationsForSelf from "../../lib/publications/bookmarkNotificationsForSelf";
 import pendingAnnouncementsForSelf from "../../lib/publications/pendingAnnouncementsForSelf";
 import pendingGuessesForSelf from "../../lib/publications/pendingGuessesForSelf";
@@ -179,10 +182,10 @@ const GuessMessage = React.memo(
       onDismiss(guess._id);
     }, [onDismiss, guess._id]);
 
+    const idPrefix = useId();
+
     const extLinkTooltip = (
-      <Tooltip id={`notification-guess-${guess._id}-ext-link-tooltip`}>
-        Open puzzle
-      </Tooltip>
+      <Tooltip id={`${idPrefix}-ext-link-tooltip`}>Open puzzle</Tooltip>
     );
 
     const linkTarget = `/hunts/${puzzle.hunt}/puzzles/${puzzle._id}`;
@@ -212,11 +215,11 @@ const GuessMessage = React.memo(
         stageTwoSection = (
           <Form>
             <StyledNotificationRow>
-              <Form.Group controlId={`guess-${guess._id}-additional-notes`}>
+              <Form.Group controlId={`${idPrefix}-additional-notes`}>
                 <Form.Label>{stageTwoLabels[nextState]}</Form.Label>
                 <StyledNotificationRow>
                   <ReactTextareaAutosize
-                    id={`guess-${guess._id}-additional-notes`}
+                    id={`${idPrefix}-additional-notes`}
                     minRows={1}
                     className="form-control"
                     autoFocus
@@ -359,7 +362,6 @@ const GuessMessage = React.memo(
           <StyledNotificationActionBar>
             <StyledNotificationActionItem>
               <CopyToClipboardButton
-                tooltipId={`notification-guess-${guess._id}-copy-tooltip`}
                 text={guess.guess}
                 variant="outline-secondary"
                 size="sm"
@@ -641,6 +643,7 @@ const ChatNotificationMessage = ({
   displayNames,
   selfUserId,
   messageId,
+  roles,
 }: {
   cn: ChatNotificationType;
   hunt: HuntType;
@@ -648,6 +651,7 @@ const ChatNotificationMessage = ({
   displayNames: Map<string, string>;
   selfUserId: string;
   messageId: string;
+  roles: string[];
 }) => {
   const id = cn._id;
   const dismiss = useCallback(
@@ -717,6 +721,7 @@ const ChatNotificationMessage = ({
             displayNames={displayNames}
             selfUserId={selfUserId}
             puzzleData={puzzleData}
+            roles={roles}
           />
         </div>
       </Toast.Body>
@@ -770,7 +775,10 @@ const BookmarkNotificationMessage = ({
     <Toast onClose={dismiss}>
       <Toast.Header>
         <strong className="me-auto">
-          <Link to={`/hunts/${hunt._id}/puzzles/${puzzle._id}`}>
+          <Link
+            to={`/hunts/${hunt._id}/puzzles/${puzzle._id}`}
+            onClick={dismiss}
+          >
             {puzzle.title}
           </Link>{" "}
           {describeState}
@@ -874,6 +882,14 @@ const NotificationCenter = () => {
   );
 
   const [operatorActionsHidden = {}] = useOperatorActionsHidden();
+  const activeOperatorHunts = operatorHunts.filter(
+    (huntId) => !operatorActionsHidden[huntId],
+  );
+  useSubscribe(
+    activeOperatorHunts.length > 0 ? "subscribers.inc" : undefined,
+    "operators",
+    Object.fromEntries(activeOperatorHunts.map((h) => [h, true])),
+  );
 
   const pendingAnnouncementsLoading = useTypedSubscribe(
     pendingAnnouncementsForSelf,
@@ -992,6 +1008,15 @@ const NotificationCenter = () => {
       ? []
       : BookmarkNotifications.find({}, { sort: { createdAt: 1 } }).fetch(),
   );
+  const rolesForChat = useTracker(() => {
+    const hunts = new Set(chatNotifications.map((cn) => cn.hunt));
+    const roles = new Map(
+      [...hunts].map((huntId) => {
+        return [huntId, listAllRolesForHunt(Meteor.user(), { _id: huntId })];
+      }),
+    );
+    return roles;
+  }, [chatNotifications]);
 
   const [hideUpdateGoogleScriptMessage, setHideUpdateGoogleScriptMessage] =
     useState<boolean>(false);
@@ -1122,6 +1147,7 @@ const NotificationCenter = () => {
         puzzle={puzzle}
         displayNames={displayNames}
         selfUserId={selfUserId}
+        roles={rolesForChat.get(cn.hunt) ?? []}
       />,
     );
   });

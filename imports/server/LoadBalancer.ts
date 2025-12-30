@@ -1,10 +1,10 @@
-/* eslint-disable no-underscore-dangle */
-import type { IncomingMessage, ServerResponse } from "http";
-import type stream from "stream";
+import type { IncomingMessage, ServerResponse } from "node:http";
+import type stream from "node:stream";
 import { WebApp } from "meteor/webapp";
-import type HttpProxy from "http-proxy";
-import type { Worker } from "./WorkerPool";
+import type HttpProxy from "http-proxy-3";
+import type { ProxyTarget } from "http-proxy-3";
 import type WorkerPool from "./WorkerPool";
+import type { Worker } from "./WorkerPool";
 
 // This implements a simple multi-process, single-machine load-balancer.
 //
@@ -56,40 +56,43 @@ export default class LoadBalancer {
       // Only intercept sockjs HTTP requests.
       const longPollingMatcher = /^\/sockjs\/([0-9]+)\/(\w+)\/xhr/;
       const match = req.url?.match(longPollingMatcher);
-      if (match) {
-        // We are the coordinator.  Select a worker and dispatch the request.
-        // We want to have the same backend servicing requests from the same client, so
-        // we aim to pick a consistent worker for a given sockjs connection string.
-        const id = `${match[1]}${match[2]}`;
-        if (!workerMapping[id]) {
-          const worker = workers?.pickWorker();
-          if (worker) {
-            workerMapping[id] = { worker, lastUpdate: Date.now() };
-          }
-        }
-
-        if (workerMapping[id]) {
-          workerMapping[id]!.lastUpdate = Date.now();
-          const target = {
-            host: "127.0.0.1",
-            port: workerMapping[id]!.worker.port,
-          };
-          // Set long timeout because clients long-poll
-          res.setTimeout(2 * 60 * 1000);
-          // Proxy the request.  On failure, clean up the worker mapping, so we try
-          // a different worker.
-          proxy.web(req, res, { target }, () => {
-            delete workerMapping[id];
-          });
-          return true;
-        } else {
-          // Continue middleware propagation if we could not get a worker.
-          return false;
-        }
-      } else {
+      if (!match) {
         // Do not send other HTTP requests to workers.
         return false;
       }
+
+      // We are the coordinator.  Select a worker and dispatch the request.
+      // We want to have the same backend servicing requests from the same client, so
+      // we aim to pick a consistent worker for a given sockjs connection string.
+      const id = `${match[1]}${match[2]}`;
+      if (!workerMapping[id]) {
+        const worker = workers.pickWorker();
+        if (worker) {
+          workerMapping[id] = { worker, lastUpdate: Date.now() };
+        }
+      }
+
+      // If there's still no worker, that means the pool is empty.  Just continue
+      // middleware propagation.
+      if (!workerMapping[id]) {
+        return false;
+      }
+
+      workerMapping[id].lastUpdate = Date.now();
+      // This eventually gets passed to `http.request`, and `socketPath` is
+      // only valid if `host` and `port` are unset (regardless of what the
+      // http-proxy-3 types demand)
+      const target = {
+        socketPath: workerMapping[id].worker.path,
+      } as ProxyTarget;
+      // Set long timeout because clients long-poll
+      res.setTimeout(2 * 60 * 1000);
+      // Proxy the request.  On failure, clean up the worker mapping, so we try
+      // a different worker.
+      proxy.web(req, res, { target }, () => {
+        delete workerMapping[id];
+      });
+      return true;
     };
     return handleHttp;
   }

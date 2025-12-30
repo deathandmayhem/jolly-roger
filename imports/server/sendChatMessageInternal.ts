@@ -1,9 +1,6 @@
 import { Meteor } from "meteor/meteor";
+import type { ChatMessageContentType } from "../lib/models/ChatMessages";
 import ChatMessages from "../lib/models/ChatMessages";
-import type {
-  ChatAttachmentType,
-  ChatMessageContentType,
-} from "../lib/models/ChatMessages";
 import Puzzles from "../lib/models/Puzzles";
 import GlobalHooks from "./GlobalHooks";
 

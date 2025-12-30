@@ -9,7 +9,6 @@ import { Theme } from "../theme";
 // Casting away the React.lazy because otherwise we lose access to the generic parameter
 const Creatable = React.lazy(
   () => import("react-select/creatable"),
-  // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 ) as typeof import("react-select/creatable").default;
 
 const TagEditorSpan = styled.span<{ theme: Theme }>`

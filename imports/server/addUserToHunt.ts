@@ -8,10 +8,9 @@ import Logger from "../Logger";
 import type { HuntType } from "../lib/models/Hunts";
 import MeteorUsers from "../lib/models/MeteorUsers";
 import Settings from "../lib/models/Settings";
-import List from "./List";
 import addUsersToDiscordRole from "./addUsersToDiscordRole";
 import { ensureHuntFolderPermission } from "./gdrive";
-import { trace } from "console";
+import List from "./List";
 
 const DEFAULT_EXISTING_JOIN_SUBJECT =
   "[jolly-roger] Added to {{huntName}} on {{siteName}}";

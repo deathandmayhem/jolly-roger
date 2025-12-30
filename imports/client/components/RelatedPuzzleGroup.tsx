@@ -2,7 +2,7 @@ import { faCaretDown } from "@fortawesome/free-solid-svg-icons/faCaretDown";
 import { faCaretRight } from "@fortawesome/free-solid-svg-icons/faCaretRight";
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import type { TagType } from "../../lib/models/Tags";
 import type { PuzzleGroup } from "../../lib/puzzle-sort-and-group";
@@ -121,11 +121,7 @@ const RelatedPuzzleGroup = ({
     } else {
       setNonPersistentCollapsed((prevCollapsed) => !prevCollapsed);
     }
-  }, [
-    setPersistentCollapsed,
-    setNonPersistentCollapsed,
-    trackPersistentExpand,
-  ]);
+  }, [setPersistentCollapsed, trackPersistentExpand]);
   const collapsed = trackPersistentExpand
     ? persistentCollapsed
     : nonPersistentCollapsed;

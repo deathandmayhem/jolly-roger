@@ -1,4 +1,4 @@
-import { ESLintUtils } from "@typescript-eslint/utils";
+import { AST_NODE_TYPES, ESLintUtils } from "@typescript-eslint/utils";
 import ts from "typescript";
 
 const bannedMethods: Map<
@@ -63,6 +63,16 @@ const bannedMethods: Map<
   ["TypedMethod", new Map([["call", "callAsync"]])],
 ]);
 
+const cleanupFullyQualifiedName = (name: string) => {
+  // At some point, Meteor's types started returning absolute paths (e.g.
+  // "/Users/evan/src/jolly-roger/.meteor/local/types/node_modules/package-types/mongo/package/os/packages/mongo/mongo")
+  // so clean that up
+
+  const match = name.match(/".*\/.meteor\/local\/types\/node_modules\/package-types\/([^\/]+)\/.*"/);
+  if (!match) return name;
+  return name.replace(/"[^"]+"/, `"meteor/${match[1]}"`);
+}
+
 const findParent = <T extends ts.Node>(
   node: ts.Node,
   predicate: (node: ts.Node) => node is T,
@@ -81,12 +91,10 @@ const allSyncMethods = [...bannedMethods.values()].reduce((acc, map) => {
 }, new Set<string>());
 
 const isObjectType = (type: ts.Type): type is ts.ObjectType => {
-  // eslint-disable-next-line no-bitwise
   return !!(type.flags & ts.TypeFlags.Object);
 };
 
 const isTypeReference = (type: ts.Type): type is ts.TypeReference => {
-  // eslint-disable-next-line no-bitwise
   return isObjectType(type) && !!(type.objectFlags & ts.ObjectFlags.Reference);
 };
 
@@ -122,8 +130,8 @@ export default ESLintUtils.RuleCreator.withoutDocs({
   create(context) {
     return {
       CallExpression(node) {
-        if (node.callee.type !== "MemberExpression") return;
-        if (node.callee.property.type !== "Identifier") return;
+        if (node.callee.type !== AST_NODE_TYPES.MemberExpression) return;
+        if (node.callee.property.type !== AST_NODE_TYPES.Identifier) return;
 
         const { property } = node.callee;
         const methodName = node.callee.property.name;
@@ -166,7 +174,7 @@ export default ESLintUtils.RuleCreator.withoutDocs({
           if (!type.symbol) continue;
 
           const bannedMethodsForType = bannedMethods.get(
-            checker.getFullyQualifiedName(type.symbol),
+            cleanupFullyQualifiedName(checker.getFullyQualifiedName(type.symbol)),
           );
           if (!bannedMethodsForType) continue;
 

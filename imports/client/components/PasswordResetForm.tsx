@@ -1,12 +1,12 @@
 import { Accounts } from "meteor/accounts-base";
 import { Meteor } from "meteor/meteor";
 import type { FormEvent } from "react";
-import React, { useCallback, useState } from "react";
+import { useCallback, useState } from "react";
 import Button from "react-bootstrap/Button";
 import { useParams } from "react-router-dom";
 import {
-  AccountFormSubmitState,
   AccountFormFrame,
+  AccountFormSubmitState,
   usePasswordField,
 } from "./AccountFormHelpers";
 

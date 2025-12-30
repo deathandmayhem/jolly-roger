@@ -1,0 +1,33 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema-jsonc.json",
+  "entry": [
+    "{client,server,tests}/main.ts",
+    "client/**/*.scss",
+    "private/google-script/main.js",
+    // knip can't follow dynamic imports
+    "tests/**"
+  ],
+  "project": ["**/*", "!.meteor/local/**", "!eslint/dist/**"],
+  "rules": {
+    // TODO: We may want to enable these later, as they're potentially indicative of dead code
+    "exports": "off",
+    "types": "off"
+  },
+  // We're using SWC, but we don't depend on it directly because it's provided by meteor
+  "swc": {},
+  // Because we're using tsgo, knip will by default ignore our tsconfig.json
+  "typescript": {},
+  "ignoreBinaries": ["meteor"],
+  "ignoreDependencies": [
+    // Detected and used by Meteor
+    "@babel/runtime",
+    "meteor-node-stubs",
+    // Detected and used by fourseven:scss
+    "sass",
+    // Detected and used by mongodb
+    "aws4",
+    // Used by test suite
+    "playwright"
+  ],
+  "tags": ["-lintignore"]
+}

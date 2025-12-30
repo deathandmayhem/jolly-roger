@@ -1,5 +1,5 @@
 import { Meteor } from "meteor/meteor";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import type { RelativeTimeFormatOpts } from "../../lib/relativeTimeFormat";
 import { complete } from "../../lib/relativeTimeFormat";
 
@@ -34,6 +34,7 @@ const RelativeTime = ({
     setFormatted(initial);
   }, [date, maxElements, minimumUnit, now, terse]);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies(formatted.formatted): We explicitly include this so that we set a new timeout if the formatted string changes but (by chance) millisUntilChange doesn't
   useEffect(() => {
     // Set up reevaluation when we'd expect the string to change
     const timeout = Meteor.setTimeout(() => {
@@ -57,9 +58,6 @@ const RelativeTime = ({
     now,
     terse,
     formatted.millisUntilChange,
-    // Note that we explicitly include formatted.formatted here so that we set a
-    // new timeout if the formatted string changes but (by change) the
-    // millisUntilChange does not.
     formatted.formatted,
   ]);
 

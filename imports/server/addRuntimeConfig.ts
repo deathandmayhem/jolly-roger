@@ -1,5 +1,8 @@
-// Work around a bug in Meteor's runtime config hooks (which will only run a
-// single hook) by accumulating our own list
+// Our usage of Meteor's runtime config hooks is only to augment additional
+// fields, so add a wrapper which makes doing that a little more
+// straightforward. (This was originally introduced to work around a limitation
+// that you could only have a single runtime config hook. That's since been
+// fixed, but the abstraction is still useful.)
 
 import { WebApp } from "meteor/webapp";
 

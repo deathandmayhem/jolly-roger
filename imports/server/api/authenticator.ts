@@ -1,4 +1,6 @@
+import { DDP } from "meteor/ddp";
 import type express from "express";
+import Logger from "../../Logger";
 import APIKeys from "../../lib/models/APIKeys";
 import expressAsyncWrapper from "../expressAsyncWrapper";
 
@@ -36,10 +38,23 @@ const authenticator: express.Handler = expressAsyncWrapper(
       // If this API key was last used more than 60 seconds ago, update the
       // "last used" time on it. Do not block waiting for the write to complete.
       // Do not throw an error if updating the APIKey fails.
-      void APIKeys.updateAsync({ _id: key._id }, { $set: { lastUsedAt: now } });
+      APIKeys.updateAsync(
+        { _id: key._id },
+        { $set: { lastUsedAt: now } },
+      ).catch((error) => {
+        Logger.error("Ignored failure updating API key", {
+          error,
+          _id: key._id,
+        });
+      });
     }
 
-    next();
+    DDP._CurrentInvocation.withValue(
+      {
+        userId: key.user,
+      },
+      next,
+    );
   },
 );
 export default authenticator;

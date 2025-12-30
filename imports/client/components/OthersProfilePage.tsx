@@ -1,13 +1,13 @@
 import type { Meteor } from "meteor/meteor";
 import { useTracker } from "meteor/react-meteor-data";
-import React from "react";
+import { useId } from "react";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
-import Tooltip from "react-bootstrap/esm/Tooltip";
+import Tooltip from "react-bootstrap/Tooltip";
 import styled from "styled-components";
 import { formatDiscordName } from "../../lib/discord";
 import { indexedById } from "../../lib/listUtils";
-import Hunts from "../../lib/models/Hunts";
 import type { HuntType } from "../../lib/models/Hunts";
+import Hunts from "../../lib/models/Hunts";
 import huntsAll from "../../lib/publications/huntsAll";
 import useTypedSubscribe from "../hooks/useTypedSubscribe";
 import Avatar from "./Avatar";
@@ -42,13 +42,15 @@ const OthersProfilePage = ({ user }: { user: Meteor.User }) => {
     [loading],
   );
 
+  const tooltipId = useId();
+
   return (
     <div>
       <h1>
         <OverlayTrigger
           placement="bottom-start"
           overlay={
-            <AvatarTooltip id="tooltip-avatar">
+            <AvatarTooltip id={tooltipId}>
               <Avatar {...user} size={128} />
             </AvatarTooltip>
           }

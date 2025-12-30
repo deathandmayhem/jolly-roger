@@ -1,7 +1,7 @@
 import { z } from "zod";
+import { nonEmptyString } from "./customTypes";
 import type { ModelType } from "./Model";
 import SoftDeletedModel from "./SoftDeletedModel";
-import { nonEmptyString } from "./customTypes";
 import withCommon from "./withCommon";
 
 const SettingDiscriminatedUnion = z.discriminatedUnion("name", [

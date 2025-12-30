@@ -1,5 +1,6 @@
 import { Meteor } from "meteor/meteor";
-import React, { useCallback, useState } from "react";
+import type React from "react";
+import { useCallback, useId, useState } from "react";
 import Alert from "react-bootstrap/Alert";
 import Button from "react-bootstrap/Button";
 import type { FormControlProps } from "react-bootstrap/FormControl";
@@ -69,6 +70,8 @@ const FirstUserForm = () => {
     [email, password],
   );
 
+  const idPrefix = useId();
+
   const shouldDisableForm = submitState === SubmitState.SUBMITTING;
   return (
     <form onSubmit={onSubmit}>
@@ -87,20 +90,18 @@ const FirstUserForm = () => {
           Saving failed: {submitError}
         </Alert>
       ) : null}
-      <FormGroup className="mb-3">
-        <FormLabel htmlFor="jr-first-user-email">Email</FormLabel>
+      <FormGroup className="mb-3" controlId={`${idPrefix}-email`}>
+        <FormLabel>Email</FormLabel>
         <FormControl
-          id="jr-first-user-email"
           type="text"
           value={email}
           disabled={shouldDisableForm}
           onChange={onEmailChange}
         />
       </FormGroup>
-      <FormGroup className="mb-3">
-        <FormLabel htmlFor="jr-first-user-password">Password</FormLabel>
+      <FormGroup className="mb-3" controlId={`${idPrefix}-password`}>
+        <FormLabel>Password</FormLabel>
         <FormControl
-          id="jr-first-user-password"
           type="password"
           value={password}
           disabled={shouldDisableForm}

@@ -3,10 +3,12 @@ import { useSubscribe, useTracker } from "meteor/react-meteor-data";
 import { faCaretDown } from "@fortawesome/free-solid-svg-icons/faCaretDown";
 import { faCaretRight } from "@fortawesome/free-solid-svg-icons/faCaretRight";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import type React from "react";
 import type { ReactNode } from "react";
-import React, {
+import {
   useCallback,
   useEffect,
+  useId,
   useLayoutEffect,
   useRef,
   useState,
@@ -29,6 +31,7 @@ import { trace } from "../tracing";
 import { PREFERRED_AUDIO_DEVICE_STORAGE_KEY } from "./AudioConfig";
 import Avatar from "./Avatar";
 import CallSection from "./CallSection";
+import { PuzzlePagePadding } from "./styling/constants";
 import {
   AVActions,
   AVButton,
@@ -37,8 +40,7 @@ import {
   PeopleItemDiv,
   PeopleListDiv,
 } from "./styling/PeopleComponents";
-import { PuzzlePagePadding } from "./styling/constants";
-import { Theme } from "../theme";
+import type { Theme } from "../theme";
 
 interface ViewerSubscriber {
   user: string;
@@ -49,20 +51,20 @@ interface ViewerSubscriber {
 
 interface PersonBoxProps extends ViewerSubscriber {
   children?: ReactNode;
-  popperBoundaryRef: React.RefObject<HTMLElement>;
+  popperBoundaryRef: React.RefObject<HTMLElement | null>;
 }
 
 const ViewerPersonBox = ({
   user,
   name,
   discordAccount,
-  tab,
   children,
   popperBoundaryRef,
 }: PersonBoxProps) => {
+  const id = useId();
+
   return (
     <OverlayTrigger
-      key={`viewer-${user}-${tab}`}
       placement="bottom"
       popperConfig={{
         modifiers: [
@@ -76,9 +78,9 @@ const ViewerPersonBox = ({
           },
         ],
       }}
-      overlay={<Tooltip id={`viewer-${user}-${tab}`}>{name}</Tooltip>}
+      overlay={<Tooltip id={id}>{name}</Tooltip>}
     >
-      <PeopleItemDiv key={`viewer-${user}-${tab}`}>
+      <PeopleItemDiv>
         <Avatar
           _id={user}
           displayName={name}
@@ -404,6 +406,7 @@ const ChatPeople = ({
     })();
   }, [callDispatch]);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies(disabled): We want the parent to re-render when anything might have changed our rendered size
   useLayoutEffect(() => {
     trace("ChatPeople useLayoutEffect", {
       loading,

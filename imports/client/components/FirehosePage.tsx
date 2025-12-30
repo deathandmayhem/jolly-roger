@@ -4,6 +4,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, {
   useCallback,
   useEffect,
+  useId,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -20,8 +21,11 @@ import { shortCalendarTimeFormat } from "../../lib/calendarTimeFormat";
 import { indexedById } from "../../lib/listUtils";
 import type { ChatMessageType } from "../../lib/models/ChatMessages";
 import ChatMessages from "../../lib/models/ChatMessages";
-import Puzzles from "../../lib/models/Puzzles";
 import type { PuzzleType } from "../../lib/models/Puzzles";
+import Puzzles from "../../lib/models/Puzzles";
+import nodeIsImage from "../../lib/nodeIsImage";
+import nodeIsMention from "../../lib/nodeIsMention";
+import nodeIsRoleMention from "../../lib/nodeIsRoleMention";
 import chatMessagesForFirehose from "../../lib/publications/chatMessagesForFirehose";
 import { useBreadcrumb } from "../hooks/breadcrumb";
 import useFocusRefOnFindHotkey from "../hooks/useFocusRefOnFindHotkey";
@@ -64,13 +68,14 @@ function asFlatString(
 ): string {
   return chatMessage.content.children
     .map((child) => {
-      switch (chatMessageNodeType(child)) {
-        case "puzzle":
-          return ` ${puzzleNames.get(child.puzzleId) ?? "???"}`;
-        case "mention":
-          return ` @${displayNames.get(child.userId) ?? "???"} `;
-        default:
-          return child.text;
+      if (nodeIsMention(child)) {
+        return ` @${displayNames.get(child.userId) ?? "???"} `;
+      } else if (nodeIsRoleMention(child)) {
+        return ` @${child.roleId} `;
+      } else if (nodeIsImage(child)) {
+        return `[image]`;
+      } else {
+        return child.text;
       }
     })
     .join(" ");
@@ -299,9 +304,13 @@ const FirehosePage = () => {
     };
   }, [onLayoutMaybeChanged]);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies(loading): We want to run this effect when loading or chats.length changes.
+  // biome-ignore lint/correctness/useExhaustiveDependencies(chats.length): We want to run this effect when loading or chats.length changes.
   useLayoutEffect(() => {
     onLayoutMaybeChanged();
   }, [loading, onLayoutMaybeChanged, chats.length]);
+
+  const searchId = useId();
 
   if (loading) {
     return <div>Loading all chat messages. Expect this to take a while.</div>;
@@ -312,10 +321,9 @@ const FirehosePage = () => {
       <FirehosePageLayout>
         <h1>Firehose</h1>
         <p>This log includes all chat messages hunt-wide. Expect some lag.</p>
-        <FormGroup className="mb-3">
+        <FormGroup className="mb-3" controlId={searchId}>
           <InputGroup>
             <FormControl
-              id="jr-firehose-search"
               as="input"
               type="text"
               ref={searchBarRef}

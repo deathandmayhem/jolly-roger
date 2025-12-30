@@ -1,6 +1,7 @@
 import { Meteor } from "meteor/meteor";
 import { useSubscribe, useTracker } from "meteor/react-meteor-data";
-import React, { useCallback, useMemo, useState } from "react";
+import type React from "react";
+import { useCallback, useId, useMemo, useState } from "react";
 import Alert from "react-bootstrap/Alert";
 import Button from "react-bootstrap/Button";
 import Col from "react-bootstrap/Col";
@@ -88,6 +89,8 @@ const UserInvitePage = () => {
     [huntId, bulkEmails],
   );
 
+  const idPrefix = useId();
+
   const bulkInvite = useMemo(() => {
     return canBulkInvite ? (
       <div>
@@ -100,7 +103,7 @@ const UserInvitePage = () => {
         ) : undefined}
 
         <form onSubmit={onBulkSubmit} className="form-horizontal">
-          <FormGroup className="mb-3" controlId="jr-invite-bulk">
+          <FormGroup className="mb-3" controlId={`${idPrefix}-invite-bulk`}>
             <FormLabel>Email addresses (one per line)</FormLabel>
             <FormControl
               as="textarea"
@@ -119,6 +122,7 @@ const UserInvitePage = () => {
       </div>
     ) : undefined;
   }, [
+    idPrefix,
     canBulkInvite,
     submitting,
     bulkEmails,
@@ -178,12 +182,12 @@ const UserInvitePage = () => {
 
             <form onSubmit={onSubmit} className="form-horizontal">
               <FormGroup as={Row} className="mb-3">
-                <FormLabel htmlFor="jr-invite-email" column md={3}>
+                <FormLabel htmlFor={`${idPrefix}-email`} column md={3}>
                   E-mail address
                 </FormLabel>
                 <Col md={9}>
                   <FormControl
-                    id="jr-invite-email"
+                    id={`${idPrefix}-email`}
                     type="email"
                     value={email}
                     onChange={onEmailChanged}

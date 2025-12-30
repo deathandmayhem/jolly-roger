@@ -1,12 +1,12 @@
 import { Meteor } from "meteor/meteor";
-import { useSubscribe, useTracker } from "meteor/react-meteor-data";
+import { useTracker } from "meteor/react-meteor-data";
 import { faCommentDots } from "@fortawesome/free-solid-svg-icons/faCommentDots";
 import { faDoorOpen } from "@fortawesome/free-solid-svg-icons/faDoorOpen";
 import { faFilePen } from "@fortawesome/free-solid-svg-icons/faFilePen";
 import { faPeopleGroup } from "@fortawesome/free-solid-svg-icons/faPeopleGroup";
 import { faPhoneVolume } from "@fortawesome/free-solid-svg-icons/faPhoneVolume";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import React, { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Tooltip from "react-bootstrap/Tooltip";
 import { Sparklines, SparklinesLine, SparklinesSpots } from "react-sparklines";
@@ -21,11 +21,8 @@ import roundedTime from "../../lib/roundedTime";
 import ActivityBuckets from "../ActivityBuckets";
 import RelativeTime from "./RelativeTime";
 import { mediaBreakpointDown } from "./styling/responsive";
-import useSubscribeAvatars from "../hooks/useSubscribeAvatars";
-import Peers from "../../lib/models/mediasoup/Peers";
-import MeteorUsers from "../../lib/models/MeteorUsers";
-import { Subscribers } from "../subscribers";
 import { PeopleListDiv } from "./styling/PeopleComponents";
+import type { DiscordAccountType } from "../../lib/models/DiscordAccount";
 
 const PuzzleActivityItems = styled.span`
   font-size: 14px;
@@ -61,7 +58,6 @@ const PuzzleActivityItem = styled.span`
   )}
 `;
 
-
 const PuzzleOpenTime = styled(PuzzleActivityItem)`
   min-width: 4.66rem;
 `;
@@ -94,14 +90,7 @@ interface PuzzleActivityProps {
   huntId: string;
   puzzleId: string;
   unlockTime: Date;
-  subscribers: Record <string, string[]> | null;
-}
-
-interface ViewerSubscriber {
-  user: string;
-  name: string | undefined;
-  discordAccount: DiscordAccountType | undefined;
-  tab: string | undefined;
+  subscribers: Record<string, string[]> | null;
 }
 
 const PuzzleActivity = ({
@@ -113,6 +102,7 @@ const PuzzleActivity = ({
   const [finalBucket, setFinalBucket] = useState(
     roundedTime(ACTIVITY_GRANULARITY),
   );
+  // biome-ignore lint/correctness/useExhaustiveDependencies(finalBucket): This does actually depend on finalBucket because we want to reset the timer whenever it changes.
   useEffect(() => {
     const nextBucket =
       roundedTime(ACTIVITY_GRANULARITY).getTime() + ACTIVITY_GRANULARITY;
@@ -183,8 +173,10 @@ const PuzzleActivity = ({
     return counts;
   }, [finalBucket, huntId, puzzleId]);
 
+  const idPrefix = useId();
+
   const unlockTooltip = (
-    <Tooltip id={`puzzle-activity-unlock-${puzzleId}`}>
+    <Tooltip id={`${idPrefix}-unlock`}>
       Puzzle unlocked: {calendarTimeFormat(unlockTime)}
     </Tooltip>
   );
@@ -193,22 +185,23 @@ const PuzzleActivity = ({
     return buckets[buckets.length - 1] ?? 0;
   };
 
-  const rtcViewers = (subscribers?.callers ?? []);
-  const viewers = (subscribers?.viewers ?? []);
+  const rtcViewers = subscribers?.callers ?? [];
+  const viewers = subscribers?.viewers ?? [];
   const totalViewers = rtcViewers.length + viewers.length;
 
-  const viewerList = rtcViewers.concat(viewers).map((viewer) => (
-    viewer
-  ));
+  const viewerList = rtcViewers.concat(viewers).map((viewer) => viewer);
 
   const sparklineTooltip = (
     <Tooltip id={`puzzle-activity-sparkline-${puzzleId}`}>
-      <div>{totalViewers > 0 ? ("People working on this puzzle") : ("Recent activity on this puzzle")}:</div>
       <div>
-      <PeopleListDiv>
-        {viewerList.join(', ')}
-      </PeopleListDiv>
-      {/* <PeopleListDiv>
+        {totalViewers > 0
+          ? "People working on this puzzle"
+          : "Recent activity on this puzzle"}
+        :
+      </div>
+      <div>
+        <PeopleListDiv>{viewerList.join(", ")}</PeopleListDiv>
+        {/* <PeopleListDiv>
         {.join(', ')}
         </PeopleListDiv> */}
       </div>
@@ -294,7 +287,9 @@ const PuzzleActivity = ({
               spotColors={{ "-1": "black", 0: "black", 1: "black" }}
             />
           </Sparklines>
-          <span>{displayNumber(totals)}/{totalViewers}</span>
+          <span>
+            {displayNumber(totals)}/{totalViewers}
+          </span>
         </PuzzleActivitySparkline>
       </OverlayTrigger>
     </PuzzleActivityItems>

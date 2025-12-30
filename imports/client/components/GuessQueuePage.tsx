@@ -4,11 +4,7 @@ import { faCopy } from "@fortawesome/free-solid-svg-icons/faCopy";
 import { faEraser } from "@fortawesome/free-solid-svg-icons/faEraser";
 import { faPuzzlePiece } from "@fortawesome/free-solid-svg-icons/faPuzzlePiece";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import React, {
-  useCallback,
-  useRef,
-  useState,
-} from "react";
+import React, { useCallback, useRef, useState, useId } from "react";
 import {
   ToggleButtonGroup,
   Badge,
@@ -27,12 +23,12 @@ import { Link, useParams, useSearchParams } from "react-router-dom";
 import styled, { css } from "styled-components";
 import { calendarTimeFormat } from "../../lib/calendarTimeFormat";
 import { indexedById } from "../../lib/listUtils";
-import Guesses from "../../lib/models/Guesses";
 import type { GuessType } from "../../lib/models/Guesses";
-import Hunts from "../../lib/models/Hunts";
+import Guesses from "../../lib/models/Guesses";
 import type { HuntType } from "../../lib/models/Hunts";
-import Puzzles from "../../lib/models/Puzzles";
+import Hunts from "../../lib/models/Hunts";
 import type { PuzzleType } from "../../lib/models/Puzzles";
+import Puzzles from "../../lib/models/Puzzles";
 import { userMayUpdateGuessesForHunt } from "../../lib/permission_stubs";
 import guessesForGuessQueue from "../../lib/publications/guessesForGuessQueue";
 import setGuessState from "../../methods/setGuessState";
@@ -252,13 +248,13 @@ const GuessBlock = React.memo(
       setGuessState.call({ guessId: guess._id, state: "pending" });
     }, [guess._id]);
 
+    const idPrefix = useId();
+
     const puzzleTooltip = (
-      <Tooltip id={`guess-${guess._id}-puzzle-tooltip`}>
-        Open original puzzle
-      </Tooltip>
+      <Tooltip id={`${idPrefix}-puzzle-tooltip`}>Open original puzzle</Tooltip>
     );
     const discussionTooltip = (
-      <Tooltip id={`guess-${guess._id}-discussion-tooltip`}>
+      <Tooltip id={`${idPrefix}-discussion-tooltip`}>
         Open on Jolly Roger
       </Tooltip>
     );
@@ -330,7 +326,6 @@ const GuessBlock = React.memo(
           <StyledCopyToClipboardButton
             variant="link"
             aria-label="Copy"
-            tooltipId={`guess-${guess._id}-copy-tooltip`}
             text={guess.guess}
           >
             <FontAwesomeIcon icon={faCopy} fixedWidth />
@@ -510,19 +505,21 @@ const GuessQueuePage = () => {
     [searchString, compileMatcher],
   );
 
+  const idPrefix = useId();
+
   if (loading || !hunt) {
     return <div>loading...</div>;
   }
 
   const directionTooltip = (
-    <Tooltip id="direction-tooltip">
+    <Tooltip id={`${idPrefix}-direction-tooltip`}>
       Direction this puzzle was solved, ranging from completely backsolved (
       {formatGuessDirection(-10)}) to completely forward solved (
       {formatGuessDirection(10)})
     </Tooltip>
   );
   const confidenceTooltip = (
-    <Tooltip id="confidence-tooltip">
+    <Tooltip id={`${idPrefix}-confidence-tooltip`}>
       Submitter-estimated likelihood that this answer is correct
     </Tooltip>
   );
@@ -530,10 +527,9 @@ const GuessQueuePage = () => {
   return (
     <div>
       <h1>{pageTitle}</h1>
-      <FormGroup className="mb-3">
+      <FormGroup className="mb-3" controlId={`${idPrefix}-guess-search`}>
         <InputGroup>
           <FormControl
-            id="jr-guess-search"
             as="input"
             type="text"
             ref={searchBarRef}

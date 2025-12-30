@@ -18,7 +18,7 @@ import React, {
 } from "react";
 import { Badge, OverlayTrigger, Tooltip } from "react-bootstrap";
 import Button from "react-bootstrap/Button";
-import ButtonGroup from "react-bootstrap/esm/ButtonGroup";
+import ButtonGroup from "react-bootstrap/ButtonGroup";
 import { Link } from "react-router-dom";
 import styled, { css, useTheme } from "styled-components";
 import { difference, indexedById } from "../../lib/listUtils";
@@ -37,8 +37,8 @@ import PuzzleAnswer from "./PuzzleAnswer";
 import PuzzleDeleteModal from "./PuzzleDeleteModal";
 import type { PuzzleModalFormSubmitPayload } from "./PuzzleModalForm";
 import PuzzleModalForm from "./PuzzleModalForm";
-import TagList from "./TagList";
 import { mediaBreakpointDown } from "./styling/responsive";
+import TagList from "./TagList";
 
 const PuzzleDiv = styled.div<{
   $solvedness: Solvedness;
@@ -64,8 +64,8 @@ const PuzzleDiv = styled.div<{
 
 const PuzzleNote = styled.span`
   min-width: 4.66rem;
-  align-items: left;
-  justify-content: flex-end;
+  align-items: center;
+  justify-content: center;
   text-align: right;
   margin: 0 0 0 0.5rem;
 
@@ -393,7 +393,6 @@ const Puzzle = React.memo(
     const answers = puzzle.answers.map((answer, i) => {
       return (
         <PuzzleAnswer
-          // eslint-disable-next-line react/no-array-index-key
           key={`${i}-${answer}`}
           answer={answer}
           respace={segmentAnswers}
@@ -529,7 +528,7 @@ const Puzzle = React.memo(
           {isStuck ? (
             <OverlayTrigger
               placement="top"
-              overlay={<Tooltip id="$stuck-tt-{puzzleId}">Stuck</Tooltip>}
+              overlay={<Tooltip id={`stuck-tt-${puzzleId}`}>Stuck</Tooltip>}
             >
               <span>🤷</span>
             </OverlayTrigger>

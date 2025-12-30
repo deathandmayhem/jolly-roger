@@ -1,5 +1,5 @@
 import { useTracker } from "meteor/react-meteor-data";
-import React from "react";
+import type React from "react";
 import Col from "react-bootstrap/Col";
 import Container from "react-bootstrap/Container";
 import BSImage from "react-bootstrap/Image";
@@ -28,7 +28,7 @@ const SplashPage = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <Container>
-      <Jumbotron id="jr-login">
+      <Jumbotron>
         <Container>
           <Image
             src={heroSrc}
