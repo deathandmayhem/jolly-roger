@@ -118,6 +118,7 @@ const AnnouncementFormInput = ({
 
 const AnnouncementsPage = () => {
   const huntId = useParams<"huntId">().huntId!;
+  const theme = useTheme();
   useBreadcrumb({
     title: "Announcements",
     path: `/hunts/${huntId}/announcements`,
@@ -175,6 +176,7 @@ const AnnouncementsPage = () => {
               createdAt={announcement.createdAt}
               displayName={displayNames.get(announcement.createdBy) ?? "???"}
               message={announcement.message}
+              theme={theme}
             />
           );
         })}
