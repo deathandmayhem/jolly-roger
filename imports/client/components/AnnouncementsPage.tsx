@@ -72,6 +72,7 @@ const AnnouncementFormInput = ({
 
   const disabled = submitState === AnnouncementFormSubmitState.SUBMITTING;
   const id = useId();
+  const theme = useTheme();
 
   return (
     <BoundedForm>
