@@ -1,4 +1,5 @@
 // First thing's first: setup error reporting and logging
+import "../imports/server/sentry";
 import "../imports/server/bugsnag";
 import "../imports/server/configureLogger";
 

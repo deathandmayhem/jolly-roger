@@ -54,6 +54,6 @@ defineMethod(purgeHunt, {
     await PuzzleNotifications.removeAsync({ hunt });
     await Subscribers.removeAsync({ hunt });
     await Tags.removeAsync({ hunt });
-    });
+
   },
 });
