@@ -114,6 +114,7 @@ import FancyEditor from "./FancyEditor";
 import GuessState from "./GuessState";
 import type { ImageInsertModalHandle } from "./InsertImageModal";
 import InsertImageModal from "./InsertImageModal";
+import InsertImage from "./InsertImage";
 import MinimizedChatInfo from "./MinimizedChatInfo";
 import Markdown from "./Markdown";
 import type { ModalFormHandle } from "./ModalForm";
