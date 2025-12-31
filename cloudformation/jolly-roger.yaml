@@ -728,7 +728,6 @@ Resources:
 
                     backend nginx
                     server nginx localhost:8443 send-proxy
-                    mode http
 
                     backend nginx-http2
                     server nginx-http2 localhost:8444 send-proxy
@@ -904,7 +903,7 @@ Resources:
               SingleInstanceCertReference: !If
                 - HaveLoadBalancing
                 - ""
-                - ssl crt /usr/local/etc/haproxy/certs/
+                - ssl crt /usr/local/etc/haproxy/certs/ alpn h2,http/1.1
 
   AppInstancePublicIp:
     Type: AWS::EC2::EIP
