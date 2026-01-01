@@ -31,7 +31,6 @@ import { useBreadcrumb } from "../hooks/breadcrumb";
 import useFocusRefOnFindHotkey from "../hooks/useFocusRefOnFindHotkey";
 import useTypedSubscribe from "../hooks/useTypedSubscribe";
 import indexedDisplayNames from "../indexedDisplayNames";
-import type { Theme } from "../theme";
 import CopyToClipboardButton from "./CopyToClipboardButton";
 import GuessState from "./GuessState";
 import {
@@ -71,7 +70,7 @@ const StyledHeaderRow = styled.div`
   display: contents;
 `;
 
-const StyledHeader = styled.div<{ theme: Theme }>`
+const StyledHeader = styled.div`
   position: sticky;
   top: 0;
   background-color: ${({ theme }) => theme.colors.background};
@@ -84,7 +83,7 @@ const StyledHeader = styled.div<{ theme: Theme }>`
   )}
 `;
 
-const StyledRow = styled.div<{ $state: GuessType["state"]; theme: Theme }>`
+const StyledRow = styled.div<{ $state: GuessType["state"] }>`
   display: contents;
   margin-bottom: 8px;
   background-color: ${({ theme, $state }) => theme.colors.guess[$state].background};

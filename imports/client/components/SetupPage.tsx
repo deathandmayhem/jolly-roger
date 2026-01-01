@@ -46,7 +46,6 @@ import type { DiscordGuildType } from "../discord";
 import { useBreadcrumb } from "../hooks/breadcrumb";
 import useTypedSubscribe from "../hooks/useTypedSubscribe";
 import lookupUrl from "../lookupUrl";
-import type { Theme } from "../theme";
 import ActionButtonRow from "./ActionButtonRow";
 
 const PageContainer = styled.div`
@@ -57,7 +56,7 @@ const Section = styled.section`
   margin-bottom: 24px;
 `;
 
-const SectionHeader = styled.h1<{ theme: Theme }>`
+const SectionHeader = styled.h1`
   background-color: ${({ theme }) => theme.colors.setupPageHeaderBackground};
   font-size: 18px;
   border-bottom: 1px solid black;
@@ -2312,7 +2311,7 @@ const CircuitBreaker = styled.div`
   margin-bottom: 16px;
 `;
 
-const CircuitBreakerRow = styled.div<{ theme: Theme }>`
+const CircuitBreakerRow = styled.div`
   display: flex;
   flex-direction: row;
   align-items: baseline;

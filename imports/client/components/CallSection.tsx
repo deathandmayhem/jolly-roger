@@ -27,7 +27,6 @@ import MeteorUsers from "../../lib/models/MeteorUsers";
 import type { PeerType } from "../../lib/models/mediasoup/Peers";
 import mediasoupRemoteMutePeer from "../../methods/mediasoupRemoteMutePeer";
 import type { Action, CallState } from "../hooks/useCallState";
-import type { Theme } from "../theme";
 import Avatar from "./Avatar";
 import Loading from "./Loading";
 import Spectrum from "./Spectrum";
@@ -40,7 +39,7 @@ import {
   PeopleListDiv,
 } from "./styling/PeopleComponents";
 
-const CallStateIcon = styled.span<{ theme: Theme }>`
+const CallStateIcon = styled.span`
   font-size: 10px;
   width: 14px;
   height: 15px;
@@ -53,7 +52,7 @@ const CallStateIcon = styled.span<{ theme: Theme }>`
   background: white;
 `;
 
-const MutedIcon = styled(CallStateIcon)<{ theme: Theme }>`
+const MutedIcon = styled(CallStateIcon)`
   top: 0;
   border-bottom-left-radius: 6px;
   border: 0.5px solid ${({ theme }) => theme.colors.mutedIconBorder};
@@ -62,7 +61,7 @@ const MutedIcon = styled(CallStateIcon)<{ theme: Theme }>`
   color: ${({ theme }) => theme.colors.mutedIconText};
 `;
 
-const DeafenedIcon = styled(CallStateIcon)<{ theme: Theme }>`
+const DeafenedIcon = styled(CallStateIcon)`
   bottom: 0;
   border-top-left-radius: 6px;
   border: 0.5px solid ${({ theme }) => theme.colors.deafenedIconBorder};
@@ -73,7 +72,7 @@ const DeafenedIcon = styled(CallStateIcon)<{ theme: Theme }>`
   font-size: 9px;
 `;
 
-const RemoteMuteButton = styled.div<{ theme: Theme }>`
+const RemoteMuteButton = styled.div`
   position: absolute;
   inset: 0;
   font-size: 24px;

@@ -90,7 +90,6 @@ import useDocumentTitle from "../hooks/useDocumentTitle";
 import useSubscribeDisplayNames from "../hooks/useSubscribeDisplayNames";
 import useTypedSubscribe from "../hooks/useTypedSubscribe";
 import indexedDisplayNames from "../indexedDisplayNames";
-import type { Theme } from "../theme";
 import { trace } from "../tracing";
 import BookmarkButton from "./BookmarkButton";
 import ChatMessage from "./ChatMessage";
@@ -199,7 +198,6 @@ const PUZZLE_PAGE_PADDING = 8;
 const ChatMessageDiv = styled.div<{
   $isSystemMessage: boolean;
   $isHighlighted: boolean;
-  theme: Theme;
 }>`
   padding: 0 ${PUZZLE_PAGE_PADDING}px 2px;
   overflow-wrap: break-word;

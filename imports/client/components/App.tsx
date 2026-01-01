@@ -2,10 +2,10 @@ import { Meteor } from "meteor/meteor";
 import { useTracker } from "meteor/react-meteor-data";
 import Bugsnag from "@bugsnag/js";
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle";
-import { faMagic } from "@fortawesome/free-solid-svg-icons/faMagic";
 import { faMoon } from "@fortawesome/free-solid-svg-icons/faMoon";
 import { faSun } from "@fortawesome/free-solid-svg-icons/faSun";
 import { faUser } from "@fortawesome/free-solid-svg-icons/faUser";
+import { faWandMagicSparkles } from "@fortawesome/free-solid-svg-icons/faWandMagicSparkles";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Alert from "react-bootstrap/Alert";
@@ -305,7 +305,7 @@ const AppNavbar = ({
                 onClick={() => setAppTheme("auto")}
                 active={appTheme === "auto"}
               >
-                <FontAwesomeIcon icon={faMagic} fixedWidth /> Auto
+                <FontAwesomeIcon icon={faWandMagicSparkles} fixedWidth /> Auto
               </DropdownItem>
             </DropdownMenu>
             <DropdownItem

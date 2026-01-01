@@ -27,7 +27,6 @@ import type { Action, CallState } from "../hooks/useCallState";
 import { CallJoinState } from "../hooks/useCallState";
 import useSubscribeAvatars from "../hooks/useSubscribeAvatars";
 import { Subscribers } from "../subscribers";
-import type { Theme } from "../theme";
 import { trace } from "../tracing";
 import { PREFERRED_AUDIO_DEVICE_STORAGE_KEY } from "./AudioConfig";
 import Avatar from "./Avatar";
@@ -98,7 +97,7 @@ const PeopleListHeader = styled(ChatterSubsectionHeader)`
   text-indent: -1rem;
 `;
 
-const ChatterSection = styled.section<{ theme: Theme }>`
+const ChatterSection = styled.section`
   flex: 0;
   background-color: ${({ theme }) => theme.colors.chatterSectionBackground};
   font-size: 12px;
