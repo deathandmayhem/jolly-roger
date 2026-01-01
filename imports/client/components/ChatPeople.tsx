@@ -99,7 +99,7 @@ const PeopleListHeader = styled(ChatterSubsectionHeader)`
 
 const ChatterSection = styled.section`
   flex: 0;
-  background-color: #f3e5e5;
+  background-color: ${({ theme }) => theme.colors.chatterSectionBackground};
   font-size: 12px;
   line-height: 12px;
   padding: ${PuzzlePagePadding};

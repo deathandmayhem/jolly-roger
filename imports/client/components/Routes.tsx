@@ -1,8 +1,12 @@
-import React, { Suspense } from "react";
+import React, { Suspense, useEffect } from "react";
 import type { RouteObject } from "react-router-dom";
 import { Navigate, useRoutes } from "react-router-dom";
+import { ThemeProvider } from "styled-components";
+import { useMediaQuery } from "usehooks-ts";
 import { BreadcrumbsProvider } from "../hooks/breadcrumb";
+import { useAppThemeState } from "../hooks/persisted-state";
 import useDocumentTitle from "../hooks/useDocumentTitle";
+import { darkTheme, lightTheme } from "../theme";
 import AllProfileListPage from "./AllProfileListPage";
 import AnnouncementsPage from "./AnnouncementsPage";
 import { AuthenticatedPage, UnauthenticatedPage } from "./authentication";
@@ -113,11 +117,26 @@ const Routes = React.memo(() => {
   useDocumentTitle("Jolly Roger");
 
   const routes = useRoutes(RouteList);
+  const [appTheme] = useAppThemeState();
+  const systemPrefersDark = useMediaQuery("(prefers-color-scheme: dark)");
+  const effectiveTheme =
+    appTheme === "auto" ? (systemPrefersDark ? "dark" : "light") : appTheme;
+  const theme = effectiveTheme === "dark" ? darkTheme : lightTheme;
+
+  useEffect(() => {
+    const body = document.body;
+    body.setAttribute("data-bs-theme", effectiveTheme ?? "light");
+    return () => {
+      body.removeAttribute("data-bs-theme");
+    };
+  }, [effectiveTheme]);
 
   return (
-    <BreadcrumbsProvider>
-      <Suspense fallback={<Loading />}>{routes}</Suspense>
-    </BreadcrumbsProvider>
+    <ThemeProvider theme={theme}>
+      <BreadcrumbsProvider>
+        <Suspense fallback={<Loading />}>{routes}</Suspense>
+      </BreadcrumbsProvider>
+    </ThemeProvider>
   );
 });
 

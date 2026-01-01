@@ -38,7 +38,7 @@ export const DocumentMessage = styled.span`
   display: block;
   width: 100%;
   height: 100%;
-  background-color: #ddf;
+  background-color: ${({ theme }) => theme.colors.documentMessageBackground};
 `;
 
 const GoogleDocumentDisplay = ({

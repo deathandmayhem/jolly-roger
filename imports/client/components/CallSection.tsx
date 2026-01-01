@@ -46,7 +46,7 @@ const CallStateIcon = styled.span`
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #dc3545;
+  color: ${({ theme }) => theme.colors.callStateIcon};
   position: absolute;
   right: 0;
   background: white;
@@ -55,19 +55,20 @@ const CallStateIcon = styled.span`
 const MutedIcon = styled(CallStateIcon)`
   top: 0;
   border-bottom-left-radius: 6px;
-  border: 0.5px solid #0d6efd;
-  border-left: 0.5px solid #bbb;
-  border-bottom: 1px solid #bbb;
+  border: 0.5px solid ${({ theme }) => theme.colors.mutedIconBorder};
+  border-left: 0.5px solid ${({ theme }) => theme.colors.mutedIconBorder};
+  border-bottom: 1px solid ${({ theme }) => theme.colors.mutedIconBorder};
+  color: ${({ theme }) => theme.colors.mutedIconText};
 `;
 
 const DeafenedIcon = styled(CallStateIcon)`
   bottom: 0;
   border-top-left-radius: 6px;
-  border: 0.5px solid #0d6efd;
-  border-left: 0.5px solid #bbb;
-  border-top: 1px solid #bbb;
+  border: 0.5px solid ${({ theme }) => theme.colors.deafenedIconBorder};
+  border-left: 0.5px solid ${({ theme }) => theme.colors.deafenedIconBorder};
+  border-top: 1px solid ${({ theme }) => theme.colors.deafenedIconBorder};
   text-align: right;
-  color: black;
+  color: ${({ theme }) => theme.colors.mutedIconText};
   font-size: 9px;
 `;
 
@@ -84,8 +85,9 @@ const RemoteMuteButton = styled.div`
   color: transparent;
 
   &:hover {
-    background-color: rgb(30 30 30 / 50%);
-    color: #ccc;
+    background-color: ${({ theme }) =>
+      theme.colors.remoteMuteButtonHoverBackground};
+    color: ${({ theme }) => theme.colors.remoteMuteButtonHoverText};
   }
 `;
 

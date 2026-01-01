@@ -15,7 +15,7 @@ import FormGroup from "react-bootstrap/FormGroup";
 import FormLabel from "react-bootstrap/FormLabel";
 import FormText from "react-bootstrap/FormText";
 import Creatable from "react-select/creatable";
-import styled from "styled-components";
+import styled, { useTheme } from "styled-components";
 import Flags from "../../Flags";
 import isAdmin from "../../lib/isAdmin";
 import DiscordCache from "../../lib/models/DiscordCache";
@@ -57,7 +57,7 @@ const Section = styled.section`
 `;
 
 const SectionHeader = styled.h1`
-  background-color: #f0f0f0;
+  background-color: ${({ theme }) => theme.colors.setupPageHeaderBackground};
   font-size: 18px;
   border-bottom: 1px solid black;
   margin-bottom: 16px;
@@ -1120,6 +1120,8 @@ const S3ImageBucketForm = ({
     [selectedBucket],
   );
 
+  const theme = useTheme();
+
   return (
     <form onSubmit={saveConfig}>
       {submitState === SubmitState.SUBMITTING ? (
@@ -1146,6 +1148,7 @@ const S3ImageBucketForm = ({
           defaultValue={
             defaultValue ? { value: defaultValue, label: defaultValue } : null
           }
+          theme={theme.reactSelectTheme}
           onChange={(v) => setSelectedBucket(v?.value ?? undefined)}
         />
       </FormGroup>
@@ -2314,7 +2317,7 @@ const CircuitBreakerRow = styled.div`
   align-items: baseline;
   justify-content: space-between;
   margin-bottom: 8px;
-  background: #eef;
+  background: ${(props) => props.theme.colors.setupPageCircuitBreakerHeaderBackground};
   padding-top: 4px;
   padding-bottom: 4px;
   padding-right: 4px;

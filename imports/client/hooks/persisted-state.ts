@@ -2,6 +2,11 @@ import type { SetStateAction } from "react";
 import { useCallback } from "react";
 import { useLocalStorage } from "usehooks-ts";
 
+export type AppThemeState = "dark" | "light" | "auto";
+export const useAppThemeState = () => {
+  return useLocalStorage<AppThemeState>("appTheme", "auto");
+};
+
 export type OperatorActionsHiddenState = Record<string /* huntId */, boolean>;
 
 export const useOperatorActionsHidden = () => {

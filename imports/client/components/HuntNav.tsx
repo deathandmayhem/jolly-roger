@@ -40,11 +40,12 @@ const StyledPuzzleListLinkAnchor = styled(NavLink)`
   overflow: hidden;
   flex-direction: column;
   padding: 0 12px;
-  color: rgb(0 0 0 / 65%);
+  color: ${({ theme }) => theme.colors.text};
 
   &:hover {
-    color: rgb(0 0 0 / 80%);
+    color: ${({ theme }) => theme.colors.text};
     text-decoration: none;
+    opacity: 0.8;
   }
 
   ${mediaBreakpointDown(

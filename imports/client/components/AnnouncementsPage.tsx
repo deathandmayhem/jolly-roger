@@ -71,7 +71,6 @@ const AnnouncementFormInput = ({
   }, [message, huntId]);
 
   const disabled = submitState === AnnouncementFormSubmitState.SUBMITTING;
-
   const id = useId();
 
   return (

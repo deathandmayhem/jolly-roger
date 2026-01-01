@@ -2,7 +2,10 @@ import { Meteor } from "meteor/meteor";
 import { useTracker } from "meteor/react-meteor-data";
 import Bugsnag from "@bugsnag/js";
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle";
+import { faMoon } from "@fortawesome/free-solid-svg-icons/faMoon";
+import { faSun } from "@fortawesome/free-solid-svg-icons/faSun";
 import { faUser } from "@fortawesome/free-solid-svg-icons/faUser";
+import { faWandMagicSparkles } from "@fortawesome/free-solid-svg-icons/faWandMagicSparkles";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Alert from "react-bootstrap/Alert";
@@ -23,9 +26,10 @@ import * as RRBS from "react-router-bootstrap";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import type { StackFrame } from "stacktrace-js";
 import StackTrace from "stacktrace-js";
-import styled, { css } from "styled-components";
+import styled, { css, useTheme } from "styled-components";
 import isAdmin from "../../lib/isAdmin";
 import { useBreadcrumbItems } from "../hooks/breadcrumb";
+import { type AppThemeState, useAppThemeState } from "../hooks/persisted-state";
 import lookupUrl from "../lookupUrl";
 import ConnectionStatus from "./ConnectionStatus";
 import HuntNav from "./HuntNav";
@@ -68,7 +72,7 @@ const BreadcrumbList = styled.ol`
 const BreadcrumbItem = styled.li`
   display: inline;
   text-indent: 0;
-  color: rgb(0 0 0 / 65%);
+  color: ${({ theme }) => theme.colors.breadcrumbText};
 
   + li {
     padding-left: 0.5rem;
@@ -76,10 +80,10 @@ const BreadcrumbItem = styled.li`
     &::before {
       content: "/";
       padding-right: 0.5rem;
+      color: ${({ theme }) => theme.colors.breadcrumbBeforeText};
     }
   }
 `;
-
 const NavbarInset = styled(Navbar)`
   margin-top: env(safe-area-inset-top, 0);
   padding-left: env(safe-area-inset-right, 0);
@@ -188,7 +192,13 @@ const ReactErrorBoundaryFallback = ({
   return <ErrorFallback error={error} clearError={resetErrorBoundary} />;
 };
 
-const AppNavbar = () => {
+const AppNavbar = ({
+  appTheme,
+  setAppTheme,
+}: {
+  appTheme: AppThemeState;
+  setAppTheme: (appTheme: AppThemeState) => void;
+}) => {
   const userId = useTracker(() => Meteor.userId()!, []);
   const huntId = useParams<"huntId">().huntId!;
 
@@ -239,12 +249,14 @@ const AppNavbar = () => {
   // Note: the .brand class on the <img> ensures that the logo takes up the
   // correct amount of space in the top bar even if we haven't actually picked
   // a nonempty source for it yet.
+
+  const theme = useTheme();
   return (
     <NavbarInset
       variant="light"
       style={{
-        backgroundColor: "#f0f0f0",
-        borderBottom: "1px solid #6c757d",
+        backgroundColor: theme.colors.navBarBackground,
+        borderBottom: `1px solid ${theme.colors.navBarBottomBorder}`,
       }}
       className="py-0"
     >
@@ -273,6 +285,29 @@ const AppNavbar = () => {
             <RRBS.LinkContainer to={`/users/${userId}`}>
               <DropdownItem eventKey="1">My Profile</DropdownItem>
             </RRBS.LinkContainer>
+            <DropdownMenu>
+              <DropdownItem eventKey="theme-header" disabled>
+                Theme
+              </DropdownItem>
+              <DropdownItem
+                onClick={() => setAppTheme("light")}
+                active={appTheme === "light"}
+              >
+                <FontAwesomeIcon icon={faSun} fixedWidth /> Light Mode
+              </DropdownItem>
+              <DropdownItem
+                onClick={() => setAppTheme("dark")}
+                active={appTheme === "dark"}
+              >
+                <FontAwesomeIcon icon={faMoon} fixedWidth /> Dark Mode
+              </DropdownItem>
+              <DropdownItem
+                onClick={() => setAppTheme("auto")}
+                active={appTheme === "auto"}
+              >
+                <FontAwesomeIcon icon={faWandMagicSparkles} fixedWidth /> Auto
+              </DropdownItem>
+            </DropdownMenu>
             <DropdownItem
               eventKey="2"
               href="https://github.com/deathandmayhem/jolly-roger/issues"
@@ -319,10 +354,12 @@ const App = ({ children }: { children: React.ReactNode }) => {
     );
   }
 
+  const [appTheme, setAppTheme] = useAppThemeState();
+
   return (
     <div>
       <NotificationCenter />
-      <AppNavbar />
+      <AppNavbar appTheme={appTheme ?? "light"} setAppTheme={setAppTheme} />
       <ConnectionStatus />
       <ContentContainer className="container-fluid">
         {errorBoundary}

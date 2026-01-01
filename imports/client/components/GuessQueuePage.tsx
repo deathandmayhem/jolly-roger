@@ -41,7 +41,6 @@ import {
 import Markdown from "./Markdown";
 import PuzzleAnswer from "./PuzzleAnswer";
 import Breakable from "./styling/Breakable";
-import { guessColorLookupTable } from "./styling/constants";
 import type { Breakpoint } from "./styling/responsive";
 import { mediaBreakpointDown } from "./styling/responsive";
 
@@ -74,7 +73,7 @@ const StyledHeaderRow = styled.div`
 const StyledHeader = styled.div`
   position: sticky;
   top: 0;
-  background-color: white;
+  background-color: ${({ theme }) => theme.colors.background};
   font-weight: bold;
   ${mediaBreakpointDown(
     compactViewBreakpoint,
@@ -87,8 +86,7 @@ const StyledHeader = styled.div`
 const StyledRow = styled.div<{ $state: GuessType["state"] }>`
   display: contents;
   margin-bottom: 8px;
-  background-color: ${(props) =>
-    guessColorLookupTable[props.$state].background};
+  background-color: ${({ theme, $state }) => theme.colors.guess[$state].background};
 
   &::before {
     content: " ";
@@ -97,8 +95,8 @@ const StyledRow = styled.div<{ $state: GuessType["state"] }>`
   }
 
   :hover {
-    background-color: ${(props) =>
-      guessColorLookupTable[props.$state].hoverBackground};
+    background-color: ${({ theme, $state }) =>
+      theme.colors.guess[$state].hoverBackground};
   }
 `;
 
