@@ -45,6 +45,7 @@ export interface Theme {
     navBarBackground: string;
     setupPageHeaderBackground: string;
     setupPageCircuitBreakerHeaderBackground: string;
+    jumbotronBackground: string;
     guess: {
       correct: {
         background: string;
@@ -123,6 +124,7 @@ export const lightTheme: Theme = {
     navBarBackground: "#f0f0f0",
     setupPageHeaderBackground: "#f0f0f0",
     setupPageCircuitBreakerHeaderBackground: "#eef",
+    jumbotronBackground: "#e9ecef",
     guess: {
       correct: {
         background: "#f0fff0",
@@ -229,6 +231,7 @@ export const darkTheme: Theme = {
     navBarBackground: "#333333",
     setupPageHeaderBackground: "#333333",
     setupPageCircuitBreakerHeaderBackground: "#333355",
+    jumbotronBackground: "inherit",
     guess: {
       correct: {
         background: "#155724",

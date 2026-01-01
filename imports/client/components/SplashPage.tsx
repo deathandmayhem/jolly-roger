@@ -10,7 +10,7 @@ import lookupUrl from "../lookupUrl";
 const Jumbotron = styled.div`
   padding-top: 2rem;
   padding-bottom: 2rem;
-  background-color: #e9ecef;
+  background-color: ${({ theme }) => theme.colors.jumbotronBackground};
   border-radius: 0.3rem;
 `;
 
