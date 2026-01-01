@@ -1,12 +1,11 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import styled, { css } from "styled-components";
+import styled from "styled-components";
 import type { PuzzleType } from "../../lib/models/Puzzles";
 import type { Solvedness } from "../../lib/solvedness";
 import { computeSolvedness } from "../../lib/solvedness";
 import PuzzleAnswer from "./PuzzleAnswer";
 import Breakable from "./styling/Breakable";
-import { backgroundColorLookupTable } from "./styling/constants";
 
 const PuzzleTableEl = styled.table`
   width: 100%;
@@ -18,9 +17,8 @@ const PuzzleTableEl = styled.table`
 const PuzzleTableTr = styled.tr<{
   $solvedness: Solvedness;
 }>`
-  ${({ $solvedness }) => css`
-    background-color: ${backgroundColorLookupTable[$solvedness]};
-  `}
+  background-color: ${({ $solvedness, theme }) =>
+    theme.colors.solvedness[$solvedness]};
 `;
 
 // It's difficult to make table cells overflow. Setting a max-width in vw works pretty well, with

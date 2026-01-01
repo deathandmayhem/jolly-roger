@@ -90,6 +90,7 @@ import useDocumentTitle from "../hooks/useDocumentTitle";
 import useSubscribeDisplayNames from "../hooks/useSubscribeDisplayNames";
 import useTypedSubscribe from "../hooks/useTypedSubscribe";
 import indexedDisplayNames from "../indexedDisplayNames";
+import type { Theme } from "../theme";
 import { trace } from "../tracing";
 import BookmarkButton from "./BookmarkButton";
 import ChatMessage from "./ChatMessage";
@@ -114,11 +115,7 @@ import type { PuzzleModalFormSubmitPayload } from "./PuzzleModalForm";
 import PuzzleModalForm from "./PuzzleModalForm";
 import SplitPaneMinus from "./SplitPaneMinus";
 import Breakable from "./styling/Breakable";
-import {
-  guessColorLookupTable,
-  MonospaceFontFamily,
-  SolvedPuzzleBackgroundColor,
-} from "./styling/constants";
+import { MonospaceFontFamily } from "./styling/constants";
 import FixedLayout from "./styling/FixedLayout";
 import { mediaBreakpointDown } from "./styling/responsive";
 import TagList from "./TagList";
@@ -202,6 +199,7 @@ const PUZZLE_PAGE_PADDING = 8;
 const ChatMessageDiv = styled.div<{
   $isSystemMessage: boolean;
   $isHighlighted: boolean;
+  theme: Theme;
 }>`
   padding: 0 ${PUZZLE_PAGE_PADDING}px 2px;
   overflow-wrap: break-word;
@@ -210,13 +208,13 @@ const ChatMessageDiv = styled.div<{
     $isHighlighted &&
     !$isSystemMessage &&
     css`
-      background-color: #ffffd0;
-    `}
+      background-color: ${({ theme }) => theme.colors.pinnedChatMessageBackground};
+      `}
 
   ${({ $isSystemMessage }) =>
     $isSystemMessage &&
     css`
-      background-color: #e0e0e0;
+      background-color: ${({ theme }) => theme.colors.systemChatMessageBackground};
     `}
 `;
 
@@ -264,11 +262,11 @@ const PuzzleMetadata = styled.div`
   flex: none;
   padding: ${PUZZLE_PAGE_PADDING - 2}px 8px;
   border-bottom: 1px solid #dadce0;
+  background-color: ${({ theme }) => theme.colors.background};
 `;
 
 const PuzzleMetadataAnswer = styled.span`
-  background-color: ${SolvedPuzzleBackgroundColor};
-  color: #000;
+  background-color: ${({ theme }) => theme.colors.solvedness.solved};
   overflow: hidden;
 
   /* Tag-like */
@@ -589,7 +587,7 @@ const ChatHistoryMemo = React.memo(ChatHistory);
 const StyledFancyEditor = styled(FancyEditor)`
   flex: 1;
   display: block;
-  background-color: #fff;
+  background-color: ${({ theme }) => theme.colors.fancyEditorBackground};
   max-height: 200px;
   overflow-y: auto;
   overflow-x: hidden;
@@ -1256,8 +1254,8 @@ const GuessTableSmallRow = styled.div`
 
 const GuessRow = styled.div<{ $state: GuessType["state"] }>`
   display: contents;
-  background-color: ${(props) =>
-    guessColorLookupTable[props.$state].background};
+  background-color: ${({ $state, theme }) =>
+    theme.colors.guess[$state].background};
 
   &::before {
     content: " ";
@@ -1266,8 +1264,8 @@ const GuessRow = styled.div<{ $state: GuessType["state"] }>`
   }
 
   :hover {
-    background-color: ${(props) =>
-      guessColorLookupTable[props.$state].hoverBackground};
+    background-color: ${({ $state, theme }) =>
+      theme.colors.guess[$state].hoverBackground};
   }
 `;
 

@@ -5,6 +5,7 @@ import { faTable } from "@fortawesome/free-solid-svg-icons/faTable";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import styled from "styled-components";
 import type { DocumentType } from "../../lib/models/Documents";
+import type { Theme } from "../theme";
 
 interface DocumentDisplayProps {
   document: DocumentType;
@@ -34,11 +35,11 @@ const StyledIframe = styled.iframe`
   background-color: #f1f3f4;
 `;
 
-export const DocumentMessage = styled.span`
+export const DocumentMessage = styled.span<{ theme: Theme }>`
   display: block;
   width: 100%;
   height: 100%;
-  background-color: #ddf;
+  background-color: ${({ theme }) => theme.colors.documentMessageBackground};
 `;
 
 const GoogleDocumentDisplay = ({

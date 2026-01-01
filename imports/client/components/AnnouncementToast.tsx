@@ -1,10 +1,18 @@
 import Toast from "react-bootstrap/Toast";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 import { calendarTimeFormat } from "../../lib/calendarTimeFormat";
 import Markdown from "./Markdown";
 
 const StyledNotificationTimestamp = styled.small`
   text-align: end;
+`;
+
+const StyledToast = styled(Toast)`
+  ${({ theme }) => css`
+    background-color: ${theme.colors.announcementToastBackground};
+    color: ${theme.colors.announcementToastText};
+    border: 1px solid ${theme.colors.announcementToastBorder};
+  `}
 `;
 
 const AnnouncementToast = ({
@@ -21,7 +29,7 @@ const AnnouncementToast = ({
   className?: string;
 }) => {
   return (
-    <Toast className={className} onClose={onClose}>
+    <StyledToast className={className} onClose={onClose}>
       <Toast.Header closeButton={!!onClose}>
         <strong className="me-auto">Announcement from {displayName}</strong>
         <StyledNotificationTimestamp>
@@ -31,7 +39,7 @@ const AnnouncementToast = ({
       <Toast.Body>
         <Markdown text={message} />
       </Toast.Body>
-    </Toast>
+    </StyledToast>
   );
 };
 

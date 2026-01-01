@@ -94,7 +94,7 @@ interface ElementRendererProps<T> {
 const StyledEditorCodeBlock = styled.code`
   display: inline-block;
   width: 100%;
-  background-color: #eee;
+  background-color: ${({ theme }) => theme.colors.fancyEditorBackground};
   color: black;
   margin-bottom: 0;
 `;
@@ -126,19 +126,19 @@ export const MentionSpan = styled.span<{
   display: inline-block;
   overflow-wrap: break-word;
   border-radius: 4px;
-  color: #4649ef;
-  background-color: #ced0ed;
+  color: ${({ theme }) => theme.colors.mentionSpanText};
+  background-color: ${({ theme }) => theme.colors.mentionSpanBackground};
   ${({ $isSelf }) =>
     $isSelf &&
     css`
-      background-color: #4649ef;
-      color: #fff;
+      background-color: ${({ theme }) => theme.colors.selfMentionSpanBackground};
+      color: ${({ theme }) => theme.colors.selfMentionSpanText};
     `}
   font-size: 0.8rem;
 `;
 
 const SelectedMentionSpan = styled(MentionSpan)`
-  box-shadow: 0 0 0 2px #b4d5ff;
+  box-shadow: 0 0 0 2px ${({ theme }) => theme.colors.selectedMentionSpanShadow};
 `;
 
 export const ImageSpan = styled.span<{
@@ -319,8 +319,10 @@ const MatchCandidateRow = styled.div<{ $selected: boolean }>`
   align-items: center;
   justify-content: flex-start;
   cursor: pointer;
-  ${({ $selected }) => css`
-    background: ${$selected ? "#e0ecfc" : "transparent"};
+  ${({ $selected, theme }) => css`
+    background: ${
+      $selected ? theme.colors.matchCandidateSelectedBackground : "transparent"
+    };
   `}
 `;
 
@@ -491,11 +493,11 @@ const AutocompleteContainer = styled.div`
   position: absolute;
   z-index: 6;
   padding: 3px;
-  background: white;
+  background: ${({ theme }) => theme.colors.autocompleteBackground};
   border-radius: 4px;
   max-width: 100%;
   overflow-x: hidden;
-  box-shadow: 0 1px 5px rgb(0 0 0 / 20%);
+  box-shadow: ${({ theme }) => theme.colors.autocompleteShadow};
 `;
 
 // TraverseCallback should return the offset into its raw text at which its

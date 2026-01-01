@@ -9,8 +9,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useId } from "react";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Tooltip from "react-bootstrap/Tooltip";
+import { useTheme } from "styled-components";
 import type { GuessType } from "../../lib/models/Guesses";
-import { guessColorLookupTable } from "./styling/constants";
 
 const iconLookupTable: Record<GuessType["state"], IconProp> = {
   correct: faCheckCircle,
@@ -35,6 +35,11 @@ const GuessState = ({
   state: GuessType["state"];
   short?: boolean;
 }) => {
+  const theme = useTheme();
+  const iconColor = (state: GuessType["state"]) => {
+    return theme.colors.guess[state].icon;
+  };
+
   const tooltipId = useId();
 
   if (!short) {
@@ -42,7 +47,7 @@ const GuessState = ({
       <>
         <FontAwesomeIcon
           icon={iconLookupTable[state] ?? faQuestionCircle}
-          color={guessColorLookupTable[state].icon ?? "#fff"}
+          color={iconColor(state)}
           fixedWidth
         />{" "}
         {stateDescriptionTable[state] ?? "unknown"}
@@ -59,7 +64,7 @@ const GuessState = ({
     <OverlayTrigger placement="top" overlay={tooltip}>
       <FontAwesomeIcon
         icon={iconLookupTable[state] ?? faQuestionCircle}
-        color={guessColorLookupTable[state].icon ?? "#fff"}
+        color={iconColor(state)}
         fixedWidth
       />
     </OverlayTrigger>

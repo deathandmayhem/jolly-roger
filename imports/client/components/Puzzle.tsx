@@ -13,7 +13,7 @@ import React, {
 import Button from "react-bootstrap/Button";
 import ButtonGroup from "react-bootstrap/ButtonGroup";
 import { Link } from "react-router-dom";
-import styled, { css } from "styled-components";
+import styled, { css, useTheme } from "styled-components";
 import { difference, indexedById } from "../../lib/listUtils";
 import type { PuzzleType } from "../../lib/models/Puzzles";
 import type { TagType } from "../../lib/models/Tags";
@@ -27,17 +27,15 @@ import PuzzleAnswer from "./PuzzleAnswer";
 import PuzzleDeleteModal from "./PuzzleDeleteModal";
 import type { PuzzleModalFormSubmitPayload } from "./PuzzleModalForm";
 import PuzzleModalForm from "./PuzzleModalForm";
-import { backgroundColorLookupTable } from "./styling/constants";
 import { mediaBreakpointDown } from "./styling/responsive";
 import TagList from "./TagList";
 
 const PuzzleDiv = styled.div<{
   $solvedness: Solvedness;
 }>`
-  ${({ $solvedness }) => css`
-    background-color: ${backgroundColorLookupTable[$solvedness]};
-  `}
-
+  background-color: ${({ $solvedness, theme }) => {
+    return theme.colors.solvedness[$solvedness];
+  }};
   display: flex;
   flex-direction: row;
   align-items: first baseline;
@@ -187,13 +185,15 @@ const Puzzle = React.memo(
       }
     }, [renderDeleteModal]);
 
+    const theme = useTheme();
+
     const editButtons = useMemo(() => {
       if (showEdit) {
         return (
           <>
             <StyledButton
               onClick={onShowEditModal}
-              variant="light"
+              variant={theme.basicMode}
               title="Edit puzzle..."
             >
               <FontAwesomeIcon icon={faEdit} />
@@ -201,7 +201,7 @@ const Puzzle = React.memo(
             {!puzzle.deleted && (
               <StyledButton
                 onClick={onShowDeleteModal}
-                variant="light"
+                variant={theme.basicMode}
                 title="Delete puzzle..."
               >
                 <FontAwesomeIcon icon={faMinus} />
@@ -211,7 +211,13 @@ const Puzzle = React.memo(
         );
       }
       return null;
-    }, [showEdit, puzzle.deleted, onShowEditModal, onShowDeleteModal]);
+    }, [
+      showEdit,
+      puzzle.deleted,
+      onShowEditModal,
+      onShowDeleteModal,
+      theme.basicMode,
+    ]);
 
     // id, title, answer, tags
     const linkTarget = `/hunts/${puzzle.hunt}/puzzles/${puzzle._id}`;
@@ -258,7 +264,7 @@ const Puzzle = React.memo(
               puzzleId={puzzle._id}
               bookmarked={bookmarked}
               as={StyledButton}
-              variant="light"
+              variant={theme.basicMode}
             />
             {showEdit && editButtons}
           </ButtonGroup>

@@ -18,6 +18,7 @@ import FormGroup from "react-bootstrap/FormGroup";
 import FormLabel from "react-bootstrap/FormLabel";
 import Row from "react-bootstrap/Row";
 import type { ActionMeta } from "react-select";
+import { useTheme } from "styled-components";
 import type { GdriveMimeTypesType } from "../../lib/GdriveMimeTypes";
 import type { PuzzleType } from "../../lib/models/Puzzles";
 import type { TagType } from "../../lib/models/Tags";
@@ -343,6 +344,8 @@ const PuzzleModalForm = React.forwardRef(
         />
       ) : null;
 
+    const theme = useTheme();
+
     return (
       <Suspense
         fallback={
@@ -406,6 +409,7 @@ const PuzzleModalForm = React.forwardRef(
             <Col xs={9}>
               <Creatable
                 id={`${idPrefix}-new-puzzle-tags`}
+                theme={theme.reactSelectTheme}
                 options={selectOptions}
                 isMulti
                 isDisabled={disableForm}

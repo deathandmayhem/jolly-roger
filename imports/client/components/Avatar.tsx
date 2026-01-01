@@ -35,6 +35,8 @@ const AvatarInitial = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
+  color: ${({ theme }) => theme.colors.avatarInitialText};
+  background-color: ${({ theme }) => theme.colors.avatarInitialBackground};
 `;
 
 const DefaultAvatarInner = ({
@@ -92,9 +94,10 @@ const AvatarContainer = styled.div<{
   background-color: white;
   font-weight: 700;
   display: ${({ $inline }) => ($inline ? "inline-block" : "block")};
-  box-shadow: ${({ $isSelf }) =>
-    $isSelf ? "0 0 4px rgba(13, 110, 253, 0.5)" : "none"};
-  border: ${({ $isSelf }) => ($isSelf ? "0.5px solid #0D6EFD" : "none")};
+  box-shadow: ${({ $isSelf, theme }) =>
+    $isSelf ? `0 0 4px ${theme.colors.avatarSelfShadow}` : "none"};
+  border: ${({ $isSelf, theme }) =>
+    $isSelf ? `0.5px solid ${theme.colors.avatarSelfBorder}` : "none"};
 `;
 
 const Avatar = React.memo(

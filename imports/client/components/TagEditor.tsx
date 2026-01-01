@@ -1,6 +1,6 @@
 import { useTracker } from "meteor/react-meteor-data";
 import React, { Suspense, useCallback } from "react";
-import styled from "styled-components";
+import styled, { useTheme } from "styled-components";
 import type { PuzzleType } from "../../lib/models/Puzzles";
 import Tags from "../../lib/models/Tags";
 import Loading from "./Loading";
@@ -15,6 +15,7 @@ const TagEditorSpan = styled.span`
   min-width: 200px;
   flex-basis: 100%;
   margin: 2px 0;
+  background-color: ${({ theme }) => theme.colors.background};
 `;
 
 const TagEditor = ({
@@ -43,6 +44,8 @@ const TagEditor = ({
       return { value: t, label: t };
     });
 
+  const theme = useTheme();
+
   return (
     <Suspense fallback={<Loading inline />}>
       <TagEditorSpan>
@@ -52,6 +55,7 @@ const TagEditor = ({
           openMenuOnFocus
           onChange={(v) => v && onSubmit(v.value)}
           onBlur={onBlur}
+          theme={theme.reactSelectTheme}
         />
       </TagEditorSpan>
     </Suspense>
