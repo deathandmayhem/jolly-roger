@@ -12,6 +12,7 @@ import Alert from "react-bootstrap/Alert";
 import Button from "react-bootstrap/Button";
 import Container from "react-bootstrap/Container";
 import Dropdown from "react-bootstrap/Dropdown";
+import DropdownHeader from "react-bootstrap/DropdownHeader";
 import DropdownItem from "react-bootstrap/DropdownItem";
 import DropdownMenu from "react-bootstrap/DropdownMenu";
 import DropdownToggle from "react-bootstrap/DropdownToggle";
@@ -250,6 +251,16 @@ const AppNavbar = ({
   // correct amount of space in the top bar even if we haven't actually picked
   // a nonempty source for it yet.
 
+  const setAutoMode = useCallback(() => {
+    setAppTheme("auto");
+  }, [setAppTheme]);
+  const setLightMode = useCallback(() => {
+    setAppTheme("light");
+  }, [setAppTheme]);
+  const setDarkMode = useCallback(() => {
+    setAppTheme("dark");
+  }, [setAppTheme]);
+
   const theme = useTheme();
   return (
     <NavbarInset
@@ -283,31 +294,8 @@ const AppNavbar = ({
           </DropdownToggle>
           <DropdownMenu align="end">
             <RRBS.LinkContainer to={`/users/${userId}`}>
-              <DropdownItem eventKey="1">My Profile</DropdownItem>
+              <DropdownItem eventKey="1">My profile</DropdownItem>
             </RRBS.LinkContainer>
-            <DropdownMenu>
-              <DropdownItem eventKey="theme-header" disabled>
-                Theme
-              </DropdownItem>
-              <DropdownItem
-                onClick={() => setAppTheme("light")}
-                active={appTheme === "light"}
-              >
-                <FontAwesomeIcon icon={faSun} fixedWidth /> Light Mode
-              </DropdownItem>
-              <DropdownItem
-                onClick={() => setAppTheme("dark")}
-                active={appTheme === "dark"}
-              >
-                <FontAwesomeIcon icon={faMoon} fixedWidth /> Dark Mode
-              </DropdownItem>
-              <DropdownItem
-                onClick={() => setAppTheme("auto")}
-                active={appTheme === "auto"}
-              >
-                <FontAwesomeIcon icon={faWandMagicSparkles} fixedWidth /> Auto
-              </DropdownItem>
-            </DropdownMenu>
             <DropdownItem
               eventKey="2"
               href="https://github.com/deathandmayhem/jolly-roger/issues"
@@ -323,6 +311,17 @@ const AppNavbar = ({
             ) : undefined}
             <DropdownItem eventKey="3" onClick={logout}>
               Sign out
+            </DropdownItem>
+            <Dropdown.Divider />
+            <DropdownHeader>Theme</DropdownHeader>
+            <DropdownItem onClick={setAutoMode} active={appTheme === "auto"}>
+              <FontAwesomeIcon icon={faWandMagicSparkles} fixedWidth /> Auto
+            </DropdownItem>
+            <DropdownItem onClick={setLightMode} active={appTheme === "light"}>
+              <FontAwesomeIcon icon={faSun} fixedWidth /> Light mode
+            </DropdownItem>
+            <DropdownItem onClick={setDarkMode} active={appTheme === "dark"}>
+              <FontAwesomeIcon icon={faMoon} fixedWidth /> Dark mode
             </DropdownItem>
           </DropdownMenu>
         </Dropdown>
