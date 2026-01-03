@@ -31,6 +31,7 @@ import { useBreadcrumb } from "../hooks/breadcrumb";
 import useFocusRefOnFindHotkey from "../hooks/useFocusRefOnFindHotkey";
 import useTypedSubscribe from "../hooks/useTypedSubscribe";
 import indexedDisplayNames from "../indexedDisplayNames";
+import { compileGuessMatcher } from "../search";
 import CopyToClipboardButton from "./CopyToClipboardButton";
 import GuessState from "./GuessState";
 import {
@@ -416,35 +417,6 @@ const GuessQueuePage = () => {
     setSearchString("");
   }, [setSearchString]);
 
-  const compileMatcher = useCallback(
-    (searchKeys: string[]): ((g: GuessType) => boolean) => {
-      // Given a list a search keys, compileMatcher returns a function that,
-      // given a guess, returns true if all search keys match that guess in
-      // some way, and false if any of the search keys cannot be found in
-      // either the guess or the puzzle title.
-      const lowerSearchKeys = searchKeys.map((key) => key.toLowerCase());
-      return (guess) => {
-        const puzzle = puzzles.get(guess.puzzle)!;
-        const guessText = guess.guess.toLowerCase();
-        const submitterDisplayName = (
-          displayNames.get(guess.createdBy) ?? ""
-        ).toLowerCase();
-
-        const titleWords = puzzle.title.toLowerCase().split(" ");
-        // For each search key, if nothing from the text or the title match,
-        // reject this guess.
-        return lowerSearchKeys.every((key) => {
-          return (
-            guessText.includes(key) ||
-            titleWords.some((word) => word.startsWith(key)) ||
-            submitterDisplayName.includes(key)
-          );
-        });
-      };
-    },
-    [puzzles, displayNames],
-  );
-
   const filteredGuesses = useCallback(
     (allGuesses: GuessType[], puzzleMap: Map<string, PuzzleType>) => {
       const searchKeys = searchString.split(" ");
@@ -459,13 +431,17 @@ const GuessQueuePage = () => {
         const searchKeysWithEmptyKeysRemoved = searchKeys.filter((key) => {
           return key.length > 0;
         });
-        const isInteresting = compileMatcher(searchKeysWithEmptyKeysRemoved);
+        const isInteresting = compileGuessMatcher(
+          puzzles,
+          displayNames,
+          searchKeysWithEmptyKeysRemoved,
+        );
         interestingGuesses = guessesForKnownPuzzles.filter(isInteresting);
       }
 
       return interestingGuesses;
     },
-    [searchString, compileMatcher],
+    [searchString, puzzles, displayNames],
   );
 
   const idPrefix = useId();
