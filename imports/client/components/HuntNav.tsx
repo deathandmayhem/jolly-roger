@@ -4,6 +4,7 @@ import { faBullhorn } from "@fortawesome/free-solid-svg-icons/faBullhorn";
 import { faFaucet } from "@fortawesome/free-solid-svg-icons/faFaucet";
 import { faMap } from "@fortawesome/free-solid-svg-icons/faMap";
 import { faReceipt } from "@fortawesome/free-solid-svg-icons/faReceipt";
+import { faTags } from "@fortawesome/free-solid-svg-icons/faTags";
 import { faUsers } from "@fortawesome/free-solid-svg-icons/faUsers";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Nav from "react-bootstrap/Nav";
@@ -181,6 +182,11 @@ const HuntNav = () => {
         >
           <MenuIcon icon={faUsers} />
           <StyledPuzzleListLinkLabel>Hunters</StyledPuzzleListLinkLabel>
+        </StyledPuzzleListLinkAnchor>
+
+        <StyledPuzzleListLinkAnchor to={`/hunts/${huntId}/tags`} title="Tags">
+          <MenuIcon icon={faTags} />
+          <StyledPuzzleListLinkLabel>Tags</StyledPuzzleListLinkLabel>
         </StyledPuzzleListLinkAnchor>
 
         {/* Show firehose link only to operators */}
