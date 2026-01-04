@@ -46,6 +46,7 @@ import {
 } from "../hooks/persisted-state";
 import useFocusRefOnFindHotkey from "../hooks/useFocusRefOnFindHotkey";
 import useTypedSubscribe from "../hooks/useTypedSubscribe";
+import { compilePuzzleMatcher } from "../search";
 import HuntNav from "./HuntNav";
 import PuzzleList from "./PuzzleList";
 import type {
@@ -264,48 +265,6 @@ const PuzzleListView = ({
       [setSearchString],
     );
 
-  const compileMatcher = useCallback(
-    (searchKeys: string[]): ((p: PuzzleType) => boolean) => {
-      const tagNames: Record<string, string> = {};
-      allTags.forEach((t) => {
-        tagNames[t._id] = t.name.toLowerCase();
-      });
-      const lowerSearchKeys = searchKeys.map((key) => key.toLowerCase());
-      return function (puzzle) {
-        const titleWords = puzzle.title.toLowerCase().split(" ");
-        return lowerSearchKeys.every((key) => {
-          // Every key should match at least one of the following:
-          // * prefix of word in title
-          // * substring of any answer
-          // * substring of any tag
-          if (titleWords.some((word) => word.startsWith(key))) {
-            return true;
-          }
-
-          if (
-            puzzle.answers.some((answer) => {
-              return answer.toLowerCase().includes(key);
-            })
-          ) {
-            return true;
-          }
-
-          const tagMatch = puzzle.tags.some((tagId) => {
-            const tagName = tagNames[tagId];
-            return tagName?.includes(key);
-          });
-
-          if (tagMatch) {
-            return true;
-          }
-
-          return false;
-        });
-      };
-    },
-    [allTags],
-  );
-
   const puzzlesMatchingSearchString = useCallback(
     (puzzles: PuzzleType[]): PuzzleType[] => {
       const searchKeys = searchString.split(" ");
@@ -316,11 +275,14 @@ const PuzzleListView = ({
         const searchKeysWithEmptyKeysRemoved = searchKeys.filter((key) => {
           return key.length > 0;
         });
-        const isInteresting = compileMatcher(searchKeysWithEmptyKeysRemoved);
+        const isInteresting = compilePuzzleMatcher(
+          allTags,
+          searchKeysWithEmptyKeysRemoved,
+        );
         return puzzles.filter(isInteresting);
       }
     },
-    [searchString, compileMatcher],
+    [searchString, allTags],
   );
 
   const puzzlesMatchingSolvedFilter = useCallback(

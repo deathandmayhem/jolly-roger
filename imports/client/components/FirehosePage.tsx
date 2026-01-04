@@ -125,6 +125,40 @@ const MessagesPane = styled.div`
   }
 `;
 
+// Could probably move to imports/client/search some day.
+// Still in this file for now since we use asFlatString.
+function compileChatMessageMatcher(
+  puzzles: Map<string, PuzzleType>,
+  displayNames: Map<string, string>,
+  searchKeys: string[],
+): (c: ChatMessageType) => boolean {
+  // Given a set of puzzles, display names, and search keys,
+  // compileChatMessageMatcher returns a function that, given a chat message,
+  // returns true if all search keys match that message in some way, and
+  // false if any of the search keys cannot be found.
+  const lowerSearchKeys = searchKeys.map((key) => key.toLowerCase());
+  return (chatMessage) => {
+    const haystackString = asFlatString(
+      chatMessage,
+      displayNames,
+    ).toLowerCase();
+    const senderDisplayName = (
+      chatMessage.sender
+        ? (displayNames.get(chatMessage.sender) ?? "")
+        : "jolly-roger"
+    ).toLowerCase();
+    const puzzleName =
+      puzzles.get(chatMessage.puzzle)?.title.toLowerCase() ?? "";
+    return lowerSearchKeys.every((key) => {
+      return (
+        haystackString.includes(key) ||
+        senderDisplayName.includes(key) ||
+        puzzleName.includes(key)
+      );
+    });
+  };
+}
+
 const FirehosePage = () => {
   const huntId = useParams<"huntId">().huntId!;
   const [searchParams, setSearchParams] = useSearchParams();
@@ -197,36 +231,6 @@ const FirehosePage = () => {
     setSearchString("");
   }, [setSearchString]);
 
-  const compileMatcher = useCallback(
-    (searchKeys: string[]): ((c: ChatMessageType) => boolean) => {
-      // Given a list a search keys, compileMatcher returns a function that,
-      // given a chat message, returns true if all search keys match that message in
-      // some way, and false if any of the search keys cannot be found.
-      const lowerSearchKeys = searchKeys.map((key) => key.toLowerCase());
-      return (chatMessage) => {
-        const haystackString = asFlatString(
-          chatMessage,
-          displayNames,
-        ).toLowerCase();
-        const senderDisplayName = (
-          chatMessage.sender
-            ? (displayNames.get(chatMessage.sender) ?? "")
-            : "jolly-roger"
-        ).toLowerCase();
-        const puzzleName =
-          puzzles.get(chatMessage.puzzle)?.title.toLowerCase() ?? "";
-        return lowerSearchKeys.every((key) => {
-          return (
-            haystackString.includes(key) ||
-            senderDisplayName.includes(key) ||
-            puzzleName.includes(key)
-          );
-        });
-      };
-    },
-    [displayNames, puzzles],
-  );
-
   const filteredChats = useCallback(
     (allChatMessages: ChatMessageType[]) => {
       const searchKeys = searchString.split(" ");
@@ -238,13 +242,17 @@ const FirehosePage = () => {
         const searchKeysWithEmptyKeysRemoved = searchKeys.filter((key) => {
           return key.length > 0;
         });
-        const isInteresting = compileMatcher(searchKeysWithEmptyKeysRemoved);
+        const isInteresting = compileChatMessageMatcher(
+          puzzles,
+          displayNames,
+          searchKeysWithEmptyKeysRemoved,
+        );
         interestingChatMessages = allChatMessages.filter(isInteresting);
       }
 
       return interestingChatMessages;
     },
-    [searchString, compileMatcher],
+    [searchString, puzzles, displayNames],
   );
 
   const [shouldScrollBottom, setShouldScrollBottom] = useState<boolean>(true);
