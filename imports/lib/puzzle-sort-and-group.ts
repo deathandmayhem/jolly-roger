@@ -393,9 +393,33 @@ function puzzleGroupsByRelevance(
   return groups.map((group) => dedupedGroup(group));
 }
 
+function sortPuzzlesByRelevanceWithinPuzzleGroup(
+  puzzles: PuzzleType[],
+  sharedTag: TagType | undefined,
+  indexedTags: Map<string, TagType>,
+) {
+  let group: string;
+  if (sharedTag && sharedTag.name.lastIndexOf("group:", 0) === 0) {
+    group = sharedTag.name.slice("group:".length);
+  }
+  const sortedPuzzles = puzzles.slice(0);
+  sortedPuzzles.sort((a, b) => {
+    const ia = puzzleInterestingness(a, indexedTags, group);
+    const ib = puzzleInterestingness(b, indexedTags, group);
+    if (ia !== ib) {
+      return ia - ib;
+    } else {
+      // Sort puzzles by creation time otherwise.
+      return +a.createdAt - +b.createdAt;
+    }
+  });
+  return sortedPuzzles;
+}
+
 export {
   type PuzzleGroup,
   puzzleInterestingness,
   puzzleGroupsByRelevance,
   filteredPuzzleGroups,
+  sortPuzzlesByRelevanceWithinPuzzleGroup,
 };

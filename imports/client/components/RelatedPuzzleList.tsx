@@ -2,31 +2,8 @@ import React from "react";
 import { indexedById } from "../../lib/listUtils";
 import type { PuzzleType } from "../../lib/models/Puzzles";
 import type { TagType } from "../../lib/models/Tags";
-import { puzzleInterestingness } from "../../lib/puzzle-sort-and-group";
+import { sortPuzzlesByRelevanceWithinPuzzleGroup } from "../../lib/puzzle-sort-and-group";
 import PuzzleList from "./PuzzleList";
-
-function sortPuzzlesByRelevanceWithinPuzzleGroup(
-  puzzles: PuzzleType[],
-  sharedTag: TagType | undefined,
-  indexedTags: Map<string, TagType>,
-) {
-  let group: string;
-  if (sharedTag && sharedTag.name.lastIndexOf("group:", 0) === 0) {
-    group = sharedTag.name.slice("group:".length);
-  }
-  const sortedPuzzles = puzzles.slice(0);
-  sortedPuzzles.sort((a, b) => {
-    const ia = puzzleInterestingness(a, indexedTags, group);
-    const ib = puzzleInterestingness(b, indexedTags, group);
-    if (ia !== ib) {
-      return ia - ib;
-    } else {
-      // Sort puzzles by creation time otherwise.
-      return +a.createdAt - +b.createdAt;
-    }
-  });
-  return sortedPuzzles;
-}
 
 const RelatedPuzzleList = React.memo(
   ({
@@ -69,4 +46,4 @@ const RelatedPuzzleList = React.memo(
 );
 
 export default RelatedPuzzleList;
-export { RelatedPuzzleList, sortPuzzlesByRelevanceWithinPuzzleGroup };
+export { RelatedPuzzleList };
