@@ -72,7 +72,7 @@ const DeafenedIcon = styled(CallStateIcon)`
   font-size: 9px;
 `;
 
-const RemoteMuteButton = styled.div`
+const PeerMuteButton = styled.div`
   position: absolute;
   inset: 0;
   font-size: 24px;
@@ -215,14 +215,24 @@ const ChatterTooltip = styled(Tooltip)`
   }
 `;
 
-type RemoteMuteConfirmModalHandle = {
+type PeerMuteConfirmModalHandle = {
   show: () => void;
 };
 
-const RemoteMuteConfirmModal = React.forwardRef(
+const PeerMuteConfirmModal = React.forwardRef(
   (
-    { peerId, name }: { peerId: string; name: string },
-    forwardedRef: React.Ref<RemoteMuteConfirmModalHandle>,
+    {
+      peerId,
+      name,
+      isLocallyMuted,
+      onLocalMuteToggle,
+    }: {
+      peerId: string;
+      name: string;
+      isLocallyMuted: boolean;
+      onLocalMuteToggle: () => void;
+    },
+    forwardedRef: React.Ref<PeerMuteConfirmModalHandle>,
   ) => {
     const [visible, setVisible] = useState(true);
     const show = useCallback(() => setVisible(true), []);
@@ -245,32 +255,56 @@ const RemoteMuteConfirmModal = React.forwardRef(
       setDisabled(true);
     }, [peerId, hide]);
 
+    const handleLocalMuteToggle = useCallback(() => {
+      onLocalMuteToggle(); // Call the callback to update PeerBox's state and track.enabled
+      hide();
+    }, [onLocalMuteToggle, hide]);
+
     const modal = (
       <Modal show={visible} onHide={hide}>
         <Modal.Header closeButton>
-          <Modal.Title>Mute {name}</Modal.Title>
+          <Modal.Title>Manage audio for {name}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <p>
-            This will mute {name} for everyone on the call, not just you, and
-            should only be used as a last resort if (e.g.) they have forgotten
-            to mute themselves but aren&apos;t listening to the call.
-          </p>
+          <div>
+            <h4>Mute for me</h4>
+            <p>
+              Toggle hearing audio from {name}. This will not affect what others
+              hear and you can (un)mute them here anytime. You will need to set
+              this each time you connect to a call.
+            </p>
+            <Button
+              variant={isLocallyMuted ? "primary" : "outline-primary"}
+              onClick={handleLocalMuteToggle}
+              className="mb-2"
+            >
+              {isLocallyMuted ? <>Unmute for me</> : <>Mute for me</>}
+            </Button>
+          </div>
+          <hr className="my-3" />
+          <div>
+            <h4>Mute for everyone</h4>
+            <p>
+              This will mute {name} for <strong>everyone</strong> on the call.
+              Use this only as a last resort if they are disruptive and cannot
+              mute themselves. Only they will be able to unmute themselves.
+            </p>
 
-          <p>Are you sure you want to mute {name}?</p>
+            <p>Are you sure you want to mute {name}?</p>
 
-          {error && (
-            <Alert variant="danger" dismissible onClose={clearError}>
-              {error.message}
-            </Alert>
-          )}
+            {error && (
+              <Alert variant="danger" dismissible onClose={clearError}>
+                {error.message}
+              </Alert>
+            )}
+          </div>
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={hide} disabled={disabled}>
             Cancel
           </Button>
           <Button variant="danger" onClick={mute} disabled={disabled}>
-            Mute
+            Mute for everyone
           </Button>
         </Modal.Footer>
       </Modal>
@@ -314,7 +348,7 @@ const PeerBox = ({
   }, [stream, audioRef]);
 
   const [renderMuteModal, setRenderMuteModal] = useState(false);
-  const muteModalRef = useRef<RemoteMuteConfirmModalHandle>(null);
+  const muteModalRef = useRef<PeerMuteConfirmModalHandle>(null);
   const showMuteModal = useCallback(
     (e: MouseEvent) => {
       e.preventDefault();
@@ -329,15 +363,27 @@ const PeerBox = ({
 
   const { muted, deafened } = peer;
 
-  const tooltipId = useId();
+  const [isLocalMuted, setIsLocalMuted] = useState(false);
+
+  const toggleLocalMute = useCallback(() => {
+    setIsLocalMuted(!isLocalMuted);
+  }, [isLocalMuted]);
+
+  useEffect(() => {
+    if (audioRef.current && stream) {
+      audioRef.current.muted = isLocalMuted;
+    }
+  }, [isLocalMuted, audioRef, stream]);
 
   return (
     <>
       {renderMuteModal && (
-        <RemoteMuteConfirmModal
+        <PeerMuteConfirmModal
           ref={muteModalRef}
           peerId={peer._id}
           name={name ?? "this user"}
+          isLocallyMuted={isLocalMuted}
+          onLocalMuteToggle={toggleLocalMute}
         />
       )}
       <OverlayTrigger
@@ -359,6 +405,9 @@ const PeerBox = ({
             <div>{name}</div>
             {muted && <div>Muted (no one can hear them)</div>}
             {deafened && <div>Deafened (they can&apos;t hear anyone)</div>}
+            {isLocalMuted && !muted && (
+              <div>Muted by you (others can hear them)</div>
+            )}
           </ChatterTooltip>
         }
       >
@@ -372,6 +421,11 @@ const PeerBox = ({
           <div>
             {muted && (
               <MutedIcon>
+                <FontAwesomeIcon icon={faMicrophoneSlash} />
+              </MutedIcon>
+            )}
+            {!muted && isLocalMuted && (
+              <MutedIcon $local>
                 <FontAwesomeIcon icon={faMicrophoneSlash} />
               </MutedIcon>
             )}
@@ -392,12 +446,12 @@ const PeerBox = ({
               />
             ) : null}
             {!muted && (
-              <RemoteMuteButton onClick={showMuteModal}>
+              <PeerMuteButton onClick={showMuteModal}>
                 <FontAwesomeIcon icon={faMicrophoneSlash} />
-              </RemoteMuteButton>
+              </PeerMuteButton>
             )}
           </div>
-          <audio autoPlay muted={selfDeafened} ref={audioRef} />
+          <audio autoPlay muted={selfDeafened || isLocalMuted} ref={audioRef} />
         </PeopleItemDiv>
       </OverlayTrigger>
     </>
