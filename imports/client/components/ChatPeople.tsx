@@ -280,7 +280,7 @@ const ChatPeople = ({
     [callDispatch, muted, pushedToTalk],
   );
 
-  // eslint-disable-next-line consistent-return
+   
   useEffect(() => {
     if (callState.callState === CallJoinState.IN_CALL) {
       window.addEventListener("keydown", maybePushToTalk);
@@ -300,7 +300,7 @@ const ChatPeople = ({
       if (pushedToTalk) {
         setPushedToTalk(false);
       }
-      // eslint-disable-next-line @typescript-eslint/no-empty-function
+       
       return () => {};
     }
   }, [callDispatch, callState.callState, maybePushToTalk, pushedToTalk]);

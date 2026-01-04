@@ -1,9 +1,9 @@
+import { faFolderOpen } from "@fortawesome/free-regular-svg-icons/faFolderOpen";
 import { faAlignJustify } from "@fortawesome/free-solid-svg-icons/faAlignJustify";
 import { faCopy } from "@fortawesome/free-solid-svg-icons/faCopy";
-import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes";
-import { faFolderOpen } from "@fortawesome/free-regular-svg-icons/faFolderOpen";
 import { faMapPin } from "@fortawesome/free-solid-svg-icons/faMapPin";
 import { faStar } from "@fortawesome/free-solid-svg-icons/faStar";
+import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import type { Modifier, ModifierArguments, Padding } from "@popperjs/core";
 import detectOverflow from "@popperjs/core/lib/utils/detectOverflow";

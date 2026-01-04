@@ -31,7 +31,6 @@ export function normalizedMessageDingsUserByDingword(
   normalizedMessage: string,
   user: Meteor.User,
 ): boolean {
-  const words = normalizedMessage.split(/\s+/);
   return (user.dingwords ?? []).some((dingword) => {
     if (user.dingwordsOpenMatch) {
       return normalizedMessage.match(new RegExp(`\\b${dingword}`, "i"));

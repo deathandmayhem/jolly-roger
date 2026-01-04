@@ -1,24 +1,24 @@
 import { useTracker } from "meteor/react-meteor-data";
-import {
-  faPhone,
-  faPhoneSlash,
-  faMicrophone,
-  faMicrophoneSlash,
-  faUsers,
-} from "@fortawesome/free-solid-svg-icons";
+import { faChevronRight } from "@fortawesome/free-solid-svg-icons/faChevronRight";
+import { faMicrophone } from "@fortawesome/free-solid-svg-icons/faMicrophone";
+import { faMicrophoneSlash } from "@fortawesome/free-solid-svg-icons/faMicrophoneSlash";
+import { faPhone } from "@fortawesome/free-solid-svg-icons/faPhone";
+import { faPhoneSlash } from "@fortawesome/free-solid-svg-icons/faPhoneSlash";
+import { faUsers } from "@fortawesome/free-solid-svg-icons/faUsers";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import React from "react";
-import { Button, OverlayTrigger, Tooltip } from "react-bootstrap";
+import React, { useId } from "react";
+import Button from "react-bootstrap/Button";
+import OverlayTrigger from "react-bootstrap/OverlayTrigger";
+import Tooltip from "react-bootstrap/Tooltip";
 import styled from "styled-components";
 import Peers from "../../lib/models/mediasoup/Peers";
 import type { Action, CallState } from "../hooks/useCallState";
 import { CallJoinState } from "../hooks/useCallState";
 import { Subscribers } from "../subscribers";
-import type { Theme } from "../theme";
 import { trace } from "../tracing";
 import { PREFERRED_AUDIO_DEVICE_STORAGE_KEY } from "./AudioConfig";
 
-const MinimizedChatInfoContainer = styled.div<{ theme: Theme }>`
+const MinimizedChatInfoContainer = styled.div`
   position: absolute;
   top: calc(50% - 65px);
   left: 1px;
@@ -43,7 +43,7 @@ const InfoPill = styled.div`
   font-size: 12px;
 `;
 
-const VoiceButton = styled(Button)<{ theme: Theme }>`
+const VoiceButton = styled(Button)`
   font-size: 12px;
   padding: 0;
   width: 28px;
@@ -58,21 +58,37 @@ const MinimizedChatInfo = ({
   puzzleId,
   callState,
   callDispatch,
+  onRestore,
 }: {
   huntId: string;
   puzzleId: string;
   callState: CallState;
   callDispatch: React.Dispatch<Action>;
+  onRestore: () => void;
 }) => {
   const subscriberTopic = `puzzle:${puzzleId}`;
-  const viewers = useTracker(
-    () => Subscribers.find({ name: subscriberTopic }).count(),
-    [subscriberTopic],
-  );
-  const callers = useTracker(
-    () => Peers.find({ hunt: huntId, call: puzzleId }).count(),
-    [huntId, puzzleId],
-  );
+  const { callers, viewers } = useTracker(() => {
+    const callerIds = Peers.find(
+      { hunt: huntId, call: puzzleId },
+      { fields: { _id: 1 } },
+    ).map((peer) => peer._id);
+
+    const viewerIds = Subscribers.find(
+      { name: subscriberTopic },
+      { fields: { user: 1 } },
+    ).map((sub) => sub.user);
+
+    const uniqueCallers = new Set(callerIds);
+
+    const uniqueViewersNotCallers = new Set(
+      viewerIds.filter((id) => !uniqueCallers.has(id)),
+    );
+
+    return {
+      callers: callerIds.length,
+      viewers: uniqueViewersNotCallers.size,
+    };
+  }, [huntId, puzzleId, subscriberTopic]);
 
   const joinCall = React.useCallback(() => {
     void (async () => {
@@ -138,11 +154,23 @@ const MinimizedChatInfo = ({
     }`;
   }, [callers, viewers]);
 
+  const idPrefix = useId();
+
   return (
     <MinimizedChatInfoContainer>
       <OverlayTrigger
         placement="right"
-        overlay={<Tooltip id="mini-call">{tooltipText}</Tooltip>}
+        overlay={
+          <Tooltip id={`${idPrefix}-mini-restore`}>Restore Chat</Tooltip>
+        }
+      >
+        <VoiceButton onClick={onRestore} style={{ marginBottom: "4px" }}>
+          <FontAwesomeIcon icon={faChevronRight} />
+        </VoiceButton>
+      </OverlayTrigger>
+      <OverlayTrigger
+        placement="right"
+        overlay={<Tooltip id={`${idPrefix}-mini-call`}>{tooltipText}</Tooltip>}
       >
         <div>
           <InfoPill>
@@ -160,7 +188,9 @@ const MinimizedChatInfo = ({
           <OverlayTrigger
             placement="right"
             overlay={
-              <Tooltip id="mini-mute">{muted ? "Unmute" : "Mute"}</Tooltip>
+              <Tooltip id={`${idPrefix}-mini-mute`}>
+                {muted ? "Unmute" : "Mute"}
+              </Tooltip>
             }
           >
             <VoiceButton
@@ -175,7 +205,9 @@ const MinimizedChatInfo = ({
 
           <OverlayTrigger
             placement="right"
-            overlay={<Tooltip id="mini-leave-call">Leave call</Tooltip>}
+            overlay={
+              <Tooltip id={`${idPrefix}-mini-leave-call`}>Leave call</Tooltip>
+            }
           >
             <VoiceButton variant="danger" onClick={onLeaveCall}>
               <FontAwesomeIcon icon={faPhoneSlash} />
@@ -186,7 +218,7 @@ const MinimizedChatInfo = ({
         <OverlayTrigger
           placement="right"
           overlay={
-            <Tooltip id="mini-join-call">
+            <Tooltip id={`${idPrefix}-mini-join-call`}>
               {callers > 0 ? "Join audio call" : "Start audio call"}
             </Tooltip>
           }

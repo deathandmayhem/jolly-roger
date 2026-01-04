@@ -99,7 +99,7 @@ const SearchFormGroup = styled(FormGroup)`
 `;
 
 const SearchFormLabel = styled(FormLabel)`
-  display: "inline-block";
+  display: inline-block;
   ${mediaBreakpointDown(
     "sm",
     css`

@@ -1,6 +1,6 @@
 import { check } from "meteor/check";
 import { Meteor } from "meteor/meteor";
-import ChatMessages, { ChatMessageType } from "../../lib/models/ChatMessages";
+import ChatMessages from "../../lib/models/ChatMessages";
 import removeChatMessage from "../../methods/removeChatMessage";
 import defineMethod from "./defineMethod";
 
@@ -17,7 +17,6 @@ defineMethod(removeChatMessage, {
 
   async run({
     parentId,
-    reaction,
     sender,
   }: {
     parentId: string;
@@ -32,15 +31,8 @@ defineMethod(removeChatMessage, {
     if (!messages) {
       throw new Meteor.Error(404, "Message not found");
     }
-    for (const msg: ChatMessageType of messages) {
-      if (
-        msg.content &&
-        msg.content.children &&
-        msg?.content?.children?.length === 1 &&
-        msg?.content?.children[0]?.text === reaction
-      ) {
-        await ChatMessages.removeAsync(msg);
-      }
+    for (const msg of messages) {
+      await ChatMessages.removeAsync(msg);
     }
   },
 });

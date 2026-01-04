@@ -1,12 +1,15 @@
-import { Meteor } from "meteor/meteor";
-import { useTracker } from "meteor/react-meteor-data";
-import React, { Suspense } from "react";
+import React, { Suspense, useEffect } from "react";
 import type { RouteObject } from "react-router-dom";
 import { Navigate, useRoutes } from "react-router-dom";
+import { ThemeProvider } from "styled-components";
+import { useMediaQuery } from "usehooks-ts";
 import { BreadcrumbsProvider } from "../hooks/breadcrumb";
+import { useAppThemeState } from "../hooks/persisted-state";
 import useDocumentTitle from "../hooks/useDocumentTitle";
+import { darkTheme, lightTheme } from "../theme";
 import AllProfileListPage from "./AllProfileListPage";
 import AnnouncementsPage from "./AnnouncementsPage";
+import { AuthenticatedPage, UnauthenticatedPage } from "./authentication";
 import EnrollForm from "./EnrollForm";
 import FirehosePage from "./FirehosePage";
 import FirstUserForm from "./FirstUserForm";
@@ -17,42 +20,20 @@ import HuntersApp from "./HuntersApp";
 import HuntListApp from "./HuntListApp";
 import HuntListPage from "./HuntListPage";
 import HuntProfileListPage from "./HuntProfileListPage";
-import InvitedUserListPage from "./InvitedUserListPage";
 import JoinHunt from "./JoinHunt";
 import Loading from "./Loading";
 import LoginForm from "./LoginForm";
-import MoreAppPage from "./MoreAppPage";
-import NotesPage from "./NotesPage";
 import PasswordResetForm from "./PasswordResetForm";
 import ProfilePage from "./ProfilePage";
 import PuzzleListPage from "./PuzzleListPage";
 import PuzzlePage from "./PuzzlePage";
 import RootRedirector from "./RootRedirector";
-import TagBulkEditPage from "./TagBulkEditPage";
-import TagManagerPage from "./TagManagerPage";
 import UserInvitePage from "./UserInvitePage";
-import UserPuzzleHistory from "./UserPuzzleHistory";
 import UsersApp from "./UsersApp";
-import {
-  AuthenticatedPage,
-  NoAuthenticationPage,
-  UnauthenticatedPage,
-} from "./authentication";
-import ExtensionPrivacyPolicy from "./ExtensionPrivacyPolicy";
 
 const HuntEditPage = React.lazy(() => import("./HuntEditPage"));
 const SetupPage = React.lazy(() => import("./SetupPage"));
 const RTCDebugPage = React.lazy(() => import("./RTCDebugPage"));
-const HuntPurgePage = React.lazy(() => import("./HuntPurgePage"));
-
-const ProfileRedirect = () => {
-  const userId = useTracker(() => Meteor.userId(), []);
-  if (userId) {
-    return <Navigate to={`/users/${userId}`} replace />;
-  } else {
-    return <Navigate to="/login" replace />;
-  }
-};
 
 /* Authenticated routes - if user not logged in, get redirected to /login */
 export const AuthenticatedRouteList: RouteObject[] = [
@@ -77,14 +58,9 @@ export const AuthenticatedRouteList: RouteObject[] = [
             ],
           },
           { path: "puzzles/:puzzleId", element: <PuzzlePage /> },
-          { path: "tags", element: <TagBulkEditPage /> },
-          { path: "tags2", element: <TagManagerPage /> },
           { path: "puzzles", element: <PuzzleListPage /> },
           { path: "edit", element: <HuntEditPage /> },
-          { path: "more", element: <MoreAppPage /> },
-          { path: "notes", element: <NotesPage /> },
           { path: "", element: <Navigate to="puzzles" replace /> },
-          { path: "purge", element: <HuntPurgePage /> },
         ],
       },
       { path: "new", element: <HuntEditPage /> },
@@ -92,23 +68,13 @@ export const AuthenticatedRouteList: RouteObject[] = [
     ],
   },
   {
-    path: "/profile",
-    element: (
-      <AuthenticatedPage>
-        <ProfileRedirect />
-      </AuthenticatedPage>
-    ),
-  },
-  {
     path: "/users",
     element: <UsersApp />,
     children: [
       { path: ":userId", element: <ProfilePage /> },
       { path: "", element: <AllProfileListPage /> },
-      { path: "invited", element: <InvitedUserListPage /> },
     ],
   },
-  { path: "/history", element: <UserPuzzleHistory /> },
   { path: "/setup", element: <SetupPage /> },
   { path: "/rtcdebug", element: <RTCDebugPage /> },
 ].map((r) => {
@@ -132,22 +98,12 @@ export const UnauthenticatedRouteList: RouteObject[] = [
   };
 });
 
-export const NoAuthenticationRouteList: RouteObject[] = [
-  { path: "/extension-privacy-policy", element: <ExtensionPrivacyPolicy /> },
-].map((r) => {
-  return {
-    ...r,
-    element: <NoAuthenticationPage>{r.element}</NoAuthenticationPage>,
-  };
-});
-
 export const RouteList: RouteObject[] = [
   /* Index redirect */
   {
     path: "/",
     element: <RootRedirector />,
   },
-  ...NoAuthenticationRouteList,
   ...AuthenticatedRouteList,
   ...UnauthenticatedRouteList,
   // JoinHunt handles both authenticated and unauthenticated users.
@@ -161,11 +117,26 @@ const Routes = React.memo(() => {
   useDocumentTitle("Jolly Roger");
 
   const routes = useRoutes(RouteList);
+  const [appTheme] = useAppThemeState();
+  const systemPrefersDark = useMediaQuery("(prefers-color-scheme: dark)");
+  const effectiveTheme =
+    appTheme === "auto" ? (systemPrefersDark ? "dark" : "light") : appTheme;
+  const theme = effectiveTheme === "dark" ? darkTheme : lightTheme;
+
+  useEffect(() => {
+    const body = document.body;
+    body.setAttribute("data-bs-theme", effectiveTheme ?? "light");
+    return () => {
+      body.removeAttribute("data-bs-theme");
+    };
+  }, [effectiveTheme]);
 
   return (
-    <BreadcrumbsProvider>
-      <Suspense fallback={<Loading />}>{routes}</Suspense>
-    </BreadcrumbsProvider>
+    <ThemeProvider theme={theme}>
+      <BreadcrumbsProvider>
+        <Suspense fallback={<Loading />}>{routes}</Suspense>
+      </BreadcrumbsProvider>
+    </ThemeProvider>
   );
 });
 
