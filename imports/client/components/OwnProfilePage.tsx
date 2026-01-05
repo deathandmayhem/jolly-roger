@@ -224,11 +224,6 @@ const OwnProfilePage = ({
   const [dingwordsFlat, setDingwordsFlat] = useState<string>(
     initialUser.dingwords ? initialUser.dingwords.join(",") : "",
   );
-  const [dingwordsMatchOnceFlat, setDingwordsMatchOnceFlat] = useState<string>(
-    initialUser.dingwordsMatchOnce
-      ? initialUser.dingwordsMatchOnce.join(",")
-      : "",
-  );
   const [dingwordsOpenMatch, setDingwordsOpenMatch] = useState<boolean>(
     initialUser.dingwordsOpenMatch ?? false,
   );
@@ -254,11 +249,6 @@ const OwnProfilePage = ({
       setDingwordsFlat(e.currentTarget.value);
     }, []);
 
-  const handleDingwordsOnceChange: NonNullable<FormControlProps["onChange"]> =
-    useCallback((e) => {
-      setDingwordsMatchOnceFlat(e.currentTarget.value);
-    }, []);
-
   const handleDingwordsModeChange = useCallback((newMode: string) => {
     setDingwordsOpenMatch(newMode === "open");
   }, []);
@@ -278,18 +268,11 @@ const OwnProfilePage = ({
         return x.trim().toLowerCase();
       })
       .filter((x) => x.length > 0);
-    const dingwordsMatchOnce = dingwordsMatchOnceFlat
-      .split(",")
-      .map((x) => {
-        return x.trim().toLowerCase();
-      })
-      .filter((x) => x.length > 0);
     const newProfile = {
       displayName: trimmedDisplayName,
       phoneNumber: phoneNumber !== "" ? phoneNumber : undefined,
       dingwords,
       dingwordsOpenMatch,
-      dingwordsMatchOnce,
     };
     updateProfile.call(newProfile, (error) => {
       if (error) {
@@ -299,13 +282,7 @@ const OwnProfilePage = ({
         setSubmitState(OwnProfilePageSubmitState.SUCCESS);
       }
     });
-  }, [
-    dingwordsFlat,
-    dingwordsMatchOnceFlat,
-    dingwordsOpenMatch,
-    displayName,
-    phoneNumber,
-  ]);
+  }, [dingwordsFlat, dingwordsOpenMatch, displayName, phoneNumber]);
 
   const dismissAlert = useCallback(() => {
     setSubmitState(OwnProfilePageSubmitState.IDLE);
@@ -370,26 +347,6 @@ const OwnProfilePage = ({
           If anyone sends a chat message, or adds a tag, that contains one of
           your dingwords, you&apos;ll get a notification. Separate dingwords by
           commas. Spaces are allowed.
-        </FormText>
-      </FormGroup>
-
-      <FormGroup
-        className="mb-3"
-        controlId={`${idPrefix}-dingwords-match-once`}
-      >
-        <FormLabel htmlFor={`${idPrefix}-dingwords-match-once`}>
-          Dingwords <strong>once per puzzle</strong> (comma-separated)
-        </FormLabel>
-        <FormControl
-          type="text"
-          value={dingwordsMatchOnceFlat}
-          disabled={shouldDisableForm}
-          onChange={handleDingwordsOnceChange}
-          placeholder="e.g. cryptic, akari, REO Speedwagon lyrics"
-        />
-        <FormText>
-          This works the same as the above, but you will be notified at most
-          once per puzzle for each word.
         </FormText>
       </FormGroup>
 
