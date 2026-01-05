@@ -70,6 +70,7 @@ export interface Theme {
     fancyEditorBackground: string;
     puzzleMetadataBackground: string;
     navBarBottomBorder: string;
+    jumbotronBackground: string;
     guess: {
       correct: {
         background: string;
@@ -174,6 +175,7 @@ export const lightTheme: Theme = {
     fancyEditorBackground: "#eee",
     puzzleMetadataBackground: "white",
     navBarBottomBorder: "#6c757d",
+    jumbotronBackground: "#e9ecef",
     guess: {
       correct: {
         background: "#f0fff0",
@@ -306,6 +308,7 @@ export const darkTheme: Theme = {
     fancyEditorBackground: "#383838",
     puzzleMetadataBackground: "black",
     navBarBottomBorder: "#6c757d",
+    jumbotronBackground: "inherit",
     guess: {
       correct: {
         background: "#155724",
