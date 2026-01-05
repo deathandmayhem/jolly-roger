@@ -5,7 +5,6 @@ import { faClock } from "@fortawesome/free-regular-svg-icons/faClock";
 import { faEye } from "@fortawesome/free-regular-svg-icons/faEye";
 import { faEyeSlash } from "@fortawesome/free-regular-svg-icons/faEyeSlash";
 import { faFolderOpen } from "@fortawesome/free-regular-svg-icons/faFolderOpen";
-import { faBrain } from "@fortawesome/free-solid-svg-icons";
 import { faCaretDown } from "@fortawesome/free-solid-svg-icons/faCaretDown";
 import { faEraser } from "@fortawesome/free-solid-svg-icons/faEraser";
 import { faGlobe } from "@fortawesome/free-solid-svg-icons/faGlobe";
@@ -401,19 +400,6 @@ const PuzzleListView = ({
           if (tagMatch) {
             return true;
           }
-
-          if (showSolvers === "active") {
-            // do a compare against active people
-            const matchingActives =
-              puzzle._id in puzzleUsers
-                ? puzzleUsers[puzzle._id]?.some((user) => {
-                    return user.toLowerCase().includes(key);
-                  })
-                : false;
-            if (matchingActives) {
-              return matchingActives;
-            }
-          }
           if (showSolvers === "viewers") {
             const matchingViewers =
               puzzle._id in puzzleSubscribers
@@ -489,7 +475,7 @@ const PuzzleListView = ({
   );
 
   const setShowSolversString = useCallback(
-    (value: "hide" | "viewing" | "active") => {
+    (value: "hide" | "viewing") => {
       setShowSolvers(value);
     },
     [setShowSolvers],
@@ -873,14 +859,7 @@ const PuzzleListView = ({
                 variant="outline-info"
                 value="viewers"
               >
-                <FontAwesomeIcon icon={faEye} key="hunters-show" /> Viewers
-              </ToggleButton>
-              <ToggleButton
-                id={`${idPrefix}-solvers-active-button`}
-                variant="outline-info"
-                value="active"
-              >
-                <FontAwesomeIcon icon={faBrain} key="hunters-show" /> Active
+                <FontAwesomeIcon icon={faEye} key="hunters-show" /> Show
               </ToggleButton>
             </StyledToggleButtonGroup>
           </ButtonToolbar>
