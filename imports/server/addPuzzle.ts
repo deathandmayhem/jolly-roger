@@ -178,7 +178,7 @@ export default async function addPuzzle({
   // Run any puzzle-creation hooks, like creating a default document
   // attachment or announcing the puzzle to Slack.
   Meteor.defer(() => {
-    void GlobalHooks.runPuzzleCreatedHooks(puzzleId);
+    void GlobalHooks.runPuzzleCreatedHooks(fullPuzzle._id);
   });
 
   return fullPuzzle._id;
