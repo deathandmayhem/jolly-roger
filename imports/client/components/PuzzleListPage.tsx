@@ -21,6 +21,7 @@ import {
   useEffect,
   useId,
   useRef,
+  useState,
 } from "react";
 import Alert from "react-bootstrap/Alert";
 import Button from "react-bootstrap/Button";
@@ -217,6 +218,15 @@ const PuzzleListView = ({
   const searchString = searchParams.get("q") ?? "";
   const addModalRef = useRef<PuzzleModalFormHandle>(null);
   const searchBarRef = useRef<HTMLInputElement>(null);
+  const [isSearchFocused, setIsSearchFocused] = useState<boolean>(false);
+  const handleSearchFocus = useCallback(
+    () => setIsSearchFocused(true),
+    [setIsSearchFocused],
+  );
+  const handleSearchBlur = useCallback(
+    () => setIsSearchFocused(false),
+    [setIsSearchFocused],
+  );
   const [displayMode, setDisplayMode] = useHuntPuzzleListDisplayMode(huntId);
   const [showSolved, setShowSolved] = useHuntPuzzleListShowSolved(huntId);
   const [showSolvers, setShowSolvers] = useHuntPuzzleListShowSolvers(huntId);
@@ -554,11 +564,13 @@ const PuzzleListView = ({
           puzzles
         </Alert>
       );
-      const singleMatchMessage = retainedPuzzles.length === 1 && (
-        <Alert variant="info">
-          Press <kbd>Enter</kbd> to go to the puzzle
-        </Alert>
-      );
+      const singleMatchMessage = isSearchFocused &&
+        retainedPuzzles.length === 1 && (
+          <Alert variant="info">
+            Press <kbd>Enter</kbd> to go to{" "}
+            <strong>{retainedPuzzles[0].title}</strong>
+          </Alert>
+        );
       const retainedIds = new Set(retainedPuzzles.map((puzzle) => puzzle._id));
       const filterMessage = `Showing ${retainedPuzzles.length} of ${allPuzzlesCount} rows`;
 
@@ -704,6 +716,7 @@ const PuzzleListView = ({
       showAddModalWithTags,
       canExpandAllGroups,
       expandAllGroups,
+      isSearchFocused,
     ],
   );
 
@@ -893,6 +906,8 @@ const PuzzleListView = ({
               value={searchString}
               onChange={onSearchStringChange}
               onKeyDown={onSubmitSearch}
+              onFocus={handleSearchFocus}
+              onBlur={handleSearchBlur}
             />
             <Button variant="secondary" onClick={clearSearch}>
               <FontAwesomeIcon icon={faEraser} content="erase-filter" />
