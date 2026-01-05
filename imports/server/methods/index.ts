@@ -62,6 +62,7 @@ import "./purgeHunt";
 import "./removeChatMessage";
 import "./removePuzzleAnswer";
 import "./removePuzzleTag";
+import "./replenishDocumentCache";
 import "./renameTag";
 import "./sendChatMessage";
 import "./setChatMessagePin";

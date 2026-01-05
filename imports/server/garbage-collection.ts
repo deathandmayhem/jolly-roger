@@ -84,11 +84,13 @@ export async function cleanupDeadServer(id: string) {
 registerPeriodicCleanupHook(async (deadServer) => {
   // If a server died while cleaning up another server, we want to unmark it as
   // being cleaned up so that someone else picks it up
-  await Servers.updateAsync(
-    { cleanupInProgressBy: deadServer },
-    { $unset: { cleanupInProgressBy: "" } },
-    { multi: true },
-  );
+  if (deadServer) {
+    await Servers.updateAsync(
+      { cleanupInProgressBy: deadServer },
+      { $unset: { cleanupInProgressBy: "" } },
+      { multi: true },
+    );
+  }
 });
 
 function periodic() {
