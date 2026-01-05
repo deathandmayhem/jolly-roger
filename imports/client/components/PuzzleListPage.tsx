@@ -219,14 +219,8 @@ const PuzzleListView = ({
   const addModalRef = useRef<PuzzleModalFormHandle>(null);
   const searchBarRef = useRef<HTMLInputElement>(null);
   const [isSearchFocused, setIsSearchFocused] = useState<boolean>(false);
-  const handleSearchFocus = useCallback(
-    () => setIsSearchFocused(true),
-    [setIsSearchFocused],
-  );
-  const handleSearchBlur = useCallback(
-    () => setIsSearchFocused(false),
-    [setIsSearchFocused],
-  );
+  const handleSearchFocus = useCallback(() => setIsSearchFocused(true), []);
+  const handleSearchBlur = useCallback(() => setIsSearchFocused(false), []);
   const [displayMode, setDisplayMode] = useHuntPuzzleListDisplayMode(huntId);
   const [showSolved, setShowSolved] = useHuntPuzzleListShowSolved(huntId);
   const [showSolvers, setShowSolvers] = useHuntPuzzleListShowSolvers(huntId);
