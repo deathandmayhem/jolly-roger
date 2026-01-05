@@ -29,6 +29,7 @@ import ProfilePage from "./ProfilePage";
 import PuzzleListPage from "./PuzzleListPage";
 import PuzzlePage from "./PuzzlePage";
 import RootRedirector from "./RootRedirector";
+import TagBulkEditPage from "./TagBulkEditPage";
 import UserInvitePage from "./UserInvitePage";
 import UsersApp from "./UsersApp";
 
@@ -62,6 +63,7 @@ export const AuthenticatedRouteList: RouteObject[] = [
           { path: "puzzles", element: <PuzzleListPage /> },
           { path: "edit", element: <HuntEditPage /> },
           { path: "more", element: <MoreAppPage /> },
+          { path: "tags", element: <TagBulkEditPage /> },
           { path: "", element: <Navigate to="puzzles" replace /> },
         ],
       },
