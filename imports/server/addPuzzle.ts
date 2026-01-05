@@ -63,6 +63,7 @@ async function createDocumentAndInsertPuzzle(
 }
 
 export default async function addPuzzle({
+  userId,
   huntId,
   title,
   tags,
