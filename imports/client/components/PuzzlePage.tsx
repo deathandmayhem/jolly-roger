@@ -3122,6 +3122,7 @@ const PuzzleDocumentDiv = styled.div`
   height: 100%;
   flex: auto;
   position: relative;
+  z-index: 1;
 `;
 
 const PuzzlePageMultiplayerDocument = React.memo(
