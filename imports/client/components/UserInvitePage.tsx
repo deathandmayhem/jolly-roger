@@ -13,11 +13,11 @@ import Row from "react-bootstrap/Row";
 import { useNavigate, useParams } from "react-router-dom";
 import styled from "styled-components";
 import Hunts from "../../lib/models/Hunts";
+import MeteorUsers from "../../lib/models/MeteorUsers";
 import { userMayBulkAddToHunt } from "../../lib/permission_stubs";
 import addHuntUser from "../../methods/addHuntUser";
 import bulkAddHuntUsers from "../../methods/bulkAddHuntUsers";
 import { useBreadcrumb } from "../hooks/breadcrumb";
-import MeteorUsers from "../../lib/models/MeteorUsers";
 import InvitedUserList from "./InvitedUserList";
 
 const BulkError = styled.p`

@@ -1,7 +1,6 @@
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 import styled, { useTheme } from "styled-components";
 import type { Theme } from "../theme";
-import { Row } from "react-bootstrap";
 
 export interface ActivityItem {
   _id?: string;

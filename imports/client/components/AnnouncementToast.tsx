@@ -1,10 +1,10 @@
+import { faMicrophoneAlt } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Toast from "react-bootstrap/Toast";
 import styled from "styled-components";
 import { calendarTimeFormat } from "../../lib/calendarTimeFormat";
+import type { Theme } from "../theme";
 import Markdown from "./Markdown";
-import { Theme } from "../theme";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faMicrophoneAlt } from "@fortawesome/free-solid-svg-icons";
 
 const StyledNotificationTimestamp = styled.small`
   text-align: end;

@@ -3,6 +3,8 @@ import { useTracker } from "meteor/react-meteor-data";
 import Bugsnag from "@bugsnag/js";
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle";
 import { faMoon } from "@fortawesome/free-solid-svg-icons/faMoon";
+import { faPencilAlt } from "@fortawesome/free-solid-svg-icons/faPencilAlt";
+import { faStar } from "@fortawesome/free-solid-svg-icons/faStar";
 import { faSun } from "@fortawesome/free-solid-svg-icons/faSun";
 import { faUser } from "@fortawesome/free-solid-svg-icons/faUser";
 import { faWandMagicSparkles } from "@fortawesome/free-solid-svg-icons/faWandMagicSparkles";
@@ -21,11 +23,6 @@ import Navbar from "react-bootstrap/Navbar";
 import NavbarBrand from "react-bootstrap/NavbarBrand";
 import NavItem from "react-bootstrap/NavItem";
 import NavLink from "react-bootstrap/NavLink";
-import { faPencilAlt } from "@fortawesome/free-solid-svg-icons/faPencilAlt";
-import { faStar } from "@fortawesome/free-solid-svg-icons/faStar";
-import Hunts from "../../lib/models/Hunts";
-import { userMayWritePuzzlesForHunt } from "../../lib/permission_stubs";
-import { useOperatorActionsHiddenForHunt } from "../hooks/persisted-state";
 import type { FallbackProps } from "react-error-boundary";
 import { ErrorBoundary as ReactErrorBoundary } from "react-error-boundary";
 import * as RRBS from "react-router-bootstrap";
@@ -34,8 +31,14 @@ import type { StackFrame } from "stacktrace-js";
 import StackTrace from "stacktrace-js";
 import styled, { css, useTheme } from "styled-components";
 import isAdmin from "../../lib/isAdmin";
+import Hunts from "../../lib/models/Hunts";
+import { userMayWritePuzzlesForHunt } from "../../lib/permission_stubs";
 import { useBreadcrumbItems } from "../hooks/breadcrumb";
-import { type AppThemeState, useAppThemeState } from "../hooks/persisted-state";
+import {
+  type AppThemeState,
+  useAppThemeState,
+  useOperatorActionsHiddenForHunt,
+} from "../hooks/persisted-state";
 import lookupUrl from "../lookupUrl";
 import ConnectionStatus from "./ConnectionStatus";
 import HuntNav from "./HuntNav";
@@ -215,7 +218,6 @@ const AppNavbar = ({
     () => (hunt ? userMayWritePuzzlesForHunt(Meteor.user(), hunt) : false),
     [hunt],
   );
-
 
   const displayName = useTracker(
     () => Meteor.user()?.displayName ?? "<no name given>",

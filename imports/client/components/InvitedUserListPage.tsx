@@ -1,17 +1,14 @@
-import { useSubscribe, useTracker } from "meteor/react-meteor-data";
-import React from "react";
-import MeteorUsers from "../../lib/models/MeteorUsers";
-import { useBreadcrumb } from "../hooks/breadcrumb";
-import { Alert, AlertHeading, ListGroup, ListGroupItem } from "react-bootstrap";
-import isAdmin from "../../lib/isAdmin";
 import { Meteor } from "meteor/meteor";
+import { useSubscribe, useTracker } from "meteor/react-meteor-data";
+import { Alert, AlertHeading } from "react-bootstrap";
 import styled from "styled-components";
-import RelativeTime from "./RelativeTime";
-import { useParams } from "react-router-dom";
-import InvitedUserList from "./InvitedUserList";
-import useTypedSubscribe from "../hooks/useTypedSubscribe";
-import huntsAll from "../../lib/publications/huntsAll";
+import isAdmin from "../../lib/isAdmin";
 import Hunts from "../../lib/models/Hunts";
+import MeteorUsers from "../../lib/models/MeteorUsers";
+import huntsAll from "../../lib/publications/huntsAll";
+import { useBreadcrumb } from "../hooks/breadcrumb";
+import useTypedSubscribe from "../hooks/useTypedSubscribe";
+import InvitedUserList from "./InvitedUserList";
 
 const ListItemContainer = styled.div`
   width: 100%;
@@ -38,15 +35,6 @@ const InvitedUserListPage = () => {
 
   const canConfigure = useTracker(() => isAdmin(Meteor.user()), []);
 
-  if (!canConfigure) {
-    return (
-      <div>
-        <h1>Not authorized</h1>
-        <p>You don't have access to view this content.</p>
-      </div>
-    );
-  }
-
   const profilesLoading = useSubscribe("invitedUsers");
   const huntsLoading = useTypedSubscribe(huntsAll);
   const loading = profilesLoading() || huntsLoading();
@@ -66,12 +54,21 @@ const InvitedUserListPage = () => {
       : Hunts.find({}, { sort: { createdAt: -1 } })
           .fetch()
           .reduce((acc, hunt) => {
-            if (!Object.prototype.hasOwnProperty.call(acc, hunt._id)) {
+            if (!Object.hasOwn(acc, hunt._id)) {
               acc[hunt._id] = hunt.name;
             }
             return acc;
           }, {});
   });
+
+  if (!canConfigure) {
+    return (
+      <div>
+        <h1>Not authorized</h1>
+        <p>You don't have access to view this content.</p>
+      </div>
+    );
+  }
 
   if (loading) {
     return <div>loading...</div>;

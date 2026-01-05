@@ -1,6 +1,8 @@
 import type { Meteor } from "meteor/meteor";
 import { faFileCircleExclamation } from "@fortawesome/free-solid-svg-icons/faFileCircleExclamation";
+import { faPuzzlePiece } from "@fortawesome/free-solid-svg-icons/faPuzzlePiece";
 import { faSpinner } from "@fortawesome/free-solid-svg-icons/faSpinner";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import type { Token, Tokens } from "marked";
 import { marked } from "marked";
 import React, {
@@ -42,8 +44,6 @@ import type { PuzzleType } from "../../lib/models/Puzzles";
 import type { Solvedness } from "../../lib/solvedness";
 import type { Theme } from "../theme";
 import Avatar from "./Avatar";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPuzzlePiece } from "@fortawesome/free-solid-svg-icons/faPuzzlePiece";
 
 // This implements a markdown-inspired input editor with live formatting preview
 // and autocompleting @-mentions.
@@ -346,9 +346,9 @@ const MatchCandidateRow = styled.div<{ $selected: boolean }>`
   justify-content: flex-start;
   cursor: pointer;
   ${({ $selected, theme }) => css`
-    background: ${$selected
-      ? theme.colors.matchCandidateSelectedBackground
-      : "transparent"};
+    background: ${
+      $selected ? theme.colors.matchCandidateSelectedBackground : "transparent"
+    };
   `}
 `;
 

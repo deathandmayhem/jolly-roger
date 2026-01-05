@@ -4,13 +4,13 @@ import { faCopy } from "@fortawesome/free-solid-svg-icons/faCopy";
 import { faEraser } from "@fortawesome/free-solid-svg-icons/faEraser";
 import { faPuzzlePiece } from "@fortawesome/free-solid-svg-icons/faPuzzlePiece";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import React, { useCallback, useRef, useState, useId } from "react";
+import React, { useCallback, useId, useRef, useState } from "react";
 import {
-  ToggleButtonGroup,
   Badge,
-  FormLabel,
   ButtonToolbar,
+  FormLabel,
   ToggleButton,
+  ToggleButtonGroup,
 } from "react-bootstrap";
 import Button from "react-bootstrap/Button";
 import type { FormControlProps } from "react-bootstrap/FormControl";
@@ -40,9 +40,9 @@ import indexedDisplayNames from "../indexedDisplayNames";
 import type { Theme } from "../theme";
 import CopyToClipboardButton from "./CopyToClipboardButton";
 import GuessState from "./GuessState";
+import { formatGuessDirection } from "./guessDetails";
 import Markdown from "./Markdown";
 import PuzzleAnswer from "./PuzzleAnswer";
-import { formatGuessDirection } from "./guessDetails";
 import Breakable from "./styling/Breakable";
 import type { Breakpoint } from "./styling/responsive";
 import { mediaBreakpointDown } from "./styling/responsive";

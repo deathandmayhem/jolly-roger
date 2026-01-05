@@ -39,6 +39,7 @@ import configureGoogleScriptUrl from "../../methods/configureGoogleScriptUrl";
 import configureListS3Buckets from "../../methods/configureListS3Buckets";
 import configureOrganizeGoogleDrive from "../../methods/configureOrganizeGoogleDrive";
 import configureS3ImageBucket from "../../methods/configureS3ImageBucket";
+import configureServerSettings from "../../methods/configureServerSettings";
 import configureTeamName from "../../methods/configureTeamName";
 import generateUploadToken from "../../methods/generateUploadToken";
 import setFeatureFlag from "../../methods/setFeatureFlag";
@@ -46,9 +47,8 @@ import type { DiscordGuildType } from "../discord";
 import { useBreadcrumb } from "../hooks/breadcrumb";
 import useTypedSubscribe from "../hooks/useTypedSubscribe";
 import lookupUrl from "../lookupUrl";
+import type { Theme } from "../theme";
 import ActionButtonRow from "./ActionButtonRow";
-import configureServerSettings from "../../methods/configureServerSettings";
-import { Theme } from "../theme";
 
 const PageContainer = styled.div`
   max-width: 800px;

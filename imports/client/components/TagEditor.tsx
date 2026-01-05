@@ -3,8 +3,8 @@ import React, { Suspense, useCallback } from "react";
 import styled, { useTheme } from "styled-components";
 import type { PuzzleType } from "../../lib/models/Puzzles";
 import Tags from "../../lib/models/Tags";
+import type { Theme } from "../theme";
 import Loading from "./Loading";
-import { Theme } from "../theme";
 
 // Casting away the React.lazy because otherwise we lose access to the generic parameter
 const Creatable = React.lazy(

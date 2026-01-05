@@ -1,7 +1,7 @@
 import { check, Match } from "meteor/check";
 import { Meteor } from "meteor/meteor";
-import { serverId, registerPeriodicCleanupHook } from "./garbage-collection";
 import UserStatuses from "../lib/models/UserStatuses";
+import { registerPeriodicCleanupHook, serverId } from "./garbage-collection";
 
 // Clean up leaked subscribers from dead servers periodically.
 async function cleanupHook(deadServers: string[]) {
@@ -20,15 +20,15 @@ Meteor.publish("userStatus.inc", async function (hunt, type, status, puzzle?) {
     return [];
   }
 
-  let selectionCriteria = {
+  const selectionCriteria = {
     server: serverId,
     connection: this.connection.id,
     user: this.userId,
     type,
     hunt,
-  }
+  };
 
-  if (puzzle){
+  if (puzzle) {
     selectionCriteria.puzzle = puzzle;
   }
 
@@ -41,18 +41,16 @@ Meteor.publish("userStatus.inc", async function (hunt, type, status, puzzle?) {
     status: "offline",
   });
 
-  await UserStatuses.upsertAsync(selectionCriteria,
-    {
-      $set: {
-        status: status,
-      },
-    }
-  );
+  await UserStatuses.upsertAsync(selectionCriteria, {
+    $set: {
+      status: status,
+    },
+  });
 
   this.onStop(async () => {
     // Update the status to "offline" when the subscription ends
     await UserStatuses.updateAsync(selectionCriteria, {
-      $set: { status: "offline" }
+      $set: { status: "offline" },
     });
   });
 

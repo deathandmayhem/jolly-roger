@@ -1,6 +1,6 @@
 import { check, Match } from "meteor/check";
-import MeteorUsers from "../../lib/models/MeteorUsers";
 import ChatNotifications from "../../lib/models/ChatNotifications";
+import MeteorUsers from "../../lib/models/MeteorUsers";
 import suppressDingwordsForPuzzle from "../../methods/suppressDingwordsForPuzzle";
 import defineMethod from "./defineMethod";
 

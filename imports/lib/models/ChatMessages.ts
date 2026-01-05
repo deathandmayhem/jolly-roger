@@ -1,7 +1,7 @@
 import { z } from "zod";
+import { allowedEmptyString, foreignKey, nonEmptyString } from "./customTypes";
 import type { ModelType } from "./Model";
 import SoftDeletedModel from "./SoftDeletedModel";
-import { allowedEmptyString, foreignKey, nonEmptyString } from "./customTypes";
 import withCommon from "./withCommon";
 
 export interface ChatAttachmentType {
@@ -17,7 +17,6 @@ const ChatAttachment = z.object({
   mimeType: nonEmptyString,
   size: z.number().optional(),
 });
-
 
 const UserMentionBlock = z.object({
   type: z.literal("mention"),

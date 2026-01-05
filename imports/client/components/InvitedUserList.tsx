@@ -1,8 +1,8 @@
 import React from "react";
 import { Badge, ListGroup, ListGroupItem } from "react-bootstrap";
+import { Link } from "react-router-dom";
 import styled from "styled-components";
 import RelativeTime from "./RelativeTime";
-import { Link } from "react-router-dom";
 
 const ListItemContainer = styled.div`
   width: 100%;
