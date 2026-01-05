@@ -7,17 +7,17 @@ import DocumentActivities from "../../lib/models/DocumentActivities";
 import Documents from "../../lib/models/Documents";
 import Guesses from "../../lib/models/Guesses";
 import MeteorUsers from "../../lib/models/MeteorUsers";
+import CallHistories from "../../lib/models/mediasoup/CallHistories";
+import Rooms from "../../lib/models/mediasoup/Rooms";
 import PendingAnnouncements from "../../lib/models/PendingAnnouncements";
 import PuzzleNotifications from "../../lib/models/PuzzleNotifications";
 import Puzzles from "../../lib/models/Puzzles";
-import CallHistories from "../../lib/models/mediasoup/CallHistories";
-import Rooms from "../../lib/models/mediasoup/Rooms";
+import Tags from "../../lib/models/Tags";
 import { checkAdmin } from "../../lib/permission_stubs";
 import purgeHunt from "../../methods/purgeHunt";
 import CallActivities from "../models/CallActivities";
 import Subscribers from "../models/Subscribers";
 import defineMethod from "./defineMethod";
-import Tags from "../../lib/models/Tags";
 
 defineMethod(purgeHunt, {
   validate(arg) {
@@ -54,6 +54,5 @@ defineMethod(purgeHunt, {
     await PuzzleNotifications.removeAsync({ hunt });
     await Subscribers.removeAsync({ hunt });
     await Tags.removeAsync({ hunt });
-
   },
 });

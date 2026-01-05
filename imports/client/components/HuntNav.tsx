@@ -1,21 +1,21 @@
 import { Meteor } from "meteor/meteor";
 import { useTracker } from "meteor/react-meteor-data";
 import { faBullhorn } from "@fortawesome/free-solid-svg-icons/faBullhorn";
+import { faEllipsisH } from "@fortawesome/free-solid-svg-icons/faEllipsisH";
 import { faFaucet } from "@fortawesome/free-solid-svg-icons/faFaucet";
 import { faMap } from "@fortawesome/free-solid-svg-icons/faMap";
 import { faNoteSticky } from "@fortawesome/free-solid-svg-icons/faNoteSticky";
 import { faReceipt } from "@fortawesome/free-solid-svg-icons/faReceipt";
 import { faTags } from "@fortawesome/free-solid-svg-icons/faTags";
 import { faUsers } from "@fortawesome/free-solid-svg-icons/faUsers";
-import { faEllipsisH } from "@fortawesome/free-solid-svg-icons/faEllipsisH";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Nav from "react-bootstrap/Nav";
 import { NavLink, useParams } from "react-router-dom";
 import styled, { css } from "styled-components";
 import Hunts from "../../lib/models/Hunts";
 import { userMayWritePuzzlesForHunt } from "../../lib/permission_stubs";
-import { mediaBreakpointDown } from "./styling/responsive";
 import type { Theme } from "../theme";
+import { mediaBreakpointDown } from "./styling/responsive";
 
 const JRLinkList = styled(Nav)`
   margin-right: 8px;

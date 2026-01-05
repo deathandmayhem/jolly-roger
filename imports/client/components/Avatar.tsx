@@ -2,7 +2,7 @@ import React from "react";
 import styled from "styled-components";
 import { getAvatarCdnUrl } from "../../lib/discord";
 import type { DiscordAccountType } from "../../lib/models/DiscordAccount";
-import { Theme } from "../theme";
+import type { Theme } from "../theme";
 
 const AvatarImg = styled.img`
   display: block;

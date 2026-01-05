@@ -16,13 +16,13 @@ import {
   ACTIVITY_GRANULARITY,
   ACTIVITY_SEGMENTS,
 } from "../../lib/config/activityTracking";
+import type { DiscordAccountType } from "../../lib/models/DiscordAccount";
 import relativeTimeFormat from "../../lib/relativeTimeFormat";
 import roundedTime from "../../lib/roundedTime";
 import ActivityBuckets from "../ActivityBuckets";
 import RelativeTime from "./RelativeTime";
-import { mediaBreakpointDown } from "./styling/responsive";
 import { PeopleListDiv } from "./styling/PeopleComponents";
-import type { DiscordAccountType } from "../../lib/models/DiscordAccount";
+import { mediaBreakpointDown } from "./styling/responsive";
 
 const PuzzleActivityItems = styled.span`
   font-size: 14px;

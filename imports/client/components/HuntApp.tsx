@@ -16,12 +16,12 @@ import {
 import huntForHuntApp from "../../lib/publications/huntForHuntApp";
 import acceptUserHuntTerms from "../../methods/acceptUserHuntTerms";
 import addHuntUser from "../../methods/addHuntUser";
+import setUserStatus from "../../methods/setUserStatus";
 import undestroyHunt from "../../methods/undestroyHunt";
 import { useBreadcrumb } from "../hooks/breadcrumb";
 import useDocumentTitle from "../hooks/useDocumentTitle";
 import useTypedSubscribe from "../hooks/useTypedSubscribe";
 import Markdown from "./Markdown";
-import setUserStatus from "../../methods/setUserStatus";
 
 const HuntDeletedError = React.memo(
   ({ hunt, canUndestroy }: { hunt: HuntType; canUndestroy: boolean }) => {

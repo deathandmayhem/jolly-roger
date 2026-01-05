@@ -1,8 +1,8 @@
 import { check, Match } from "meteor/check";
-import setUserStatus from "../../methods/setUserStatus";
-import defineMethod from "./defineMethod";
-import { serverId } from "../garbage-collection";
 import UserStatuses from "../../lib/models/UserStatuses";
+import setUserStatus from "../../methods/setUserStatus";
+import { serverId } from "../garbage-collection";
+import defineMethod from "./defineMethod";
 
 defineMethod(setUserStatus, {
   validate(arg) {
@@ -21,7 +21,7 @@ defineMethod(setUserStatus, {
 
     const user = this.userId;
 
-    let query = {
+    const query = {
       hunt,
       user,
       type,
@@ -33,13 +33,10 @@ defineMethod(setUserStatus, {
       query.puzzle = puzzle;
     }
 
-    await UserStatuses.upsertAsync(
-      query,
-      {
-        $set: {
-          status: status,
-        },
+    await UserStatuses.upsertAsync(query, {
+      $set: {
+        status: status,
       },
-    );
+    });
   },
 });

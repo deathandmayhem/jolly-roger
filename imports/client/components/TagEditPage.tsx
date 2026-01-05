@@ -1,37 +1,39 @@
 import { useTracker } from "meteor/react-meteor-data";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCross, faTags, faTrash } from "@fortawesome/free-solid-svg-icons";
+import { faEraser } from "@fortawesome/free-solid-svg-icons/faEraser";
 import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus";
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus";
+import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { useCallback, useRef, useState } from "react";
 import { Alert, ButtonGroup, InputGroup } from "react-bootstrap";
 import Button from "react-bootstrap/Button";
 import Col from "react-bootstrap/Col";
 import Container from "react-bootstrap/Container";
 import Form from "react-bootstrap/Form";
-import FormControl, { FormControlProps } from "react-bootstrap/FormControl";
+import FormControl, {
+  type FormControlProps,
+} from "react-bootstrap/FormControl";
 import FormGroup from "react-bootstrap/FormGroup";
 import FormLabel from "react-bootstrap/FormLabel";
 import Row from "react-bootstrap/Row";
-import { FormProps, useParams, useSearchParams } from "react-router-dom"
+import { type FormProps, useParams, useSearchParams } from "react-router-dom";
+import styled, { css } from "styled-components";
+import { indexedById } from "../../lib/listUtils";
+import Puzzles, { type PuzzleType } from "../../lib/models/Puzzles";
+import Tags, { type TagType } from "../../lib/models/Tags";
+import puzzlesForPuzzleList from "../../lib/publications/puzzlesForPuzzleList";
+import { computeSolvedness, type Solvedness } from "../../lib/solvedness";
+import addPuzzleTag from "../../methods/addPuzzleTag";
+import removePuzzleTag from "../../methods/removePuzzleTag";
+import renameTag from "../../methods/renameTag";
 import { useBreadcrumb } from "../hooks/breadcrumb";
 import useTypedSubscribe from "../hooks/useTypedSubscribe";
-import Tags, {TagType} from "../../lib/models/Tags";
-import puzzlesForPuzzleList from "../../lib/publications/puzzlesForPuzzleList";
 import ActionButtonRow from "./ActionButtonRow";
-import Puzzles, {PuzzleType} from "../../lib/models/Puzzles";
-import { indexedById } from "../../lib/listUtils";
-import styled, { css } from "styled-components";
-import { computeSolvedness, Solvedness } from "../../lib/solvedness";
+import ModalForm, { type ModalFormHandle } from "./ModalForm";
 import { backgroundColorLookupTable } from "./styling/constants";
 import { mediaBreakpointDown } from "./styling/responsive";
 import TagList from "./TagList";
-import addPuzzleTag from "../../methods/addPuzzleTag";
-import removePuzzleTag from "../../methods/removePuzzleTag";
-import { faCross, faTags, faTrash } from "@fortawesome/free-solid-svg-icons";
-import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes";
-import ModalForm, { ModalFormHandle } from "./ModalForm";
-import renameTag from "../../methods/renameTag";
-import { faEraser } from "@fortawesome/free-solid-svg-icons/faEraser";
 
 enum SubmitState {
   IDLE = "idle",
@@ -87,7 +89,6 @@ const PuzzleTitleColumn = styled(PuzzleColumn)`
   order: -1;
 `;
 
-
 const SearchFormGroup = styled(FormGroup)`
   grid-column: -3;
   ${mediaBreakpointDown(
@@ -108,7 +109,6 @@ const SearchFormLabel = styled(FormLabel)`
   )}
 `;
 
-
 const TagToggleButton = React.memo(
   ({
     puzzle,
@@ -119,33 +119,27 @@ const TagToggleButton = React.memo(
     tag: TagType;
     hasTag: boolean;
   }) => {
-
     const puzzleId = puzzle._id;
     const tagId = tag._id;
     const tagName = tag.name;
-    const onPuzzleTagChanged = useCallback (() => {
-        puzzle.tags.includes(tagId) ? (
-          removePuzzleTag.call({ puzzleId, tagId })
-        ) : (
-          addPuzzleTag.call({ puzzleId, tagName })
-        )
-        return false;
-      },
-      [puzzleId, tag, puzzle.tags]
-    );
+    const onPuzzleTagChanged = useCallback(() => {
+      puzzle.tags.includes(tagId)
+        ? removePuzzleTag.call({ puzzleId, tagId })
+        : addPuzzleTag.call({ puzzleId, tagName });
+      return false;
+    }, [puzzleId, tag, puzzle.tags]);
 
     return (
       <Button
-      size="sm"
-      variant={hasTag ? "danger" : "success"}
-      title={hasTag ? "Remove tag" : "Add tag"}
-      onClick={onPuzzleTagChanged}
+        size="sm"
+        variant={hasTag ? "danger" : "success"}
+        title={hasTag ? "Remove tag" : "Add tag"}
+        onClick={onPuzzleTagChanged}
       >
         <FontAwesomeIcon fixedWidth icon={hasTag ? faMinus : faPlus} />
       </Button>
-    )
-
-  }
+    );
+  },
 );
 
 const TagListColumn = styled(TagList)`
@@ -177,32 +171,28 @@ const TagPuzzle = React.memo(
     const tagId = tag._id;
 
     const tagIndex = indexedById(allTags);
-    const puzzleTags = puzzle.tags.map((tagId) => {return tagIndex.get(tagId)});
+    const puzzleTags = puzzle.tags.map((tagId) => {
+      return tagIndex.get(tagId);
+    });
     const puzzleHasTag = puzzle.tags.includes(tagId);
 
     return (
-    <TagPuzzleDiv $solvedness={solvedness}>
-    <PuzzleControlButtonsColumn>
-      <ButtonGroup size="sm">
-        <TagToggleButton
-          puzzle={puzzle}
-          tag={tag}
-          hasTag={puzzleHasTag}
-        />
-      </ButtonGroup>
-    </PuzzleControlButtonsColumn>
-      <PuzzleTitleColumn>
-        {puzzle.title}
-      </PuzzleTitleColumn>
+      <TagPuzzleDiv $solvedness={solvedness}>
+        <PuzzleControlButtonsColumn>
+          <ButtonGroup size="sm">
+            <TagToggleButton puzzle={puzzle} tag={tag} hasTag={puzzleHasTag} />
+          </ButtonGroup>
+        </PuzzleControlButtonsColumn>
+        <PuzzleTitleColumn>{puzzle.title}</PuzzleTitleColumn>
         <TagListColumn
           puzzle={puzzle}
           tags={puzzleTags}
           linkToSearch
           popoverRelated={false}
         />
-    </TagPuzzleDiv>
-    )
-  }
+      </TagPuzzleDiv>
+    );
+  },
 );
 
 const PuzzlesForTagList = React.memo(
@@ -217,18 +207,19 @@ const PuzzlesForTagList = React.memo(
   }) => {
     return (
       <div>
-      {puzzles.map((puzzle) => {
-        return(
-          <TagPuzzle
-          key={puzzle._id}
-          puzzle={puzzle}
-          allTags={allTags}
-          tag={tag}
-          />)
+        {puzzles.map((puzzle) => {
+          return (
+            <TagPuzzle
+              key={puzzle._id}
+              puzzle={puzzle}
+              allTags={allTags}
+              tag={tag}
+            />
+          );
         })}
-        </div>
-    )
-  }
+      </div>
+    );
+  },
 );
 
 const TagEditPage = () => {
@@ -240,8 +231,8 @@ const TagEditPage = () => {
   });
 
   const allPuzzles = useTracker(
-    () => (Puzzles.find({hunt:huntId}, { sort: { title:1 } } ).fetch() ),
-    [huntId]
+    () => Puzzles.find({ hunt: huntId }, { sort: { title: 1 } }).fetch(),
+    [huntId],
   );
 
   const allTags = useTracker(
@@ -252,28 +243,23 @@ const TagEditPage = () => {
   const tagId = useParams<{ tagId: string }>().tagId!;
 
   const tag = useTracker(
-    () => (Tags.findOne({ hunt: huntId, _id: tagId })),
-    [huntId, tagId]
-  )
+    () => Tags.findOne({ hunt: huntId, _id: tagId }),
+    [huntId, tagId],
+  );
 
   useBreadcrumb({
     title: `${tag?.name}`,
     path: `/hunts/${huntId}/tags/${tagId}`,
   });
 
-  const renderList = useCallback (
-    (
-      allPuzzles: PuzzleType[],
-      allTags: TagType[],
-    ) => {
-      return <PuzzlesForTagList
-      puzzles={allPuzzles}
-      allTags={allTags}
-      tag={tag}
-      />
+  const renderList = useCallback(
+    (allPuzzles: PuzzleType[], allTags: TagType[]) => {
+      return (
+        <PuzzlesForTagList puzzles={allPuzzles} allTags={allTags} tag={tag} />
+      );
     },
-    [allPuzzles, allTags]
-  )
+    [allPuzzles, allTags],
+  );
 
   const [submitState, setSubmitState] = useState<SubmitState>(SubmitState.IDLE);
 
@@ -308,26 +294,24 @@ const TagEditPage = () => {
     }
   }, []);
 
-  const onUpdateCallback = useCallback(
-    (error?: Error) => {
-      if (error) {
-        setSubmitState(SubmitState.FAILED);
-        setErrorMessage(error.message);
-      } else {
-        setSubmitState(SubmitState.SUCCESS);
-        setErrorMessage("");
-      }
+  const onUpdateCallback = useCallback((error?: Error) => {
+    if (error) {
+      setSubmitState(SubmitState.FAILED);
+      setErrorMessage(error.message);
+    } else {
+      setSubmitState(SubmitState.SUCCESS);
+      setErrorMessage("");
     }
-  );
+  });
 
   const onFormSubmit = useCallback<NonNullable<FormProps["onSubmit"]>>(
     (e) => {
       e.preventDefault();
       setSubmitState(SubmitState.SUBMITTING);
-      renameTag.call({tagId, name}, onUpdateCallback);
+      renameTag.call({ tagId, name }, onUpdateCallback);
     },
-    [tagId, name]
-  )
+    [tagId, name],
+  );
 
   const [searchParams, setSearchParams] = useSearchParams();
   const searchString = searchParams.get("q") ?? "";
@@ -418,105 +402,100 @@ const TagEditPage = () => {
       [setSearchString],
     );
 
-
   const matchingSearch = puzzlesMatchingSearchString(allPuzzles);
 
   const updateDisabled = matchingSearch.length === 0;
 
   const onRemoveFromAll = useCallback(
-    ( callback: () => void) => {
+    (callback: () => void) => {
       matchingSearch.forEach((puzzle) => {
         const puzzleId = puzzle._id;
-        removePuzzleTag.call({puzzleId, tagId}, callback)
-      })
+        removePuzzleTag.call({ puzzleId, tagId }, callback);
+      });
     },
-    [huntId, tagId, matchingSearch]
+    [huntId, tagId, matchingSearch],
   );
 
   const onAddToAll = useCallback(
-    ( callback: () => void) => {
+    (callback: () => void) => {
       matchingSearch.forEach((puzzle) => {
         const puzzleId = puzzle._id;
         const tagName = tag?.name;
-        addPuzzleTag.call({puzzleId, tagName}, callback)
-      })
+        addPuzzleTag.call({ puzzleId, tagName }, callback);
+      });
     },
-    [huntId, tag, matchingSearch]
+    [huntId, tag, matchingSearch],
   );
 
   return (
     <Container>
-    <ModalForm
-      ref={deleteModalRef}
-      title="Remove tag from all"
-      submitLabel="Remove"
-      submitStyle="danger"
-      onSubmit={onRemoveFromAll}
-    >
-      Are you sure you want to remove this tag from {matchingSearch.length} puzzle{matchingSearch.length === 1 ? "" : "s"}?
-      {
-        allPuzzles.length === matchingSearch.length ? (
-          <Alert
-            variant="danger"
-          >
+      <ModalForm
+        ref={deleteModalRef}
+        title="Remove tag from all"
+        submitLabel="Remove"
+        submitStyle="danger"
+        onSubmit={onRemoveFromAll}
+      >
+        Are you sure you want to remove this tag from {matchingSearch.length}{" "}
+        puzzle{matchingSearch.length === 1 ? "" : "s"}?
+        {allPuzzles.length === matchingSearch.length ? (
+          <Alert variant="danger">
             You are removing this tag from all puzzles!
           </Alert>
-        ) : null
-      }
-    </ModalForm>
-    <ModalForm
-      ref={addModalRef}
-      title="Add tag to all"
-      submitLabel="Add"
-      submitStyle="success"
-      onSubmit={onAddToAll}
-    >
-      Are you sure you want to add this tag to {matchingSearch.length} puzzle{matchingSearch.length === 1 ? "" : "s"}?
-      {
-        allPuzzles.length === matchingSearch.length ? (
+        ) : null}
+      </ModalForm>
+      <ModalForm
+        ref={addModalRef}
+        title="Add tag to all"
+        submitLabel="Add"
+        submitStyle="success"
+        onSubmit={onAddToAll}
+      >
+        Are you sure you want to add this tag to {matchingSearch.length} puzzle
+        {matchingSearch.length === 1 ? "" : "s"}?
+        {allPuzzles.length === matchingSearch.length ? (
           <Alert
             variant="danger"
             title="You are about to add this tag to all items!"
           >
             You are adding this tag to all puzzles!
           </Alert>
-        ) : null
-      }
-    </ModalForm>
+        ) : null}
+      </ModalForm>
       <h1>Edit tag</h1>
       <Form onSubmit={onFormSubmit}>
-      <h2>Rename tag</h2>
-      <FormGroup as={Row}>
-        <FormLabel column xs={3} htmlFor="tag-name">
-          Name
-        </FormLabel>
-        <Col xs={9}>
-          <FormControl
-            id="tag-form-name"
-            type="text"
-            value={name}
-            onChange={onNameChanged}
-            disabled={disableForm}
-          />
-        </Col>
-      </FormGroup>
-          {submitState === SubmitState.FAILED && (
-            <Alert variant="danger">{errorMessage}</Alert>
-          )}
-          {submitState === SubmitState.SUCCESS && (
-            <Alert variant="success" dismissible onClose={onSuccessDismiss}>
-              Tag renamed
-            </Alert>
-          )}
-      <ActionButtonRow>
-        <FormGroup>
-          <Button variant="primary" type="submit">
-            Save
-          </Button>
+        <h2>Rename tag</h2>
+        <FormGroup as={Row}>
+          <FormLabel column xs={3} htmlFor="tag-name">
+            Name
+          </FormLabel>
+          <Col xs={9}>
+            <FormControl
+              id="tag-form-name"
+              type="text"
+              value={name}
+              onChange={onNameChanged}
+              disabled={disableForm}
+            />
+          </Col>
         </FormGroup>
-      </ActionButtonRow>
+        {submitState === SubmitState.FAILED && (
+          <Alert variant="danger">{errorMessage}</Alert>
+        )}
+        {submitState === SubmitState.SUCCESS && (
+          <Alert variant="success" dismissible onClose={onSuccessDismiss}>
+            Tag renamed
+          </Alert>
+        )}
+        <ActionButtonRow>
+          <FormGroup>
+            <Button variant="primary" type="submit">
+              Save
+            </Button>
+          </FormGroup>
+        </ActionButtonRow>
       </Form>
-      <hr/>
+      <hr />
       <h2>Quick add/remove tag</h2>
       <SearchFormGroup>
         <InputGroup>
@@ -536,26 +515,28 @@ const TagEditPage = () => {
       </SearchFormGroup>
       <Row>
         <PuzzleListToolbar>
-      <ButtonGroup>
-      <Button
-        variant="danger"
-        onClick={showRemoveAllModal}
-        disabled={updateDisabled}
-        >
-        <FontAwesomeIcon fixedWidth icon={faTimes}></FontAwesomeIcon>
-        Remove from all
-      </Button>
-        <Button
-          variant="warning"
-          onClick={showAddAllModal}
-          disabled={updateDisabled}
-        >
-        <FontAwesomeIcon fixedWidth icon={faTags}></FontAwesomeIcon>
-        Add to all
-        </Button>
-        </ButtonGroup>
-        <span>Showing {matchingSearch.length} of {allPuzzles.length} items</span>
-      </PuzzleListToolbar>
+          <ButtonGroup>
+            <Button
+              variant="danger"
+              onClick={showRemoveAllModal}
+              disabled={updateDisabled}
+            >
+              <FontAwesomeIcon fixedWidth icon={faTimes}></FontAwesomeIcon>
+              Remove from all
+            </Button>
+            <Button
+              variant="warning"
+              onClick={showAddAllModal}
+              disabled={updateDisabled}
+            >
+              <FontAwesomeIcon fixedWidth icon={faTags}></FontAwesomeIcon>
+              Add to all
+            </Button>
+          </ButtonGroup>
+          <span>
+            Showing {matchingSearch.length} of {allPuzzles.length} items
+          </span>
+        </PuzzleListToolbar>
       </Row>
       {renderList(matchingSearch, allTags)}
     </Container>

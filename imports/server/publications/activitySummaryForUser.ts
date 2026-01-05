@@ -64,8 +64,6 @@ definePublication(ActivitySummaryForUser, {
         return;
       }
     }
-
-    const sub = this;
     const observerHandles: Meteor.LiveQueryHandle[] = [];
 
     const handleDocumentAdded = (
@@ -93,7 +91,7 @@ definePublication(ActivitySummaryForUser, {
       docToAggregateMap.set(originalPublishedId, aggregateKey);
 
       if (newCount === 1) {
-        sub.added(ACTIVITY_GRAPH_COLLECTION, aggregateKey, {
+        this.added(ACTIVITY_GRAPH_COLLECTION, aggregateKey, {
           _id: aggregateKey,
           huntId,
           dayOfWeek,
@@ -102,7 +100,7 @@ definePublication(ActivitySummaryForUser, {
           count: 1,
         });
       } else {
-        sub.changed(ACTIVITY_GRAPH_COLLECTION, aggregateKey, {
+        this.changed(ACTIVITY_GRAPH_COLLECTION, aggregateKey, {
           count: newCount,
         });
       }
@@ -123,10 +121,10 @@ definePublication(ActivitySummaryForUser, {
 
         if (newCount === 0) {
           aggregatedCounts.delete(aggregateKey);
-          sub.removed(ACTIVITY_GRAPH_COLLECTION, aggregateKey);
+          this.removed(ACTIVITY_GRAPH_COLLECTION, aggregateKey);
         } else {
           aggregatedCounts.set(aggregateKey, newCount);
-          sub.changed(ACTIVITY_GRAPH_COLLECTION, aggregateKey, {
+          this.changed(ACTIVITY_GRAPH_COLLECTION, aggregateKey, {
             count: newCount,
           });
         }
@@ -237,7 +235,7 @@ definePublication(ActivitySummaryForUser, {
 
     this.ready();
 
-    sub.onStop(() => {
+    this.onStop(() => {
       observerHandles.forEach((handle) => handle.stop());
       aggregatedCounts.clear();
       docToAggregateMap.clear();

@@ -1,4 +1,4 @@
-import { Match, check } from "meteor/check";
+import { check, Match } from "meteor/check";
 import { Meteor } from "meteor/meteor";
 import isAdmin from "../../lib/isAdmin";
 import MeteorUsers from "../../lib/models/MeteorUsers";

@@ -1,3 +1,4 @@
+import { useTracker } from "meteor/react-meteor-data";
 import { faTags } from "@fortawesome/free-solid-svg-icons";
 import { faEraser } from "@fortawesome/free-solid-svg-icons/faEraser";
 import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus";
@@ -32,13 +33,12 @@ import removePuzzleTag from "../../methods/removePuzzleTag";
 import renameTag from "../../methods/renameTag";
 import { useBreadcrumb } from "../hooks/breadcrumb";
 import useTypedSubscribe from "../hooks/useTypedSubscribe";
+import type { Theme } from "../theme";
 import type { ModalFormHandle } from "./ModalForm";
 import ModalForm from "./ModalForm";
-import TagList from "./TagList";
 import { backgroundColorLookupTable } from "./styling/constants";
 import { mediaBreakpointDown } from "./styling/responsive";
-import { useTracker } from "meteor/react-meteor-data";
-import { Theme } from "../theme";
+import TagList from "./TagList";
 
 enum SubmitState {
   IDLE = "idle",

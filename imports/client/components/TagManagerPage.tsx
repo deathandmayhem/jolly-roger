@@ -1,20 +1,23 @@
 import { Meteor } from "meteor/meteor";
 import { useTracker } from "meteor/react-meteor-data";
-import React, { useCallback, useRef } from "react";
-import { useParams, Link } from "react-router-dom";
-import Hunts, { HuntType } from "../../lib/models/Hunts";
-import Tags, { TagType } from "../../lib/models/Tags";
-import { userIsOperatorForHunt, userMayWritePuzzlesForHunt } from "../../lib/permission_stubs";
-import puzzlesForPuzzleList from "../../lib/publications/puzzlesForPuzzleList";
-import useTypedSubscribe from "../hooks/useTypedSubscribe";
-import ModalForm, { ModalFormHandle } from "./ModalForm";
-import destroyTag from "../../methods/destroyTag";
 import { faEdit, faMinus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { ButtonGroup, Button } from "react-bootstrap";
+import React, { useCallback, useRef } from "react";
+import { Button, ButtonGroup } from "react-bootstrap";
 import { LinkContainer } from "react-router-bootstrap";
-import Puzzles from "../../lib/models/Puzzles";
+import { Link, useParams } from "react-router-dom";
 import styled, { css } from "styled-components";
+import Hunts, { type HuntType } from "../../lib/models/Hunts";
+import Puzzles from "../../lib/models/Puzzles";
+import Tags, { type TagType } from "../../lib/models/Tags";
+import {
+  userIsOperatorForHunt,
+  userMayWritePuzzlesForHunt,
+} from "../../lib/permission_stubs";
+import puzzlesForPuzzleList from "../../lib/publications/puzzlesForPuzzleList";
+import destroyTag from "../../methods/destroyTag";
+import useTypedSubscribe from "../hooks/useTypedSubscribe";
+import ModalForm, { type ModalFormHandle } from "./ModalForm";
 import { mediaBreakpointDown } from "./styling/responsive";
 
 const TagColumn = styled.div`
@@ -51,7 +54,7 @@ const TagNameColumn = styled(TagColumn)`
   order: -1;
 `;
 
-const Tag = React.memo(({ hunt, tag }: { hunt: HuntType, tag: TagType }) => {
+const Tag = React.memo(({ hunt, tag }: { hunt: HuntType; tag: TagType }) => {
   const tagId = tag._id;
   const huntId = hunt._id;
 
@@ -81,8 +84,8 @@ const Tag = React.memo(({ hunt, tag }: { hunt: HuntType, tag: TagType }) => {
   }, []);
 
   const puzzlesForTag = useTracker(() => {
-    return Puzzles.find({tags: tagId}).fetch();
-  })
+    return Puzzles.find({ tags: tagId }).fetch();
+  });
 
   return (
     <TagPuzzleDiv>
@@ -93,37 +96,36 @@ const Tag = React.memo(({ hunt, tag }: { hunt: HuntType, tag: TagType }) => {
         submitStyle="danger"
         onSubmit={onDelete}
       >
-        Are you sure you want to delete <code>{tag.name}</code>?
-        This will remove the tag from {puzzlesForTag.length}&nbsp;
-        puzzle{puzzlesForTag.length == 1 ? '' : 's'}.
+        Are you sure you want to delete <code>{tag.name}</code>? This will
+        remove the tag from {puzzlesForTag.length}&nbsp; puzzle
+        {puzzlesForTag.length == 1 ? "" : "s"}.
       </ModalForm>
       <TagControlButtonsColumn>
-      <ButtonGroup size="sm">
-        {canUpdate ? (
-          <LinkContainer to={tag._id}>
-            <Button as="a" variant="outline-secondary" title="Edit tag...">
-              <FontAwesomeIcon fixedWidth icon={faEdit} />
+        <ButtonGroup size="sm">
+          {canUpdate ? (
+            <LinkContainer to={tag._id}>
+              <Button as="a" variant="outline-secondary" title="Edit tag...">
+                <FontAwesomeIcon fixedWidth icon={faEdit} />
+              </Button>
+            </LinkContainer>
+          ) : undefined}
+          {canDestroy ? (
+            <Button
+              onClick={showDeleteModal}
+              variant="danger"
+              title="Delete hunt..."
+            >
+              <FontAwesomeIcon fixedWidth icon={faMinus} />
             </Button>
-          </LinkContainer>
-        ) : undefined}
-        {canDestroy ? (
-          <Button
-            onClick={showDeleteModal}
-            variant="danger"
-            title="Delete hunt..."
-          >
-            <FontAwesomeIcon fixedWidth icon={faMinus} />
-          </Button>
-        ) : undefined}
-      </ButtonGroup>
+          ) : undefined}
+        </ButtonGroup>
       </TagControlButtonsColumn>
       <TagNameColumn>
-      <Link to={tagId}>{tag.name}</Link>
+        <Link to={tagId}>{tag.name}</Link>
       </TagNameColumn>
     </TagPuzzleDiv>
   );
 });
-
 
 const TagListView = ({
   huntId,
@@ -136,24 +138,18 @@ const TagListView = ({
   canUpdate: boolean;
   loading: boolean;
 }) => {
-
   const allTags = useTracker(
     () => Tags.find({ hunt: huntId }).fetch(),
     [huntId],
   );
 
-  const hunt = useTracker(
-    () => Hunts.findOne(huntId),
-    [huntId]
-  );
+  const hunt = useTracker(() => Hunts.findOne(huntId), [huntId]);
 
   return (
     <div>
-      {allTags.map((t) => {return <Tag
-      key={t._id}
-      hunt={hunt}
-      tag={t}
-      />})}
+      {allTags.map((t) => {
+        return <Tag key={t._id} hunt={hunt} tag={t} />;
+      })}
     </div>
   );
 };
@@ -161,7 +157,7 @@ const TagListView = ({
 const TagManagerPage = () => {
   const huntId = useParams<"huntId">().huntId!;
 
-  const tags = useTracker(() => Tags.find({hunt: huntId}).fetch(), [huntId]);
+  const tags = useTracker(() => Tags.find({ hunt: huntId }).fetch(), [huntId]);
 
   // Assertion is safe because hunt is already subscribed and checked by HuntApp
   const hunt = useTracker(() => Hunts.findOne(huntId)!, [huntId]);
@@ -185,10 +181,10 @@ const TagManagerPage = () => {
     <span>loading...</span>
   ) : (
     <TagListView
-    huntId={huntId}
-    canAdd={canAdd}
-    canUpdate={canUpdate}
-    loading={loading}
+      huntId={huntId}
+      canAdd={canAdd}
+      canUpdate={canUpdate}
+      loading={loading}
     />
   );
 };

@@ -1,4 +1,3 @@
- 
 import Settings from "../../lib/models/Settings";
 import isS3Configured from "../../methods/isS3Configured";
 import defineMethod from "./defineMethod";

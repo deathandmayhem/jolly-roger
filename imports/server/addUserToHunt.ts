@@ -1,8 +1,8 @@
 import { Accounts } from "meteor/accounts-base";
 import { Email } from "meteor/email";
+import type { User } from "meteor/meteor";
 import { Meteor } from "meteor/meteor";
 import Mustache from "mustache";
-import type { User } from "meteor/meteor";
 import Flags from "../Flags";
 import Logger from "../Logger";
 import type { HuntType } from "../lib/models/Hunts";

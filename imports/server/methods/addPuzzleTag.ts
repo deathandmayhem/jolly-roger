@@ -3,9 +3,9 @@ import { Meteor } from "meteor/meteor";
 import Logger from "../../Logger";
 import Puzzles from "../../lib/models/Puzzles";
 import addPuzzleTag from "../../methods/addPuzzleTag";
+import GlobalHooks from "../GlobalHooks";
 import getOrCreateTagByName from "../getOrCreateTagByName";
 import defineMethod from "./defineMethod";
-import GlobalHooks from "../GlobalHooks";
 
 defineMethod(addPuzzleTag, {
   validate(arg) {

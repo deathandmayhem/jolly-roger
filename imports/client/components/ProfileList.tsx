@@ -3,6 +3,7 @@ import { useSubscribe, useTracker } from "meteor/react-meteor-data";
 import { faCopy } from "@fortawesome/free-solid-svg-icons/faCopy";
 import { faEraser } from "@fortawesome/free-solid-svg-icons/faEraser";
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus";
+import { faPuzzlePiece } from "@fortawesome/free-solid-svg-icons/faPuzzlePiece";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import type { ComponentPropsWithRef, FC, MouseEvent } from "react";
 import React, {
@@ -14,12 +15,10 @@ import React, {
   useRef,
   useState,
 } from "react";
-import OverlayTrigger from "react-bootstrap/OverlayTrigger";
-import Tooltip from "react-bootstrap/Tooltip";
-import ButtonGroup from "react-bootstrap/ButtonGroup";
 import Alert from "react-bootstrap/Alert";
 import Badge from "react-bootstrap/Badge";
 import Button from "react-bootstrap/Button";
+import ButtonGroup from "react-bootstrap/ButtonGroup";
 import type { FormControlProps } from "react-bootstrap/FormControl";
 import FormControl from "react-bootstrap/FormControl";
 import FormGroup from "react-bootstrap/FormGroup";
@@ -29,28 +28,29 @@ import InputGroup from "react-bootstrap/InputGroup";
 import ListGroup from "react-bootstrap/ListGroup";
 import ListGroupItem from "react-bootstrap/ListGroupItem";
 import Modal from "react-bootstrap/Modal";
+import OverlayTrigger from "react-bootstrap/OverlayTrigger";
+import Tooltip from "react-bootstrap/Tooltip";
 import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
+import { shortCalendarTimeFormat } from "../../lib/calendarTimeFormat";
 import { formatDiscordName } from "../../lib/discord";
 import isAdmin from "../../lib/isAdmin";
 import type { HuntType } from "../../lib/models/Hunts";
+import MeteorUsers from "../../lib/models/MeteorUsers";
+import Puzzles, { type PuzzleType } from "../../lib/models/Puzzles";
 import { userIsOperatorForHunt } from "../../lib/permission_stubs";
+import puzzlesForHunt from "../../lib/publications/puzzlesForHunt";
 import clearHuntInvitationCode from "../../methods/clearHuntInvitationCode";
 import demoteOperator from "../../methods/demoteOperator";
 import generateHuntInvitationCode from "../../methods/generateHuntInvitationCode";
 import promoteOperator from "../../methods/promoteOperator";
 import syncHuntDiscordRole from "../../methods/syncHuntDiscordRole";
 import useFocusRefOnFindHotkey from "../hooks/useFocusRefOnFindHotkey";
-import Avatar from "./Avatar";
 import useTypedSubscribe from "../hooks/useTypedSubscribe";
-import puzzlesForHunt from "../../lib/publications/puzzlesForHunt";
-import Puzzles, { type PuzzleType } from "../../lib/models/Puzzles";
-import RelativeTime from "./RelativeTime";
-import { faPuzzlePiece } from "@fortawesome/free-solid-svg-icons/faPuzzlePiece";
-import { shortCalendarTimeFormat } from "../../lib/calendarTimeFormat";
-import MeteorUsers from "../../lib/models/MeteorUsers";
+import Avatar from "./Avatar";
 import CopyToClipboardButton from "./CopyToClipboardButton";
+import RelativeTime from "./RelativeTime";
 
 const ProfilesSummary = styled.div`
   text-align: right;

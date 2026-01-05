@@ -1,10 +1,10 @@
 import React from "react";
 import { indexedById } from "../../lib/listUtils";
+import { ChatMessageType } from "../../lib/models/ChatMessages";
 import type { PuzzleType } from "../../lib/models/Puzzles";
 import type { TagType } from "../../lib/models/Tags";
 import { puzzleInterestingness } from "../../lib/puzzle-sort-and-group";
 import PuzzleList from "./PuzzleList";
-import { ChatMessageType } from "../../lib/models/ChatMessages";
 
 function sortPuzzlesByRelevanceWithinPuzzleGroup(
   puzzles: PuzzleType[],
