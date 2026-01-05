@@ -458,13 +458,13 @@ class UserPuzzleHistoryAggregator {
 
   static async get(userId: string): Promise<UserPuzzleHistoryAggregator> {
     // Check if we already have an initialized aggregator
-    let aggregator = UserPuzzleHistoryAggregator.aggregators.get(userId);
+    const aggregator = UserPuzzleHistoryAggregator.aggregators.get(userId);
     if (aggregator) {
       return aggregator;
     }
 
     // Check if initialization is already in progress
-    let pendingPromise =
+    const pendingPromise =
       UserPuzzleHistoryAggregator.pendingAggregators.get(userId);
     if (pendingPromise) {
       return pendingPromise;

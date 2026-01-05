@@ -34,6 +34,7 @@ import TransportStates from "../lib/models/mediasoup/TransportStates";
 import Transports from "../lib/models/mediasoup/Transports";
 import type { ServerType } from "../lib/models/Servers";
 import Servers from "../lib/models/Servers";
+import UserStatuses from "../lib/models/UserStatuses";
 import roundedTime from "../lib/roundedTime";
 import throttle from "../lib/throttle";
 import {
@@ -44,7 +45,6 @@ import {
 import ignoringDuplicateKeyErrors from "./ignoringDuplicateKeyErrors";
 import CallActivities from "./models/CallActivities";
 import onExit from "./onExit";
-import UserStatuses from "../lib/models/UserStatuses";
 
 const mediaCodecs: types.RouterRtpCodecCapability[] = [
   {

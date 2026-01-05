@@ -1,11 +1,12 @@
 import { Meteor } from "meteor/meteor";
 import { useTracker } from "meteor/react-meteor-data";
-import React, { useEffect, useState } from "react";
+import type React from "react";
+import { useEffect, useState } from "react";
+import { Container, Navbar, Row } from "react-bootstrap";
 import { Link, Navigate, useLocation } from "react-router-dom";
+import { useAppThemeState } from "../hooks/persisted-state";
 import App from "./App";
 import SplashPage from "./SplashPage";
-import { useAppThemeState } from "../hooks/persisted-state";
-import { Container, Navbar, Row } from "react-bootstrap";
 
 export const useAuthenticated = () => {
   const { loggingIn, loggedIn } = useTracker(() => {

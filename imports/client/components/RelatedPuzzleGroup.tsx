@@ -3,15 +3,15 @@ import { faCaretRight } from "@fortawesome/free-solid-svg-icons/faCaretRight";
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Badge, Button } from "react-bootstrap";
 import styled from "styled-components";
 import type { TagType } from "../../lib/models/Tags";
 import type { PuzzleGroup } from "../../lib/puzzle-sort-and-group";
+import { computeSolvedness } from "../../lib/solvedness";
 import { useHuntPuzzleListCollapseGroup } from "../hooks/persisted-state";
+import type { Theme } from "../theme";
 import RelatedPuzzleList from "./RelatedPuzzleList";
 import Tag from "./Tag";
-import { Theme } from "../theme";
-import { Badge, Button } from "react-bootstrap";
-import { computeSolvedness } from "../../lib/solvedness";
 
 const AddButton = styled(Button)<{ theme: Theme }>`
   display: inline;

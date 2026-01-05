@@ -1,4 +1,3 @@
-import React from "ThemeTypereact";
 import {
   createContext,
   useCallback,
@@ -6,8 +5,9 @@ import {
   useMemo,
   useState,
 } from "react";
-import { Theme } from "react-select";
+import type { Theme } from "react-select";
 import { ThemeContext } from "styled-components";
+import type React from "ThemeTypereact";
 
 type ThemeType = "auto" | "light" | "dark";
 export interface ThemeContextType {

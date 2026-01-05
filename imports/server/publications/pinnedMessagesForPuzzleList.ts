@@ -1,8 +1,8 @@
 import { check } from "meteor/check";
 import ChatMessages from "../../lib/models/ChatMessages";
 import MeteorUsers from "../../lib/models/MeteorUsers";
-import definePublication from "./definePublication";
 import pinnedMessagesForPuzzleList from "../../lib/publications/pinnedMessagesForPuzzleList";
+import definePublication from "./definePublication";
 
 definePublication(pinnedMessagesForPuzzleList, {
   validate(arg) {
@@ -24,7 +24,7 @@ definePublication(pinnedMessagesForPuzzleList, {
 
     return ChatMessages.find({
       hunt: huntId,
-      pinTs: { $ne:null },
+      pinTs: { $ne: null },
     });
   },
 });

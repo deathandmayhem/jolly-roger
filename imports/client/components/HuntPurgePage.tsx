@@ -1,44 +1,20 @@
-import { useTracker } from "meteor/react-meteor-data";
-import React, { useCallback, useRef, useState } from "react";
-import { Alert, Modal, ModalBody, ModalFooter } from "react-bootstrap";
+import { useCallback, useRef } from "react";
+import Alert from "react-bootstrap/Alert";
 import Button from "react-bootstrap/Button";
 import Container from "react-bootstrap/Container";
-import type { FormProps } from "react-bootstrap/Form";
 import Form from "react-bootstrap/Form";
 import type { FormControlProps } from "react-bootstrap/FormControl";
 import FormControl from "react-bootstrap/FormControl";
 import FormGroup from "react-bootstrap/FormGroup";
-import { createPortal } from "react-dom";
-import { useNavigate, useParams } from "react-router-dom";
-import type { ActionMeta } from "react-select";
-import DiscordCache from "../../lib/models/DiscordCache";
-import Hunts from "../../lib/models/Hunts";
-import type {
-  EditableHuntType,
-  SavedDiscordObjectType,
-} from "../../lib/models/Hunts";
-import Settings from "../../lib/models/Settings";
-import discordChannelsForConfiguredGuild from "../../lib/publications/discordChannelsForConfiguredGuild";
-import discordRolesForConfiguredGuild from "../../lib/publications/discordRolesForConfiguredGuild";
-import settingsByName from "../../lib/publications/settingsByName";
-import createHunt from "../../methods/createHunt";
+import { useParams } from "react-router-dom";
+import type { SavedDiscordObjectType } from "../../lib/models/Hunts";
 import purgeHunt from "../../methods/purgeHunt";
-import updateHunt from "../../methods/updateHunt";
 import { useBreadcrumb } from "../hooks/breadcrumb";
-import useTypedSubscribe from "../hooks/useTypedSubscribe";
 import ActionButtonRow from "./ActionButtonRow";
-import Markdown from "./Markdown";
 import type { ModalFormHandle } from "./ModalForm";
 import ModalForm from "./ModalForm";
 
-enum SubmitState {
-  IDLE = "idle",
-  SUBMITTING = "submitting",
-  SUCCESS = "success",
-  FAILED = "failed",
-}
-
-const splitLists = function (lists: string): string[] {
+const _splitLists = function (lists: string): string[] {
   const strippedLists = lists.trim();
   if (strippedLists === "") {
     return [];
@@ -59,7 +35,7 @@ interface DiscordSelectorProps extends DiscordSelectorParams {
   options: SavedDiscordObjectType[];
 }
 
-const DiscordSelector = ({
+const _DiscordSelector = ({
   disable,
   id: formId,
   value,

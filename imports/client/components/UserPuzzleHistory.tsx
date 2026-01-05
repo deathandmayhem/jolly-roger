@@ -32,22 +32,22 @@ import Hunts from "../../lib/models/Hunts";
 import Puzzles from "../../lib/models/Puzzles";
 import Tags from "../../lib/models/Tags";
 import ActivitySummaryForUser from "../../lib/publications/ActivitySummaryForUser";
-import PuzzleHistorySummaryForUser from "../../lib/publications/PuzzleHistorySummaryForUser";
 import huntsAll from "../../lib/publications/huntsAll";
+import PuzzleHistorySummaryForUser from "../../lib/publications/PuzzleHistorySummaryForUser";
 import puzzleHistoryForUser from "../../lib/publications/puzzleHistoryForUser";
 import type { Solvedness } from "../../lib/solvedness";
 import type { CallActivityType } from "../../server/models/CallActivities";
 import ActivityHistorySummaries from "../ActivityHistorySummaries";
-import PuzzleHistorySummaries from "../PuzzleHistorySummaries";
-import type { PuzzleHistoryItem } from "../UserPuzzleHistory";
 import { useBreadcrumb } from "../hooks/breadcrumb";
 import useDocumentTitle from "../hooks/useDocumentTitle";
 import useTypedSubscribe from "../hooks/useTypedSubscribe";
+import PuzzleHistorySummaries from "../PuzzleHistorySummaries";
 import type { Theme } from "../theme";
+import type { PuzzleHistoryItem } from "../UserPuzzleHistory";
 import type { ActivityItem } from "./ContributionGraph";
 import ContributionGraph from "./ContributionGraph";
-import TagList from "./TagList";
 import { mediaBreakpointDown } from "./styling/responsive";
+import TagList from "./TagList";
 
 const PuzzleHistoryTR = styled.tr<{ $solvedness: string; theme: Theme }>`
   background-color: ${({ theme, $solvedness }) => {

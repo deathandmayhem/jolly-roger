@@ -4,12 +4,12 @@ import Flags from "../../Flags";
 import type { GdriveMimeTypesType } from "../../lib/GdriveMimeTypes";
 import GdriveMimeTypes from "../../lib/GdriveMimeTypes";
 import Hunts from "../../lib/models/Hunts";
+import MeteorUsers from "../../lib/models/MeteorUsers";
 import Puzzles from "../../lib/models/Puzzles";
 import createPuzzleDocument from "../../methods/createPuzzleDocument";
 import { ensureDocument } from "../gdrive";
 import GoogleClient from "../googleClientRefresher";
 import defineMethod from "./defineMethod";
-import MeteorUsers from "../../lib/models/MeteorUsers";
 
 defineMethod(createPuzzleDocument, {
   validate(arg) {

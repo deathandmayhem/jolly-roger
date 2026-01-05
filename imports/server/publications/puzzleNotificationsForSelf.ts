@@ -1,5 +1,5 @@
-import PuzzleNotifications from "../../lib/models/PuzzleNotifications";
 import Hunts from "../../lib/models/Hunts";
+import PuzzleNotifications from "../../lib/models/PuzzleNotifications";
 import Puzzles from "../../lib/models/Puzzles";
 import puzzleNotificationsForSelf from "../../lib/publications/puzzleNotificationsForSelf";
 import publishJoinedQuery from "../publishJoinedQuery";

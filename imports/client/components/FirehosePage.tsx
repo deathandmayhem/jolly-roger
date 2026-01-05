@@ -18,6 +18,7 @@ import InputGroup from "react-bootstrap/InputGroup";
 import { useParams, useSearchParams } from "react-router-dom";
 import styled from "styled-components";
 import { shortCalendarTimeFormat } from "../../lib/calendarTimeFormat";
+import chatMessageNodeType from "../../lib/chatMessageNodeType";
 import { indexedById } from "../../lib/listUtils";
 import type { ChatMessageType } from "../../lib/models/ChatMessages";
 import ChatMessages from "../../lib/models/ChatMessages";
@@ -33,7 +34,6 @@ import useSubscribeDisplayNames from "../hooks/useSubscribeDisplayNames";
 import useTypedSubscribe from "../hooks/useTypedSubscribe";
 import indexedDisplayNames from "../indexedDisplayNames";
 import FixedLayout from "./styling/FixedLayout";
-import chatMessageNodeType from "../../lib/chatMessageNodeType";
 
 const FirehosePageLayout = styled.div`
   padding: 8px 15px;

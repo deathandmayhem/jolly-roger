@@ -37,7 +37,7 @@ defineMethod(sendChatMessage, {
     attachments?: ChatAttachmentType[] | null;
   }) {
     check(this.userId, String);
-    let contentObj = JSON.parse(content);
+    const contentObj = JSON.parse(content);
     check(contentObj, {
       type: "message" as const,
       children: [

@@ -1,8 +1,8 @@
 import { check } from "meteor/check";
-import definePublication from "./definePublication";
-import statusesForHuntUsers from "../../lib/publications/statusesForHuntUsers";
 import MeteorUsers from "../../lib/models/MeteorUsers";
 import UserStatuses from "../../lib/models/UserStatuses";
+import statusesForHuntUsers from "../../lib/publications/statusesForHuntUsers";
+import definePublication from "./definePublication";
 
 definePublication(statusesForHuntUsers, {
   validate(arg) {
@@ -22,6 +22,8 @@ definePublication(statusesForHuntUsers, {
 
     const recencyThreshold = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
-    return [UserStatuses.find({ "hunt": huntId, updatedAt: { $gt: recencyThreshold} })];
+    return [
+      UserStatuses.find({ hunt: huntId, updatedAt: { $gt: recencyThreshold } }),
+    ];
   },
 });

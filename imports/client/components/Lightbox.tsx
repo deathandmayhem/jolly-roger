@@ -64,28 +64,28 @@ export const LightboxButton = styled.button<{
 
   ${({ $position }) => {
     // biome-ignore lint/style/useDefaultSwitchClause: <explanation>
-        switch ($position) {
-          case "top-right":
-            return css`
+    switch ($position) {
+      case "top-right":
+        return css`
           position: absolute;
           top: -10px;
           right: -10px;
         `;
-          case "center-left":
-            return css`
+      case "center-left":
+        return css`
           position: absolute;
           top: 50%;
           left: -25px;
           transform: translateY(-50%);
         `;
-          case "center-right":
-            return css`
+      case "center-right":
+        return css`
           position: absolute;
           top: 50%;
           right: -25px;
           transform: translateY(-50%);
         `;
-        }
+    }
   }}
 
   &:disabled {

@@ -8,15 +8,17 @@ import {
 import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload";
 import { faPuzzlePiece } from "@fortawesome/free-solid-svg-icons/faPuzzlePiece";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { decodeHTML } from "entities";
 import type { Token, Tokens } from "marked";
 import { marked } from "marked";
 import React, {
   useCallback,
   useEffect,
   useMemo,
-  useState,
   useRef,
+  useState,
 } from "react";
+import BSImage from "react-bootstrap/Image";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { shortCalendarTimeFormat } from "../../lib/calendarTimeFormat";
@@ -26,21 +28,19 @@ import type {
   ChatMessageContentType,
 } from "../../lib/models/ChatMessages";
 import type { PuzzleType } from "../../lib/models/Puzzles";
+import nodeIsImage from "../../lib/nodeIsImage";
 import nodeIsMention from "../../lib/nodeIsMention";
+import nodeIsRoleMention from "../../lib/nodeIsRoleMention";
 import { computeSolvedness } from "../../lib/solvedness";
 import type { Theme } from "../theme";
 import { MentionSpan, PuzzleSpan } from "./FancyEditor";
 import {
-  LightboxOverlay,
-  LightboxContent,
   LightboxButton,
+  LightboxContent,
   LightboxImage,
+  LightboxOverlay,
   TopRightButtonGroup,
 } from "./Lightbox";
-import { decodeHTML } from "entities";
-import BSImage from "react-bootstrap/Image";
-import nodeIsImage from "../../lib/nodeIsImage";
-import nodeIsRoleMention from "../../lib/nodeIsRoleMention";
 
 // This file implements standalone rendering for the MessageElement format
 // defined by FancyEditor, for use in the chat pane.
