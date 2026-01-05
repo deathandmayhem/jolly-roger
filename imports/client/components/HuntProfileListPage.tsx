@@ -100,16 +100,25 @@ const HuntProfileListPage = () => {
     [huntId, loading],
   );
 
-  const users = useTracker(
-    () =>
-      loading
-        ? []
-        : MeteorUsers.find(
-            { hunts: huntId, displayName: { $ne: undefined } },
-            { sort: { displayName: 1 } },
-          ).fetch(),
-    [huntId, loading],
-  );
+  const users = useTracker(() => {
+    if (loading) return [];
+
+    const fetchedUsers = MeteorUsers.find({
+      hunts: huntId,
+      displayName: { $ne: undefined },
+    }).fetch();
+
+    // Sort the resulting array case-insensitively
+    return fetchedUsers.sort((a, b) => {
+      return (a.displayName || "").localeCompare(
+        b.displayName || "",
+        undefined,
+        {
+          sensitivity: "base", // Ignores case and accents (a = A = á)
+        },
+      );
+    });
+  }, [huntId, loading]);
 
   const hunt = useTracker(() => Hunts.findOne(huntId), [huntId]);
   const {

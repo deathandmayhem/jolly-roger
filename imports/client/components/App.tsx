@@ -21,6 +21,11 @@ import Navbar from "react-bootstrap/Navbar";
 import NavbarBrand from "react-bootstrap/NavbarBrand";
 import NavItem from "react-bootstrap/NavItem";
 import NavLink from "react-bootstrap/NavLink";
+import { faPencilAlt } from "@fortawesome/free-solid-svg-icons/faPencilAlt";
+import { faStar } from "@fortawesome/free-solid-svg-icons/faStar";
+import Hunts from "../../lib/models/Hunts";
+import { userMayWritePuzzlesForHunt } from "../../lib/permission_stubs";
+import { useOperatorActionsHiddenForHunt } from "../hooks/persisted-state";
 import type { FallbackProps } from "react-error-boundary";
 import { ErrorBoundary as ReactErrorBoundary } from "react-error-boundary";
 import * as RRBS from "react-router-bootstrap";
@@ -202,6 +207,15 @@ const AppNavbar = ({
 }) => {
   const userId = useTracker(() => Meteor.userId()!, []);
   const huntId = useParams<"huntId">().huntId!;
+  const hunt = useTracker(
+    () => (huntId ? Hunts.findOne(huntId) : undefined),
+    [huntId],
+  );
+  const canAdd = useTracker(
+    () => (hunt ? userMayWritePuzzlesForHunt(Meteor.user(), hunt) : false),
+    [hunt],
+  );
+
 
   const displayName = useTracker(
     () => Meteor.user()?.displayName ?? "<no name given>",
@@ -226,21 +240,12 @@ const AppNavbar = ({
     return (
       <Breadcrumb aria-label="breadcrumb">
         <BreadcrumbList>
-          {crumbs.map((crumb, index) => {
-            const last = index === crumbs.length - 1;
-            if (last) {
-              return (
-                <BreadcrumbItem key={crumb.path} aria-current="page">
-                  {crumb.title}
-                </BreadcrumbItem>
-              );
-            } else {
-              return (
-                <BreadcrumbItem key={crumb.path}>
-                  <Link to={crumb.path}>{crumb.title}</Link>
-                </BreadcrumbItem>
-              );
-            }
+          {crumbs.map((crumb) => {
+            return (
+              <BreadcrumbItem key={crumb.path}>
+                <Link to={crumb.path}>{crumb.title}</Link>
+              </BreadcrumbItem>
+            );
           })}
         </BreadcrumbList>
       </Breadcrumb>
@@ -262,6 +267,14 @@ const AppNavbar = ({
   }, [setAppTheme]);
 
   const theme = useTheme();
+
+  const [operatorActionsHidden, setOperatorActionsHidden] =
+    useOperatorActionsHiddenForHunt(huntId ?? "");
+
+  const toggleOperatorMode = useCallback(() => {
+    setOperatorActionsHidden(!operatorActionsHidden);
+  }, [operatorActionsHidden, setOperatorActionsHidden]);
+
   return (
     <NavbarInset
       variant="light"
@@ -312,7 +325,6 @@ const AppNavbar = ({
             <DropdownItem eventKey="3" onClick={logout}>
               Sign out
             </DropdownItem>
-            <Dropdown.Divider />
             <DropdownHeader>Theme</DropdownHeader>
             <DropdownItem onClick={setAutoMode} active={appTheme === "auto"}>
               <FontAwesomeIcon icon={faWandMagicSparkles} fixedWidth /> Auto
@@ -323,6 +335,38 @@ const AppNavbar = ({
             <DropdownItem onClick={setDarkMode} active={appTheme === "dark"}>
               <FontAwesomeIcon icon={faMoon} fixedWidth /> Dark mode
             </DropdownItem>
+            {huntId && canAdd && (
+              <>
+                <Dropdown.Divider />
+                <DropdownHeader>{hunt.name}</DropdownHeader>
+                <DropdownItem
+                  onClick={toggleOperatorMode}
+                  className="d-flex align-items-center"
+                >
+                  <FontAwesomeIcon
+                    icon={operatorActionsHidden ? faStar : faPencilAlt}
+                    fixedWidth
+                    className="me-2"
+                    style={{ fontSize: "1.1rem" }}
+                  />
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      lineHeight: "1.2",
+                    }}
+                  >
+                    <span>
+                      Switch to {operatorActionsHidden ? "Deputy" : "Solver"}
+                    </span>
+                    <span className="text-muted" style={{ fontSize: "0.7rem" }}>
+                      Currently in {operatorActionsHidden ? "Solver" : "Deputy"}{" "}
+                      mode
+                    </span>
+                  </div>
+                </DropdownItem>
+              </>
+            )}
           </DropdownMenu>
         </Dropdown>
       </Nav>

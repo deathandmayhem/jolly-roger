@@ -191,6 +191,11 @@ const SolversColumn = styled(PuzzleColumn)`
   )}
 `;
 
+const PassiveViewerSpan = styled.span`
+  color: ${({ theme }) => theme.colors.text.textMuted};
+  font-style: italic;
+`;
+
 const Puzzle = React.memo(
   ({
     puzzle,
@@ -468,15 +473,15 @@ const Puzzle = React.memo(
         return null;
       }
     }, [isMeta, isMetameta]);
-    const activeSolvers = useMemo(() => {
-      if (!puzzleUsers || !viewers) {
-        return [];
+    const { activeViewers, passiveViewers } = useMemo(() => {
+      if (!viewers) {
+        return { activeViewers: [], passiveViewers: [] };
       }
-      if (showSolvers === "active") {
-        return viewers?.filter((u) => puzzleUsers?.includes(u));
-      }
-      return viewers;
-    }, [puzzleUsers, showSolvers, viewers]);
+      const active = viewers.filter((u) => puzzleUsers?.includes(u));
+      const passive = viewers.filter((u) => !puzzleUsers?.includes(u));
+
+      return { activeViewers: active, passiveViewers: passive };
+    }, [puzzleUsers, viewers]);
 
     return (
       <PuzzleDiv $solvedness={solvedness}>
@@ -544,15 +549,22 @@ const Puzzle = React.memo(
                 </span>
               ) : null}
               {rtcViewers.map((viewer) => viewer).join(", ")}
-              {rtcViewers.length > 0 && activeSolvers.length > 0 ? (
+              {rtcViewers.length > 0 &&
+              activeViewers.length + passiveViewers.length > 0 ? (
                 <br />
               ) : null}
-              {activeSolvers.length > 0 ? (
+              {activeViewers.length + passiveViewers.length > 0 ? (
                 <span>
                   <FontAwesomeIcon icon={faEye} />{" "}
                 </span>
               ) : null}
-              {activeSolvers.map((viewer) => viewer).join(", ")}
+              {activeViewers.join(", ")}
+              {activeViewers.length > 0 && passiveViewers.length > 0 && ", "}
+              {passiveViewers.length > 0 && (
+                <PassiveViewerSpan>
+                  {passiveViewers.join(", ")}
+                </PassiveViewerSpan>
+              )}
             </div>
           ) : null}
         </SolversColumn>

@@ -135,7 +135,7 @@ export const useHuntPuzzleListShowSolvers = (huntId: string) => {
   return [
     huntPuzzleListView.showSolvers,
     useCallback(
-      (update: SetStateAction<"hide" | "viewing" | "active">) => {
+      (update: SetStateAction<"hide" | "viewing">) => {
         setHuntPuzzleListView((prevView) => {
           const newView = {
             ...prevView,

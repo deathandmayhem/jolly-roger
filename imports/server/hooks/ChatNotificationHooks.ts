@@ -2,7 +2,6 @@ import Flags from "../../Flags";
 import {
   normalizedForDingwordSearch,
   normalizedMessageDingsUserByDingword,
-  normalizedMessageDingsUserByDingwordOnce,
 } from "../../lib/dingwordLogic";
 import ChatMessages from "../../lib/models/ChatMessages";
 import ChatNotifications from "../../lib/models/ChatNotifications";
@@ -11,7 +10,6 @@ import UserStatuses from "../../lib/models/UserStatuses";
 import nodeIsMention from "../../lib/nodeIsMention";
 import nodeIsRoleMention from "../../lib/nodeIsRoleMention";
 import { queryOperatorsForHunt } from "../../lib/permission_stubs";
-import Subscribers from "../models/Subscribers";
 import type Hookset from "./Hookset";
 
 const ChatNotificationHooks: Hookset = {
@@ -28,145 +26,9 @@ const ChatNotificationHooks: Hookset = {
     const chatMessage = (await ChatMessages.findOneAsync(chatMessageId))!;
     const { sender } = chatMessage;
 
-    // Collect users to notify into a set, and then create notifications at the end.
-    const usersToNotify = new Set<string>();
-    const matchOnceUpdates: { userId: string; words: string[] }[] = [];
-
     if (!sender) {
       // Don't notify for system messages.
       return;
-    }
-
-    // Notify for @-mentions in message.
-    await Promise.all(
-      chatMessage.content.children.map(async (child) => {
-        if (nodeIsMention(child)) {
-          const mentionedUserId = child.userId;
-          // Don't have messages notify yourself.
-          if (mentionedUserId !== sender) {
-            // Only create mentions for users that are in the current hunt.
-            const mentionedUser =
-              await MeteorUsers.findOneAsync(mentionedUserId);
-            if (mentionedUser?.hunts?.includes(chatMessage.hunt)) {
-              usersToNotify.add(mentionedUserId);
-            }
-          }
-        }
-        if (nodeIsRoleMention(child)) {
-          const roleId = child.roleId;
-          if (roleId === "operator") {
-            // First check for all active operators
-            const subscribed = await Subscribers.find({
-              name: "operators",
-              [`context.${chatMessage.hunt}`]: true,
-            }).mapAsync((l) => l.user as string);
-
-            const allOperators = await MeteorUsers.find(
-              queryOperatorsForHunt({ _id: chatMessage.hunt }),
-            ).mapAsync((u) => u._id);
-
-            const active = new Set(allOperators).intersection(
-              new Set(subscribed),
-            );
-            active.delete(sender); // don't notify self
-            if (active.size > 0) {
-              active.forEach((userId) => usersToNotify.add(userId));
-            } else {
-              // No active operators; fall back to all operators
-              allOperators.forEach((userId) => {
-                if (userId !== sender) {
-                  usersToNotify.add(userId);
-                }
-              });
-            }
-          } else {
-            // biome-ignore lint/nursery/noUnusedExpressions: exhaustive check
-            roleId satisfies never;
-          }
-        }
-      }),
-    );
-
-    // Respect feature flag.
-    if (!(await Flags.activeAsync("disable.dingwords"))) {
-      const normalizedText = normalizedForDingwordSearch(chatMessage);
-
-      // Find all users who are in this hunt with dingwords set.
-      for await (const u of MeteorUsers.find(
-        {
-          hunts: chatMessage.hunt,
-          "dingwords.0": { $exists: true },
-        },
-        {
-          projection: {
-            _id: 1,
-            dingwords: 1,
-            dingwordsOpenMatch: 1,
-            dingwordsMatchOnce: 1,
-            dingwordsMatchedOnce: 1,
-          },
-        },
-      )) {
-        // Avoid making users ding themselves.
-        if (u._id === sender) {
-          continue;
-        }
-
-        if (normalizedMessageDingsUserByDingword(normalizedText, u)) {
-          usersToNotify.add(u._id);
-        }
-
-        const onceOnlyMatches = normalizedMessageDingsUserByDingwordOnce(
-          normalizedText,
-          u,
-          chatMessage,
-        );
-        if (onceOnlyMatches.length > 0) {
-          usersToNotify.add(u._id);
-          matchOnceUpdates.push({
-            userId: u._id,
-            words: onceOnlyMatches,
-          });
-        }
-      }
-    }
-
-    // Create notifications for each user who should be dinged by this message.
-    const collected: string[] = [];
-    usersToNotify.forEach((userId) => {
-      collected.push(userId);
-    });
-    await Promise.all(
-      collected.map(async (userId: string) => {
-        await ChatNotifications.insertAsync({
-          user: userId,
-          sender,
-          puzzle: chatMessage.puzzle,
-          hunt: chatMessage.hunt,
-          content: chatMessage.content,
-          timestamp: chatMessage.timestamp,
-          message: chatMessage._id,
-        });
-      }),
-    );
-
-    if (matchOnceUpdates.length > 0) {
-      const bulkUpdate = matchOnceUpdates.map(({ userId, words }) => ({
-        updateOne: {
-          filter: { _id: userId },
-          update: {
-            $addToSet: {
-              [`dingwordsMatchedOnce.${chatMessage.hunt}.${chatMessage.puzzle}`]:
-                { $each: words },
-            },
-          },
-        },
-      }));
-      if (bulkUpdate.length > 0) {
-        await MeteorUsers.rawCollection().bulkWrite(bulkUpdate, {
-          ordered: false,
-        });
-      }
     }
 
     await UserStatuses.upsertAsync(
@@ -182,6 +44,98 @@ const ChatNotificationHooks: Hookset = {
         },
       },
     );
+
+    // Collect users to notify into a Map, and then create notifications at the end.
+    const usersToNotify = new Map<string, string[]>();
+
+    const addUserToNotify = (userId: string, words: string[] = []) => {
+      const existing = usersToNotify.get(userId) || [];
+      // Combine unique words
+      usersToNotify.set(userId, [...new Set([...existing, ...words])]);
+    };
+
+    // Notify for @-mentions in message.
+    await Promise.all(
+      chatMessage.content.children.map(async (child) => {
+        if (nodeIsMention(child)) {
+          const mentionedUserId = child.userId;
+          // Don't have messages notify yourself.
+          if (mentionedUserId !== sender) {
+            // Only create mentions for users that are in the current hunt.
+            const mentionedUser =
+              await MeteorUsers.findOneAsync(mentionedUserId);
+            if (mentionedUser?.hunts?.includes(chatMessage.hunt)) {
+              addUserToNotify(mentionedUserId);
+            }
+          }
+        }
+        if (nodeIsRoleMention(child) && child.roleId === "operator") {
+          const allOperators = await MeteorUsers.find(
+            queryOperatorsForHunt({ _id: chatMessage.hunt }),
+          ).mapAsync((u) => u._id);
+
+          for (const opId of allOperators) {
+            if (opId !== sender) addUserToNotify(opId);
+          }
+        }
+      }),
+    );
+
+    // Respect feature flag.
+    if (!(await Flags.activeAsync("disable.dingwords"))) {
+      const normalizedText = normalizedForDingwordSearch(chatMessage);
+
+      // Find all users who are in this hunt with dingwords set.
+      for await (const u of MeteorUsers.find(
+        {
+          hunts: chatMessage.hunt,
+          "dingwords.0": { $exists: true },
+          _id: { $ne: sender }, // Avoid making users ding themselves
+        },
+        {
+          projection: {
+            _id: 1,
+            dingwords: 1,
+            dingwordsOpenMatch: 1,
+            suppressedDingwords: 1,
+          },
+        },
+      )) {
+        const matches = normalizedMessageDingsUserByDingword(normalizedText, u);
+        // Filter out matches that are suppressed for this specific puzzle
+        const puzzleSuppressed =
+          u.suppressedDingwords?.[chatMessage.hunt]?.[chatMessage.puzzle] || [];
+        if (!puzzleSuppressed.includes("__ALL__")) {
+          const activeMatches = matches.filter(
+            (word) => !puzzleSuppressed.includes(word),
+          );
+          if (activeMatches.length > 0) {
+            addUserToNotify(u._id, activeMatches);
+          }
+        }
+      }
+    }
+
+    const notificationPromises: Promise<string>[] = [];
+
+    // Create notifications for each user who should be dinged by this message.
+    usersToNotify.forEach((words, userId) => {
+      notificationPromises.push(
+        ChatNotifications.insertAsync({
+          user: userId,
+          sender,
+          puzzle: chatMessage.puzzle,
+          hunt: chatMessage.hunt,
+          content: chatMessage.content,
+          timestamp: chatMessage.timestamp,
+          message: chatMessage._id,
+          // Store the matches so the UI knows which word to offer to ignore
+          dingwords: words.length > 0 ? words : undefined,
+        }),
+      );
+    });
+
+    await Promise.all(notificationPromises);
   },
 };
 

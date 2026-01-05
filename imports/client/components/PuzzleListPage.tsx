@@ -5,7 +5,6 @@ import { faClock } from "@fortawesome/free-regular-svg-icons/faClock";
 import { faEye } from "@fortawesome/free-regular-svg-icons/faEye";
 import { faEyeSlash } from "@fortawesome/free-regular-svg-icons/faEyeSlash";
 import { faFolderOpen } from "@fortawesome/free-regular-svg-icons/faFolderOpen";
-import { faBrain } from "@fortawesome/free-solid-svg-icons";
 import { faCaretDown } from "@fortawesome/free-solid-svg-icons/faCaretDown";
 import { faEraser } from "@fortawesome/free-solid-svg-icons/faEraser";
 import { faGlobe } from "@fortawesome/free-solid-svg-icons/faGlobe";
@@ -21,6 +20,7 @@ import {
   useEffect,
   useId,
   useRef,
+  useState,
 } from "react";
 import Alert from "react-bootstrap/Alert";
 import Button from "react-bootstrap/Button";
@@ -217,6 +217,9 @@ const PuzzleListView = ({
   const searchString = searchParams.get("q") ?? "";
   const addModalRef = useRef<PuzzleModalFormHandle>(null);
   const searchBarRef = useRef<HTMLInputElement>(null);
+  const [isSearchFocused, setIsSearchFocused] = useState<boolean>(false);
+  const handleSearchFocus = useCallback(() => setIsSearchFocused(true), []);
+  const handleSearchBlur = useCallback(() => setIsSearchFocused(false), []);
   const [displayMode, setDisplayMode] = useHuntPuzzleListDisplayMode(huntId);
   const [showSolved, setShowSolved] = useHuntPuzzleListShowSolved(huntId);
   const [showSolvers, setShowSolvers] = useHuntPuzzleListShowSolvers(huntId);
@@ -363,6 +366,18 @@ const PuzzleListView = ({
     return puzzleSubs;
   }, [subscriptionsLoading]);
 
+  // Automatically focus the search bar whenever the search string changes
+  // (e.g., when a tag is clicked)
+  // biome-ignore lint/correctness/useExhaustiveDependencies: We want this to trigger every time searchString changes, but we don't care about the change
+  useEffect(() => {
+    if (
+      searchBarRef.current &&
+      document.activeElement !== searchBarRef.current
+    ) {
+      searchBarRef.current.focus();
+    }
+  }, [searchString]);
+
   const compileMatcher = useCallback(
     (searchKeys: string[]): ((p: PuzzleType) => boolean) => {
       const tagNames: Record<string, string> = {};
@@ -397,19 +412,6 @@ const PuzzleListView = ({
           if (tagMatch) {
             return true;
           }
-
-          if (showSolvers === "active") {
-            // do a compare against active people
-            const matchingActives =
-              puzzle._id in puzzleUsers
-                ? puzzleUsers[puzzle._id]?.some((user) => {
-                    return user.toLowerCase().includes(key);
-                  })
-                : false;
-            if (matchingActives) {
-              return matchingActives;
-            }
-          }
           if (showSolvers === "viewers") {
             const matchingViewers =
               puzzle._id in puzzleSubscribers
@@ -437,7 +439,7 @@ const PuzzleListView = ({
         });
       };
     },
-    [allTags, puzzleSubscribers, puzzleUsers, showSolvers],
+    [allTags, puzzleSubscribers, showSolvers],
   );
 
   const puzzlesMatchingSearchString = useCallback(
@@ -485,7 +487,7 @@ const PuzzleListView = ({
   );
 
   const setShowSolversString = useCallback(
-    (value: "hide" | "viewing" | "active") => {
+    (value: "hide" | "viewing") => {
       setShowSolvers(value);
     },
     [setShowSolvers],
@@ -554,11 +556,13 @@ const PuzzleListView = ({
           puzzles
         </Alert>
       );
-      const singleMatchMessage = retainedPuzzles.length === 1 && (
-        <Alert variant="info">
-          Press <kbd>Enter</kbd> to go to the puzzle
-        </Alert>
-      );
+      const singleMatchMessage = isSearchFocused &&
+        retainedPuzzles.length === 1 && (
+          <Alert variant="info">
+            Press <kbd>Enter</kbd> to go to{" "}
+            <strong>{retainedPuzzles[0].title}</strong>
+          </Alert>
+        );
       const retainedIds = new Set(retainedPuzzles.map((puzzle) => puzzle._id));
       const filterMessage = `Showing ${retainedPuzzles.length} of ${allPuzzlesCount} rows`;
 
@@ -704,6 +708,7 @@ const PuzzleListView = ({
       showAddModalWithTags,
       canExpandAllGroups,
       expandAllGroups,
+      isSearchFocused,
     ],
   );
 
@@ -866,14 +871,7 @@ const PuzzleListView = ({
                 variant="outline-info"
                 value="viewers"
               >
-                <FontAwesomeIcon icon={faEye} key="hunters-show" /> Viewers
-              </ToggleButton>
-              <ToggleButton
-                id={`${idPrefix}-solvers-active-button`}
-                variant="outline-info"
-                value="active"
-              >
-                <FontAwesomeIcon icon={faBrain} key="hunters-show" /> Active
+                <FontAwesomeIcon icon={faEye} key="hunters-show" /> Show
               </ToggleButton>
             </StyledToggleButtonGroup>
           </ButtonToolbar>
@@ -893,6 +891,8 @@ const PuzzleListView = ({
               value={searchString}
               onChange={onSearchStringChange}
               onKeyDown={onSubmitSearch}
+              onFocus={handleSearchFocus}
+              onBlur={handleSearchBlur}
             />
             <Button variant="secondary" onClick={clearSearch}>
               <FontAwesomeIcon icon={faEraser} content="erase-filter" />

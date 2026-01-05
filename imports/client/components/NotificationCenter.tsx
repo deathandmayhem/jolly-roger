@@ -8,7 +8,7 @@ import { faKey } from "@fortawesome/free-solid-svg-icons/faKey";
 import { faPuzzlePiece } from "@fortawesome/free-solid-svg-icons/faPuzzlePiece";
 import { faSpinner } from "@fortawesome/free-solid-svg-icons/faSpinner";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import React, { useCallback, useEffect, useId, useState } from "react";
+import React, { useCallback, useEffect, useId, useMemo, useState } from "react";
 import Button from "react-bootstrap/Button";
 import Dropdown from "react-bootstrap/Dropdown";
 import Form from "react-bootstrap/Form";
@@ -27,7 +27,6 @@ import type { AnnouncementType } from "../../lib/models/Announcements";
 import Announcements from "../../lib/models/Announcements";
 import type { BookmarkNotificationType } from "../../lib/models/BookmarkNotifications";
 import BookmarkNotifications from "../../lib/models/BookmarkNotifications";
-import bookmarkPuzzle from "../../methods/bookmarkPuzzle";
 import type { ChatNotificationType } from "../../lib/models/ChatNotifications";
 import ChatNotifications from "../../lib/models/ChatNotifications";
 import type { GuessType } from "../../lib/models/Guesses";
@@ -37,8 +36,8 @@ import Hunts from "../../lib/models/Hunts";
 import PendingAnnouncements from "../../lib/models/PendingAnnouncements";
 import type { PuzzleNotificationType } from "../../lib/models/PuzzleNotifications";
 import PuzzleNotifications from "../../lib/models/PuzzleNotifications";
-import Puzzles from "../../lib/models/Puzzles";
 import type { PuzzleType } from "../../lib/models/Puzzles";
+import Puzzles from "../../lib/models/Puzzles";
 import {
   huntsUserIsOperatorFor,
   listAllRolesForHunt,
@@ -47,12 +46,15 @@ import bookmarkNotificationsForSelf from "../../lib/publications/bookmarkNotific
 import pendingAnnouncementsForSelf from "../../lib/publications/pendingAnnouncementsForSelf";
 import pendingGuessesForSelf from "../../lib/publications/pendingGuessesForSelf";
 import puzzleNotificationsForSelf from "../../lib/publications/puzzleNotificationsForSelf";
+import puzzlesForHunt from "../../lib/publications/puzzlesForHunt";
+import bookmarkPuzzle from "../../methods/bookmarkPuzzle";
 import configureEnsureGoogleScript from "../../methods/configureEnsureGoogleScript";
 import dismissBookmarkNotification from "../../methods/dismissBookmarkNotification";
 import dismissChatNotification from "../../methods/dismissChatNotification";
 import dismissPendingAnnouncement from "../../methods/dismissPendingAnnouncement";
 import dismissPuzzleNotification from "../../methods/dismissPuzzleNotification";
 import setGuessState from "../../methods/setGuessState";
+import suppressDingwordsForPuzzle from "../../methods/suppressDingwordsForPuzzle";
 import { guessURL } from "../../model-helpers";
 import GoogleScriptInfo from "../GoogleScriptInfo";
 import {
@@ -68,7 +70,6 @@ import CopyToClipboardButton from "./CopyToClipboardButton";
 import Markdown from "./Markdown";
 import PuzzleAnswer from "./PuzzleAnswer";
 import SpinnerTimer from "./SpinnerTimer";
-import puzzlesForHunt from "../../lib/publications/puzzlesForHunt";
 
 // How long to keep showing guess notifications after actioning.
 // Note that this cannot usefully exceed the linger period implemented by the
@@ -288,7 +289,7 @@ const GuessMessage = React.memo(
       setShowSettings(!showSettings);
     };
 
-    const [operatorActionsHidden, setOperatorActionsHidden] =
+    const [_operatorActionsHidden, setOperatorActionsHidden] =
       useOperatorActionsHiddenForHunt(guess.hunt);
 
     const hideOperatorActionsForHunt = function () {
@@ -654,6 +655,56 @@ const ChatNotificationMessage = ({
   roles: string[];
 }) => {
   const id = cn._id;
+
+  const [locallyMutedWords, setLocallyMutedWords] = useState<string[]>([]);
+  const [suppressedAllForThis, setSuppressedAllForThis] =
+    useState<boolean>(false);
+
+  const suppressedFromProfile = useTracker(() => {
+    const user = Meteor.user();
+    return user?.suppressedDingwords?.[cn.hunt]?.[cn.puzzle] || [];
+  }, [cn.hunt, cn.puzzle]);
+
+  const { displayedDingwords, suppressAll } = useMemo(() => {
+    const raw =
+      cn.dingwords?.filter((word) => {
+        const isLocallyMuted = locallyMutedWords.includes(word);
+        const isProfileMuted = suppressedFromProfile.includes(word);
+        const isAllMuted = suppressedFromProfile.includes("__ALL__");
+
+        return !isLocallyMuted && !isProfileMuted && !isAllMuted;
+      }) ?? [];
+    const suppressAll =
+      suppressedFromProfile.includes("__ALL__") || suppressedAllForThis;
+
+    return { displayedDingwords: raw.slice(0, 3), suppressAll };
+  }, [
+    cn.dingwords,
+    locallyMutedWords,
+    suppressedFromProfile,
+    suppressedAllForThis,
+  ]);
+
+  const handleSuppressAllDingwords = useCallback(() => {
+    suppressDingwordsForPuzzle.call({
+      puzzle: cn.puzzle,
+      hunt: cn.hunt,
+    });
+    setSuppressedAllForThis(true);
+  }, [cn.hunt, cn.puzzle]);
+
+  const handleSuppressSpecificDingword = useCallback(
+    (word: string) => {
+      suppressDingwordsForPuzzle.call({
+        puzzle: cn.puzzle,
+        hunt: cn.hunt,
+        dingword: word,
+      });
+      setLocallyMutedWords((prev) => [...prev, word]);
+    },
+    [cn.hunt, cn.puzzle],
+  );
+
   const dismiss = useCallback(
     () => dismissChatNotification.call({ chatNotificationId: id }),
     [id],
@@ -674,13 +725,24 @@ const ChatNotificationMessage = ({
           }, new Map<string, PuzzleType>());
   }, [hunt._id, puzzleLoading]);
 
-  const senderDisplayName = displayNames.get(cn.sender) ?? "???";
+  const _senderDisplayName = displayNames.get(cn.sender) ?? "???";
   const [showSettings, setShowSettings] = useState(false);
   const toggleSettings = () => {
     setShowSettings(!showSettings);
   };
 
   const theme = useTheme();
+
+  const individualDingwordsMute = useMemo(() => {
+    return displayedDingwords.map((word) => (
+      <Dropdown.Item
+        key={`${cn._id}-mute-${word}`}
+        onClick={() => handleSuppressSpecificDingword(word)}
+      >
+        Mute &quot;{word}&quot; for this puzzle
+      </Dropdown.Item>
+    ));
+  }, [displayedDingwords, cn._id, handleSuppressSpecificDingword]);
 
   return (
     <Toast className="text-bg-secondary" onClose={dismiss}>
@@ -698,21 +760,29 @@ const ChatNotificationMessage = ({
         <StyledNotificationTimestamp>
           {calendarTimeFormat(cn.createdAt)}
         </StyledNotificationTimestamp>
-        <Dropdown className="ms-auto" onToggle={toggleSettings}>
-          <Dropdown.Toggle
-            variant={theme.basicMode}
-            size="sm"
-            as={Button}
-            id={`chat-settings-${cn._id}`}
-          >
-            <FontAwesomeIcon icon={faCog} />
-          </Dropdown.Toggle>
-          <Dropdown.Menu align="end">
-            <Dropdown.Item as={Link} to="/users/me">
-              Edit Dingwords
-            </Dropdown.Item>
-          </Dropdown.Menu>
-        </Dropdown>
+        {cn.dingwords && (
+          <Dropdown className="ms-auto" onToggle={toggleSettings}>
+            <Dropdown.Toggle
+              variant={theme.basicMode}
+              size="sm"
+              as={Button}
+              id={`chat-settings-${cn._id}`}
+            >
+              <FontAwesomeIcon icon={faCog} />
+            </Dropdown.Toggle>
+            <Dropdown.Menu align="end">
+              {!suppressedAllForThis ? individualDingwordsMute : null}
+              {!suppressAll && (
+                <Dropdown.Item onClick={handleSuppressAllDingwords}>
+                  Mute <strong>all</strong> dingwords for this puzzle
+                </Dropdown.Item>
+              )}
+              <Dropdown.Item as={Link} to="/users/me">
+                Edit dingwords
+              </Dropdown.Item>
+            </Dropdown.Menu>
+          </Dropdown>
+        )}
       </Toast.Header>
       <Toast.Body>
         <div>
@@ -913,7 +983,7 @@ const NotificationCenter = () => {
     chatNotificationsLoading() ||
     puzzleNotificationsLoading();
 
-  const { hasOwnProfile, discordConfiguredByUser } = useTracker(() => {
+  const { hasOwnProfile, _discordConfiguredByUser } = useTracker(() => {
     const user = Meteor.user()!;
     return {
       hasOwnProfile: !!user.displayName,

@@ -3,6 +3,7 @@ import { useTracker } from "meteor/react-meteor-data";
 import { faBullhorn } from "@fortawesome/free-solid-svg-icons/faBullhorn";
 import { faFaucet } from "@fortawesome/free-solid-svg-icons/faFaucet";
 import { faMap } from "@fortawesome/free-solid-svg-icons/faMap";
+import { faNoteSticky } from "@fortawesome/free-solid-svg-icons/faNoteSticky";
 import { faReceipt } from "@fortawesome/free-solid-svg-icons/faReceipt";
 import { faTags } from "@fortawesome/free-solid-svg-icons/faTags";
 import { faUsers } from "@fortawesome/free-solid-svg-icons/faUsers";
@@ -14,7 +15,7 @@ import styled, { css } from "styled-components";
 import Hunts from "../../lib/models/Hunts";
 import { userMayWritePuzzlesForHunt } from "../../lib/permission_stubs";
 import { mediaBreakpointDown } from "./styling/responsive";
-import { Theme } from "../theme";
+import type { Theme } from "../theme";
 
 const JRLinkList = styled(Nav)`
   margin-right: 8px;
@@ -188,11 +189,11 @@ const HuntNav = () => {
         {/* Show firehose and tag manager links only to operators */}
         {canUpdate && (
           <StyledPuzzleListLinkAnchor
-            to={`/hunts/${huntId}/firehose`}
-            title="Firehose"
+            to={`/hunts/${huntId}/notes`}
+            title="Notes"
           >
-            <MenuIcon icon={faFaucet} />
-            <StyledPuzzleListLinkLabel>Firehose</StyledPuzzleListLinkLabel>
+            <MenuIcon icon={faNoteSticky} />
+            <StyledPuzzleListLinkLabel>Notes</StyledPuzzleListLinkLabel>
           </StyledPuzzleListLinkAnchor>
         )}
         {canUpdate && (

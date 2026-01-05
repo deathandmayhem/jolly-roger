@@ -1,3 +1,4 @@
+import { useTracker } from "meteor/react-meteor-data";
 import { faEraser } from "@fortawesome/free-solid-svg-icons/faEraser";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { useCallback, useRef, useState } from "react";
@@ -27,9 +28,8 @@ import puzzlesForPuzzleList from "../../lib/publications/puzzlesForPuzzleList";
 import { computeSolvedness } from "../../lib/solvedness";
 import { useBreadcrumb } from "../hooks/breadcrumb";
 import useTypedSubscribe from "../hooks/useTypedSubscribe";
-import { mediaBreakpointDown } from "./styling/responsive";
-import { useTracker } from "meteor/react-meteor-data";
 import RelativeTime from "./RelativeTime";
+import { mediaBreakpointDown } from "./styling/responsive";
 
 const StyledToggleButtonGroup = styled(ToggleButtonGroup)`
   @media (width < 360px) {
