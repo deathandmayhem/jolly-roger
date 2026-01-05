@@ -1,15 +1,9 @@
 import { useTracker } from "meteor/react-meteor-data";
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 import { useParams } from "react-router-dom";
 import styled, { useTheme } from "styled-components";
-import type { ChatMessageType } from "../../lib/models/ChatMessages";
 import Hunts from "../../lib/models/Hunts";
-import type { PuzzleType } from "../../lib/models/Puzzles";
-import Puzzles from "../../lib/models/Puzzles";
-import Tags from "../../lib/models/Tags";
-import puzzlesForPuzzleList from "../../lib/publications/puzzlesForPuzzleList";
 import { useBreadcrumb } from "../hooks/breadcrumb";
-import useTypedSubscribe from "../hooks/useTypedSubscribe";
 import Markdown from "./Markdown";
 import FixedLayout from "./styling/FixedLayout";
 
@@ -26,43 +20,10 @@ const FirehosePageLayout = styled.div`
   }
 `;
 
-interface MessageProps {
-  msg: ChatMessageType;
-  displayNames: Map<string, string>;
-  puzzle: PuzzleType | undefined;
-}
-
-const PreWrapSpan = styled.span`
-  display: block;
-  white-space: pre-wrap;
-  padding-left: 1em;
-`;
-
 const MoreAppPage = () => {
   const huntId = useParams<"huntId">().huntId!;
 
   useBreadcrumb({ title: "More", path: `/hunts/${huntId}/more` });
-
-  const puzzlesLoading = useTypedSubscribe(puzzlesForPuzzleList, {
-    huntId,
-    includeDeleted: false,
-  });
-
-  const loading = puzzlesLoading();
-
-  const administriviaTag = useTracker(() => {
-    if (!huntId || loading) {
-      return null;
-    }
-    return Tags.findOne({ hunt: huntId, name: "administrivia" });
-  }, [huntId, loading]);
-
-  const administriviaPuzzles = useTracker(() => {
-    if (!huntId || !administriviaTag || loading) {
-      return null;
-    }
-    return Puzzles.find({ hunt: huntId, tags: administriviaTag._id }).fetch();
-  }, [huntId, loading, administriviaTag]);
 
   const jrHost = window.location.host;
   const protocol = window.location.protocol;
