@@ -68,6 +68,7 @@ import "./setChatMessagePin";
 import "./setFeatureFlag";
 import "./setGuessState";
 import "./setUserStatus";
+import "./suppressDingwordsForPuzzle";
 import "./syncHuntDiscordRole";
 import "./undestroyHunt";
 import "./undestroyPuzzle";

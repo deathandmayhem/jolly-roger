@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { ChatMessageContent } from "./ChatMessages";
-import { foreignKey } from "./customTypes";
+import { foreignKey, nonEmptyString } from "./customTypes";
 import type { ModelType } from "./Model";
 import SoftDeletedModel from "./SoftDeletedModel";
 import withCommon from "./withCommon";
@@ -24,6 +24,7 @@ const ChatNotification = withCommon(
     hunt: foreignKey,
     // The message content, if chat message v2.
     content: ChatMessageContent,
+    dingwords: z.optional(z.array(nonEmptyString)),
     // The date this message was sent.  Used for ordering chats in the log.
     timestamp: z.date(),
   }),

@@ -30,12 +30,17 @@ export function normalizedForDingwordSearch(
 export function normalizedMessageDingsUserByDingword(
   normalizedMessage: string,
   user: Meteor.User,
-): boolean {
-  return (user.dingwords ?? []).some((dingword) => {
-    if (user.dingwordsOpenMatch) {
-      return normalizedMessage.match(new RegExp(`\\b${dingword}`, "i"));
-    }
-    return normalizedMessage.match(new RegExp(`\\b${dingword}\\b`, "i"));
+): string[] {
+  return (user.dingwords ?? []).filter((dingword) => {
+    // Escape the dingword to handle special characters (like ? or *)
+    // if users enter them manually
+    const escapedDingword = dingword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+    const regex = user.dingwordsOpenMatch
+      ? new RegExp(`\\b${escapedDingword}`, "i")
+      : new RegExp(`\\b${escapedDingword}\\b`, "i");
+
+    return regex.test(normalizedMessage);
   });
 }
 
@@ -43,7 +48,7 @@ export function normalizedMessageDingsUserByDingwordOnce(
   normalizedMessage: string,
   user: Pick<
     Meteor.User,
-    "dingwordsMatchOnce" | "dingwordsMatchedOnce" | "dingwordsOpenMatch"
+    "dingwordsMatchOnce" | "suppressedDingwords" | "dingwordsOpenMatch"
   >,
   message: Pick<ChatMessageType, "hunt" | "puzzle">,
 ): string[] {

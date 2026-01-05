@@ -4,7 +4,7 @@ export default new TypedMethod<
   {
     displayName: string;
     phoneNumber?: string;
-    dingwords: string[];
+    dingwords: string;
     dingwordsOpenMatch?: boolean;
   },
   void

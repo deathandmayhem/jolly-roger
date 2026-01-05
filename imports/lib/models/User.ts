@@ -26,6 +26,7 @@ declare module "meteor/meteor" {
       dingwordsOpenMatch?: boolean;
       dingwordsMatchOnce?: string[];
       dingwordsMatchedOnce?: Record<string, Record<string, string[]>>; // hunt -> puzzle -> "used" words
+      suppressedDingwords?: Record<string, Record<string, string[]>>; // hunt -> puzzle -> "used" words
     }
   }
 }
@@ -59,8 +60,7 @@ export const User = z.object({
   phoneNumber: nonEmptyString.optional(),
   dingwords: nonEmptyString.array().optional(),
   dingwordsOpenMatch: z.boolean().optional(),
-  dingwordsMatchOnce: nonEmptyString.array().optional(),
-  dingwordsMatchedOnce: z
+  suppressedDingwords: z
     .record(z.string(), z.record(z.string(), nonEmptyString.array()))
     .optional(),
 });
@@ -74,7 +74,6 @@ export type ProfileFields =
   | "hunts"
   | "dingwords"
   | "dingwordsOpenMatch"
-  | "dingwordsMatchOnce"
-  | "dingwordsMatchedOnce";
+  | "suppressedDingwords";
 
 export default User;
