@@ -655,14 +655,35 @@ const ChatNotificationMessage = ({
   roles: string[];
 }) => {
   const id = cn._id;
+
   const [locallyMutedWords, setLocallyMutedWords] = useState<string[]>([]);
   const [suppressedAllForThis, setSuppressedAllForThis] =
     useState<boolean>(false);
-  const displayedDingwords = useMemo(() => {
+
+  const suppressedFromProfile = useTracker(() => {
+    const user = Meteor.user();
+    return user?.suppressedDingwords?.[cn.hunt]?.[cn.puzzle] || [];
+  }, [cn.hunt, cn.puzzle]);
+
+  const { displayedDingwords, suppressAll } = useMemo(() => {
     const raw =
-      cn.dingwords?.filter((word) => !locallyMutedWords.includes(word)) ?? [];
-    return raw.slice(0, 3);
-  }, [cn.dingwords, locallyMutedWords]);
+      cn.dingwords?.filter((word) => {
+        const isLocallyMuted = locallyMutedWords.includes(word);
+        const isProfileMuted = suppressedFromProfile.includes(word);
+        const isAllMuted = suppressedFromProfile.includes("__ALL__");
+
+        return !isLocallyMuted && !isProfileMuted && !isAllMuted;
+      }) ?? [];
+    const suppressAll =
+      suppressedFromProfile.includes("__ALL__") || suppressedAllForThis;
+
+    return { displayedDingwords: raw.slice(0, 3), suppressAll };
+  }, [
+    cn.dingwords,
+    locallyMutedWords,
+    suppressedFromProfile,
+    suppressedAllForThis,
+  ]);
 
   const handleSuppressAllDingwords = useCallback(() => {
     suppressDingwordsForPuzzle.call({
@@ -751,7 +772,7 @@ const ChatNotificationMessage = ({
             </Dropdown.Toggle>
             <Dropdown.Menu align="end">
               {!suppressedAllForThis ? individualDingwordsMute : null}
-              {!suppressedAllForThis && (
+              {!suppressAll && (
                 <Dropdown.Item onClick={handleSuppressAllDingwords}>
                   Mute <strong>all</strong> dingwords for this puzzle
                 </Dropdown.Item>
