@@ -14,10 +14,12 @@ const DiscordAvatarInner = ({
   size,
   displayName,
   discordAccount,
+  onError,
 }: {
   size: number;
   displayName?: string;
   discordAccount: DiscordAccountType;
+  onError: () => void;
 }) => {
   const urls = Array.from(Array(3), (_, i) =>
     getAvatarCdnUrl(discordAccount, (i + 1) * size),
@@ -27,7 +29,9 @@ const DiscordAvatarInner = ({
   }
   const srcSet = urls.map((url, i) => `${url} ${i + 1}x`).join(", ");
   const alt = `${displayName ?? "Anonymous user"}'s Discord avatar`;
-  return <AvatarImg alt={alt} src={urls[0]} srcSet={srcSet} />;
+  return (
+    <AvatarImg alt={alt} src={urls[0]} srcSet={srcSet} onError={onError} />
+  );
 };
 
 const AvatarInitial = styled.div<{ theme: Theme }>`
@@ -120,16 +124,21 @@ const Avatar = React.memo(
     className?: string;
     isSelf?: boolean;
   }) => {
-    const content =
-      discordAccount && getAvatarCdnUrl(discordAccount) ? (
-        <DiscordAvatarInner
-          size={size}
-          displayName={displayName}
-          discordAccount={discordAccount}
-        />
-      ) : (
-        <DefaultAvatarInner _id={_id} displayName={displayName} />
-      );
+    const [imgFailed, setImgFailed] = React.useState(false);
+
+    const showDiscordAvatar =
+      discordAccount && getAvatarCdnUrl(discordAccount) && !imgFailed;
+
+    const content = showDiscordAvatar ? (
+      <DiscordAvatarInner
+        size={size}
+        displayName={displayName}
+        discordAccount={discordAccount}
+        onError={() => setImgFailed(true)}
+      />
+    ) : (
+      <DefaultAvatarInner _id={_id} displayName={displayName} />
+    );
     return (
       <AvatarContainer
         className={className}
