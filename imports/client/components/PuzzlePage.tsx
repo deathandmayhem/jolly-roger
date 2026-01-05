@@ -4,20 +4,17 @@ import { useFind, useSubscribe, useTracker } from "meteor/react-meteor-data";
 import { faAngleDoubleDown } from "@fortawesome/free-solid-svg-icons/faAngleDoubleDown";
 import { faAngleDoubleUp } from "@fortawesome/free-solid-svg-icons/faAngleDoubleUp";
 import { faChevronLeft } from "@fortawesome/free-solid-svg-icons/faChevronLeft";
-import { faClose } from "@fortawesome/free-solid-svg-icons/faClose";
 import { faCopy } from "@fortawesome/free-solid-svg-icons/faCopy";
 import { faEdit } from "@fortawesome/free-solid-svg-icons/faEdit";
 import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons/faExternalLinkAlt";
 import { faFaceSmile } from "@fortawesome/free-solid-svg-icons/faFaceSmile";
 import { faImage } from "@fortawesome/free-solid-svg-icons/faImage";
 import { faKey } from "@fortawesome/free-solid-svg-icons/faKey";
-import { faList } from "@fortawesome/free-solid-svg-icons/faList";
 import { faMapPin } from "@fortawesome/free-solid-svg-icons/faMapPin";
 import { faPaperPlane } from "@fortawesome/free-solid-svg-icons/faPaperPlane";
 import { faPuzzlePiece } from "@fortawesome/free-solid-svg-icons/faPuzzlePiece";
 import { faReply } from "@fortawesome/free-solid-svg-icons/faReply";
 import { faReplyAll } from "@fortawesome/free-solid-svg-icons/faReplyAll";
-import { faTableColumns } from "@fortawesome/free-solid-svg-icons/faTableColumns";
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import EmojiPicker, { EmojiStyle } from "emoji-picker-react";
@@ -36,10 +33,7 @@ import React, {
 import Alert from "react-bootstrap/Alert";
 import Badge from "react-bootstrap/Badge";
 import Button from "react-bootstrap/Button";
-import ButtonGroup from "react-bootstrap/ButtonGroup";
 import Col from "react-bootstrap/Col";
-import Dropdown from "react-bootstrap/Dropdown";
-import DropdownButton from "react-bootstrap/DropdownButton";
 import type { FormControlProps } from "react-bootstrap/FormControl";
 import FormControl from "react-bootstrap/FormControl";
 import FormGroup from "react-bootstrap/FormGroup";
@@ -70,7 +64,7 @@ import Bookmarks from "../../lib/models/Bookmarks";
 import type { ChatMessageType } from "../../lib/models/ChatMessages";
 import ChatMessages from "../../lib/models/ChatMessages";
 import type { DocumentType } from "../../lib/models/Documents";
-import Documents, { DOCUMENT_TYPES } from "../../lib/models/Documents";
+import Documents from "../../lib/models/Documents";
 import type { GuessType } from "../../lib/models/Guesses";
 import Guesses from "../../lib/models/Guesses";
 import Hunts from "../../lib/models/Hunts";
@@ -95,7 +89,6 @@ import addPuzzleAnswer from "../../methods/addPuzzleAnswer";
 import addPuzzleTag from "../../methods/addPuzzleTag";
 import createChatImageUpload from "../../methods/createChatImageUpload";
 import createGuess from "../../methods/createGuess";
-import createPuzzleDocument from "../../methods/createPuzzleDocument";
 import ensurePuzzleDocument from "../../methods/ensurePuzzleDocument";
 import removeChatMessage from "../../methods/removeChatMessage";
 import removePuzzleAnswer from "../../methods/removePuzzleAnswer";
@@ -2138,14 +2131,6 @@ const ChatSection = React.forwardRef(
 const ChatSectionMemo = React.memo(ChatSection);
 const AttachmentsMemo = React.memo(AttachmentsSection);
 
-const toTitleCase = (str: string): string => {
-  return str
-    .toLowerCase()
-    .split(" ")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
-};
-
 const PuzzlePageMetadata = ({
   isMinimized,
   puzzle,
@@ -2154,20 +2139,8 @@ const PuzzlePageMetadata = ({
   document,
   allPuzzles,
   isDesktop,
-  isTall,
   selfUser,
-  showDocument,
-  setShowDocument,
-  hasIframeBeenLoaded,
-  setHasIframeBeenLoaded,
   toggleMetadataMinimize,
-  allDocs,
-  selectedDocumentIndex,
-  setSelectedDocument,
-  selectedSecondaryDocument,
-  setSecondaryDocument,
-  splitDirection,
-  setSplitDirection,
 }: {
   isMinimized: boolean;
   puzzle: PuzzleType;
@@ -2176,20 +2149,9 @@ const PuzzlePageMetadata = ({
   document?: DocumentType;
   allPuzzles: PuzzleType[];
   isDesktop: boolean;
-  isTall: boolean;
   selfUser: Meteor.User;
-  showDocument: boolean;
-  setShowDocument: (showDocument: boolean) => void;
-  hasIframeBeenLoaded: boolean;
-  setHasIframeBeenLoaded: (hasIframeBeenLoaded: boolean) => void;
   toggleMetadataMinimize: () => void;
   allDocs: DocumentType[] | undefined;
-  selectedDocumentIndex: number;
-  setSelectedDocument: (arg0: number) => void;
-  selectedSecondaryDocument: number | null;
-  setSecondaryDocument: (arg0: number | null) => void;
-  splitDirection: "vertical" | "horizontal";
-  setSplitDirection: (arg0: "vertical" | "horizontal") => void;
 }) => {
   const huntId = puzzle.hunt;
   const puzzleId = puzzle._id;
@@ -2200,23 +2162,6 @@ const PuzzlePageMetadata = ({
     () => userMayWritePuzzlesForHunt(Meteor.user(), hunt),
     [hunt],
   );
-
-  const [pulseButton, setPulseButton] = useState(false);
-  const [hasPulsed, setHasPulsed] = useState(false);
-
-  useEffect(() => {
-    if (allDocs && allDocs.length > 1 && !hasPulsed) {
-      setPulseButton(true);
-      setHasPulsed(true);
-
-      const timer = setTimeout(() => {
-        setPulseButton(false);
-      }, 2000);
-
-      return () => clearTimeout(timer);
-    }
-    return;
-  }, [allDocs, hasPulsed]);
 
   const allTags = useTracker(
     () => Tags.find({ hunt: huntId }).fetch(),
@@ -2347,28 +2292,6 @@ const PuzzlePageMetadata = ({
     </Button>
   ) : null;
 
-  const canEmbedPuzzle = useTracker(() => {
-    return hunt?.allowPuzzleEmbed ?? false;
-  }, [hunt]);
-
-  const handleShowButtonClick = useCallback(() => {
-    if (!hasIframeBeenLoaded) {
-      setHasIframeBeenLoaded(true);
-    }
-    setShowDocument(!showDocument);
-  }, [
-    hasIframeBeenLoaded,
-    setHasIframeBeenLoaded,
-    setShowDocument,
-    showDocument,
-  ]);
-
-  const handleShowButtonHover = useCallback(() => {
-    if (!hasIframeBeenLoaded) {
-      setHasIframeBeenLoaded(true);
-    }
-  }, [hasIframeBeenLoaded, setHasIframeBeenLoaded]);
-
   let guessButton = null;
   if (puzzle.expectedAnswerCount > 0) {
     guessButton = hasGuessQueue ? (
@@ -2461,162 +2384,6 @@ const PuzzlePageMetadata = ({
     />
   );
 
-  const unusedDocumentTypes = useTracker(() => {
-    return DOCUMENT_TYPES.filter((dt) => {
-      return !allDocs?.some((d) => dt === d.value.type);
-    });
-  }, [allDocs]);
-
-  const switchOrCreateDocument = useCallback(
-    (e: "spreadsheet" | "document" | "drawing" | number) => {
-      if (!e) return;
-      if (unusedDocumentTypes.includes(e)) {
-        createPuzzleDocument.call({
-          huntId: puzzle.hunt,
-          puzzleId: puzzle._id,
-          docType: e as "spreadsheet" | "document" | "drawing",
-        });
-      } else if (e !== selectedDocumentIndex) {
-        setSelectedDocument(e);
-      } else if (e === selectedDocumentIndex) {
-        // nothing here
-      } else {
-        // otherwise it's probably toggling the puzzle site, so we don't need to do anything
-      }
-    },
-    [
-      unusedDocumentTypes,
-      puzzle._id,
-      puzzle.hunt,
-      selectedDocumentIndex,
-      setSelectedDocument,
-    ],
-  );
-
-  const toggleSecondaryDocument = useCallback(
-    (e: number, newstate: "horizontal" | "vertical" | "hide") => {
-      if (!e) return;
-      switch (newstate) {
-        case "horizontal":
-          setSplitDirection("horizontal");
-          setSecondaryDocument(e);
-          break;
-        case "vertical":
-          setSplitDirection("vertical");
-          setSecondaryDocument(e);
-          break;
-        case "hide":
-          setSplitDirection("horizontal");
-          setSecondaryDocument(null);
-          break;
-        default:
-          break;
-      }
-    },
-    [setSecondaryDocument, setSplitDirection],
-  );
-
-  const idPrefix = useId();
-  const resourceSelectorButton = useTracker(() => {
-    return (
-      allDocs && (
-        <DropdownButton
-          as={ButtonGroup}
-          key="puzzle-resource-selector"
-          id={`puzzle-resource-selector-${puzzle._id}`}
-          size="sm"
-          variant={allDocs.length > 1 ? "primary" : "secondary"}
-          onSelect={switchOrCreateDocument}
-          title={toTitleCase(allDocs[selectedDocumentIndex]?.value.type ?? "")}
-          className={pulseButton ? "resource-selector-pulse" : ""}
-        >
-          <Dropdown.Header>Documents</Dropdown.Header>
-          {allDocs?.map((doc, idx) => {
-            let nextState: "horizontal" | "vertical" | "hide" = "horizontal";
-            let nextIcon = faTableColumns;
-            let nextTooltip = "Split current view";
-            if (selectedSecondaryDocument === null) {
-              nextState = isTall ? "horizontal" : "vertical";
-              nextIcon = isTall ? faList : faTableColumns;
-            } else if (isTall && splitDirection === "horizontal") {
-              nextState = "vertical";
-              nextIcon = faTableColumns;
-            } else if (!isTall && splitDirection === "vertical") {
-              nextState = "horizontal";
-              nextIcon = faList;
-            } else {
-              nextState = "hide";
-              nextIcon = faClose;
-              nextTooltip = "Hide split view";
-            }
-            return (
-              <Dropdown.Item key={`${idPrefix}-dropdown`} eventKey={idx}>
-                {toTitleCase(doc.value.type)}
-                {isDesktop &&
-                  idx !== selectedDocumentIndex &&
-                  (selectedSecondaryDocument === null ||
-                    selectedSecondaryDocument === idx) && (
-                    <Button
-                      size="sm"
-                      onClick={(evt) => {
-                        evt.stopPropagation();
-                        toggleSecondaryDocument(idx, nextState);
-                      }}
-                    >
-                      <FontAwesomeIcon icon={nextIcon} title={nextTooltip} />
-                    </Button>
-                  )}
-              </Dropdown.Item>
-            );
-          })}
-          {unusedDocumentTypes.length > 0 && (
-            <>
-              <Dropdown.Header>Add new</Dropdown.Header>
-              {unusedDocumentTypes.map((doc) => {
-                return (
-                  <Dropdown.Item
-                    key={`${idPrefix}-dropdown-add}`}
-                    eventKey={doc}
-                  >
-                    {toTitleCase(doc)}
-                  </Dropdown.Item>
-                );
-              })}
-            </>
-          )}
-          {canEmbedPuzzle && <Dropdown.Divider />}
-          {((puzzle.url && isDesktop && canEmbedPuzzle) || !showDocument) && (
-            <Dropdown.Item
-              onClick={handleShowButtonClick}
-              onMouseEnter={handleShowButtonHover}
-              title={showDocument ? "Show puzzle page" : "Hide puzzle page"}
-            >
-              {showDocument ? "Show puzzle page" : "Hide puzzle page"}
-            </Dropdown.Item>
-          )}
-        </DropdownButton>
-      )
-    );
-  }, [
-    allDocs,
-    selectedDocumentIndex,
-    unusedDocumentTypes,
-    splitDirection,
-    selectedSecondaryDocument,
-    isTall,
-    pulseButton,
-    canEmbedPuzzle,
-    isDesktop,
-    puzzle._id,
-    puzzle.url,
-    switchOrCreateDocument,
-    toggleSecondaryDocument,
-    idPrefix,
-    showDocument,
-    handleShowButtonClick,
-    handleShowButtonHover,
-  ]);
-
   const minimizeMetadataButton = (
     <OverlayTrigger
       placement="bottom-end"
@@ -2651,7 +2418,6 @@ const PuzzlePageMetadata = ({
           {!tagsOnSeparateRow && tagListElement}{" "}
           {/* Render tags inline if they fit */}
           <PuzzleMetadataButtons ref={actionButtonsRef}>
-            {resourceSelectorButton}
             {editButton}
             {imageInsert}
             {guessButton}
@@ -3359,22 +3125,6 @@ const PuzzleDocumentDiv = styled.div`
   position: relative;
 `;
 
-const StyledIframe = styled.iframe`
-  /* Workaround for unusual sizing behavior of iframes in iOS Safari:
-   * Width and height need to be specified in absolute values then adjusted by min and max */
-  width: 0;
-  height: 0;
-  min-width: 100%;
-  max-width: 100%;
-  min-height: 100%;
-  max-height: 100%;
-  position: absolute;
-  inset: 0;
-  border: 0;
-  padding-bottom: env(safe-area-inset-bottom, 0);
-  background-color: #f1f3f4;
-`;
-
 const PuzzlePageMultiplayerDocument = React.memo(
   ({
     document,
@@ -3507,7 +3257,6 @@ const PuzzlePage = React.memo(() => {
 
   const prevIsChatMinimized = useRef(isChatMinimized);
 
-  const iframeRef = useRef<HTMLIFrameElement>(null);
   const docRef = useRef<DocumentType | undefined>(undefined);
 
   const huntId = useParams<"huntId">().huntId!;
@@ -3980,16 +3729,6 @@ const PuzzlePage = React.memo(() => {
               {metadata}
               {showMetadataButton}
               <PuzzleDocumentDiv>
-                {activePuzzle.url && hasIframeBeenLoaded ? (
-                  <StyledIframe
-                    ref={iframeRef}
-                    style={{
-                      zIndex: !showDocument ? 1 : -1,
-                      display: !showDocument ? "block" : "none",
-                    }} // this is a bit of a hack to keep both the puzzlepage and the shared doc loaded
-                    src={activePuzzle.url}
-                  />
-                ) : null}
                 <PuzzlePageMultiplayerDocument
                   document={doc}
                   showDocument={showDocument}
