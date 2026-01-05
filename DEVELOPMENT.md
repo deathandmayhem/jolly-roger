@@ -8,7 +8,7 @@ To run Jolly Roger locally, first [install Meteor](https://www.meteor.com/instal
 Obtain the source code:
 
 ```bash
-git clone https://github.com/deathandmayhem/jolly-roger
+git clone https://github.com/Palindrome-Puzzles/jolly-roger
 cd jolly-roger
 ```
 
