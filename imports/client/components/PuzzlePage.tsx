@@ -953,15 +953,14 @@ const ChatHistoryMessage = React.memo(
           </SplitPill>
         </ChatMessageActions>
         {!suppressSender && <ChatMessageTimestamp>{ts}</ChatMessageTimestamp>}
-        {!suppressSender && (
+        {(!suppressSender || parentId) && (
           <span style={{ display: "flex", alignItems: "center" }}>
             {parentId && (
               <OverlayTrigger
                 placement="top"
-                overlay={replyPopover} // Pass your Popover component here
-                trigger={["hover", "focus"]} // Automatically handles mouse and keyboard
+                overlay={replyPopover}
+                trigger={["hover", "focus"]}
               >
-                {/* The child of OverlayTrigger must be able to accept a ref */}
                 <span style={{ cursor: "pointer" }}>
                   <ReplyIcon
                     icon={faReply}
