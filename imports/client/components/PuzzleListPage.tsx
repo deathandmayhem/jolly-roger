@@ -366,6 +366,18 @@ const PuzzleListView = ({
     return puzzleSubs;
   }, [subscriptionsLoading]);
 
+  // Automatically focus the search bar whenever the search string changes
+  // (e.g., when a tag is clicked)
+  // biome-ignore lint/correctness/useExhaustiveDependencies: We want this to trigger every time searchString changes, but we don't care about the change
+  useEffect(() => {
+    if (
+      searchBarRef.current &&
+      document.activeElement !== searchBarRef.current
+    ) {
+      searchBarRef.current.focus();
+    }
+  }, [searchString]);
+
   const compileMatcher = useCallback(
     (searchKeys: string[]): ((p: PuzzleType) => boolean) => {
       const tagNames: Record<string, string> = {};
@@ -427,7 +439,7 @@ const PuzzleListView = ({
         });
       };
     },
-    [allTags, puzzleSubscribers, puzzleUsers, showSolvers],
+    [allTags, puzzleSubscribers, showSolvers],
   );
 
   const puzzlesMatchingSearchString = useCallback(
