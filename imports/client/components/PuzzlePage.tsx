@@ -2768,7 +2768,7 @@ const PuzzleGuessModal = React.forwardRef(
                 defaultValue={10}
               >
                 <ToggleButton
-                  variant="outline-primary"
+                  variant="outline-secondary"
                   value={-10}
                   id={`${idPrefix}-guess-direction-back`}
                   checked={directionInput === -10}
@@ -2776,7 +2776,7 @@ const PuzzleGuessModal = React.forwardRef(
                   Backsolve
                 </ToggleButton>
                 <ToggleButton
-                  variant="outline-dark"
+                  variant="outline-secondary"
                   value={-5}
                   id={`${idPrefix}-guess-direction-mostly-back`}
                   checked={directionInput === -5}
@@ -2792,7 +2792,7 @@ const PuzzleGuessModal = React.forwardRef(
                   Mixed
                 </ToggleButton>
                 <ToggleButton
-                  variant="outline-dark"
+                  variant="outline-secondary"
                   value={5}
                   id={`${idPrefix}-guess-direction-mostly-forward`}
                   checked={directionInput === 5}
