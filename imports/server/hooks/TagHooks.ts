@@ -23,7 +23,9 @@ const TagHooks: Hookset = {
         { hunts: puzzle?.hunt, "dingwords.0": { $exists: true } },
         { fields: { _id: 1, dingwords: 1 } },
       )) {
-        if (normalizedMessageDingsUserByDingword(normalizedText, u)) {
+        if (
+          normalizedMessageDingsUserByDingword(normalizedText, u).length > 0
+        ) {
           usersToNotify.add(u._id);
         }
       }

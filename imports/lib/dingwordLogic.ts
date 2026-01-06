@@ -94,10 +94,8 @@ export function messageDingsUser(
     return false;
   }
   const normalizedText = normalizedForDingwordSearch(chatMessage);
-  const dingedByDingwords = normalizedMessageDingsUserByDingword(
-    normalizedText,
-    user,
-  );
+  const dingedByDingwords =
+    normalizedMessageDingsUserByDingword(normalizedText, user).length > 0;
   const dingedByMentions = (chatMessage.content?.children ?? []).some(
     (child) => {
       if (nodeIsMention(child)) {
