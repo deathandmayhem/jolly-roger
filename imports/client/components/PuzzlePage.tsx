@@ -80,6 +80,7 @@ import nodeIsText from "../../lib/nodeIsText";
 import {
   listAllRolesForHunt,
   userMayWritePuzzlesForHunt,
+  userMayUpdateGuessesForHunt,
 } from "../../lib/permission_stubs";
 import chatMessagesForPuzzle from "../../lib/publications/chatMessagesForPuzzle";
 import puzzleForPuzzlePage from "../../lib/publications/puzzleForPuzzlePage";
@@ -2731,7 +2732,7 @@ const PuzzleGuessModal = React.forwardRef(
     const huntId = useParams<"huntId">().huntId!;
     const hunt = useTracker(() => Hunts.findOne(huntId), [huntId]);
     const canUpdate = useTracker(
-      () => userMayWritePuzzlesForHunt(Meteor.user(), hunt),
+      () => userMayUpdateGuessesForHunt(Meteor.user(), hunt),
       [hunt],
     );
     const [operatorActionsHidden] = useOperatorActionsHiddenForHunt(huntId);
@@ -2966,7 +2967,7 @@ const PuzzleGuessModal = React.forwardRef(
                   {operatorActionsHidden ? (
                     <>
                       {" "}
-                      To see alerts, turn on <Link to={`/hunts/${huntId}`}>Deputy View</Link>: open the profile
+                      To see alerts, turn on Deputy View: open the profile
                       menu in the top-right, and choose "Switch to Deputy".
                     </>
                   ) : (
