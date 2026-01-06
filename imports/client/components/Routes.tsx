@@ -20,6 +20,7 @@ import HuntersApp from "./HuntersApp";
 import HuntListApp from "./HuntListApp";
 import HuntListPage from "./HuntListPage";
 import HuntProfileListPage from "./HuntProfileListPage";
+import HuntTagManagerPage from "./HuntTagManagerPage";
 import JoinHunt from "./JoinHunt";
 import Loading from "./Loading";
 import LoginForm from "./LoginForm";
@@ -59,6 +60,7 @@ export const AuthenticatedRouteList: RouteObject[] = [
           },
           { path: "puzzles/:puzzleId", element: <PuzzlePage /> },
           { path: "puzzles", element: <PuzzleListPage /> },
+          { path: "tags", element: <HuntTagManagerPage /> },
           { path: "edit", element: <HuntEditPage /> },
           { path: "", element: <Navigate to="puzzles" replace /> },
         ],
