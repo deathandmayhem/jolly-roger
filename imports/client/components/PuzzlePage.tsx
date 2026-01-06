@@ -2027,7 +2027,6 @@ const PuzzlePage = React.memo(() => {
   const [isChatMinimized, setIsChatMinimized] = useState<boolean>(false);
   const [lastSidebarWidth, setLastSidebarWidth] =
     useState<number>(DefaultSidebarWidth);
-  const [isRestoring, setIsRestoring] = useState(false);
   const [isMetadataMinimized, setIsMetadataMinimized] =
     useState<boolean>(false);
   const [isDesktop, setIsDesktop] = useState<boolean>(
@@ -2170,11 +2169,6 @@ const PuzzlePage = React.memo(() => {
         }
       } else {
         setSidebarWidth(lastSidebarWidth);
-        setTimeout(() => {
-          if (chatSectionRef.current) {
-            chatSectionRef.current.scrollHistoryToTarget();
-          }
-        }, 0);
       }
       return nextMinimized;
     });
@@ -2182,16 +2176,8 @@ const PuzzlePage = React.memo(() => {
 
   const restoreChat = useCallback(() => {
     if (isChatMinimized) {
-      setIsRestoring(true);
       setIsChatMinimized(false);
       setSidebarWidth(lastSidebarWidth);
-      setTimeout(() => {
-        if (chatSectionRef.current) {
-          chatSectionRef.current.scrollHistoryToTarget();
-          chatSectionRef.current.snapToBottom();
-        }
-      }, 0);
-      setIsRestoring(false);
     }
   }, [isChatMinimized, lastSidebarWidth]);
 
@@ -2244,31 +2230,26 @@ const PuzzlePage = React.memo(() => {
     prevIsChatMinimized.current = isChatMinimized;
   });
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const justRestored = !isChatMinimized && prevIsChatMinimized.current;
 
     if (justRestored) {
-      const animationFrameId = requestAnimationFrame(() => {
-        if (chatSectionRef.current) {
-          chatSectionRef.current.scrollHistoryToTarget();
-          chatSectionRef.current.snapToBottom();
-        }
-      });
-
-      return () => cancelAnimationFrame(animationFrameId);
+      if (chatSectionRef.current) {
+        chatSectionRef.current.scrollHistoryToTarget();
+        chatSectionRef.current.snapToBottom();
+      }
     }
-    return;
   }, [isChatMinimized]);
 
   useEffect((): (() => void) | undefined => {
-    if (!isChatMinimized && !isRestoring) {
+    if (!isChatMinimized) {
       const timer = setTimeout(() => {
         chatSectionRef.current?.snapToBottom();
       }, 100);
       return () => clearTimeout(timer);
     }
     return;
-  }, [isChatMinimized, isRestoring]);
+  }, [isChatMinimized]);
 
   useEffect(() => {
     if (activePuzzle && !activePuzzle.deleted) {
@@ -2284,9 +2265,6 @@ const PuzzlePage = React.memo(() => {
     ) {
       if (isChatMinimized) {
         restoreChat();
-        setTimeout(() => {
-          chatSectionRef.current?.snapToBottom();
-        }, 10);
       }
     }
     prevMessagesLength.current = currentLength;
@@ -2320,8 +2298,6 @@ const PuzzlePage = React.memo(() => {
       toggleMetadataMinimize={toggleMetadata}
     />
   );
-
-  const effectiveSidebarWidth = isChatMinimized ? 1 : sidebarWidth;
 
   const chat = (
     <ChatSectionMemo
@@ -2418,7 +2394,7 @@ const PuzzlePage = React.memo(() => {
               overlay={<Tooltip>Minimize Chat</Tooltip>}
             >
               <MinimizeChatButton
-                $left={effectiveSidebarWidth + 15}
+                $left={sidebarWidth + 15}
                 $isMinimized={false}
                 onClick={toggleChatMinimize}
               >
@@ -2428,15 +2404,15 @@ const PuzzlePage = React.memo(() => {
           )}
           <SplitPaneMinus
             split="vertical"
-            minSize={isChatMinimized ? 1 : MinimumSidebarWidth}
+            minSize={isChatMinimized ? 0 : MinimumSidebarWidth}
             maxSize={-MinimumDocumentWidth}
             primary="first"
-            size={effectiveSidebarWidth}
+            size={isChatMinimized ? 0 : sidebarWidth}
             onChanged={onChangeSideBarSize}
             onPaneChanged={onCommitSideBarSize}
             allowResize={!isChatMinimized}
           >
-            {chat}
+            {isChatMinimized ? null : chat}
             <PuzzleContent>
               {metadata}
               {showMetadataButton}
