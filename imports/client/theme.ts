@@ -199,7 +199,7 @@ export const darkTheme: Theme = {
     callStateIcon: "#f8d7da",
     mutedIconBorder: "#6fa8dc",
     deafenedIconBorder: "#6fa8dc",
-    mutedIconText: "white",
+    mutedIconText: "black",
     remoteMuteButtonHoverBackground: "rgb(200 200 200 / 50%)",
     remoteMuteButtonHoverText: "#ccc",
     chatterSectionBackground: "#333",
