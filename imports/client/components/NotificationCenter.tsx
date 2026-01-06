@@ -50,6 +50,7 @@ import puzzleNotificationsForSelf from "../../lib/publications/puzzleNotificatio
 import puzzlesForHunt from "../../lib/publications/puzzlesForHunt";
 import bookmarkPuzzle from "../../methods/bookmarkPuzzle";
 import configureEnsureGoogleScript from "../../methods/configureEnsureGoogleScript";
+import dismissAllDingsForPuzzle from "../../methods/dismissAllDingsForPuzzle";
 import dismissBookmarkNotification from "../../methods/dismissBookmarkNotification";
 import dismissChatNotification from "../../methods/dismissChatNotification";
 import dismissPendingAnnouncement from "../../methods/dismissPendingAnnouncement";
@@ -685,6 +686,15 @@ const ChatNotificationMessage = ({
     suppressedAllForThis,
   ]);
 
+  const handleDismissAll = useCallback(() => {
+    const dismissUntil = new Date();
+    dismissAllDingsForPuzzle.call({
+      puzzle: cn.puzzle,
+      hunt: cn.hunt,
+      dismissUntil,
+    });
+  }, [cn.hunt, cn.puzzle]);
+
   const handleSuppressDingwords = useCallback(
     (dingword: string) => {
       const dismissUntil = new Date();
@@ -754,34 +764,29 @@ const ChatNotificationMessage = ({
         <StyledNotificationTimestamp>
           {calendarTimeFormat(cn.createdAt)}
         </StyledNotificationTimestamp>
-        {cn.dingwords && (
-          <Dropdown className="ms-auto" onToggle={toggleSettings}>
-            <Dropdown.Toggle
-              variant={theme.basicMode}
-              size="sm"
-              as={Button}
-              id={`chat-settings-${cn._id}`}
-            >
-              <FontAwesomeIcon icon={faCog} />
-            </Dropdown.Toggle>
-            <Dropdown.Menu align="end">
-              <Dropdown.Item as={Link} to="/users/me">
-                Edit dingwords
-              </Dropdown.Item>
-              {!suppressAll && (
-                <>
-                  <Dropdown.Divider />
-                  <Dropdown.Item
-                    onClick={() => handleSuppressDingwords("__ALL__")}
-                  >
-                    Mute <strong>all</strong> dingwords for this puzzle
-                  </Dropdown.Item>
-                </>
-              )}
-              {!suppressedAllForThis ? individualDingwordsMute : null}
-            </Dropdown.Menu>
-          </Dropdown>
-        )}
+        <Dropdown className="ms-auto" onToggle={toggleSettings}>
+          <Dropdown.Toggle
+            variant={theme.basicMode}
+            size="sm"
+            as={Button}
+            id={`chat-settings-${cn._id}`}
+          >
+            <FontAwesomeIcon icon={faCog} />
+          </Dropdown.Toggle>
+          <Dropdown.Menu align="end">
+            <Dropdown.Item onClick={handleDismissAll}>
+              Dismiss all for this puzzle
+            </Dropdown.Item>
+            <Dropdown.Item as={Link} to="/users/me">
+              Edit dingwords
+            </Dropdown.Item>
+            <Dropdown.Divider />
+            <Dropdown.Item onClick={() => handleSuppressDingwords("__ALL__")}>
+              Mute <strong>all</strong> dingwords for this puzzle
+            </Dropdown.Item>
+            {!suppressedAllForThis ? individualDingwordsMute : null}
+          </Dropdown.Menu>
+        </Dropdown>
       </Toast.Header>
       <Toast.Body>
         <div>

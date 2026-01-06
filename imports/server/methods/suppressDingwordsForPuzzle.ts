@@ -1,5 +1,8 @@
 import { check, Match } from "meteor/check";
-import messageDingsUser from "../../lib/dingwordLogic";
+import {
+  dingedByMentions,
+  dingedByRoleMentions,
+} from "../../lib/dingwordLogic";
 import ChatNotifications from "../../lib/models/ChatNotifications";
 import MeteorUsers from "../../lib/models/MeteorUsers";
 import suppressDingwordsForPuzzle from "../../methods/suppressDingwordsForPuzzle";
@@ -26,23 +29,29 @@ defineMethod(suppressDingwordsForPuzzle, {
 
     await MeteorUsers.updateAsync(
       { _id: userId },
-      {
-        $addToSet: {
-          [suppressionKey]: wordToSuppress,
-        },
-      },
+      { $addToSet: { [suppressionKey]: wordToSuppress } },
     );
 
+    const user = await MeteorUsers.findOneAsync(userId);
+    if (!user) return;
+    if (!user.suppressedDingwords) user.suppressedDingwords = {};
+    if (!user.suppressedDingwords[hunt]) user.suppressedDingwords[hunt] = {};
+    if (!user.suppressedDingwords[hunt][puzzle])
+      user.suppressedDingwords[hunt][puzzle] = [];
+
+    if (!user.suppressedDingwords[hunt][puzzle].includes(wordToSuppress)) {
+      user.suppressedDingwords[hunt][puzzle].push(wordToSuppress);
+    }
+
     if (wordToSuppress === "__ALL__") {
-      // If we suppressed everything, delete all notifications for this puzzle/user
-      // (before the user requested suppression)
       await ChatNotifications.removeAsync({
         user: userId,
         puzzle: puzzle,
         createdAt: { $lte: dismissUntil },
       });
     } else {
-      // If we suppressed a specific word, find all relevant notifications
+      const currentSuppressed =
+        user?.suppressedDingwords?.[hunt]?.[puzzle] || [];
       const notifications = await ChatNotifications.find({
         user: userId,
         puzzle: puzzle,
@@ -50,10 +59,14 @@ defineMethod(suppressDingwordsForPuzzle, {
       }).fetchAsync();
 
       for (const cn of notifications) {
-        // the message should be dismissed only if it would no longer ding
-        // the user
-
-        if (!messageDingsUser(cn, user)) {
+        const activeWords =
+          cn.dingwords?.filter((word) => !currentSuppressed.includes(word)) ||
+          [];
+        if (
+          activeWords.length === 0 &&
+          !dingedByMentions(cn, user) &&
+          !dingedByRoleMentions(cn, user)
+        ) {
           await ChatNotifications.removeAsync(cn._id);
         }
       }

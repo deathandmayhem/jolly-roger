@@ -85,6 +85,37 @@ export function normalizedMessageDingsUserByDingwordOnce(
   return newlyMatchedWords;
 }
 
+export function dingedByMentions(
+  chatMessage: PartialChatMessageType,
+  user: Meteor.User,
+): boolean {
+  return (chatMessage.content?.children ?? []).some(
+    (child) => {
+      if (nodeIsMention(child)) {
+        return child.userId === user._id;
+      } else {
+        return false;
+      }
+    },
+  );
+}
+
+export function dingedByRoleMentions(
+  chatMessage: PartialChatMessageType,
+  user: Meteor.User,
+): boolean {
+  const roles = listAllRolesForHunt(user, { _id: chatMessage.hunt });
+  return (chatMessage.content?.children ?? []).some(
+    (child) => {
+      if (nodeIsRoleMention(child)) {
+        return roles.includes(child.roleId);
+      } else {
+        return false;
+      }
+    },
+  );
+}
+
 export function messageDingsUser(
   chatMessage: PartialChatMessageType,
   user: Meteor.User,
@@ -96,24 +127,7 @@ export function messageDingsUser(
   const normalizedText = normalizedForDingwordSearch(chatMessage);
   const dingedByDingwords =
     normalizedMessageDingsUserByDingword(normalizedText, user).length > 0;
-  const dingedByMentions = (chatMessage.content?.children ?? []).some(
-    (child) => {
-      if (nodeIsMention(child)) {
-        return child.userId === user._id;
-      } else {
-        return false;
-      }
-    },
-  );
-  const roles = listAllRolesForHunt(user, { _id: chatMessage.hunt });
-  const dingedByRoleMentions = (chatMessage.content?.children ?? []).some(
-    (child) => {
-      if (nodeIsRoleMention(child)) {
-        return roles.includes(child.roleId);
-      } else {
-        return false;
-      }
-    },
-  );
+  const dingedByMentions = dingedByMentions(chatMessage, user);
+  const dingedByRoleMentions = dingedByRoleMentions(chatMessage, user);
   return dingedByDingwords || dingedByMentions || dingedByRoleMentions;
 }
