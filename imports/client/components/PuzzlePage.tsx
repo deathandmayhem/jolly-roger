@@ -2752,7 +2752,6 @@ const PuzzleGuessModal = React.forwardRef(
           <Col xs={9}>
             <AnswerFormControl
               type="text"
-              id={`${idPrefix}-guess`}
               autoFocus
               autoComplete="off"
               onChange={onGuessInputChange}
@@ -2967,8 +2966,8 @@ const PuzzleGuessModal = React.forwardRef(
                   {operatorActionsHidden ? (
                     <>
                       {" "}
-                      To see alerts, turn on Deputy View: open the profile
-                      menu in the top-right, and choose "Switch to Deputy".
+                      To see alerts, turn on Deputy View: open the profile menu
+                      in the top-right, and choose "Switch to Deputy".
                     </>
                   ) : (
                     <> If you've dismissed them, simply reload the page.</>
