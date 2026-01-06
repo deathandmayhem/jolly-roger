@@ -1,4 +1,8 @@
 import { check, Match } from "meteor/check";
+import {
+  dingedByMentions,
+  dingedByRoleMentions,
+} from "../../lib/dingwordLogic";
 import ChatNotifications from "../../lib/models/ChatNotifications";
 import MeteorUsers from "../../lib/models/MeteorUsers";
 import suppressDingwordsForPuzzle from "../../methods/suppressDingwordsForPuzzle";
@@ -10,12 +14,13 @@ defineMethod(suppressDingwordsForPuzzle, {
       puzzle: String,
       hunt: String,
       dingword: Match.Optional(String),
+      dismissUntil: Date,
     });
 
     return arg;
   },
 
-  async run({ puzzle, hunt, dingword }) {
+  async run({ puzzle, hunt, dingword, dismissUntil }) {
     const userId = this.userId;
     check(userId, String);
 
@@ -24,39 +29,44 @@ defineMethod(suppressDingwordsForPuzzle, {
 
     await MeteorUsers.updateAsync(
       { _id: userId },
-      {
-        $addToSet: {
-          [suppressionKey]: wordToSuppress,
-        },
-      },
+      { $addToSet: { [suppressionKey]: wordToSuppress } },
     );
 
-    const user = await MeteorUsers.findOneAsync(userId, {
-      projection: { suppressedDingwords: 1 },
-    });
-    const currentSuppressed = user?.suppressedDingwords?.[hunt]?.[puzzle] || [];
+    const user = await MeteorUsers.findOneAsync(userId);
+    if (!user) return;
+    if (!user.suppressedDingwords) user.suppressedDingwords = {};
+    if (!user.suppressedDingwords[hunt]) user.suppressedDingwords[hunt] = {};
+    if (!user.suppressedDingwords[hunt][puzzle])
+      user.suppressedDingwords[hunt][puzzle] = [];
+
+    if (!user.suppressedDingwords[hunt][puzzle].includes(wordToSuppress)) {
+      user.suppressedDingwords[hunt][puzzle].push(wordToSuppress);
+    }
 
     if (wordToSuppress === "__ALL__") {
-      // If we suppressed everything, delete all notifications for this puzzle/user
       await ChatNotifications.removeAsync({
         user: userId,
         puzzle: puzzle,
+        createdAt: { $lte: dismissUntil },
       });
     } else {
-      // If we suppressed a specific word, find all relevant notifications
+      const currentSuppressed =
+        user?.suppressedDingwords?.[hunt]?.[puzzle] || [];
       const notifications = await ChatNotifications.find({
         user: userId,
         puzzle: puzzle,
+        createdAt: { $lte: dismissUntil },
       }).fetchAsync();
 
       for (const cn of notifications) {
-        // A notification should be dismissed if EVERY word that triggered it
-        // is now in the suppressed list.
         const activeWords =
           cn.dingwords?.filter((word) => !currentSuppressed.includes(word)) ||
           [];
-
-        if (activeWords.length === 0 && cn.dingwords?.length > 0) {
+        if (
+          activeWords.length === 0 &&
+          !dingedByMentions(cn, user) &&
+          !dingedByRoleMentions(cn, user)
+        ) {
           await ChatNotifications.removeAsync(cn._id);
         }
       }

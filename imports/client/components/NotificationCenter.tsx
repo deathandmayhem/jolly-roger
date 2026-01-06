@@ -1,6 +1,7 @@
 import { Meteor } from "meteor/meteor";
 import { useSubscribe, useTracker } from "meteor/react-meteor-data";
 import { ServiceConfiguration } from "meteor/service-configuration";
+import { faBellSlash } from "@fortawesome/free-solid-svg-icons/faBellSlash";
 import { faCog } from "@fortawesome/free-solid-svg-icons/faCog";
 import { faComment } from "@fortawesome/free-solid-svg-icons/faComment";
 import { faCopy } from "@fortawesome/free-solid-svg-icons/faCopy";
@@ -49,6 +50,7 @@ import puzzleNotificationsForSelf from "../../lib/publications/puzzleNotificatio
 import puzzlesForHunt from "../../lib/publications/puzzlesForHunt";
 import bookmarkPuzzle from "../../methods/bookmarkPuzzle";
 import configureEnsureGoogleScript from "../../methods/configureEnsureGoogleScript";
+import dismissAllDingsForPuzzle from "../../methods/dismissAllDingsForPuzzle";
 import dismissBookmarkNotification from "../../methods/dismissBookmarkNotification";
 import dismissChatNotification from "../../methods/dismissChatNotification";
 import dismissPendingAnnouncement from "../../methods/dismissPendingAnnouncement";
@@ -657,8 +659,7 @@ const ChatNotificationMessage = ({
   const id = cn._id;
 
   const [locallyMutedWords, setLocallyMutedWords] = useState<string[]>([]);
-  const [suppressedAllForThis, setSuppressedAllForThis] =
-    useState<boolean>(false);
+  const [suppressedAllForThis] = useState<boolean>(false);
 
   const suppressedFromProfile = useTracker(() => {
     const user = Meteor.user();
@@ -685,22 +686,25 @@ const ChatNotificationMessage = ({
     suppressedAllForThis,
   ]);
 
-  const handleSuppressAllDingwords = useCallback(() => {
-    suppressDingwordsForPuzzle.call({
+  const handleDismissAll = useCallback(() => {
+    const dismissUntil = new Date();
+    dismissAllDingsForPuzzle.call({
       puzzle: cn.puzzle,
       hunt: cn.hunt,
+      dismissUntil,
     });
-    setSuppressedAllForThis(true);
   }, [cn.hunt, cn.puzzle]);
 
-  const handleSuppressSpecificDingword = useCallback(
-    (word: string) => {
+  const handleSuppressDingwords = useCallback(
+    (dingword: string) => {
+      const dismissUntil = new Date();
       suppressDingwordsForPuzzle.call({
         puzzle: cn.puzzle,
         hunt: cn.hunt,
-        dingword: word,
+        dingword,
+        dismissUntil,
       });
-      setLocallyMutedWords((prev) => [...prev, word]);
+      setLocallyMutedWords((prev) => [...prev, dingword]);
     },
     [cn.hunt, cn.puzzle],
   );
@@ -737,12 +741,12 @@ const ChatNotificationMessage = ({
     return displayedDingwords.map((word) => (
       <Dropdown.Item
         key={`${cn._id}-mute-${word}`}
-        onClick={() => handleSuppressSpecificDingword(word)}
+        onClick={() => handleSuppressDingwords(word)}
       >
         Mute &quot;{word}&quot; for this puzzle
       </Dropdown.Item>
     ));
-  }, [displayedDingwords, cn._id, handleSuppressSpecificDingword]);
+  }, [displayedDingwords, cn._id, handleSuppressDingwords]);
 
   return (
     <Toast className="text-bg-secondary" onClose={dismiss}>
@@ -760,29 +764,29 @@ const ChatNotificationMessage = ({
         <StyledNotificationTimestamp>
           {calendarTimeFormat(cn.createdAt)}
         </StyledNotificationTimestamp>
-        {cn.dingwords && (
-          <Dropdown className="ms-auto" onToggle={toggleSettings}>
-            <Dropdown.Toggle
-              variant={theme.basicMode}
-              size="sm"
-              as={Button}
-              id={`chat-settings-${cn._id}`}
-            >
-              <FontAwesomeIcon icon={faCog} />
-            </Dropdown.Toggle>
-            <Dropdown.Menu align="end">
-              {!suppressedAllForThis ? individualDingwordsMute : null}
-              {!suppressAll && (
-                <Dropdown.Item onClick={handleSuppressAllDingwords}>
-                  Mute <strong>all</strong> dingwords for this puzzle
-                </Dropdown.Item>
-              )}
-              <Dropdown.Item as={Link} to="/users/me">
-                Edit dingwords
-              </Dropdown.Item>
-            </Dropdown.Menu>
-          </Dropdown>
-        )}
+        <Dropdown className="ms-auto" onToggle={toggleSettings}>
+          <Dropdown.Toggle
+            variant={theme.basicMode}
+            size="sm"
+            as={Button}
+            id={`chat-settings-${cn._id}`}
+          >
+            <FontAwesomeIcon icon={faCog} />
+          </Dropdown.Toggle>
+          <Dropdown.Menu align="end">
+            <Dropdown.Item onClick={handleDismissAll}>
+              Dismiss all for this puzzle
+            </Dropdown.Item>
+            <Dropdown.Item as={Link} to="/users/me">
+              Edit dingwords
+            </Dropdown.Item>
+            <Dropdown.Divider />
+            <Dropdown.Item onClick={() => handleSuppressDingwords("__ALL__")}>
+              Mute <strong>all</strong> dingwords for this puzzle
+            </Dropdown.Item>
+            {!suppressedAllForThis ? individualDingwordsMute : null}
+          </Dropdown.Menu>
+        </Dropdown>
       </Toast.Header>
       <Toast.Body>
         <div>

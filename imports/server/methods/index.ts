@@ -32,6 +32,7 @@ import "./createGuess";
 import "./createHunt";
 import "./createPuzzle";
 import "./createPuzzleDocument";
+import "./dismissAllDingsForPuzzle";
 import "./demoteOperator";
 import "./destroyAPIKey";
 import "./destroyHunt";
