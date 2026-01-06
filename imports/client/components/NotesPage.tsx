@@ -32,7 +32,6 @@ import RelativeTime from "./RelativeTime";
 import { mediaBreakpointDown } from "./styling/responsive";
 
 const NotesTable = styled(Table)`
-  background-color: ${({ theme }) => theme.colors.background};
   color: ${({ theme }) => theme.colors.text};
 `;
 
