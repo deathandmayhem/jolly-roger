@@ -363,6 +363,8 @@ const PeerBox = ({
 
   const { muted, deafened } = peer;
 
+  const tooltipId = useId();
+
   const [isLocalMuted, setIsLocalMuted] = useState(false);
 
   const toggleLocalMute = useCallback(() => {
