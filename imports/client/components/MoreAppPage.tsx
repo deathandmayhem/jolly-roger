@@ -62,7 +62,7 @@ const MoreAppPage = () => {
           <a
             style={{
               border: "1px solid #ccc",
-              borderRadius: "6px",
+              borderRadius: "12px",
               padding: ".5rem .8rem",
               fontSize: "1.2rem",
               boxShadow: "1px",
@@ -95,24 +95,19 @@ const MoreAppPage = () => {
         */}
 
         <hr />
-        <h2>Notes</h2>
+        <h2>Firehose</h2>
         <p>
           <a
             style={{
-              border: "1px solid #ccc",
-              borderRadius: "6px",
-              padding: ".5rem .8rem",
               fontSize: "1.2rem",
-              boxShadow: "1px",
-              background: theme.colors.background,
             }}
-            href={`/hunts/${huntId}/notes`}
+            href={`/hunts/${huntId}/firehose`}
           >
-            🗒️ Notes page
+            🧑‍🚒 Firehose page
           </a>
           <br />
           <br />
-          Visit this page to view a list of all puzzles and their notes.
+          The firehose includes all puzzle updates, including guesses, solves and chat messages.
         </p>
       </FirehosePageLayout>
     </FixedLayout>
