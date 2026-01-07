@@ -25,7 +25,15 @@ class HooksRegistry {
   async runAnnouncementHooks(announcementId: string) {
     for (const hook of this.registeredHooks) {
       if (hook.onAnnouncement) {
-        await hook.onAnnouncement(announcementId);
+        try {
+          await hook.onAnnouncement(announcementId);
+        } catch (error) {
+          Logger.error("Error while running hook", {
+            hook: "onAnnouncement",
+            hookSet: hook.name,
+            error,
+          });
+        }
       }
     }
   }
