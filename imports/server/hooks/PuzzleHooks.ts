@@ -28,6 +28,7 @@ const PuzzleHooks: Hookset = {
           content: `New puzzle added! `,
           ephemeral: true,
           className: `text-bg-white`,
+          createdBy: puzzle.createdBy,
         });
       }),
     );
