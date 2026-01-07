@@ -140,6 +140,9 @@ const GuessMessage = React.memo(
     const [nextState, setNextState] = useState<GuessType["state"]>();
     const [confirmNonTrivialEdit, setConfirmNonTrivialEdit] =
       useState<boolean>(false);
+    const [nonTrivialEdit, setNonTrivialEdit] = useState<string | undefined>(
+      undefined,
+    );
     const [additionalNotes, setAdditionalNotes] = useState("");
     const onAdditionalNotesChange: React.ChangeEventHandler<HTMLTextAreaElement> =
       useCallback((e) => {
@@ -158,22 +161,27 @@ const GuessMessage = React.memo(
       setGuessState.call({ guessId: guess._id, state: "incorrect" });
     }, [guess._id]);
 
-    const toggleStateIntermediate = useCallback(() => {
+    const resetNonTrivialEdit = useCallback(() => {
       setConfirmNonTrivialEdit(false);
+      setNonTrivialEdit(undefined);
+    }, []);
+
+    const toggleStateIntermediate = useCallback(() => {
+      resetNonTrivialEdit();
       setNextState((state) =>
         state === "intermediate" ? undefined : "intermediate",
       );
-    }, []);
+    }, [resetNonTrivialEdit]);
 
     const toggleStateRejected = useCallback(() => {
-      setConfirmNonTrivialEdit(false);
+      resetNonTrivialEdit();
       setNextState((state) => (state === "rejected" ? undefined : "rejected"));
-    }, []);
+    }, [resetNonTrivialEdit]);
 
     const toggleStateCorrectWithEdit = useCallback(() => {
-      setConfirmNonTrivialEdit(false);
+      resetNonTrivialEdit();
       setNextState((state) => (state === "correct" ? undefined : "correct"));
-    })
+    }, [resetNonTrivialEdit]);
 
     const submitStageTwo = useCallback(() => {
       if (!nextState) return;
@@ -187,11 +195,13 @@ const GuessMessage = React.memo(
           return;
         } else {
           if (
-            !confirmNonTrivialEdit &&
+            (!confirmNonTrivialEdit || nonTrivialEdit !== additionalNotes) &&
             additionalNotes.replace(/\s/g, "").toLowerCase() !==
               guess.guess.replace(/\s/g, "").toLowerCase()
           ) {
             setConfirmNonTrivialEdit(true);
+            setNonTrivialEdit(additionalNotes);
+            setAdditionalNotes("");
             return;
           }
           setGuessState.call({
@@ -214,6 +224,7 @@ const GuessMessage = React.memo(
       additionalNotes,
       guess.guess,
       confirmNonTrivialEdit,
+      nonTrivialEdit,
     ]);
     const onAdditionalNotesKeyDown: React.KeyboardEventHandler<HTMLTextAreaElement> =
       useCallback(
@@ -257,8 +268,35 @@ const GuessMessage = React.memo(
         "Paste or write any additional instructions to pass on to the solver:",
       rejected:
         "Include any additional information on why this guess was rejected:",
-      correct:
-        "Enter the corrected answer to this puzzle as provided by game control (or just submit to mark it correct):",
+      correct: (
+        <>
+          <p>
+            Enter the corrected answer to this puzzle as provided by game
+            control (or just submit to mark it correct).
+          </p>
+          {confirmNonTrivialEdit && nextState === "correct" && (
+            <Alert variant="warning" transition={false}>
+              <strong>⚠️ Are you sure?</strong>
+              You are changing more than just the spacing of this answer. Please
+              check it and submit it again to confirm.
+              <br />
+            </Alert>
+          )}
+          <Form.Group>
+            <Form.Label>Original answer:</Form.Label>
+            <ReactTextareaAutosize
+              id={`${idPrefix}-additional-notes`}
+              minRows={1}
+              className="form-control"
+              disabled
+            >
+              {guess.guess}
+            </ReactTextareaAutosize>
+          </Form.Group>
+          <br />
+          <Form.Label>Your correction:</Form.Label>
+        </>
+      ),
     };
 
     let stageTwoSection;
@@ -276,14 +314,6 @@ const GuessMessage = React.memo(
             <StyledNotificationRow>
               <Form.Group controlId={`${idPrefix}-additional-notes`}>
                 <Form.Label>{stageTwoLabels[nextState]}</Form.Label>
-                {confirmNonTrivialEdit && nextState === "correct" && (
-                  <Alert variant="warning" transition={false}>
-                    You are changing more than just the spacing of this answer.
-                    Submit again to confirm.
-                    <br />
-                    <strong>Is this the right puzzle?</strong>
-                  </Alert>
-                )}
                 <StyledNotificationRow>
                   <ReactTextareaAutosize
                     id={`${idPrefix}-additional-notes`}
