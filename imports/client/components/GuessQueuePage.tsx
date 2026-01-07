@@ -4,7 +4,7 @@ import { faCopy } from "@fortawesome/free-solid-svg-icons/faCopy";
 import { faEraser } from "@fortawesome/free-solid-svg-icons/faEraser";
 import { faPuzzlePiece } from "@fortawesome/free-solid-svg-icons/faPuzzlePiece";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import React, { useCallback, useId, useRef, useState } from "react";
+import React, { useCallback, useId, useMemo, useRef, useState } from "react";
 import {
   Badge,
   ButtonToolbar,
@@ -380,46 +380,79 @@ const GuessQueuePage = () => {
   const guessesLoading = useTypedSubscribe(guessesForGuessQueue, { huntId });
   const loading = guessesLoading();
 
-  const hunt = useTracker(() => Hunts.findOne({ _id: huntId }), [huntId]);
+  const data = useTracker(() => {
+    if (loading) return null;
 
-  const pageTitle = useTracker(() => {
-    if (loading || !hunt) {
+    return {
+      hunt: Hunts.findOne({ _id: huntId }),
+      // Fetch raw data; we will index/filter this in useMemo to avoid
+      // creating new array references on every tracker heartbeat.
+      rawGuesses: Guesses.find(
+        { hunt: huntId },
+        { sort: { createdAt: -1 } },
+      ).fetch(),
+      rawPuzzles: Puzzles.find({ hunt: huntId }).fetch(),
+      rawDisplayNames: indexedDisplayNames(),
+      canEdit: userMayUpdateGuessesForHunt(
+        Meteor.user(),
+        Hunts.findOne({ _id: huntId }),
+      ),
+    };
+  }, [huntId, loading]);
+
+  const puzzleMap = useMemo(() => {
+    return data ? indexedById(data.rawPuzzles) : new Map<string, PuzzleType>();
+  }, [data]);
+
+  const finalGuesses = useMemo(() => {
+    if (!data) return [];
+
+    const keys = searchString
+      .toLowerCase()
+      .split(/\s+/)
+      .filter((k) => k.length > 0);
+
+    return data.rawGuesses
+      .filter((g) => displayMode.includes(g.state) || g.state === "pending")
+      .filter((guess) => {
+        if (keys.length === 0) return true;
+
+        const puzzle = puzzleMap.get(guess.puzzle);
+        if (!puzzle) return false;
+
+        const guessText = guess.guess.toLowerCase();
+        const submitter = (
+          data.rawDisplayNames.get(guess.createdBy) ?? ""
+        ).toLowerCase();
+        const title = puzzle.title.toLowerCase();
+
+        return keys.every(
+          (key) =>
+            guessText.includes(key) ||
+            title.includes(key) ||
+            submitter.includes(key),
+        );
+      });
+  }, [
+    data?.rawGuesses,
+    data?.rawDisplayNames,
+    puzzleMap,
+    displayMode,
+    searchString,
+    data,
+  ]);
+
+  const pageTitle = useMemo(() => {
+    if (loading || !data?.hunt) {
       return "Loading...";
-    } else if (hunt.hasGuessQueue) {
+    } else if (data?.hunt.hasGuessQueue) {
       return "Guess queue";
     } else {
       return "Answer log";
     }
-  }, [hunt, loading]);
+  }, [loading, data?.hunt]);
 
   useBreadcrumb({ title: pageTitle, path: `/hunts/${huntId}/guesses` });
-
-  const guesses = useTracker(
-    () =>
-      loading
-        ? []
-        : Guesses.find({ hunt: huntId }, { sort: { createdAt: -1 } })
-            .fetch()
-            .filter(
-              (x) => displayMode.includes(x.state) || x.state === "pending",
-            ),
-    [huntId, loading, displayMode],
-  );
-  const puzzles = useTracker(
-    () =>
-      loading
-        ? new Map<string, PuzzleType>()
-        : indexedById(Puzzles.find({ hunt: huntId }).fetch()),
-    [huntId, loading],
-  );
-  const displayNames = useTracker(
-    () => (loading ? new Map<string, string>() : indexedDisplayNames()),
-    [loading],
-  );
-  const canEdit = useTracker(
-    () => userMayUpdateGuessesForHunt(Meteor.user(), hunt),
-    [hunt],
-  );
 
   const searchBarRef = useRef<HTMLInputElement>(null);
   useFocusRefOnFindHotkey(searchBarRef);
@@ -453,61 +486,9 @@ const GuessQueuePage = () => {
     setSearchString("");
   }, [setSearchString]);
 
-  const compileMatcher = useCallback(
-    (searchKeys: string[]): ((g: GuessType) => boolean) => {
-      // Given a list a search keys, compileMatcher returns a function that,
-      // given a guess, returns true if all search keys match that guess in
-      // some way, and false if any of the search keys cannot be found in
-      // either the guess or the puzzle title.
-      const lowerSearchKeys = searchKeys.map((key) => key.toLowerCase());
-      return (guess) => {
-        const puzzle = puzzles.get(guess.puzzle)!;
-        const guessText = guess.guess.toLowerCase();
-        const submitterDisplayName = (
-          displayNames.get(guess.createdBy) ?? ""
-        ).toLowerCase();
-
-        const titleWords = puzzle.title.toLowerCase().split(" ");
-        // For each search key, if nothing from the text or the title match,
-        // reject this guess.
-        return lowerSearchKeys.every((key) => {
-          return (
-            guessText.includes(key) ||
-            titleWords.some((word) => word.startsWith(key)) ||
-            submitterDisplayName.includes(key)
-          );
-        });
-      };
-    },
-    [puzzles, displayNames],
-  );
-
-  const filteredGuesses = useCallback(
-    (allGuesses: GuessType[], puzzleMap: Map<string, PuzzleType>) => {
-      const searchKeys = searchString.split(" ");
-      const guessesForKnownPuzzles = allGuesses.filter((guess) =>
-        puzzleMap.has(guess.puzzle),
-      );
-      let interestingGuesses;
-
-      if (searchKeys.length === 1 && searchKeys[0] === "") {
-        interestingGuesses = guessesForKnownPuzzles;
-      } else {
-        const searchKeysWithEmptyKeysRemoved = searchKeys.filter((key) => {
-          return key.length > 0;
-        });
-        const isInteresting = compileMatcher(searchKeysWithEmptyKeysRemoved);
-        interestingGuesses = guessesForKnownPuzzles.filter(isInteresting);
-      }
-
-      return interestingGuesses;
-    },
-    [searchString, compileMatcher],
-  );
-
   const idPrefix = useId();
 
-  if (loading || !hunt) {
+  if (loading || !data?.hunt) {
     return <div>loading...</div>;
   }
 
@@ -552,7 +533,7 @@ const GuessQueuePage = () => {
             onChange={onChangeDisplayMode}
           >
             <ToggleButton
-              id="view-group-button-correct"
+              id={`${idPrefix}-view-group-button-correct`}
               variant="outline-success"
               value="correct"
               // checked={displayMode.includes("correct")}
@@ -560,7 +541,7 @@ const GuessQueuePage = () => {
               Correct
             </ToggleButton>
             <ToggleButton
-              id="view-group-button-intermediate"
+              id={`${idPrefix}-view-group-button-intermediate`}
               variant="outline-warning"
               value="intermediate"
               // checked={displayMode.includes("intermediate")}
@@ -568,7 +549,7 @@ const GuessQueuePage = () => {
               Intermediate
             </ToggleButton>
             <ToggleButton
-              id="view-group-button-incorrect"
+              id={`${idPrefix}-view-group-button-incorrect`}
               variant="outline-danger"
               value="incorrect"
               // checked={displayMode.includes("incorrect")}
@@ -576,7 +557,7 @@ const GuessQueuePage = () => {
               Incorrect
             </ToggleButton>
             <ToggleButton
-              id="view-group-button-rejected"
+              id={`${idPrefix}-view-group-button-rejected`}
               variant="outline-secondary"
               value="rejected"
               // checked={displayMode.includes("rejected")}
@@ -586,13 +567,13 @@ const GuessQueuePage = () => {
           </StyledToggleButtonGroup>
         </ButtonToolbar>
       </FormGroup>
-      <StyledTable $hasGuessQueue={hunt.hasGuessQueue}>
+      <StyledTable $hasGuessQueue={data?.hunt?.hasGuessQueue}>
         <StyledHeaderRow>
           <StyledHeader>Time</StyledHeader>
           <StyledHeader>Submitter</StyledHeader>
           <StyledHeader>Puzzle</StyledHeader>
           <StyledHeader>Answer</StyledHeader>
-          {hunt.hasGuessQueue && (
+          {data?.hunt?.hasGuessQueue && (
             <>
               <OverlayTrigger placement="top" overlay={directionTooltip}>
                 <StyledHeader>Direction</StyledHeader>
@@ -603,17 +584,19 @@ const GuessQueuePage = () => {
             </>
           )}
           <StyledHeader>Status</StyledHeader>
-          {hunt.hasGuessQueue && <StyledHeader>&nbsp;</StyledHeader>}
+          {data?.hunt?.hasGuessQueue && <StyledHeader>&nbsp;</StyledHeader>}
         </StyledHeaderRow>
-        {filteredGuesses(guesses, puzzles).map((guess) => {
+        {finalGuesses.map((guess) => {
           return (
             <GuessBlock
               key={guess._id}
-              hunt={hunt}
+              hunt={data?.hunt}
               guess={guess}
-              createdByDisplayName={displayNames.get(guess.createdBy) ?? "???"}
-              puzzle={puzzles.get(guess.puzzle)!}
-              canEdit={canEdit}
+              createdByDisplayName={
+                data?.displayNames?.get(guess.createdBy) ?? "???"
+              }
+              puzzle={puzzleMap.get(guess.puzzle)!}
+              canEdit={data?.canEdit ?? false}
             />
           );
         })}
