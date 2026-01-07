@@ -20,6 +20,7 @@ import HuntersApp from "./HuntersApp";
 import HuntListApp from "./HuntListApp";
 import HuntListPage from "./HuntListPage";
 import HuntProfileListPage from "./HuntProfileListPage";
+import HuntPurgePage from "./HuntPurgePage";
 import JoinHunt from "./JoinHunt";
 import Loading from "./Loading";
 import LoginForm from "./LoginForm";
@@ -66,6 +67,7 @@ export const AuthenticatedRouteList: RouteObject[] = [
           { path: "more", element: <MoreAppPage /> },
           { path: "tags", element: <TagBulkEditPage /> },
           { path: "notes", element: <NotesPage /> },
+          { path: "purge", element: <HuntPurgePage /> },
           { path: "", element: <Navigate to="puzzles" replace /> },
         ],
       },

@@ -3,112 +3,21 @@ import Alert from "react-bootstrap/Alert";
 import Button from "react-bootstrap/Button";
 import Container from "react-bootstrap/Container";
 import Form from "react-bootstrap/Form";
-import type { FormControlProps } from "react-bootstrap/FormControl";
-import FormControl from "react-bootstrap/FormControl";
 import FormGroup from "react-bootstrap/FormGroup";
-import { useParams } from "react-router-dom";
-import type { SavedDiscordObjectType } from "../../lib/models/Hunts";
+import { Navigate, useParams } from "react-router-dom";
+import { isAdmin } from "../../lib/isAdmin";
 import purgeHunt from "../../methods/purgeHunt";
 import { useBreadcrumb } from "../hooks/breadcrumb";
 import ActionButtonRow from "./ActionButtonRow";
 import type { ModalFormHandle } from "./ModalForm";
 import ModalForm from "./ModalForm";
 
-const _splitLists = function (lists: string): string[] {
-  const strippedLists = lists.trim();
-  if (strippedLists === "") {
-    return [];
-  }
-
-  return strippedLists.split(/[, ]+/);
-};
-
-interface DiscordSelectorParams {
-  disable: boolean;
-  id: string;
-  value: SavedDiscordObjectType | undefined;
-  onChange: (next: SavedDiscordObjectType | undefined) => void;
-}
-
-interface DiscordSelectorProps extends DiscordSelectorParams {
-  loading: boolean;
-  options: SavedDiscordObjectType[];
-}
-
-const _DiscordSelector = ({
-  disable,
-  id: formId,
-  value,
-  onChange,
-  loading,
-  options,
-}: DiscordSelectorProps) => {
-  const onValueChanged: NonNullable<FormControlProps["onChange"]> = useCallback(
-    (e) => {
-      if (e.currentTarget.value === "empty") {
-        onChange(undefined);
-      } else {
-        const match = options.find((obj) => {
-          return obj.id === e.currentTarget.value;
-        });
-        if (match) {
-          onChange(match);
-        }
-      }
-    },
-    [onChange, options],
-  );
-
-  const formOptions = useCallback((): SavedDiscordObjectType[] => {
-    // List of the options.  Be sure to include the saved option if it's (for
-    // some reason) not present in the channel list.
-    const noneOption = {
-      id: "empty",
-      name: "disabled",
-    } as SavedDiscordObjectType;
-
-    if (value) {
-      if (
-        !options.find((opt) => {
-          return opt.id === value.id;
-        })
-      ) {
-        return [noneOption, value, ...options];
-      }
-    }
-    return [noneOption, ...options];
-  }, [value, options]);
-
-  if (loading) {
-    return <div>Loading discord resources...</div>;
-  } else {
-    return (
-      <FormControl
-        id={formId}
-        as="select"
-        type="text"
-        value={value?.id}
-        disabled={disable}
-        onChange={onValueChanged}
-      >
-        {formOptions().map(({ id, name }) => {
-          return (
-            <option key={id} value={id}>
-              {name}
-            </option>
-          );
-        })}
-      </FormControl>
-    );
-  }
-};
-
 const HuntPurgePage = () => {
   const huntId = useParams<{ huntId: string }>().huntId;
 
   useBreadcrumb({
     title: "Purge Hunt",
-    path: `/hunts/${huntId ? `${huntId}/purge` : "new"}`,
+    path: `/hunts/${huntId}/purge`,
   });
 
   const purgeHuntRef = useRef<ModalFormHandle>(null);
@@ -125,6 +34,10 @@ const HuntPurgePage = () => {
     },
     [huntId],
   );
+
+  if (!isAdmin(Meteor.user())) {
+    return <Navigate to={`/hunts/${huntId}/puzzles`} />;
+  }
 
   return (
     <Container>
@@ -144,7 +57,7 @@ const HuntPurgePage = () => {
         <Alert variant="danger">This action cannot be undone.</Alert>
       </ModalForm>
 
-      <h1>Reset hunt</h1>
+      <h1>Purge hunt</h1>
 
       <p>Warning: this will delete all content!</p>
 
