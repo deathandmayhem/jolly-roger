@@ -6,6 +6,7 @@ export default new TypedMethod<
     guessId: string;
     state: GuessType["state"];
     additionalNotes?: string;
+    correctAnswer?: string;
   },
   void
 >("Guesses.methods.setState");

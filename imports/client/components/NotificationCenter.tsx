@@ -10,7 +10,9 @@ import { faPuzzlePiece } from "@fortawesome/free-solid-svg-icons/faPuzzlePiece";
 import { faSpinner } from "@fortawesome/free-solid-svg-icons/faSpinner";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { useCallback, useEffect, useId, useMemo, useState } from "react";
+import Alert from "react-bootstrap/Alert";
 import Button from "react-bootstrap/Button";
+import ButtonGroup from "react-bootstrap/ButtonGroup";
 import Dropdown from "react-bootstrap/Dropdown";
 import Form from "react-bootstrap/Form";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
@@ -136,6 +138,8 @@ const GuessMessage = React.memo(
     onDismiss: (guessId: string) => void;
   }) => {
     const [nextState, setNextState] = useState<GuessType["state"]>();
+    const [confirmNonTrivialEdit, setConfirmNonTrivialEdit] =
+      useState<boolean>(false);
     const [additionalNotes, setAdditionalNotes] = useState("");
     const onAdditionalNotesChange: React.ChangeEventHandler<HTMLTextAreaElement> =
       useCallback((e) => {
@@ -143,32 +147,74 @@ const GuessMessage = React.memo(
       }, []);
 
     const markCorrect = useCallback(() => {
+      if (nextState === "correct") {
+        setNextState(undefined);
+        return;
+      }
       setGuessState.call({ guessId: guess._id, state: "correct" });
-    }, [guess._id]);
+    }, [guess._id, nextState]);
 
     const markIncorrect = useCallback(() => {
       setGuessState.call({ guessId: guess._id, state: "incorrect" });
     }, [guess._id]);
 
     const toggleStateIntermediate = useCallback(() => {
+      setConfirmNonTrivialEdit(false);
       setNextState((state) =>
         state === "intermediate" ? undefined : "intermediate",
       );
     }, []);
 
     const toggleStateRejected = useCallback(() => {
+      setConfirmNonTrivialEdit(false);
       setNextState((state) => (state === "rejected" ? undefined : "rejected"));
     }, []);
 
+    const toggleStateCorrectWithEdit = useCallback(() => {
+      setConfirmNonTrivialEdit(false);
+      setNextState((state) => (state === "correct" ? undefined : "correct"));
+    })
+
     const submitStageTwo = useCallback(() => {
       if (!nextState) return;
+
+      if (nextState === "correct") {
+        if (additionalNotes === "" || additionalNotes === guess.guess) {
+          setGuessState.call({
+            guessId: guess._id,
+            state: "correct",
+          });
+          return;
+        } else {
+          if (
+            !confirmNonTrivialEdit &&
+            additionalNotes.replace(/\s/g, "").toLowerCase() !==
+              guess.guess.replace(/\s/g, "").toLowerCase()
+          ) {
+            setConfirmNonTrivialEdit(true);
+            return;
+          }
+          setGuessState.call({
+            guessId: guess._id,
+            state: "correct",
+            correctAnswer: additionalNotes,
+          });
+          return;
+        }
+      }
 
       setGuessState.call({
         guessId: guess._id,
         state: nextState,
         additionalNotes: additionalNotes === "" ? undefined : additionalNotes,
       });
-    }, [guess._id, nextState, additionalNotes]);
+    }, [
+      guess._id,
+      nextState,
+      additionalNotes,
+      guess.guess,
+      confirmNonTrivialEdit,
+    ]);
     const onAdditionalNotesKeyDown: React.KeyboardEventHandler<HTMLTextAreaElement> =
       useCallback(
         (e) => {
@@ -196,11 +242,13 @@ const GuessMessage = React.memo(
     const disableForms = guess.state !== "pending";
 
     const correctButtonVariant =
-      guess.state === "correct" ? "success" : "outline-secondary";
+      guess.state === "correct" || nextState === "correct"
+        ? "success"
+        : "outline-success";
     const intermediateButtonVariant =
-      guess.state === "intermediate" ? "warning" : "outline-secondary";
+      guess.state === "intermediate" ? "primary" : "outline-primary";
     const incorrectButtonVariant =
-      guess.state === "incorrect" ? "danger" : "outline-secondary";
+      guess.state === "incorrect" ? "danger" : "outline-danger";
     const rejectButtonVariant =
       guess.state === "rejected" ? "secondary" : "outline-secondary";
 
@@ -209,10 +257,18 @@ const GuessMessage = React.memo(
         "Paste or write any additional instructions to pass on to the solver:",
       rejected:
         "Include any additional information on why this guess was rejected:",
+      correct:
+        "Enter the corrected answer to this puzzle as provided by game control (or just submit to mark it correct):",
     };
 
     let stageTwoSection;
+    const submittedStageTwoLabels = {
+      intermediate: "Additional instructions passed on to the solver:",
+      rejected: "Additional information on why this guess was rejected:",
+      correct: "Corrected answer submitted:",
+    };
     switch (nextState) {
+      case "correct":
       case "intermediate":
       case "rejected":
         stageTwoSection = (
@@ -220,6 +276,14 @@ const GuessMessage = React.memo(
             <StyledNotificationRow>
               <Form.Group controlId={`${idPrefix}-additional-notes`}>
                 <Form.Label>{stageTwoLabels[nextState]}</Form.Label>
+                {confirmNonTrivialEdit && nextState === "correct" && (
+                  <Alert variant="warning" transition={false}>
+                    You are changing more than just the spacing of this answer.
+                    Submit again to confirm.
+                    <br />
+                    <strong>Is this the right puzzle?</strong>
+                  </Alert>
+                )}
                 <StyledNotificationRow>
                   <ReactTextareaAutosize
                     id={`${idPrefix}-additional-notes`}
@@ -237,7 +301,7 @@ const GuessMessage = React.memo(
             <StyledNotificationActionBar>
               <StyledNotificationActionItem>
                 <Button
-                  variant="outline-secondary"
+                  variant="secondary"
                   size="sm"
                   disabled={disableForms}
                   onClick={submitStageTwo}
@@ -396,15 +460,27 @@ const GuessMessage = React.memo(
           </StyledNotificationActionBar>
           <StyledNotificationActionBar>
             <StyledNotificationActionItem $grow>
-              <Button
-                variant={correctButtonVariant}
-                size="sm"
-                className="flex-grow-1"
-                disabled={disableForms}
-                onClick={markCorrect}
-              >
-                Correct
-              </Button>
+              <Dropdown as={ButtonGroup}>
+                <Button
+                  variant={correctButtonVariant}
+                  className="flex-grow-1"
+                  disabled={disableForms}
+                  onClick={markCorrect}
+                  size="sm"
+                >
+                  Correct
+                </Button>
+                <Dropdown.Toggle split variant={correctButtonVariant} />
+                <Dropdown.Menu align="end">
+                  <Dropdown.Item
+                    onClick={toggleStateCorrectWithEdit}
+                    variant="success"
+                    size="sm"
+                  >
+                    Correct with edit...
+                  </Dropdown.Item>
+                </Dropdown.Menu>
+              </Dropdown>
             </StyledNotificationActionItem>
             <StyledNotificationActionItem $grow>
               <Button
@@ -444,7 +520,7 @@ const GuessMessage = React.memo(
           </StyledNotificationActionBar>
           {guess.state !== "pending" && guess.additionalNotes && (
             <>
-              <div>Additional notes:</div>
+              <div>{submittedStageTwoLabels[guess.state]}</div>
               <Markdown text={guess.additionalNotes} />
             </>
           )}
