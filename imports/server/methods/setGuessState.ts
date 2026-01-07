@@ -1,5 +1,5 @@
 import { check, Match } from "meteor/check";
-import { Meteor } from "meteor/meteor";
+import { Meteor } from "meteor/meteor";\
 import Logger from "../../Logger";
 import Guesses, { GuessStates } from "../../lib/models/Guesses";
 import Hunts from "../../lib/models/Hunts";
@@ -16,11 +16,12 @@ defineMethod(setGuessState, {
       guessId: String,
       state: Match.OneOf(...GuessStates.options),
       additionalNotes: Match.Optional(String),
+      correctAnswer: Match.Optional(String),
     });
     return arg;
   },
 
-  async run({ guessId, state, additionalNotes }) {
+  async run({ guessId, state, additionalNotes, correctAnswer }) {
     check(this.userId, String);
 
     const guess = await Guesses.findOneAsync(guessId);
@@ -46,7 +47,13 @@ defineMethod(setGuessState, {
       guess: guess._id,
       state,
       additionalNotes,
+      correctAnswer,
     });
-    await transitionGuess(guess, state, additionalNotes);
+    await transitionGuess(
+      guess,
+      state,
+      additionalNotes,
+      correctAnswer,
+    );
   },
 });
