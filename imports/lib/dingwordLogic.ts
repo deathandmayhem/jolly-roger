@@ -127,7 +127,7 @@ export function messageDingsUser(
   const normalizedText = normalizedForDingwordSearch(chatMessage);
   const dingedByDingwords =
     normalizedMessageDingsUserByDingword(normalizedText, user).length > 0;
-  const dingedByMentions = dingedByMentions(chatMessage, user);
-  const dingedByRoleMentions = dingedByRoleMentions(chatMessage, user);
-  return dingedByDingwords || dingedByMentions || dingedByRoleMentions;
+  const userDingedByMentions = dingedByMentions(chatMessage, user);
+  const userDingedByRoleMentions = dingedByRoleMentions(chatMessage, user);
+  return dingedByDingwords || userDingedByMentions || userDingedByRoleMentions;
 }
