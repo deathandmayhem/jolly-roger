@@ -76,6 +76,7 @@ import PuzzleModalForm from "./PuzzleModalForm";
 import RelatedPuzzleGroup, { PuzzleGroupDiv } from "./RelatedPuzzleGroup";
 import RelatedPuzzleList from "./RelatedPuzzleList";
 import { mediaBreakpointDown } from "./styling/responsive";
+import { useBreadcrumb } from "../hooks/breadcrumb";
 
 const ViewControls = styled.div<{ $canAdd?: boolean }>`
   display: grid;
@@ -912,6 +913,8 @@ const PuzzleListView = ({
 
 const PuzzleListPage = () => {
   const huntId = useParams<"huntId">().huntId!;
+
+  useBreadcrumb({ title: "Puzzles", path: `/hunts/${huntId}/puzzles` });
 
   // Assertion is safe because hunt is already subscribed and checked by HuntApp
   const hunt = useTracker(() => Hunts.findOne(huntId)!, [huntId]);
