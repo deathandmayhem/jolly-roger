@@ -200,21 +200,10 @@ const MarkdownToken = ({
       <MarkdownToken key={i} token={t} truncate={truncate} />
     ));
     return (
-      <a
-        target="_blank"
-        rel="noopener noreferrer"
-        title={token.href}
-        href={token.href}
-      >
-        {displayedHref} {/* Display the truncated href */}
+      <a target="_blank" rel="noopener noreferrer" href={token.href}>
+        {children}
       </a>
     );
-
-    // return (
-    //   <a target="_blank" rel="noopener noreferrer" href={token.href}>
-    //     {children}
-    //   </a>
-    // );
   } else if (token.type === "blockquote") {
     const children = (token as Tokens.Blockquote).tokens.map((t, i) => (
       <MarkdownToken key={i} token={t} />
