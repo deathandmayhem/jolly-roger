@@ -749,7 +749,7 @@ const ChatNotificationMessage = ({
   }, [displayedDingwords, cn._id, handleSuppressDingwords]);
 
   return (
-    <Toast className="text-bg-secondary" onClose={dismiss}>
+    <Toast onClose={dismiss}>
       <Toast.Header>
         <FontAwesomeIcon icon={faComment} style={{ marginRight: ".4em" }} />
         <strong className="me-auto">

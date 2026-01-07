@@ -168,7 +168,7 @@ const NotesPage = () => {
   const [showSolved, setShowSolved] = useState<boolean>(false);
   const [searchString, setSearchString] = useState<string>("");
 
-  useBreadcrumb({ title: "Notes", path: `/hunts/${huntId}/tags` });
+  useBreadcrumb({ title: "Notes", path: `/hunts/${huntId}/notes` });
 
   const allPuzzles = useTracker(
     () =>
