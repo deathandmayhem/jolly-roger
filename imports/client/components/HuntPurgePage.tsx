@@ -5,7 +5,7 @@ import Container from "react-bootstrap/Container";
 import Form from "react-bootstrap/Form";
 import FormGroup from "react-bootstrap/FormGroup";
 import { Navigate, useParams } from "react-router-dom";
-import { isAdmin } from "../../lib/isAdmin";
+import isAdmin from "../../lib/isAdmin";
 import purgeHunt from "../../methods/purgeHunt";
 import { useBreadcrumb } from "../hooks/breadcrumb";
 import ActionButtonRow from "./ActionButtonRow";
