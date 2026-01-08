@@ -5,7 +5,7 @@ import { faEraser } from "@fortawesome/free-solid-svg-icons/faEraser";
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus";
 import { faPuzzlePiece } from "@fortawesome/free-solid-svg-icons/faPuzzlePiece";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import type { ComponentPropsWithRef, FC, MouseEvent } from "react";
+import type { MouseEvent } from "react";
 import React, {
   useCallback,
   useEffect,
@@ -88,14 +88,10 @@ const StatusDiv = styled.div`
   margin-left: 0.5rem;
 `;
 
-const StyledLinkButton: FC<ComponentPropsWithRef<typeof Button>> = styled(
-  Button,
-)`
+const StyledCopyToClipboardButton = styled(CopyToClipboardButton)`
   padding: 0;
   vertical-align: baseline;
 `;
-
-const StyledCopyToClipboardButton = styled(CopyToClipboardButton);
 
 type ModalHandle = {
   show(): void;
