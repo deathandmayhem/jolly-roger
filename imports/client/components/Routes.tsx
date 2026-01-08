@@ -15,6 +15,7 @@ import FirehosePage from "./FirehosePage";
 import FirstUserForm from "./FirstUserForm";
 import ForgotPasswordForm from "./ForgotPasswordForm";
 import GuessQueuePage from "./GuessQueuePage";
+import UserPuzzleHistory from "./UserPuzzleHistory";
 import HuntApp from "./HuntApp";
 import HuntersApp from "./HuntersApp";
 import HuntListApp from "./HuntListApp";
@@ -85,6 +86,7 @@ export const AuthenticatedRouteList: RouteObject[] = [
   },
   { path: "/setup", element: <SetupPage /> },
   { path: "/rtcdebug", element: <RTCDebugPage /> },
+  { path: "/history", element: <UserPuzzleHistory /> },
 ].map((r) => {
   return {
     ...r,
