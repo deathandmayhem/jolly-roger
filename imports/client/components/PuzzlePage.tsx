@@ -3423,7 +3423,6 @@ const PuzzlePage = React.memo(() => {
   const [isChatMinimized, setIsChatMinimized] = useState<boolean>(false);
   const [lastSidebarWidth, setLastSidebarWidth] =
     useState<number>(DefaultSidebarWidth);
-  const [isRestoring, setIsRestoring] = useState(false);
   const [isMetadataMinimized, setIsMetadataMinimized] =
     useState<boolean>(false);
   const [isDesktop, setIsDesktop] = useState<boolean>(
@@ -3545,11 +3544,6 @@ const PuzzlePage = React.memo(() => {
     setTickerQueue((prev) => prev.filter((m) => m.id !== id));
   };
 
-  const handleRestoreFromTicker = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    restoreChat();
-  };
-
   const puzzlesSubscribe = useTypedSubscribe(puzzlesForHunt, { huntId });
   const puzzlesLoading = puzzlesSubscribe();
   const puzzles = useTracker(() => {
@@ -3646,22 +3640,6 @@ const PuzzlePage = React.memo(() => {
     });
   }, [sidebarWidth, lastSidebarWidth]);
 
-  const restoreChat = useCallback(() => {
-    if (isChatMinimized) {
-      setIsRestoring(true);
-      setIsChatMinimized(false);
-      setTickerQueue([]);
-      setSidebarWidth(lastSidebarWidth);
-      setTimeout(() => {
-        if (chatSectionRef.current) {
-          chatSectionRef.current.scrollHistoryToTarget();
-          chatSectionRef.current.snapToBottom();
-        }
-      }, 0);
-      setIsRestoring(false);
-    }
-  }, [isChatMinimized, lastSidebarWidth]);
-
   const [pulsingMessageId, setPulsingMessageId] = useState<string | null>(null);
 
   const handleHighlightMessageClick = useCallback((messageId: string) => {
@@ -3739,15 +3717,15 @@ const PuzzlePage = React.memo(() => {
     return;
   }, [isChatMinimized]);
 
-  useEffect((): (() => void) | undefined => {
-    if (!isChatMinimized && !isRestoring) {
+  useEffect(() => {
+    if (!isChatMinimized) {
       const timer = setTimeout(() => {
         chatSectionRef.current?.snapToBottom();
       }, 100);
       return () => clearTimeout(timer);
     }
     return;
-  }, [isChatMinimized, isRestoring]);
+  }, [isChatMinimized]);
 
   useEffect(() => {
     if (activePuzzle && !activePuzzle.deleted) {
@@ -3902,7 +3880,8 @@ const PuzzlePage = React.memo(() => {
       <TickerContainer position="bottom-start" className="p-3">
         {tickerQueue.length > 1 && (
           <Badge bg="secondary" pill>
-            +{tickerQueue.length - 1} more messages
+            +{tickerQueue.length - 1} more message
+            {tickerQueue.length > 2 ? "s" : ""}
           </Badge>
         )}
         {tickerQueue.slice(0, 1).map((msg) => (
