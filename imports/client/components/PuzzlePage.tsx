@@ -4,6 +4,7 @@ import { useFind, useSubscribe, useTracker } from "meteor/react-meteor-data";
 import { faAngleDoubleDown } from "@fortawesome/free-solid-svg-icons/faAngleDoubleDown";
 import { faAngleDoubleUp } from "@fortawesome/free-solid-svg-icons/faAngleDoubleUp";
 import { faChevronLeft } from "@fortawesome/free-solid-svg-icons/faChevronLeft";
+import { faComments } from "@fortawesome/free-solid-svg-icons/faComments";
 import { faCopy } from "@fortawesome/free-solid-svg-icons/faCopy";
 import { faEdit } from "@fortawesome/free-solid-svg-icons/faEdit";
 import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons/faExternalLinkAlt";
@@ -2639,7 +2640,8 @@ const TickerProgress = styled(ProgressBar)`
 const ManagedTickerToast: FC<{
   msg: TickerToastType;
   dismiss: (id: string) => void;
-}> = ({ msg, dismiss }) => {
+  onRestore: (e: React.MouseEvent) => void;
+}> = ({ msg, dismiss, onRestore }) => {
   const [remaining, setRemaining] = useState(msg.duration);
   const paused = useRef(false);
   const lastTick = useRef<number>(Date.now());
@@ -2692,6 +2694,14 @@ const ManagedTickerToast: FC<{
         <TickerToastContent>
           <strong>{msg.sender}:</strong> {msg.text}
         </TickerToastContent>
+        <Button
+          variant="primary"
+          size="sm"
+          onClick={onRestore}
+          title="Restore Chat"
+        >
+          <FontAwesomeIcon icon={faComments} size="sm" />
+        </Button>
       </TickerToastBody>
     </TickerToast>
   );
@@ -3515,6 +3525,24 @@ const PuzzlePage = React.memo(() => {
     setTickerQueue((prev) => prev.filter((m) => m.id !== id));
   };
 
+  const handleRestoreFromTicker = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      setIsChatMinimized(false);
+      setTickerQueue([]);
+      setSidebarWidth(lastSidebarWidth);
+      setTimeout(() => {
+        if (chatSectionRef.current) {
+          setTimeout(() => {
+            chatSectionRef.current?.scrollHistoryToTarget();
+            chatSectionRef.current.snapToBottom();
+          }, 100);
+        }
+      }, 0);
+    },
+    [lastSidebarWidth],
+  );
+
   const puzzlesSubscribe = useTypedSubscribe(puzzlesForHunt, { huntId });
   const puzzlesLoading = puzzlesSubscribe();
   const puzzles = useTracker(() => {
@@ -3856,11 +3884,11 @@ const PuzzlePage = React.memo(() => {
           </Badge>
         )}
         {tickerQueue.slice(0, 1).map((msg) => (
-          // {tickerQueue.map((msg) => (
           <ManagedTickerToast
             key={msg.id}
             msg={msg}
             dismiss={dismissTickerMessage}
+            onRestore={handleRestoreFromTicker}
           />
         ))}
       </TickerContainer>,
