@@ -514,7 +514,10 @@ const Puzzle = React.memo(
     );
 
     const allViewerUsers = useMemo(
-      () => [...activeUsers, ...passiveUsers],
+      () => [
+        ...activeUsers.map((u) => ({ ...u, isPassive: false })),
+        ...passiveUsers.map((u) => ({ ...u, isPassive: true })),
+      ],
       [activeUsers, passiveUsers],
     );
 

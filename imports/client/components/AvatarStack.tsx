@@ -9,6 +9,7 @@ export interface AvatarStackUser {
   _id?: string;
   displayName: string;
   discordAccount?: DiscordAccountType;
+  isPassive?: boolean;
 }
 
 const StackContainer = styled.div<{ $inline?: boolean }>`
@@ -20,14 +21,21 @@ const StackContainer = styled.div<{ $inline?: boolean }>`
   padding-right: 4px;
 `;
 
-const AvatarItem = styled.div<{ $overlap: number; $size: number }>`
+const AvatarItem = styled.div<{
+  $overlap: number;
+  $size: number;
+  $isPassive?: boolean;
+}>`
   margin-right: -${({ $overlap }) => $overlap}px;
-  border: 2px solid ${({ theme }) => theme.colors.background};
+  border: 2px solid
+    ${({ theme, $isPassive }) =>
+      $isPassive ? theme.colors.muted : theme.colors.background};
   border-radius: 50%;
   transition: all 0.2s ease-in-out;
   position: relative;
   background-color: ${({ theme }) => theme.colors.background};
   overflow: hidden;
+  opacity: ${({ $isPassive }) => ($isPassive ? 0.8 : 1)};
 
   &:hover {
     transform: translateY(-2px);
@@ -90,6 +98,7 @@ const AvatarStack: FC<{
               remaining > 0 || i < visibleUsers.length - 1 ? overlap : 0
             }
             $size={size}
+            $isPassive={user.isPassive}
           >
             <Avatar
               size={size}
