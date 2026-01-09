@@ -102,7 +102,7 @@
     "playwright": "^1.57.0",
     "postcss-scss": "^4.0.9",
     "postcss-styled-syntax": "^0.7.1",
-    "sass": "^1.97.1",
+    "sass": "^1.97.2",
     "stylelint": "^16.26.1",
     "stylelint-config-standard": "^39.0.1",
     "stylelint-config-standard-scss": "^16.0.0",
