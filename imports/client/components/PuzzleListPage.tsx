@@ -62,6 +62,7 @@ import {
 } from "../hooks/persisted-state";
 import useFocusRefOnFindHotkey from "../hooks/useFocusRefOnFindHotkey";
 import useSubscribeDisplayNames from "../hooks/useSubscribeDisplayNames";
+import useSubscribeAvatars from "../hooks/useSubscribeAvatars";
 import useTypedSubscribe from "../hooks/useTypedSubscribe";
 import indexedDisplayNames from "../indexedDisplayNames";
 import { Subscribers } from "../subscribers";
@@ -292,18 +293,22 @@ const PuzzleListView = ({
   const callMembersLoading = useSubscribe("mediasoup:metadataAll", huntId);
 
   const displayNamesLoading = useSubscribeDisplayNames(huntId);
+  const avatarsLoading = useSubscribeAvatars(huntId);
 
   const subscriptionsLoading =
-    subscribersLoading() || callMembersLoading() || displayNamesLoading();
+    subscribersLoading() ||
+    callMembersLoading() ||
+    displayNamesLoading() ||
+    avatarsLoading();
 
   const statusesSubscribe = useTypedSubscribe(statusesForHuntUsers, { huntId }); // also the statuses for users
 
   const statusesLoading = statusesSubscribe();
+  const displayNames = useTracker(() => indexedDisplayNames(), []);
   const puzzleUsers: Record<string, string[]> = useTracker(() => {
     if (subscriptionsLoading || statusesLoading) {
       return {};
     }
-    const displayNames = indexedDisplayNames(); // don't try to move this out, this causes a loop
     const puzzleUserStatuses = userStatusesToLastSeen(
       UserStatuses.find({ hunt: huntId }).fetch(),
     );
@@ -314,9 +319,9 @@ const PuzzleListView = ({
         return acc;
       }
       if (!acc[puzzleId]) {
-        acc[puzzleId] = [displayNames.get(userId)];
+        acc[puzzleId] = [userId];
       } else {
-        acc[puzzleId].push(displayNames.get(userId));
+        acc[puzzleId].push(userId);
       }
       return acc;
     }, {});
@@ -324,8 +329,6 @@ const PuzzleListView = ({
   }, [subscriptionsLoading, statusesLoading, huntId]);
 
   const puzzleSubscribers = useTracker(() => {
-    const displayNames = indexedDisplayNames();
-
     if (subscriptionsLoading) {
       return { none: { none: [] } };
     }
@@ -336,7 +339,7 @@ const PuzzleListView = ({
       .fetch()
       .forEach((s) => {
         const puzzle = s.call;
-        const user = displayNames.get(s.createdBy);
+        const user = s.createdBy;
         if (!Object.hasOwn(puzzleSubs, puzzle)) {
           puzzleSubs[puzzle] = {
             viewers: [],
@@ -350,7 +353,7 @@ const PuzzleListView = ({
 
     Subscribers.find({}).forEach((s) => {
       const puzzle = s.name.replace(/^puzzle:/, "");
-      const user = displayNames.get(s.user);
+      const user = s.user;
       if (!Object.hasOwn(puzzleSubs, puzzle)) {
         puzzleSubs[puzzle] = {
           viewers: [],
@@ -416,8 +419,9 @@ const PuzzleListView = ({
           if (showSolvers === "viewers") {
             const matchingViewers =
               puzzle._id in puzzleSubscribers
-                ? puzzleSubscribers[puzzle._id].viewers.some((user) => {
-                    return user.toLowerCase().includes(key);
+                ? puzzleSubscribers[puzzle._id].viewers.some((userId) => {
+                    const user = tagNames[userId] || displayNames.get(userId);
+                    return user?.toLowerCase().includes(key);
                   })
                 : false;
             if (matchingViewers) {
@@ -427,8 +431,9 @@ const PuzzleListView = ({
           if (showSolvers !== "hide") {
             const matchingCallers =
               puzzle._id in puzzleSubscribers
-                ? puzzleSubscribers[puzzle._id].callers.some((user) => {
-                    return user.toLowerCase().includes(key);
+                ? puzzleSubscribers[puzzle._id].callers.some((userId) => {
+                    const user = tagNames[userId] || displayNames.get(userId);
+                    return user?.toLowerCase().includes(key);
                   })
                 : false;
             if (matchingCallers) {
@@ -440,7 +445,7 @@ const PuzzleListView = ({
         });
       };
     },
-    [allTags, puzzleSubscribers, showSolvers],
+    [allTags, puzzleSubscribers, showSolvers, displayNames],
   );
 
   const puzzlesMatchingSearchString = useCallback(

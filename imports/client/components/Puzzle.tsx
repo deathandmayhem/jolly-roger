@@ -1,10 +1,11 @@
 import { useTracker } from "meteor/react-meteor-data";
-import { faEye } from "@fortawesome/free-regular-svg-icons";
-import { faPenNib, faPhone } from "@fortawesome/free-solid-svg-icons";
+import { faEye } from "@fortawesome/free-regular-svg-icons/faEye";
 import { faAngleDoubleUp } from "@fortawesome/free-solid-svg-icons/faAngleDoubleUp";
 import { faAngleDown } from "@fortawesome/free-solid-svg-icons/faAngleDown";
 import { faEdit } from "@fortawesome/free-solid-svg-icons/faEdit";
 import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus";
+import { faPenNib } from "@fortawesome/free-solid-svg-icons/faPenNib";
+import { faPhone } from "@fortawesome/free-solid-svg-icons/faPhone";
 import { faPuzzlePiece } from "@fortawesome/free-solid-svg-icons/faPuzzlePiece";
 import { faStar } from "@fortawesome/free-solid-svg-icons/faStar";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -16,12 +17,15 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { Badge, OverlayTrigger, Tooltip } from "react-bootstrap";
+import Badge from "react-bootstrap/Badge";
 import Button from "react-bootstrap/Button";
 import ButtonGroup from "react-bootstrap/ButtonGroup";
+import OverlayTrigger from "react-bootstrap/OverlayTrigger";
+import Tooltip from "react-bootstrap/Tooltip";
 import { Link } from "react-router-dom";
 import styled, { css, useTheme } from "styled-components";
 import { difference, indexedById } from "../../lib/listUtils";
+import MeteorUsers from "../../lib/models/MeteorUsers";
 import type { PuzzleType } from "../../lib/models/Puzzles";
 import type { TagType } from "../../lib/models/Tags";
 import type { Solvedness } from "../../lib/solvedness";
@@ -31,6 +35,7 @@ import { useOperatorActionsHiddenForHunt } from "../hooks/persisted-state";
 import useSubscribeDisplayNames from "../hooks/useSubscribeDisplayNames";
 import indexedDisplayNames from "../indexedDisplayNames";
 import type { Theme } from "../theme";
+import AvatarStack from "./AvatarStack";
 import BookmarkButton from "./BookmarkButton";
 import PuzzleActivity from "./PuzzleActivity";
 import PuzzleAnswer from "./PuzzleAnswer";
@@ -191,9 +196,12 @@ const SolversColumn = styled(PuzzleColumn)`
   )}
 `;
 
-const PassiveViewerSpan = styled.span`
-  color: ${({ theme }) => theme.colors.text.textMuted};
-  font-style: italic;
+const SolverRow = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
+  line-height: normal;
 `;
 
 const Puzzle = React.memo(
@@ -483,6 +491,67 @@ const Puzzle = React.memo(
       return { activeViewers: active, passiveViewers: passive };
     }, [puzzleUsers, viewers]);
 
+    const rtcUsers = useTracker(
+      () =>
+        rtcViewers
+          .map((id) => MeteorUsers.findOne(id))
+          .filter((u): u is Meteor.User => !!u),
+      [rtcViewers],
+    );
+    const activeUsers = useTracker(
+      () =>
+        activeViewers
+          .map((id) => MeteorUsers.findOne(id))
+          .filter((u): u is Meteor.User => !!u),
+      [activeViewers],
+    );
+    const passiveUsers = useTracker(
+      () =>
+        passiveViewers
+          .map((id) => MeteorUsers.findOne(id))
+          .filter((u): u is Meteor.User => !!u),
+      [passiveViewers],
+    );
+
+    const allViewerUsers = useMemo(
+      () => [...activeUsers, ...passiveUsers],
+      [activeUsers, passiveUsers],
+    );
+
+    const solversTooltip = useMemo(() => {
+      const showRtc = rtcUsers.length > 0;
+      const showActive = activeUsers.length > 0;
+      const showPassive = passiveUsers.length > 0;
+
+      if (!showRtc && !showActive && !showPassive) {
+        return <div />;
+      }
+
+      return (
+        <Tooltip id={`solvers-tooltip-${puzzleId}`}>
+          {showRtc && (
+            <div style={{ textAlign: "left" }}>
+              <FontAwesomeIcon icon={faPhone} fixedWidth />{" "}
+              {rtcUsers.map((u) => u.displayName).join(", ")}
+            </div>
+          )}
+          {showActive && (
+            <div style={{ textAlign: "left" }}>
+              <FontAwesomeIcon icon={faEye} fixedWidth />{" "}
+              {activeUsers.map((u) => u.displayName).join(", ")}
+            </div>
+          )}
+          {showPassive && (
+            <div
+              style={{ textAlign: "left", fontStyle: "italic", opacity: 0.8 }}
+            >
+              {passiveUsers.map((u) => u.displayName).join(", ")}
+            </div>
+          )}
+        </Tooltip>
+      );
+    }, [puzzleId, rtcUsers, activeUsers, passiveUsers]);
+
     return (
       <PuzzleDiv $solvedness={solvedness}>
         {showEditModal ? (
@@ -542,30 +611,22 @@ const Puzzle = React.memo(
         <PuzzleMetaColumn>{puzzleIsMeta}</PuzzleMetaColumn>
         <SolversColumn>
           {showSolvers !== "hide" && solvedness === "unsolved" ? (
-            <div>
-              {rtcViewers.length > 0 ? (
-                <span>
-                  <FontAwesomeIcon icon={faPhone} />{" "}
-                </span>
-              ) : null}
-              {rtcViewers.map((viewer) => viewer).join(", ")}
-              {rtcViewers.length > 0 &&
-              activeViewers.length + passiveViewers.length > 0 ? (
-                <br />
-              ) : null}
-              {activeViewers.length + passiveViewers.length > 0 ? (
-                <span>
-                  <FontAwesomeIcon icon={faEye} />{" "}
-                </span>
-              ) : null}
-              {activeViewers.join(", ")}
-              {activeViewers.length > 0 && passiveViewers.length > 0 && ", "}
-              {passiveViewers.length > 0 && (
-                <PassiveViewerSpan>
-                  {passiveViewers.join(", ")}
-                </PassiveViewerSpan>
-              )}
-            </div>
+            <OverlayTrigger placement="top" overlay={solversTooltip}>
+              <div style={{ cursor: "default" }}>
+                {rtcUsers.length > 0 && (
+                  <SolverRow>
+                    <FontAwesomeIcon icon={faPhone} fixedWidth />
+                    <AvatarStack users={rtcUsers} tooltip={<div />} />
+                  </SolverRow>
+                )}
+                {allViewerUsers.length > 0 && (
+                  <SolverRow>
+                    <FontAwesomeIcon icon={faEye} fixedWidth />
+                    <AvatarStack users={allViewerUsers} tooltip={<div />} />
+                  </SolverRow>
+                )}
+              </div>
+            </OverlayTrigger>
           ) : null}
         </SolversColumn>
         <PuzzleActivityColumn>
