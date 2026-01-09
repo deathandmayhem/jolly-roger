@@ -16,10 +16,10 @@ import {
   ACTIVITY_GRANULARITY,
   ACTIVITY_SEGMENTS,
 } from "../../lib/config/activityTracking";
-import type { DiscordAccountType } from "../../lib/models/DiscordAccount";
 import relativeTimeFormat from "../../lib/relativeTimeFormat";
 import roundedTime from "../../lib/roundedTime";
 import ActivityBuckets from "../ActivityBuckets";
+import indexedDisplayNames from "../indexedDisplayNames";
 import RelativeTime from "./RelativeTime";
 import { PeopleListDiv } from "./styling/PeopleComponents";
 import { mediaBreakpointDown } from "./styling/responsive";
@@ -185,11 +185,15 @@ const PuzzleActivity = ({
     return buckets[buckets.length - 1] ?? 0;
   };
 
+  const displayNames = useTracker(() => indexedDisplayNames(), []);
+
   const rtcViewers = subscribers?.callers ?? [];
   const viewers = subscribers?.viewers ?? [];
   const totalViewers = rtcViewers.length + viewers.length;
 
-  const viewerList = rtcViewers.concat(viewers).map((viewer) => viewer);
+  const viewerList = rtcViewers
+    .concat(viewers)
+    .map((id) => displayNames.get(id) || id);
 
   const sparklineTooltip = (
     <Tooltip id={`puzzle-activity-sparkline-${puzzleId}`}>

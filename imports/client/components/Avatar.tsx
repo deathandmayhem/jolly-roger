@@ -1,5 +1,5 @@
 import React from "react";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 import { getAvatarCdnUrl } from "../../lib/discord";
 import type { DiscordAccountType } from "../../lib/models/DiscordAccount";
 import type { Theme } from "../theme";
@@ -92,6 +92,7 @@ const AvatarContainer = styled.div<{
   $size: number;
   $inline: boolean;
   $isSelf: boolean;
+  $rounded: boolean;
   theme: Theme;
 }>`
   width: ${({ $size }) => $size}px;
@@ -104,6 +105,12 @@ const AvatarContainer = styled.div<{
     $isSelf ? `0 0 4px ${theme.colors.avatarSelfShadow}` : "none"};
   border: ${({ $isSelf, theme }) =>
     $isSelf ? `0.5px solid ${theme.colors.avatarSelfBorder}` : "none"};
+  ${({ $rounded }) =>
+    $rounded &&
+    css`
+      border-radius: 50%;
+      overflow: hidden;
+    `}
 `;
 
 const Avatar = React.memo(
@@ -115,6 +122,7 @@ const Avatar = React.memo(
     discordAccount,
     className,
     isSelf = false,
+    rounded = false,
   }: {
     size: number;
     inline?: boolean;
@@ -123,6 +131,7 @@ const Avatar = React.memo(
     discordAccount?: DiscordAccountType;
     className?: string;
     isSelf?: boolean;
+    rounded?: boolean;
   }) => {
     const [imgFailed, setImgFailed] = React.useState(false);
 
@@ -145,6 +154,7 @@ const Avatar = React.memo(
         $size={size}
         $inline={inline ?? false}
         $isSelf={isSelf}
+        $rounded={rounded}
       >
         {content}
       </AvatarContainer>
