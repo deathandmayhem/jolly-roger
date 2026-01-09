@@ -89,7 +89,7 @@ const AvatarStack: FC<{
   );
 
   return (
-    <OverlayTrigger placement="top" overlay={tooltip || defaultTooltip}>
+    <OverlayTrigger placement="left" overlay={tooltip || defaultTooltip}>
       <StackContainer $inline={inline} className={className}>
         {visibleUsers.map((user, i) => (
           <AvatarItem

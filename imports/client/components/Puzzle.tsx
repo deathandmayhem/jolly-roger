@@ -238,8 +238,14 @@ const Puzzle = React.memo(
     );
 
     // add a list of people viewing a puzzle to activity
-    const viewers = (subscribers?.viewers ?? []).filter(Boolean);
-    const rtcViewers = (subscribers?.callers ?? []).filter(Boolean);
+    const viewers = useMemo(
+      () => (subscribers?.viewers ?? []).filter(Boolean),
+      [subscribers?.viewers],
+    );
+    const rtcViewers = useMemo(
+      () => (subscribers?.callers ?? []).filter(Boolean),
+      [subscribers?.callers],
+    );
     const showEdit = canUpdate && !operatorActionsHidden;
 
     // Generating the edit modals for all puzzles is expensive, so we do it

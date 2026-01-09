@@ -19,6 +19,7 @@ import {
   useCallback,
   useEffect,
   useId,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -301,7 +302,8 @@ const PuzzleListView = ({
     displayNamesLoading() ||
     avatarsLoading();
 
-  const statusesSubscribe = useTypedSubscribe(statusesForHuntUsers, { huntId }); // also the statuses for users
+  const statusArgs = useMemo(() => ({ huntId }), [huntId]);
+  const statusesSubscribe = useTypedSubscribe(statusesForHuntUsers, statusArgs); // also the statuses for users
 
   const statusesLoading = statusesSubscribe();
   const displayNames = useTracker(() => indexedDisplayNames(), []);
