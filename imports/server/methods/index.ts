@@ -60,7 +60,6 @@ import "./postAnnouncement";
 import "./promoteOperator";
 import "./provisionFirstUser";
 import "./purgeHunt";
-import "./purgeHuntDocumentCache";
 import "./removeChatMessage";
 import "./removePuzzleAnswer";
 import "./removePuzzleTag";
