@@ -4,6 +4,7 @@ import { useFind, useSubscribe, useTracker } from "meteor/react-meteor-data";
 import { faAngleDoubleDown } from "@fortawesome/free-solid-svg-icons/faAngleDoubleDown";
 import { faAngleDoubleUp } from "@fortawesome/free-solid-svg-icons/faAngleDoubleUp";
 import { faChevronLeft } from "@fortawesome/free-solid-svg-icons/faChevronLeft";
+import { faComments } from "@fortawesome/free-solid-svg-icons/faComments";
 import { faCopy } from "@fortawesome/free-solid-svg-icons/faCopy";
 import { faEdit } from "@fortawesome/free-solid-svg-icons/faEdit";
 import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons/faExternalLinkAlt";
@@ -44,9 +45,12 @@ import Modal from "react-bootstrap/Modal";
 import Offcanvas from "react-bootstrap/Offcanvas";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Popover from "react-bootstrap/Popover";
+import ProgressBar from "react-bootstrap/ProgressBar";
 import Row from "react-bootstrap/Row";
 import Tab from "react-bootstrap/Tab";
 import Tabs from "react-bootstrap/Tabs";
+import Toast from "react-bootstrap/Toast";
+import ToastContainer from "react-bootstrap/ToastContainer";
 import ToggleButton from "react-bootstrap/ToggleButton";
 import ToggleButtonGroup from "react-bootstrap/ToggleButtonGroup";
 import Tooltip from "react-bootstrap/Tooltip";
@@ -2615,6 +2619,149 @@ const MinimizeChatButton = styled.button<{
     `}
 `;
 
+const TickerToast = styled(Toast)`
+  && {
+    border-left: 5px solid #007bff;
+    overflow: hidden;
+    width: 350px;
+    pointer-events: auto;
+    position: relative;
+  }
+
+  .toast-body {
+    position: relative;
+    z-index: 1;
+    background: transparent !important;
+  }
+`;
+
+const TickerToastBody = styled(Toast.Body)`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+`;
+
+const TickerToastContent = styled.div`
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+const TickerProgress = styled(ProgressBar)`
+  position: absolute;
+  inset: 0;
+  height: auto;
+  border-radius: 0;
+  z-index: 0;
+  opacity: 0.1;
+
+  .progress-bar {
+    transition: none;
+    background-color: #007bff;
+  }
+`;
+
+const ManagedTickerToast: FC<{
+  msg: TickerToastType;
+  dismiss: (id: string) => void;
+  onRestore: (e: React.MouseEvent) => void;
+}> = ({ msg, dismiss, onRestore }) => {
+  const [remaining, setRemaining] = useState(msg.duration);
+  const paused = useRef(false);
+  const lastTick = useRef<number>(Date.now());
+  const rafId = useRef<number | null>(null);
+
+  const tick = useCallback(() => {
+    const now = Date.now();
+    const isPageVisible = document.visibilityState === "visible";
+    if (!paused.current && isPageVisible) {
+      const delta = now - lastTick.current;
+      setRemaining((prev) => Math.max(0, prev - delta));
+    }
+    lastTick.current = now;
+    rafId.current = requestAnimationFrame(tick);
+  }, []);
+
+  useEffect(() => {
+    if (remaining <= 0) {
+      dismiss(msg.id);
+    }
+  }, [remaining, dismiss, msg.id]);
+
+  useEffect(() => {
+    lastTick.current = Date.now();
+    rafId.current = requestAnimationFrame(tick);
+    return () => {
+      if (rafId.current) cancelAnimationFrame(rafId.current);
+    };
+  }, [tick]);
+
+  const handleMouseEnter = () => {
+    paused.current = true;
+  };
+
+  const handleMouseLeave = () => {
+    lastTick.current = Date.now();
+    paused.current = false;
+  };
+
+  return (
+    <TickerToast
+      onClose={() => dismiss(msg.id)}
+      show
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      onClick={() => dismiss(msg.id)}
+    >
+      <TickerProgress now={(remaining / msg.duration) * 100} />
+      <TickerToastBody>
+        <TickerToastContent>
+          <strong>{msg.sender}:</strong> {msg.text}
+        </TickerToastContent>
+        <Button
+          variant="primary"
+          size="sm"
+          onClick={onRestore}
+          title="Restore Chat"
+        >
+          <FontAwesomeIcon icon={faComments} size="sm" />
+        </Button>
+      </TickerToastBody>
+    </TickerToast>
+  );
+};
+
+const TickerContainer = styled(ToastContainer)`
+  z-index: 9999;
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+`;
+
+type TickerToastType = {
+  id: string;
+  text: string;
+  sender: string;
+  duration: number;
+};
+
+const getPlainTextMessage = (
+  content: any,
+  displayNames?: Map<string, string>,
+) => {
+  return content.children
+    .map((child: any) => {
+      if (nodeIsText(child)) return child.text;
+      if (nodeIsMention(child)) {
+        const name = displayNames?.get(child.userId) ?? "???";
+        return `@${name}`;
+      }
+      if (nodeIsRoleMention(child)) return "@operator";
+      if (nodeIsImage(child)) return "🖼";
+      return "";
+    })
+    .join("");
+};
+
 enum PuzzleGuessSubmitState {
   IDLE = "idle",
   FAILED = "failed",
@@ -3286,7 +3433,6 @@ const PuzzlePage = React.memo(() => {
   const [isChatMinimized, setIsChatMinimized] = useState<boolean>(false);
   const [lastSidebarWidth, setLastSidebarWidth] =
     useState<number>(DefaultSidebarWidth);
-  const [isRestoring, setIsRestoring] = useState(false);
   const [isMetadataMinimized, setIsMetadataMinimized] =
     useState<boolean>(false);
   const [isDesktop, setIsDesktop] = useState<boolean>(
@@ -3302,6 +3448,8 @@ const PuzzlePage = React.memo(() => {
       chatSectionRef.current?.focus();
     }
   };
+  const [tickerQueue, setTickerQueue] = useState<TickerToastType[]>([]);
+
   const prevIsChatMinimized = useRef(isChatMinimized);
 
   const docRef = useRef<DocumentType | undefined>(undefined);
@@ -3373,7 +3521,56 @@ const PuzzlePage = React.memo(() => {
           { sort: { timestamp: 1 } },
         ).fetch();
   }, [puzzleId, chatDataLoading]);
-  const prevMessagesLength = useRef<number>(0);
+  const prevMessagesLength = useRef<number>(chatMessages.length);
+
+  useEffect(() => {
+    if (chatMessages.length > prevMessagesLength.current) {
+      const newCount = chatMessages.length - prevMessagesLength.current;
+      const newMessages = chatMessages.slice(-newCount);
+
+      if (isChatMinimized) {
+        newMessages.forEach((msg) => {
+          if (msg.sender) {
+            const text = getPlainTextMessage(msg.content, displayNames);
+            const senderName = displayNames.get(msg.sender) ?? "???";
+            const duration = Math.max(
+              3000,
+              Math.min(10000, (text.length / 20) * 1000),
+            );
+
+            setTickerQueue((prev) => [
+              ...prev,
+              { id: msg._id, text, sender: senderName, duration },
+            ]);
+          }
+        });
+      }
+    }
+
+    prevMessagesLength.current = chatMessages.length;
+  }, [chatMessages, isChatMinimized, displayNames]);
+
+  const dismissTickerMessage = (id: string) => {
+    setTickerQueue((prev) => prev.filter((m) => m.id !== id));
+  };
+
+  const handleRestoreFromTicker = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      setIsChatMinimized(false);
+      setTickerQueue([]);
+      setSidebarWidth(lastSidebarWidth);
+      setTimeout(() => {
+        if (chatSectionRef.current) {
+          setTimeout(() => {
+            chatSectionRef.current?.scrollHistoryToTarget();
+            chatSectionRef.current.snapToBottom();
+          }, 100);
+        }
+      }, 0);
+    },
+    [lastSidebarWidth],
+  );
 
   const puzzlesSubscribe = useTypedSubscribe(puzzlesForHunt, { huntId });
   const puzzlesLoading = puzzlesSubscribe();
@@ -3439,6 +3636,7 @@ const PuzzlePage = React.memo(() => {
       setPersistentWidth(newSidebarWidth);
       if (!isChatMinimized) {
         if (newSidebarWidth > 0) {
+          setTickerQueue([]);
           setSidebarWidth(newSidebarWidth);
           setLastSidebarWidth(newSidebarWidth);
         } else {
@@ -3458,6 +3656,7 @@ const PuzzlePage = React.memo(() => {
           setLastSidebarWidth(sidebarWidth);
         }
       } else {
+        setTickerQueue([]);
         setSidebarWidth(lastSidebarWidth);
         setTimeout(() => {
           if (chatSectionRef.current) {
@@ -3468,21 +3667,6 @@ const PuzzlePage = React.memo(() => {
       return nextMinimized;
     });
   }, [sidebarWidth, lastSidebarWidth]);
-
-  const restoreChat = useCallback(() => {
-    if (isChatMinimized) {
-      setIsRestoring(true);
-      setIsChatMinimized(false);
-      setSidebarWidth(lastSidebarWidth);
-      setTimeout(() => {
-        if (chatSectionRef.current) {
-          chatSectionRef.current.scrollHistoryToTarget();
-          chatSectionRef.current.snapToBottom();
-        }
-      }, 0);
-      setIsRestoring(false);
-    }
-  }, [isChatMinimized, lastSidebarWidth]);
 
   const [pulsingMessageId, setPulsingMessageId] = useState<string | null>(null);
 
@@ -3561,15 +3745,15 @@ const PuzzlePage = React.memo(() => {
     return;
   }, [isChatMinimized]);
 
-  useEffect((): (() => void) | undefined => {
-    if (!isChatMinimized && !isRestoring) {
+  useEffect(() => {
+    if (!isChatMinimized) {
       const timer = setTimeout(() => {
         chatSectionRef.current?.snapToBottom();
       }, 100);
       return () => clearTimeout(timer);
     }
     return;
-  }, [isChatMinimized, isRestoring]);
+  }, [isChatMinimized]);
 
   useEffect(() => {
     if (activePuzzle && !activePuzzle.deleted) {
@@ -3587,22 +3771,6 @@ const PuzzlePage = React.memo(() => {
       docRef.current = doc;
     }
   }, [activePuzzle?.url, hasIframeBeenLoaded, doc]);
-
-  useEffect(() => {
-    const currentLength = chatMessages.length;
-    if (
-      currentLength > prevMessagesLength.current &&
-      prevMessagesLength.current > 0
-    ) {
-      if (isChatMinimized) {
-        restoreChat();
-        setTimeout(() => {
-          chatSectionRef.current?.snapToBottom();
-        }, 10);
-      }
-    }
-    prevMessagesLength.current = currentLength;
-  }, [chatMessages, isChatMinimized, restoreChat]);
 
   trace("PuzzlePage render", { puzzleDataLoading, chatDataLoading });
 
@@ -3733,10 +3901,34 @@ const PuzzlePage = React.memo(() => {
       </PuzzleMetadataFloatingButton>
     </OverlayTrigger>
   ) : null;
+  const tickerPortal =
+    isChatMinimized &&
+    tickerQueue.length > 0 &&
+    createPortal(
+      <TickerContainer position="bottom-start" className="p-3">
+        {tickerQueue.length > 1 && (
+          <Badge bg="secondary" pill>
+            +{tickerQueue.length - 1} more message
+            {tickerQueue.length > 2 ? "s" : ""}
+          </Badge>
+        )}
+        {tickerQueue.slice(0, 1).map((msg) => (
+          <ManagedTickerToast
+            key={msg.id}
+            msg={msg}
+            dismiss={dismissTickerMessage}
+            onRestore={handleRestoreFromTicker}
+          />
+        ))}
+      </TickerContainer>,
+      document.body,
+    );
+
   if (isDesktop) {
     return (
       <>
         {deletedModal}
+        {tickerPortal}
         <FixedLayout className="puzzle-page" ref={puzzlePageDivRef}>
           {isChatMinimized && (
             <MinimizedChatInfo
@@ -3794,7 +3986,7 @@ const PuzzlePage = React.memo(() => {
   return (
     <>
       {deletedModal}
-      <FixedLayout $narrow>
+      <FixedLayout $narrow ref={puzzlePageDivRef}>
         {metadata}
         {chat}
       </FixedLayout>
