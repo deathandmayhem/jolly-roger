@@ -79,8 +79,8 @@ import nodeIsRoleMention from "../../lib/nodeIsRoleMention";
 import nodeIsText from "../../lib/nodeIsText";
 import {
   listAllRolesForHunt,
-  userMayWritePuzzlesForHunt,
   userMayUpdateGuessesForHunt,
+  userMayWritePuzzlesForHunt,
 } from "../../lib/permission_stubs";
 import chatMessagesForPuzzle from "../../lib/publications/chatMessagesForPuzzle";
 import puzzleForPuzzlePage from "../../lib/publications/puzzleForPuzzlePage";
@@ -1187,10 +1187,10 @@ const ChatHistory = React.forwardRef(
       // distance instead.
       trace("ChatHistory useLayoutEffect", {
         scrollBottomTarget: scrollBottomTarget.current,
-        action: scrollBottomTarget.current > 10 ? "save" : "snap",
+        action: scrollBottomTarget.current > 60 ? "save" : "snap",
         messageCount: chatMessages.length,
       });
-      if (scrollBottomTarget.current > 10) {
+      if (scrollBottomTarget.current > 60) {
         saveScrollBottomTarget();
       } else {
         snapToBottom();
@@ -1471,326 +1471,342 @@ const initialValue: Descendant[] = [
 ];
 
 const ChatInput = React.memo(
-  ({
-    onHeightChange,
-    onMessageSent,
-    huntId,
-    puzzleId,
-    disabled,
-    replyingTo,
-    setReplyingTo,
-    displayNames,
-    puzzles,
-    scrollToMessage,
-  }: {
-    onHeightChange: () => void;
-    onMessageSent: () => void;
-    huntId: string;
-    puzzleId: string;
-    disabled: boolean;
-    replyingTo: string | null;
-    setReplyingTo: (messageId: string | null) => void;
-    displayNames: Map<string, string>;
-    puzzles: PuzzleType[];
-    scrollToMessage: (messageId: string, callback?: () => void) => void;
-  }) => {
-    // We want to have hunt profile data around so we can autocomplete from multiple fields.
-    const profilesLoadingFunc = useSubscribe("huntProfiles", huntId);
-    const profilesLoading = profilesLoadingFunc();
-    const [uploadImageError, setUploadImageError] = useState<string>();
-    const clearUploadImageError = useCallback(
-      () => setUploadImageError(undefined),
-      [],
-    );
-    const users = useTracker(() => {
-      return profilesLoading
-        ? []
-        : MeteorUsers.find({
-            hunts: huntId,
-            displayName: { $ne: undefined }, // no point completing a user with an unset displayName
-          }).fetch();
-    }, [huntId, profilesLoading]);
-
-    const onHeightChangeCb = useCallback(
-      (newHeight: number) => {
-        if (onHeightChange) {
-          trace("ChatInput onHeightChange", { newHeight });
-          onHeightChange();
-        }
-      },
-      [onHeightChange],
-    );
-
-    const preventDefaultCallback = useCallback((e: React.MouseEvent) => {
-      e.preventDefault();
-    }, []);
-
-    const [content, setContent] = useState<Descendant[]>(initialValue);
-    const fancyEditorRef = useRef<FancyEditorHandle | null>(null);
-    const onContentChange = useCallback(
-      (newContent: Descendant[]) => {
-        setContent(newContent);
-        onHeightChangeCb(0);
-      },
-      [onHeightChangeCb],
-    );
-    const hasNonTrivialContent = useMemo(() => {
-      return (
-        content.length > 0 &&
-        (content[0]! as MessageElement).children.some((child) => {
-          return (
-            nodeIsImage(child) ||
-            nodeIsMention(child) ||
-            nodeIsRoleMention(child) ||
-            (nodeIsText(child) && child.text.trim().length > 0)
-          );
-        })
-      );
-    }, [content]);
-
-    const hasLoadingImage = useMemo(() => {
-      return (
-        content.length > 0 &&
-        (content[0]! as MessageElement).children.some((child) => {
-          return nodeIsImage(child) && child.status === "loading";
-        })
-      );
-    }, [content]);
-
-    const sendContentMessage = useCallback(() => {
-      if (hasNonTrivialContent && !hasLoadingImage) {
-        // Prepare to send message to server.
-
-        // Take only the first Descendant; we normalize the input to a single
-        // block with type "message".
-        const message = content[0]! as MessageElement;
-        // Strip out children from mention elements.  We only need the type and
-        // userId for display purposes.
-        const { type, children } = message;
-        const cleanedMessage = {
-          type,
-          children: children
-            .filter((child) => {
-              if (nodeIsMention(child) || nodeIsRoleMention(child)) {
-                return true;
-              }
-              if (nodeIsImage(child) && child.status !== "success") {
-                return false;
-              }
-              if (nodeIsText(child) && child.text === "") {
-                return false;
-              }
-              return true;
-            })
-            .map((child) => {
-              if (nodeIsMention(child)) {
-                return {
-                  type: child.type,
-                  userId: child.userId,
-                };
-              } else if (nodeIsRoleMention(child)) {
-                return {
-                  type: child.type,
-                  roleId: child.roleId,
-                };
-              } else if (nodeIsImage(child)) {
-                return {
-                  type: child.type,
-                  url: child.url,
-                };
-              } else {
-                return child;
-              }
-            }),
-        };
-
-        // Send chat message.
-        sendChatMessage.call({
-          puzzleId,
-          content: JSON.stringify(cleanedMessage),
-          parentId: replyingTo,
-        });
-        setContent(initialValue);
-        fancyEditorRef.current?.clearInput();
-        if (onMessageSent) {
-          onMessageSent();
-        }
-        return true;
-      }
-      return false;
-    }, [
-      hasNonTrivialContent,
-      hasLoadingImage,
-      content,
-      puzzleId,
-      onMessageSent,
-      replyingTo,
-    ]);
-
-    useBlockUpdate(
-      hasNonTrivialContent
-        ? "You're in the middle of typing a message."
-        : undefined,
-    );
-
-    const fileInputRef = useRef<HTMLInputElement>(null);
-
-    const handleButtonClick = useCallback(() => {
-      fileInputRef.current?.click();
-    }, []);
-
-    const uploadImageFile = useCallback(
-      (file: File) => {
-        const tempId = Random.id();
-        fancyEditorRef.current?.insertImage("", tempId, "loading");
-
-        createChatImageUpload.call(
-          {
-            puzzleId,
-            mimeType: file.type,
-          },
-          (err, upload) => {
-            if (err || !upload) {
-              fancyEditorRef.current?.replaceImage("", tempId, "error");
-              setUploadImageError(
-                err?.message ??
-                  "S3 presignedPost creation failed, check server settings to ensure S3 image bucket is configured correctly.",
-              );
-            } else {
-              const { publicUrl, uploadUrl, fields } = upload;
-              const formData = new FormData();
-              for (const [key, value] of Object.entries(fields)) {
-                formData.append(key, value);
-              }
-              formData.append("file", file);
-              fetch(uploadUrl, {
-                method: "POST",
-                mode: "no-cors",
-                body: formData,
-              })
-                .then(() => {
-                  fancyEditorRef.current?.replaceImage(
-                    publicUrl,
-                    tempId,
-                    "success",
-                  );
-                })
-                .catch((uploadErr) => {
-                  fancyEditorRef.current?.replaceImage("", tempId, "error");
-                  setUploadImageError(`S3 upload failed: ${uploadErr.message}`);
-                });
-            }
-          },
-        );
-      },
-      [puzzleId],
-    );
-
-    function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
-      const file = e.target.files?.[0];
-      if (!file) return;
-      if (!file.type.startsWith("image/")) {
-        setUploadImageError("Only image files can be uploaded in chat.");
-        return;
-      }
-      uploadImageFile(file);
+  React.forwardRef<
+    ChatInputHandle,
+    {
+      onHeightChange: () => void;
+      onMessageSent: () => void;
+      huntId: string;
+      puzzleId: string;
+      disabled: boolean;
+      replyingTo: string | null;
+      setReplyingTo: (messageId: string | null) => void;
+      displayNames: Map<string, string>;
+      puzzles: PuzzleType[];
+      scrollToMessage: (messageId: string, callback?: () => void) => void;
+      sidebarWidth: number;
     }
+  >(
+    (
+      {
+        onHeightChange,
+        onMessageSent,
+        huntId,
+        puzzleId,
+        disabled,
+        replyingTo,
+        setReplyingTo,
+        displayNames,
+        puzzles,
+        scrollToMessage,
+      },
+      forwardedRef,
+    ) => {
+      // We want to have hunt profile data around so we can autocomplete from multiple fields.
+      const profilesLoadingFunc = useSubscribe("huntProfiles", huntId);
+      const profilesLoading = profilesLoadingFunc();
+      const [uploadImageError, setUploadImageError] = useState<string>();
+      const clearUploadImageError = useCallback(
+        () => setUploadImageError(undefined),
+        [],
+      );
+      const users = useTracker(() => {
+        return profilesLoading
+          ? []
+          : MeteorUsers.find({
+              hunts: huntId,
+              displayName: { $ne: undefined }, // no point completing a user with an unset displayName
+            }).fetch();
+      }, [huntId, profilesLoading]);
 
-    useSubscribe("enabledChatImage");
-    const enabledChatImage = useTracker(
-      () => EnabledChatImage.findOne("enabledChatImage")?.enabled ?? false,
-      [],
-    );
+      const onHeightChangeCb = useCallback(
+        (newHeight: number) => {
+          if (onHeightChange) {
+            trace("ChatInput onHeightChange", { newHeight });
+            onHeightChange();
+          }
+        },
+        [onHeightChange],
+      );
 
-    const errorModal = (
-      <Modal show onHide={clearUploadImageError}>
-        <Modal.Header closeButton>Error uploading image to chat</Modal.Header>
-        <Modal.Body>
-          <p>
-            Something went wrong while uploading images to the chat. Contact
-            admin with the error message for help.
-          </p>
-          <p>Error message: {uploadImageError}</p>
-        </Modal.Body>
-      </Modal>
-    );
+      const preventDefaultCallback = useCallback((e: React.MouseEvent) => {
+        e.preventDefault();
+      }, []);
 
-    const parentMessage = useTracker(() => {
-      if (replyingTo) {
-        return ChatMessages.findOne(replyingTo);
+      const [content, setContent] = useState<Descendant[]>(initialValue);
+      const fancyEditorRef = useRef<FancyEditorHandle | null>(null);
+      const onContentChange = useCallback(
+        (newContent: Descendant[]) => {
+          setContent(newContent);
+          onHeightChangeCb(0);
+        },
+        [onHeightChangeCb],
+      );
+      const hasNonTrivialContent = useMemo(() => {
+        return (
+          content.length > 0 &&
+          (content[0]! as MessageElement).children.some((child) => {
+            return (
+              nodeIsImage(child) ||
+              nodeIsMention(child) ||
+              nodeIsRoleMention(child) ||
+              (nodeIsText(child) && child.text.trim().length > 0)
+            );
+          })
+        );
+      }, [content]);
+
+      const hasLoadingImage = useMemo(() => {
+        return (
+          content.length > 0 &&
+          (content[0]! as MessageElement).children.some((child) => {
+            return nodeIsImage(child) && child.status === "loading";
+          })
+        );
+      }, [content]);
+
+      const sendContentMessage = useCallback(() => {
+        if (hasNonTrivialContent && !hasLoadingImage) {
+          // Prepare to send message to server.
+
+          // Take only the first Descendant; we normalize the input to a single
+          // block with type "message".
+          const message = content[0]! as MessageElement;
+          // Strip out children from mention elements.  We only need the type and
+          // userId for display purposes.
+          const { type, children } = message;
+          const cleanedMessage = {
+            type,
+            children: children
+              .filter((child) => {
+                if (nodeIsMention(child) || nodeIsRoleMention(child)) {
+                  return true;
+                }
+                if (nodeIsImage(child) && child.status !== "success") {
+                  return false;
+                }
+                if (nodeIsText(child) && child.text === "") {
+                  return false;
+                }
+                return true;
+              })
+              .map((child) => {
+                if (nodeIsMention(child)) {
+                  return {
+                    type: child.type,
+                    userId: child.userId,
+                  };
+                } else if (nodeIsRoleMention(child)) {
+                  return {
+                    type: child.type,
+                    roleId: child.roleId,
+                  };
+                } else if (nodeIsImage(child)) {
+                  return {
+                    type: child.type,
+                    url: child.url,
+                  };
+                } else {
+                  return child;
+                }
+              }),
+          };
+
+          // Send chat message.
+          sendChatMessage.call({
+            puzzleId,
+            content: JSON.stringify(cleanedMessage),
+            parentId: replyingTo,
+          });
+          setContent(initialValue);
+          fancyEditorRef.current?.clearInput();
+          if (onMessageSent) {
+            onMessageSent();
+          }
+          return true;
+        }
+        return false;
+      }, [
+        hasNonTrivialContent,
+        hasLoadingImage,
+        content,
+        puzzleId,
+        onMessageSent,
+        replyingTo,
+      ]);
+
+      useBlockUpdate(
+        hasNonTrivialContent
+          ? "You're in the middle of typing a message."
+          : undefined,
+      );
+
+      const fileInputRef = useRef<HTMLInputElement>(null);
+
+      const handleButtonClick = useCallback(() => {
+        fileInputRef.current?.click();
+      }, []);
+
+      const uploadImageFile = useCallback(
+        (file: File) => {
+          const tempId = Random.id();
+          fancyEditorRef.current?.insertImage("", tempId, "loading");
+
+          createChatImageUpload.call(
+            {
+              puzzleId,
+              mimeType: file.type,
+            },
+            (err, upload) => {
+              if (err || !upload) {
+                fancyEditorRef.current?.replaceImage("", tempId, "error");
+                setUploadImageError(
+                  err?.message ??
+                    "S3 presignedPost creation failed, check server settings to ensure S3 image bucket is configured correctly.",
+                );
+              } else {
+                const { publicUrl, uploadUrl, fields } = upload;
+                const formData = new FormData();
+                for (const [key, value] of Object.entries(fields)) {
+                  formData.append(key, value);
+                }
+                formData.append("file", file);
+                fetch(uploadUrl, {
+                  method: "POST",
+                  mode: "no-cors",
+                  body: formData,
+                })
+                  .then(() => {
+                    fancyEditorRef.current?.replaceImage(
+                      publicUrl,
+                      tempId,
+                      "success",
+                    );
+                  })
+                  .catch((uploadErr) => {
+                    fancyEditorRef.current?.replaceImage("", tempId, "error");
+                    setUploadImageError(
+                      `S3 upload failed: ${uploadErr.message}`,
+                    );
+                  });
+              }
+            },
+          );
+        },
+        [puzzleId],
+      );
+
+      function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        if (!file.type.startsWith("image/")) {
+          setUploadImageError("Only image files can be uploaded in chat.");
+          return;
+        }
+        uploadImageFile(file);
       }
-      return undefined;
-    }, [replyingTo]);
 
-    const parentSenderName = useTracker(() => {
-      if (parentMessage) {
-        return parentMessage.sender
-          ? (displayNames.get(parentMessage.sender) ?? "???")
-          : "jolly-roger";
-      }
-      return undefined;
-    }, [displayNames, parentMessage]);
+      useSubscribe("enabledChatImage");
+      const enabledChatImage = useTracker(
+        () => EnabledChatImage.findOne("enabledChatImage")?.enabled ?? false,
+        [],
+      );
 
-    return (
-      <ChatInputRow>
-        {replyingTo && parentSenderName && (
-          <ReplyingTo onClick={() => scrollToMessage(replyingTo)}>
-            Replying to {parentSenderName}
-            <ReplyingToCancel
-              icon={faTimes}
-              onClick={(e) => {
-                e.stopPropagation();
-                setReplyingTo(null);
-              }}
-            />
-          </ReplyingTo>
-        )}
-        {uploadImageError && createPortal(errorModal, document.body)}
-        <InputGroup>
-          <StyledFancyEditor
-            ref={fancyEditorRef}
-            className="form-control"
-            initialContent={content}
-            placeholder="Chat"
-            users={users}
-            puzzles={puzzles}
-            onContentChange={onContentChange}
-            onSubmit={sendContentMessage}
-            uploadImageFile={uploadImageFile}
-            disabled={disabled}
-          />
-          <Button
-            variant="secondary"
-            onClick={sendContentMessage}
-            onMouseDown={preventDefaultCallback}
-            disabled={disabled || !hasNonTrivialContent || hasLoadingImage}
-          >
-            <FontAwesomeIcon icon={faPaperPlane} />
-          </Button>
-          {enabledChatImage && (
-            <>
-              <Button variant="secondary" onClick={handleButtonClick}>
-                <FontAwesomeIcon icon={faImage} />
-              </Button>
-              <input
-                type="file"
-                accept="image/*"
-                style={{ display: "none" }}
-                ref={fileInputRef}
-                onChange={handleImageUpload}
+      const errorModal = (
+        <Modal show onHide={clearUploadImageError}>
+          <Modal.Header closeButton>Error uploading image to chat</Modal.Header>
+          <Modal.Body>
+            <p>
+              Something went wrong while uploading images to the chat. Contact
+              admin with the error message for help.
+            </p>
+            <p>Error message: {uploadImageError}</p>
+          </Modal.Body>
+        </Modal>
+      );
+
+      const parentMessage = useTracker(() => {
+        if (replyingTo) {
+          return ChatMessages.findOne(replyingTo);
+        }
+        return undefined;
+      }, [replyingTo]);
+
+      const parentSenderName = useTracker(() => {
+        if (parentMessage) {
+          return parentMessage.sender
+            ? (displayNames.get(parentMessage.sender) ?? "???")
+            : "jolly-roger";
+        }
+        return undefined;
+      }, [displayNames, parentMessage]);
+
+      useImperativeHandle(forwardedRef, () => ({
+        focus: () => fancyEditorRef.current?.focus(),
+      }));
+
+      return (
+        <ChatInputRow>
+          {replyingTo && parentSenderName && (
+            <ReplyingTo onClick={() => scrollToMessage(replyingTo)}>
+              Replying to {parentSenderName}
+              <ReplyingToCancel
+                icon={faTimes}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setReplyingTo(null);
+                }}
               />
-            </>
+            </ReplyingTo>
           )}
-        </InputGroup>
-      </ChatInputRow>
-    );
-  },
+          {uploadImageError && createPortal(errorModal, document.body)}
+          <InputGroup>
+            <StyledFancyEditor
+              ref={fancyEditorRef}
+              className="form-control"
+              initialContent={content}
+              placeholder="Chat"
+              users={users}
+              puzzles={puzzles}
+              onContentChange={onContentChange}
+              onSubmit={sendContentMessage}
+              uploadImageFile={uploadImageFile}
+              disabled={disabled}
+            />
+            <Button
+              variant="secondary"
+              onClick={sendContentMessage}
+              onMouseDown={preventDefaultCallback}
+              disabled={disabled || !hasNonTrivialContent || hasLoadingImage}
+            >
+              <FontAwesomeIcon icon={faPaperPlane} />
+            </Button>
+            {enabledChatImage && (
+              <>
+                <Button variant="secondary" onClick={handleButtonClick}>
+                  <FontAwesomeIcon icon={faImage} />
+                </Button>
+                <input
+                  type="file"
+                  accept="image/*"
+                  style={{ display: "none" }}
+                  ref={fileInputRef}
+                  onChange={handleImageUpload}
+                />
+              </>
+            )}
+          </InputGroup>
+        </ChatInputRow>
+      );
+    },
+  ),
 );
 
 interface ChatSectionHandle {
   scrollHistoryToTarget: () => void;
   scrollToMessage: (messageId: string, callback?: () => void) => void;
   snapToBottom: () => void;
+  focus: () => void;
 }
 
 const AttachmentsSection = React.forwardRef(
@@ -1994,6 +2010,7 @@ const ChatSection = React.forwardRef(
     forwardedRef: React.Ref<ChatSectionHandle>,
   ) => {
     const historyRef = useRef<React.ElementRef<typeof ChatHistoryMemo>>(null);
+    const inputRef = useRef<ChatInputHandle>(null);
     const scrollToTargetRequestRef = useRef<boolean>(false);
 
     const scrollHistoryToTarget = useCallback(() => {
@@ -2043,11 +2060,16 @@ const ChatSection = React.forwardRef(
       }
     }, []);
 
+    const focus = useCallback(() => {
+      inputRef.current?.focus();
+    }, []);
+
     useImperativeHandle(forwardedRef, () => ({
       scrollHistoryToTarget,
       scrollToMessage,
       highlightMessage,
       snapToBottom,
+      focus,
     }));
 
     useLayoutEffect(() => {
@@ -2107,6 +2129,7 @@ const ChatSection = React.forwardRef(
         />
         <ChatInput
           huntId={huntId}
+          ref={inputRef}
           puzzleId={puzzleId}
           disabled={disabled}
           onHeightChange={scrollHistoryToTarget}
@@ -3270,10 +3293,15 @@ const PuzzlePage = React.memo(() => {
     window.innerWidth >= MinimumDesktopWidth,
   );
   const [hasIframeBeenLoaded, setHasIframeBeenLoaded] = useState(false);
-  const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [replyingTo, setMsgReplyingTo] = useState<string | null>(null);
   const [showDocument, setShowDocument] = useState<boolean>(true);
   const [showHighlights, setShowHighlights] = useState(false);
-
+  const setReplyingTo = (messageId: string | null) => {
+    setMsgReplyingTo(messageId);
+    if (messageId !== null) {
+      chatSectionRef.current?.focus();
+    }
+  };
   const prevIsChatMinimized = useRef(isChatMinimized);
 
   const docRef = useRef<DocumentType | undefined>(undefined);

@@ -708,6 +708,7 @@ export interface FancyEditorHandle {
   clearInput: () => void;
   insertImage: (url: string, id: string, status: ImageStatus) => void;
   replaceImage: (url: string, id: string, status: ImageStatus) => void;
+  focus: () => void;
 }
 
 const FancyEditor = React.forwardRef(
@@ -849,6 +850,7 @@ const FancyEditor = React.forwardRef(
       clearInput,
       insertImage,
       replaceImage,
+      focus: () => ReactEditor.focus(editor),
     }));
 
     const renderElement = useCallback(
