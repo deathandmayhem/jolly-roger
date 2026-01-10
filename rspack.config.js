@@ -19,5 +19,8 @@ module.exports = defineConfig(Meteor => {
     resolve: {
       fallback: Meteor.isClient ? fallbackClient : fallbackServer,
     },
+    externals: {
+      mediasoup: "commonjs mediasoup",
+    },
   };
 });
