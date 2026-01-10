@@ -44,6 +44,7 @@ const BookmarkButton: BookmarkButtonType = React.forwardRef<
     >
       <FontAwesomeIcon
         icon={bookmarked ? faBookmarkSolid : faBookmarkRegular}
+        color={bookmarked ? "yellow" : undefined}
         beat={animateBookmark}
         onAnimationEnd={onAnimationEnd}
         style={{
