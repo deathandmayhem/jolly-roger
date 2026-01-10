@@ -697,6 +697,7 @@ const PuzzleListView = ({
       retainedDeletedPuzzles: PuzzleType[] | undefined,
       solvedOverConstrains: boolean,
       allPuzzlesCount: number,
+      searchString: string,
     ) => {
       const maybeMatchWarning = solvedOverConstrains && (
         <Alert variant="info">
@@ -782,6 +783,12 @@ const PuzzleListView = ({
           break;
         }
       }
+      let nonBookmarkedPuzzleListTitle = "All puzzles";
+      if (searchString.trim().length > 0) {
+        nonBookmarkedPuzzleListTitle = "Search results";
+      } else if (showSolved === "unsolved") {
+        nonBookmarkedPuzzleListTitle = "Unsolved puzzles";
+      }
       return (
         <div>
           {maybeMatchWarning}
@@ -797,7 +804,7 @@ const PuzzleListView = ({
           </PuzzleListToolbar>
           {bookmarkedPuzzles.length > 0 && (
             <PuzzleGroupDiv>
-              <h4>Bookmarked</h4>
+              <h5>Bookmarked</h5>
               <RelatedPuzzleList
                 key="bookmarked"
                 relatedPuzzles={bookmarkedPuzzles}
@@ -810,7 +817,7 @@ const PuzzleListView = ({
                 subscribers={puzzleSubscribers}
                 puzzleUsers={puzzleUsers}
               />
-              <h4>All puzzles</h4>
+              <h5>{nonBookmarkedPuzzleListTitle}</h5>
             </PuzzleGroupDiv>
           )}
           {listComponent}
@@ -845,10 +852,10 @@ const PuzzleListView = ({
       puzzleSubscribers,
       puzzleUsers,
       huntId,
-      searchString,
       showAddModalWithTags,
       canExpandAllGroups,
       expandAllGroups,
+      showSolved,
     ],
   );
 
@@ -1063,6 +1070,7 @@ const PuzzleListView = ({
         retainedDeletedPuzzles,
         solvedOverConstrains,
         allPuzzles.length,
+        searchString,
       )}
     </div>
   );
