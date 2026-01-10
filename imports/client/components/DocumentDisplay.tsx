@@ -7,6 +7,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import styled from "styled-components";
 import type { DocumentType } from "../../lib/models/Documents";
 import type { Theme } from "../theme";
+import CopyToClipboardButton from "./CopyToClipboardButton";
 
 interface DocumentDisplayProps {
   document: DocumentType;
@@ -86,6 +87,18 @@ const GoogleDocumentDisplay = ({
   }
 
   switch (displayMode) {
+    case "copy":
+      return (
+        <CopyToClipboardButton
+          variant="link"
+          tooltipText="Copy for link sharing or advanced features"
+          tooltipPlacement="right"
+          text={url}
+          size="sm"
+        >
+          <FontAwesomeIcon fixedWidth icon={icon} /> <span>{title}</span>
+        </CopyToClipboardButton>
+      );
     case "link":
       return (
         <StyledDeepLink href={url} target="_blank" rel="noreferrer noopener">

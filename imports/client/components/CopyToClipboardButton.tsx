@@ -6,12 +6,13 @@ import OverlayTrigger, {
 import Tooltip from "react-bootstrap/Tooltip";
 
 interface CopyToClipboardProps extends ButtonProps {
+  tooltipText?: string;
   tooltipPlacement?: OverlayTriggerProps["placement"];
   text: string | (() => string); // the text to copy, or a function that will generate it lazily
 }
 
 const CopyToClipboardButton = (props: CopyToClipboardProps) => {
-  const { tooltipPlacement, text, children, ...rest } = props;
+  const { tooltipPlacement, text, tooltipText, children, ...rest } = props;
   const [copied, setCopied] = useState<boolean>(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(
     undefined,
@@ -38,7 +39,9 @@ const CopyToClipboardButton = (props: CopyToClipboardProps) => {
   const tooltipId = useId();
 
   const copyTooltip = (
-    <Tooltip id={tooltipId}>{copied ? "Copied!" : "Copy to clipboard"}</Tooltip>
+    <Tooltip id={tooltipId}>
+      {copied ? "Copied!" : (tooltipText ?? "Copy to clipboard")}
+    </Tooltip>
   );
 
   return (

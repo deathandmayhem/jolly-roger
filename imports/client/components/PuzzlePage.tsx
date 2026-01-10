@@ -2294,15 +2294,16 @@ const PuzzlePageMetadata = ({
       <InsertImage documentId={document._id} />
     );
 
-  const documentLink =
-    document && !isDesktop ? (
+  const documentLink = document ? (
+    <span>
       <DocumentDisplay
         document={document}
-        displayMode="link"
+        displayMode={isDesktop ? "copy" : "link"}
         user={selfUser}
         isShown={false}
       />
-    ) : null;
+    </span>
+  ) : null;
 
   const editButton = canUpdate ? (
     <Button
