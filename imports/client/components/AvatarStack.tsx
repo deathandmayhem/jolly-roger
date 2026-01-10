@@ -29,7 +29,7 @@ const AvatarItem = styled.div<{
   margin-right: -${({ $overlap }) => $overlap}px;
   border: 2px solid
     ${({ theme, $isPassive }) =>
-      $isPassive ? theme.colors.muted : theme.colors.background};
+      $isPassive ? theme.colors.warning : theme.colors.success};
   border-radius: 50%;
   transition: all 0.2s ease-in-out;
   position: relative;
