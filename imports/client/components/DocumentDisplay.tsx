@@ -1,5 +1,6 @@
 import type { Meteor } from "meteor/meteor";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
+import { faCopy } from "@fortawesome/free-solid-svg-icons/faCopy";
 import { faFileAlt } from "@fortawesome/free-solid-svg-icons/faFileAlt";
 import { faFilePen } from "@fortawesome/free-solid-svg-icons/faFilePen";
 import { faTable } from "@fortawesome/free-solid-svg-icons/faTable";
@@ -96,7 +97,7 @@ const GoogleDocumentDisplay = ({
           text={url}
           size="sm"
         >
-          <FontAwesomeIcon fixedWidth icon={icon} /> <span>{title}</span>
+          <span>{title}</span> <FontAwesomeIcon fixedWidth icon={faCopy} />
         </CopyToClipboardButton>
       );
     case "link":
