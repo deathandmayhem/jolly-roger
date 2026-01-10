@@ -1,5 +1,5 @@
-import { faStar as faStarRegular } from "@fortawesome/free-regular-svg-icons/faStar";
-import { faStar as faStarSolid } from "@fortawesome/free-solid-svg-icons/faStar";
+import { faBookmark as faBookmarkRegular } from "@fortawesome/free-regular-svg-icons/faBookmark";
+import { faBookmark as faBookmarkSolid } from "@fortawesome/free-solid-svg-icons/faBookmark";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { useCallback, useState } from "react";
 import Button from "react-bootstrap/Button";
@@ -43,7 +43,7 @@ const BookmarkButton: BookmarkButtonType = React.forwardRef<
       {...props}
     >
       <FontAwesomeIcon
-        icon={bookmarked ? faStarSolid : faStarRegular}
+        icon={bookmarked ? faBookmarkSolid : faBookmarkRegular}
         beat={animateBookmark}
         onAnimationEnd={onAnimationEnd}
         style={{
