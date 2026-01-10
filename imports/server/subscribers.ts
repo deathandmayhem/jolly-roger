@@ -177,37 +177,108 @@ Meteor.publish("subscribers.fetchAll", async function (hunt) {
     throw new Meteor.Error(403, "Not a member of this hunt");
   }
 
-  const users: Record<string, number> = {};
+  // 1. We track DETAILED state per document, grouped by the "Aggregate Key"
+  // Map<Key, Map<DocId, { visible, updatedAt }>>
+  const state = new Map();
 
-  const cursor = Subscribers.find({});
-  // const cursor = Subscribers.find({'context.hunt': hunt});
-  const handle = cursor.observe({
-    added: (doc) => {
-      const user = doc.user;
-      const name = doc.name;
-      const key = `${name}:${user}`;
+  const updateClient = (key, name, user) => {
+    const docs = state.get(key);
 
-      if (!Object.hasOwn(users, key)) {
-        users[key] = 0;
-        this.added("subscribers", key, { name, user });
+    if (!docs || docs.size === 0) {
+      this.removed("subscribers", key);
+      return;
+    }
+
+    // 2. Recalculate the "Best" state for this user
+    let bestUpdatedAt = 0;
+    let isAnyVisible = false;
+
+    for (const docState of docs.values()) {
+      if (docState.updatedAt && docState.updatedAt.getTime() > bestUpdatedAt) {
+        bestUpdatedAt = docState.updatedAt.getTime();
       }
 
-      users[key] += 1;
+      if (docState.visible === "visible") {
+        isAnyVisible = true;
+      }
+    }
+
+    const payload = {
+      name,
+      user,
+      updatedAt: new Date(bestUpdatedAt),
+      visible: isAnyVisible,
+    };
+
+    // 3. Send to client (Added if new, Changed if exists)
+    if (docs._sent) {
+      this.changed("subscribers", key, payload);
+    } else {
+      this.added("subscribers", key, payload);
+      docs._sent = true;
+    }
+  };
+
+  const cursor = Subscribers.find({});
+
+  const handle = cursor.observe({
+    added: (doc) => {
+      // Filter manually since we are observing all Subscribers (if desired)
+      // or rely on client side filtering.
+      // Assuming 'hunt' context matches or filtering happens in `find`:
+      // if (doc.hunt !== hunt) return;
+
+      const key = `${doc.name}:${doc.user}`;
+
+      if (!state.has(key)) {
+        state.set(key, new Map());
+      }
+
+      const docState = {
+        visible: doc.context?.visible, // Capture the visibility
+        updatedAt: doc.updatedAt,
+      };
+
+      state.get(key).set(doc._id, docState);
+      updateClient(key, doc.name, doc.user);
+    },
+
+    changed: (doc) => {
+      const key = `${doc.name}:${doc.user}`;
+      if (state.has(key)) {
+        const group = state.get(key);
+        if (group.has(doc._id)) {
+          const docState = {
+            visible: doc.context?.visible,
+            updatedAt: doc.updatedAt,
+          };
+          group.set(doc._id, docState);
+          updateClient(key, doc.name, doc.user);
+        }
+      }
     },
 
     removed: (doc) => {
-      const user = doc.user;
-      const name = doc.name;
-      const key = `${name}:${user}`;
+      const key = `${doc.name}:${doc.user}`;
+      if (state.has(key)) {
+        const group = state.get(key);
+        group.delete(doc._id);
 
-      users[key] -= 1;
-      if (users[key] === 0) {
-        delete users[key];
-        this.removed("subscribers", key);
+        if (group.size === 0) {
+          // If empty, remove the group entirely so updateClient sends 'removed'
+          // We need to call updateClient BEFORE deleting the map entry
+          // so it sees size 0? No, updateClient checks checks size.
+          // But if we delete the map entry, we lose the '_sent' flag.
+          // So we keep the map entry until after updateClient, then delete if empty.
+          updateClient(key, doc.name, doc.user);
+          state.delete(key);
+        } else {
+          updateClient(key, doc.name, doc.user);
+        }
       }
     },
   });
+
   this.onStop(() => handle.stop());
   this.ready();
-  return undefined;
 });

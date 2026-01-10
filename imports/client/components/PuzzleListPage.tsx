@@ -359,6 +359,7 @@ const PuzzleListView = ({
 
   const statusesLoading = statusesSubscribe();
   const displayNames = useTracker(() => indexedDisplayNames(), []);
+
   const puzzleUsers: Record<string, string[]> = useTracker(() => {
     if (subscriptionsLoading || statusesLoading) {
       return {};
@@ -379,50 +380,127 @@ const PuzzleListView = ({
       }
       return acc;
     }, {});
+
     return mappedUsers;
   }, [subscriptionsLoading, statusesLoading, huntId]);
 
   const puzzleSubscribers = useTracker(() => {
     if (subscriptionsLoading) {
-      return { none: { none: [] } };
+      return {
+        none: { activeViewers: [], passiveViewers: [], rtcViewers: [] },
+      };
     }
 
-    const puzzleSubs = {};
+    const nextPuzzleSubs: Record<
+      string,
+      {
+        activeViewers: string[];
+        passiveViewers: string[];
+        rtcViewers: string[];
+      }
+    > = {};
+    const FIVE_MINUTES_MS = 5 * 60 * 1000;
+    const now = Date.now();
 
-    Peers.find({})
-      .fetch()
-      .forEach((s) => {
-        const puzzle = s.call;
-        const user = s.createdBy;
-        if (!Object.hasOwn(puzzleSubs, puzzle)) {
-          puzzleSubs[puzzle] = {
-            viewers: [],
-            callers: [],
-          };
-        }
-        if (!puzzleSubs[puzzle].callers.includes(user)) {
-          puzzleSubs[puzzle].callers.push(user);
-        }
-      });
-
-    Subscribers.find({}).forEach((s) => {
-      const puzzle = s.name.replace(/^puzzle:/, "");
-      const user = s.user;
-      if (!Object.hasOwn(puzzleSubs, puzzle)) {
-        puzzleSubs[puzzle] = {
-          viewers: [],
-          callers: [],
+    const ensurePuzzle = (pid: string) => {
+      if (!Object.hasOwn(nextPuzzleSubs, pid)) {
+        nextPuzzleSubs[pid] = {
+          activeViewers: [],
+          passiveViewers: [],
+          rtcViewers: [],
         };
       }
-      if (
-        !puzzleSubs[puzzle].callers.includes(user) &&
-        !puzzleSubs[puzzle].viewers.includes(user)
-      ) {
-        puzzleSubs[puzzle].viewers.push(user);
+    };
+
+    // Process RTC Viewers
+    Peers.find({}).forEach((p) => {
+      ensurePuzzle(p.call);
+      if (!nextPuzzleSubs[p.call].rtcViewers.includes(p.createdBy)) {
+        nextPuzzleSubs[p.call].rtcViewers.push(p.createdBy);
       }
     });
-    return puzzleSubs;
-  }, [subscriptionsLoading]);
+
+    interface Candidate {
+      puzzleId: string;
+      updatedAt: number;
+      visible: boolean;
+      isInteraction: boolean;
+    }
+    const candidatesByUser: Record<string, Candidate[]> = {};
+
+    const addCandidate = (uid: string, c: Candidate) => {
+      if (!candidatesByUser[uid]) candidatesByUser[uid] = [];
+      candidatesByUser[uid].push(c);
+    };
+
+    // Gather Subscribers
+    Subscribers.find({ name: { $regex: /^puzzle:/ } }).forEach((s) => {
+      // Logic for checking visibility (string or boolean)
+      const isVisible = s.visible === "visible" || s.visible === true;
+
+      addCandidate(s.user, {
+        puzzleId: s.name.replace(/^puzzle:/, ""),
+        updatedAt: s.updatedAt ? new Date(s.updatedAt).getTime() : 0,
+        visible: isVisible,
+        isInteraction: false,
+      });
+    });
+
+    // Gather UserStatuses
+    UserStatuses.find({ hunt: huntId, puzzle: { $exists: true } }).forEach(
+      (s) => {
+        addCandidate(s.user, {
+          puzzleId: s.puzzle!,
+          updatedAt: s.updatedAt ? new Date(s.updatedAt).getTime() : 0,
+          visible: false,
+          isInteraction: true,
+        });
+      },
+    );
+
+    // Determine Best Location & Sort
+    Object.entries(candidatesByUser).forEach(([uid, locations]) => {
+      let bestLocations: Candidate[] = [];
+      const visible = locations.filter((l) => l.visible);
+
+      if (visible.length > 0) {
+        bestLocations = visible;
+      } else {
+        const recent = locations.filter(
+          (l) => now - l.updatedAt < FIVE_MINUTES_MS,
+        );
+
+        if (recent.length > 0) {
+          recent.sort((a, b) => {
+            // If one is an interaction and the other isn't, prefer the interaction
+            if (a.isInteraction !== b.isInteraction) {
+              return a.isInteraction ? -1 : 1;
+            }
+            // Otherwise, sort by recency (newest first)
+            return b.updatedAt - a.updatedAt;
+          });
+
+          bestLocations = [recent[0]];
+        }
+      }
+
+      bestLocations.forEach((loc) => {
+        ensurePuzzle(loc.puzzleId);
+        const pData = nextPuzzleSubs[loc.puzzleId];
+
+        if (pData.rtcViewers.includes(uid)) return;
+
+        if (loc.visible) {
+          if (!pData.activeViewers.includes(uid)) pData.activeViewers.push(uid);
+        } else {
+          if (!pData.passiveViewers.includes(uid))
+            pData.passiveViewers.push(uid);
+        }
+      });
+    });
+
+    return nextPuzzleSubs;
+  }, [subscriptionsLoading, huntId]);
 
   // Automatically focus the search bar whenever the search string changes
   // (e.g., when a tag is clicked)
@@ -473,7 +551,17 @@ const PuzzleListView = ({
           if (showSolvers === "viewers") {
             const matchingViewers =
               puzzle._id in puzzleSubscribers
-                ? puzzleSubscribers[puzzle._id].viewers.some((userId) => {
+                ? puzzleSubscribers[puzzle._id].activeViewers.some((userId) => {
+                    const user = tagNames[userId] || displayNames.get(userId);
+                    return user?.toLowerCase().includes(key);
+                  }) ||
+                  puzzleSubscribers[puzzle._id].passiveViewers.some(
+                    (userId) => {
+                      const user = tagNames[userId] || displayNames.get(userId);
+                      return user?.toLowerCase().includes(key);
+                    },
+                  ) ||
+                  puzzleSubscribers[puzzle._id].rtcViewers.some((userId) => {
                     const user = tagNames[userId] || displayNames.get(userId);
                     return user?.toLowerCase().includes(key);
                   })
@@ -485,7 +573,7 @@ const PuzzleListView = ({
           if (showSolvers !== "hide") {
             const matchingCallers =
               puzzle._id in puzzleSubscribers
-                ? puzzleSubscribers[puzzle._id].callers.some((userId) => {
+                ? puzzleSubscribers[puzzle._id].rtcViewers.some((userId) => {
                     const user = tagNames[userId] || displayNames.get(userId);
                     return user?.toLowerCase().includes(key);
                   })
@@ -998,13 +1086,8 @@ const PuzzleListPage = () => {
     includeDeleted: isAdmin,
   });
 
-  const presenceLoading = useTypedSubscribe(presenceForHunt, { huntId });
+  useTypedSubscribe(presenceForHunt, { huntId });
 
-  const userPresence = useTracker(() => {
-    return Subscribers.find({ "context.hunt": huntId }).fetch();
-  }, [huntId]);
-
-  console.log(userPresence);
   const loading = puzzlesLoading();
 
   // Don't bother including this in loading - it's ok if they trickle in

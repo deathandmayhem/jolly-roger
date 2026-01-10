@@ -45,6 +45,12 @@ import PuzzleModalForm from "./PuzzleModalForm";
 import { mediaBreakpointDown } from "./styling/responsive";
 import TagList from "./TagList";
 
+const NO_SUBSCRIBERS = {
+  rtcViewers: [] as string[],
+  activeViewers: [] as string[],
+  passiveViewers: [] as string[],
+};
+
 const PuzzleDiv = styled.div<{
   $solvedness: Solvedness;
   theme: Theme;
@@ -237,15 +243,9 @@ const Puzzle = React.memo(
       puzzle.hunt,
     );
 
-    // add a list of people viewing a puzzle to activity
-    const viewers = useMemo(
-      () => (subscribers?.viewers ?? []).filter(Boolean),
-      [subscribers?.viewers],
-    );
-    const rtcViewers = useMemo(
-      () => (subscribers?.callers ?? []).filter(Boolean),
-      [subscribers?.callers],
-    );
+    const { rtcViewers, activeViewers, passiveViewers } =
+      subscribers ?? NO_SUBSCRIBERS;
+
     const showEdit = canUpdate && !operatorActionsHidden;
 
     // Generating the edit modals for all puzzles is expensive, so we do it
@@ -487,15 +487,6 @@ const Puzzle = React.memo(
         return null;
       }
     }, [isMeta, isMetameta]);
-    const { activeViewers, passiveViewers } = useMemo(() => {
-      if (!viewers) {
-        return { activeViewers: [], passiveViewers: [] };
-      }
-      const active = viewers.filter((u) => puzzleUsers?.includes(u));
-      const passive = viewers.filter((u) => !puzzleUsers?.includes(u));
-
-      return { activeViewers: active, passiveViewers: passive };
-    }, [puzzleUsers, viewers]);
 
     const rtcUsers = useTracker(
       () =>
