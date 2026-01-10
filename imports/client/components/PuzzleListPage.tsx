@@ -797,7 +797,7 @@ const PuzzleListView = ({
           </PuzzleListToolbar>
           {bookmarkedPuzzles.length > 0 && (
             <PuzzleGroupDiv>
-              <div>Bookmarked</div>
+              <h4>Bookmarked</h4>
               <RelatedPuzzleList
                 key="bookmarked"
                 relatedPuzzles={bookmarkedPuzzles}
@@ -810,6 +810,7 @@ const PuzzleListView = ({
                 subscribers={puzzleSubscribers}
                 puzzleUsers={puzzleUsers}
               />
+              <h4>All puzzles</h4>
             </PuzzleGroupDiv>
           )}
           {listComponent}
