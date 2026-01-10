@@ -1,6 +1,6 @@
 import { Meteor } from "meteor/meteor";
 import { Random } from "meteor/random";
-import { useFind, useSubscribe, useTracker } from "meteor/react-meteor-data";
+import { useSubscribe, useTracker } from "meteor/react-meteor-data";
 import { faAngleDoubleDown } from "@fortawesome/free-solid-svg-icons/faAngleDoubleDown";
 import { faAngleDoubleUp } from "@fortawesome/free-solid-svg-icons/faAngleDoubleUp";
 import { faChevronLeft } from "@fortawesome/free-solid-svg-icons/faChevronLeft";
@@ -1274,7 +1274,7 @@ const ChatHistory = React.forwardRef(
 const PinnedMessage = React.forwardRef(
   (
     {
-      puzzleId,
+      pinnedMessage,
       displayNames,
       selfUser,
       scrollToMessage,
@@ -1282,7 +1282,7 @@ const PinnedMessage = React.forwardRef(
       setReplyingTo,
       puzzles,
     }: {
-      puzzleId: string;
+      pinnedMessage: FilteredChatMessageType[];
       displayNames: Map<string, string>;
       selfUser: Meteor.User;
       scrollToMessage: (messageId: string, callback?: () => void) => void;
@@ -1292,15 +1292,6 @@ const PinnedMessage = React.forwardRef(
     },
     forwardedRef: React.Ref<ChatHistoryHandle>,
   ) => {
-    const pinnedMessage: FilteredChatMessageType[] = useFind(
-      () =>
-        ChatMessages.find(
-          { puzzle: puzzleId, pinTs: { $ne: null } },
-          { sort: { pinTs: -1 }, limit: 1 },
-        ),
-      [puzzleId],
-    );
-
     const ref = useRef<HTMLDivElement>(null);
     const scrollBottomTarget = useRef<number>(0);
     const shouldIgnoreNextScrollEvent = useRef<boolean>(false);
@@ -1407,20 +1398,8 @@ const PinnedMessage = React.forwardRef(
     }, [scrollToTarget]);
 
     trace("Pinned message render", { messageCount: pinnedMessage.length });
-    return (
+    return pinnedMessage.length === 0 ? null : (
       <PinDiv ref={ref} onScroll={onScrollObserved}>
-        {pinnedMessage.length === 0 ? (
-          <ChatMessageDiv
-            key="no-message"
-            $isSystemMessage={false}
-            $isHighlighted={false}
-            $isPinned={false}
-          >
-            <span>
-              Prefix with <code>/pin</code> to add a pinned message.
-            </span>
-          </ChatMessageDiv>
-        ) : undefined}
         {pinnedMessage.map((msg) => {
           return (
             <ChatHistoryMessage
@@ -2095,6 +2074,20 @@ const ChatSection = React.forwardRef(
       }, new Map<string, PuzzleType>());
     }, [puzzles]);
 
+    const pinnedMessage = useMemo(() => {
+      // Filter for pinned messages and sort by pinTs descending
+      const pinned = chatMessages.filter((m) => m.pinTs);
+      if (pinned.length === 0) return [];
+
+      return pinned
+        .sort((a, b) => {
+          const dateA = a.pinTs instanceof Date ? a.pinTs.getTime() : 0;
+          const dateB = b.pinTs instanceof Date ? b.pinTs.getTime() : 0;
+          return dateB - dateA;
+        })
+        .slice(0, 1); // Limit to 1, matching previous logic
+    }, [chatMessages]);
+
     if (chatDataLoading) {
       return <ChatSectionDiv>loading...</ChatSectionDiv>;
     }
@@ -2110,7 +2103,7 @@ const ChatSection = React.forwardRef(
           callDispatch={callDispatch}
         />
         <PinnedMessageMemo
-          puzzleId={puzzleId}
+          pinnedMessage={pinnedMessage}
           displayNames={displayNames}
           selfUser={selfUser}
           puzzles={puzzles}
