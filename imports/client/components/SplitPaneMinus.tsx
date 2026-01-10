@@ -433,6 +433,14 @@ const SplitPaneMinus = ({
     };
   }, [onWindowResized]);
 
+  useEffect(() => {
+    setState((prevState) => ({
+      ...prevState,
+      pane1Size: primary === "first" ? size : undefined,
+      pane2Size: primary === "second" ? size : undefined,
+    }));
+  }, [size, primary]);
+
   const className = classnames(
     "SplitPaneMinus",
     dragState.active ? "dragging" : "",
