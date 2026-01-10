@@ -611,7 +611,7 @@ const Puzzle = React.memo(
         <PuzzleMetaColumn>{puzzleIsMeta}</PuzzleMetaColumn>
         <SolversColumn>
           {showSolvers !== "hide" && solvedness === "unsolved" ? (
-            <OverlayTrigger placement="top" overlay={solversTooltip}>
+            <OverlayTrigger placement="left" overlay={solversTooltip}>
               <div style={{ cursor: "default" }}>
                 {rtcUsers.length > 0 && (
                   <SolverRow>
