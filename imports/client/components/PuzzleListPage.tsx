@@ -47,6 +47,7 @@ import Puzzles from "../../lib/models/Puzzles";
 import Tags from "../../lib/models/Tags";
 import UserStatuses from "../../lib/models/UserStatuses";
 import { userMayWritePuzzlesForHunt } from "../../lib/permission_stubs";
+import presenceForHunt from "../../lib/publications/presenceForHunt";
 import puzzleActivityForHunt from "../../lib/publications/puzzleActivityForHunt";
 import puzzlesForPuzzleList from "../../lib/publications/puzzlesForPuzzleList";
 import statusesForHuntUsers from "../../lib/publications/statusesForHuntUsers";
@@ -996,6 +997,14 @@ const PuzzleListPage = () => {
     huntId,
     includeDeleted: isAdmin,
   });
+
+  const presenceLoading = useTypedSubscribe(presenceForHunt, { huntId });
+
+  const userPresence = useTracker(() => {
+    return Subscribers.find({ "context.hunt": huntId }).fetch();
+  }, [huntId]);
+
+  console.log(userPresence);
   const loading = puzzlesLoading();
 
   // Don't bother including this in loading - it's ok if they trickle in

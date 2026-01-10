@@ -17,6 +17,7 @@ import "./invitationCodesForHunt";
 import "./pendingAnnouncementsForSelf";
 import "./pendingGuessesForSelf";
 import "./pinnedMessagesForPuzzleList";
+import "./presenceForHunt";
 import "./puzzleActivityForHunt";
 import "./puzzleForPuzzlePage";
 import "./puzzleNotificationsForSelf";

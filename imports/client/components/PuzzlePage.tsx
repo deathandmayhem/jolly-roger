@@ -3450,11 +3450,26 @@ const PuzzlePage = React.memo(() => {
   const huntId = useParams<"huntId">().huntId!;
   const puzzleId = useParams<"puzzleId">().puzzleId!;
 
+  const [isVisible, setIsVisible] = useState(document.visibilityState);
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      setIsVisible(document.visibilityState);
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, []);
+
   // Add the current user to the collection of people viewing this puzzle.
   const subscribersTopic = `puzzle:${puzzleId}`;
   useSubscribe("subscribers.inc", subscribersTopic, {
     puzzle: puzzleId,
     hunt: huntId,
+    visible: isVisible,
   });
 
   // Get the _list_ of subscribers to this puzzle and the _count_ of subscribers
