@@ -31,8 +31,10 @@ import FormControl from "react-bootstrap/FormControl";
 import FormGroup from "react-bootstrap/FormGroup";
 import FormLabel from "react-bootstrap/FormLabel";
 import InputGroup from "react-bootstrap/InputGroup";
+import Overlay from "react-bootstrap/Overlay";
 import ToggleButton from "react-bootstrap/ToggleButton";
 import ToggleButtonGroup from "react-bootstrap/ToggleButtonGroup";
+import Tooltip from "react-bootstrap/Tooltip";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import styled, { css } from "styled-components";
 import isAdmin from "../../lib/isAdmin";
@@ -54,6 +56,7 @@ import {
 } from "../../lib/puzzle-sort-and-group";
 import { computeSolvedness } from "../../lib/solvedness";
 import createPuzzle from "../../methods/createPuzzle";
+import { useBreadcrumb } from "../hooks/breadcrumb";
 import {
   useHuntPuzzleListCollapseGroups,
   useHuntPuzzleListDisplayMode,
@@ -62,8 +65,8 @@ import {
   useOperatorActionsHiddenForHunt,
 } from "../hooks/persisted-state";
 import useFocusRefOnFindHotkey from "../hooks/useFocusRefOnFindHotkey";
-import useSubscribeDisplayNames from "../hooks/useSubscribeDisplayNames";
 import useSubscribeAvatars from "../hooks/useSubscribeAvatars";
+import useSubscribeDisplayNames from "../hooks/useSubscribeDisplayNames";
 import useTypedSubscribe from "../hooks/useTypedSubscribe";
 import indexedDisplayNames from "../indexedDisplayNames";
 import { Subscribers } from "../subscribers";
@@ -78,7 +81,6 @@ import PuzzleModalForm from "./PuzzleModalForm";
 import RelatedPuzzleGroup, { PuzzleGroupDiv } from "./RelatedPuzzleGroup";
 import RelatedPuzzleList from "./RelatedPuzzleList";
 import { mediaBreakpointDown } from "./styling/responsive";
-import { useBreadcrumb } from "../hooks/breadcrumb";
 
 const ViewControls = styled.div<{ $canAdd?: boolean }>`
   display: grid;
@@ -182,6 +184,27 @@ const HuntNavWrapper = styled.div`
   )}
 `;
 
+const ONE_PUZZLE_TOOLTIP_ARROW_MAX = 120;
+
+const StyledTooltip = styled(Tooltip)<{ $cursorOffset: number }>`
+  & .tooltip-arrow {
+    position: absolute !important;
+    transform: none !important;
+    left: ${(props) => props.$cursorOffset}px !important;
+    max-width: calc(100% - 10px);
+  }
+`;
+
+const getTextWidth = (text: string, font: string) => {
+  const canvas = document.createElement("canvas");
+  const context = canvas.getContext("2d");
+  if (context) {
+    context.font = font;
+    return context.measureText(text).width;
+  }
+  return 0;
+};
+
 const PuzzleListView = ({
   huntId,
   canAdd,
@@ -228,12 +251,39 @@ const PuzzleListView = ({
   const [showSolvers, setShowSolvers] = useHuntPuzzleListShowSolvers(huntId);
   const [huntPuzzleListCollapseGroups, setHuntPuzzleListCollapseGroups] =
     useHuntPuzzleListCollapseGroups(huntId);
+  const [cursorOffset, setCursorOffset] = useState<number>(10);
+
   const expandAllGroups = useCallback(() => {
     setHuntPuzzleListCollapseGroups({});
   }, [setHuntPuzzleListCollapseGroups]);
   const canExpandAllGroups =
     displayMode === "group" &&
     Object.values(huntPuzzleListCollapseGroups).some((collapsed) => collapsed);
+
+  const updateCursorPosition = useCallback(() => {
+    const input = searchBarRef.current;
+    if (!input) return;
+
+    const selectionStart = input.selectionStart || 0;
+    const text = input.value.substring(0, selectionStart);
+
+    // Get the computed font style to ensure accurate measurement
+    const computedStyle = window.getComputedStyle(input);
+    const font = `${computedStyle.fontWeight} ${computedStyle.fontSize} ${computedStyle.fontFamily}`;
+    const paddingLeft = parseFloat(computedStyle.paddingLeft) || 0;
+
+    // Measure text and add padding
+    const textWidth = getTextWidth(text, font);
+
+    // We add paddingLeft to align with where the text actually starts.
+    // We clamp it slightly so the arrow doesn't look weird at the very start (0px).
+    setCursorOffset(Math.max(6, textWidth + paddingLeft));
+  }, []);
+
+  const arrowOffsetForTooltip = Math.min(
+    ONE_PUZZLE_TOOLTIP_ARROW_MAX,
+    cursorOffset,
+  );
 
   const [operatorActionsHidden, setOperatorActionsHidden] =
     useOperatorActionsHiddenForHunt(huntId);
@@ -287,8 +337,9 @@ const PuzzleListView = ({
     useCallback(
       (e) => {
         setSearchString(e.currentTarget.value);
+        updateCursorPosition();
       },
-      [setSearchString],
+      [setSearchString, updateCursorPosition],
     );
   const subscribersLoading = useSubscribe("subscribers.fetchAll", huntId);
   const callMembersLoading = useSubscribe("mediasoup:metadataAll", huntId);
@@ -564,13 +615,6 @@ const PuzzleListView = ({
           puzzles
         </Alert>
       );
-      const singleMatchMessage = isSearchFocused &&
-        retainedPuzzles.length === 1 && (
-          <Alert variant="info">
-            Press <kbd>Enter</kbd> to go to{" "}
-            <strong>{retainedPuzzles[0].title}</strong>
-          </Alert>
-        );
       const retainedIds = new Set(retainedPuzzles.map((puzzle) => puzzle._id));
       const filterMessage = `Showing ${retainedPuzzles.length} of ${allPuzzlesCount} rows`;
 
@@ -652,7 +696,6 @@ const PuzzleListView = ({
       return (
         <div>
           {maybeMatchWarning}
-          {singleMatchMessage}
           <PuzzleListToolbar>
             <div>{listControls}</div>
             <div>{filterMessage}</div>
@@ -716,7 +759,6 @@ const PuzzleListView = ({
       showAddModalWithTags,
       canExpandAllGroups,
       expandAllGroups,
-      isSearchFocused,
     ],
   );
 
@@ -897,15 +939,33 @@ const PuzzleListView = ({
               ref={searchBarRef}
               placeholder={filterText}
               value={searchString}
-              onChange={onSearchStringChange}
+              onClick={updateCursorPosition}
               onKeyDown={onSubmitSearch}
               onFocus={handleSearchFocus}
               onBlur={handleSearchBlur}
+              onKeyUp={updateCursorPosition}
+              onChange={onSearchStringChange}
             />
             <Button variant="secondary" onClick={clearSearch}>
               <FontAwesomeIcon icon={faEraser} content="erase-filter" />
             </Button>
           </InputGroup>
+          <Overlay
+            target={searchBarRef.current}
+            show={isSearchFocused && retainedPuzzles.length === 1}
+            placement="bottom-start"
+          >
+            {(props) => (
+              <StyledTooltip
+                id={`${idPrefix}-single-match-tooltip`}
+                $cursorOffset={arrowOffsetForTooltip}
+                {...props}
+              >
+                Press <kbd>Enter</kbd> to go to{" "}
+                <strong>{retainedPuzzles[0]?.title}</strong>
+              </StyledTooltip>
+            )}
+          </Overlay>
         </SearchFormGroup>
       </ViewControls>
       {renderList(
