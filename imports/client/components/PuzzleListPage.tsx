@@ -56,6 +56,7 @@ import {
 } from "../../lib/puzzle-sort-and-group";
 import { computeSolvedness } from "../../lib/solvedness";
 import createPuzzle from "../../methods/createPuzzle";
+import { useBreadcrumb } from "../hooks/breadcrumb";
 import {
   useHuntPuzzleListCollapseGroups,
   useHuntPuzzleListDisplayMode,
@@ -64,8 +65,8 @@ import {
   useOperatorActionsHiddenForHunt,
 } from "../hooks/persisted-state";
 import useFocusRefOnFindHotkey from "../hooks/useFocusRefOnFindHotkey";
-import useSubscribeDisplayNames from "../hooks/useSubscribeDisplayNames";
 import useSubscribeAvatars from "../hooks/useSubscribeAvatars";
+import useSubscribeDisplayNames from "../hooks/useSubscribeDisplayNames";
 import useTypedSubscribe from "../hooks/useTypedSubscribe";
 import indexedDisplayNames from "../indexedDisplayNames";
 import { Subscribers } from "../subscribers";
@@ -80,7 +81,6 @@ import PuzzleModalForm from "./PuzzleModalForm";
 import RelatedPuzzleGroup, { PuzzleGroupDiv } from "./RelatedPuzzleGroup";
 import RelatedPuzzleList from "./RelatedPuzzleList";
 import { mediaBreakpointDown } from "./styling/responsive";
-import { useBreadcrumb } from "../hooks/breadcrumb";
 
 const ViewControls = styled.div<{ $canAdd?: boolean }>`
   display: grid;
@@ -284,7 +284,6 @@ const PuzzleListView = ({
     ONE_PUZZLE_TOOLTIP_ARROW_MAX,
     cursorOffset,
   );
-
 
   const [operatorActionsHidden, setOperatorActionsHidden] =
     useOperatorActionsHiddenForHunt(huntId);
