@@ -1,5 +1,6 @@
 import type { Meteor } from "meteor/meteor";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
+import { faCopy } from "@fortawesome/free-solid-svg-icons/faCopy";
 import { faFileAlt } from "@fortawesome/free-solid-svg-icons/faFileAlt";
 import { faFilePen } from "@fortawesome/free-solid-svg-icons/faFilePen";
 import { faTable } from "@fortawesome/free-solid-svg-icons/faTable";
@@ -7,6 +8,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import styled from "styled-components";
 import type { DocumentType } from "../../lib/models/Documents";
 import type { Theme } from "../theme";
+import CopyToClipboardButton from "./CopyToClipboardButton";
 
 interface DocumentDisplayProps {
   document: DocumentType;
@@ -86,6 +88,18 @@ const GoogleDocumentDisplay = ({
   }
 
   switch (displayMode) {
+    case "copy":
+      return (
+        <CopyToClipboardButton
+          variant="link"
+          tooltipText="Copy for link sharing or advanced features"
+          tooltipPlacement="right"
+          text={url}
+          size="sm"
+        >
+          <span>{title}</span> <FontAwesomeIcon fixedWidth icon={faCopy} />
+        </CopyToClipboardButton>
+      );
     case "link":
       return (
         <StyledDeepLink href={url} target="_blank" rel="noreferrer noopener">
