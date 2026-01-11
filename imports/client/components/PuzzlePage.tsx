@@ -3,6 +3,7 @@ import { Random } from "meteor/random";
 import { useSubscribe, useTracker } from "meteor/react-meteor-data";
 import { faAngleDoubleDown } from "@fortawesome/free-solid-svg-icons/faAngleDoubleDown";
 import { faAngleDoubleUp } from "@fortawesome/free-solid-svg-icons/faAngleDoubleUp";
+import { faArrowDown } from "@fortawesome/free-solid-svg-icons/faArrowDown";
 import { faChevronLeft } from "@fortawesome/free-solid-svg-icons/faChevronLeft";
 import { faComments } from "@fortawesome/free-solid-svg-icons/faComments";
 import { faCopy } from "@fortawesome/free-solid-svg-icons/faCopy";
@@ -219,6 +220,41 @@ overflow-y: scroll;
 overflow-x: hidden;
 border-bottom: 4px double black;
 background-color: ${({ theme }) => theme.colors.pinnedChatMessageBackground};
+`;
+
+const ChatHistoryWrapper = styled.div`
+  flex: 1 1 auto;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+`;
+
+const UnreadPill = styled.div`
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #007bff;
+  color: white;
+  padding: 6px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  z-index: 100;
+  box-shadow: 0 2px 5px rgb(0 0 0 / 30%);
+  font-size: 0.9rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  opacity: 0.9;
+  transition: opacity 0.2s, transform 0.2s;
+
+  &:hover {
+    opacity: 1;
+    background-color: #0056b3;
+    transform: translateX(-50%) translateY(-2px);
+  }
 `;
 
 const ChatHistoryDiv = styled.div`
@@ -1059,6 +1095,9 @@ const ChatHistory = React.forwardRef(
     const scrollBottomTarget = useRef<number>(0);
     const shouldIgnoreNextScrollEvent = useRef<boolean>(false);
 
+    const [unreadCount, setUnreadCount] = useState<number>(0);
+    const prevMessageCount = useRef<number>(chatMessages.length);
+
     const saveScrollBottomTarget = useCallback(() => {
       if (ref.current) {
         const rect = ref.current.getClientRects()[0]!;
@@ -1074,6 +1113,9 @@ const ChatHistory = React.forwardRef(
           hiddenHeight,
         });
         scrollBottomTarget.current = distanceFromBottom;
+        if (distanceFromBottom < 20) {
+          setUnreadCount(0);
+        }
       }
     }, []);
 
@@ -1127,6 +1169,7 @@ const ChatHistory = React.forwardRef(
       trace("ChatHistory snapToBottom");
       scrollBottomTarget.current = 0;
       scrollToTarget();
+      setUnreadCount(0);
     }, [scrollToTarget]);
 
     const messageRefs = useRef<Map<string, HTMLDivElement>>(new Map());
@@ -1189,6 +1232,8 @@ const ChatHistory = React.forwardRef(
       // don't move the backlog while they're reading it -- instead, assume they want
       // to see the same messages in the same position, and adapt the target bottom
       // distance instead.
+      const newMessages = chatMessages.length - prevMessageCount.current;
+      prevMessageCount.current = chatMessages.length;
       trace("ChatHistory useLayoutEffect", {
         scrollBottomTarget: scrollBottomTarget.current,
         action: scrollBottomTarget.current > 60 ? "save" : "snap",
@@ -1196,6 +1241,9 @@ const ChatHistory = React.forwardRef(
       });
       if (scrollBottomTarget.current > 60) {
         saveScrollBottomTarget();
+        if (newMessages > 0) {
+          setUnreadCount((prev) => prev + newMessages);
+        }
       } else {
         snapToBottom();
       }
@@ -1216,61 +1264,71 @@ const ChatHistory = React.forwardRef(
 
     trace("ChatHistory render", { messageCount: chatMessages.length });
     return (
-      <ChatHistoryDiv ref={ref} onScroll={onScrollObserved}>
-        {chatMessages.length === 0 ? (
-          <ChatMessageDiv
-            key="no-message"
-            $isSystemMessage={false}
-            $isHighlighted={false}
-          >
-            <span>No chatter yet. Say something?</span>
-          </ChatMessageDiv>
-        ) : undefined}
-        {chatMessages.map((msg, index, messages) => {
-          // Only suppress sender and timestamp if:
-          // * this is not the first message
-          // * this message was sent by the same person as the previous message
-          // * this message was sent within 60 seconds (60000 milliseconds) of the previous message
-          // * the message is not pinned
-          if (isReaction(msg)) {
-            return null;
-          }
-          const lastMessage = index > 0 ? messages[index - 1] : undefined;
-          const suppressSender =
-            !!lastMessage &&
-            lastMessage.sender === msg.sender &&
-            lastMessage.timestamp.getTime() + 60000 > msg.timestamp.getTime() &&
-            msg.pinTs == null;
-          const isHighlighted = messageDingsUser(msg, selfUser);
-          return (
-            <ChatHistoryMessage
-              key={msg._id}
-              message={msg}
-              displayNames={displayNames}
-              isSystemMessage={msg.sender === undefined}
-              isPinned={msg.pinTs != null}
-              isHighlighted={isHighlighted}
-              suppressSender={suppressSender}
-              selfUserId={selfUser._id}
-              scrollToMessage={(messageId: string) => {
-                scrollToMessageInternal(messageId, () => {
-                  highlightMessage(messageId);
-                });
-              }}
-              parentId={msg.parentId}
-              messageRef={(el) => messageRefs.current.set(msg._id, el!)}
-              isPulsing={pulsingMessageId === msg._id}
-              setReplyingTo={setReplyingTo}
-              isReplyingTo={replyingTo === msg._id}
-              shownEmojiPicker={shownEmojiPicker}
-              setShownEmojiPicker={setShownEmojiPicker}
-              puzzles={puzzles}
-              roles={roles}
-              imageOnLoad={scrollChat}
-            />
-          );
-        })}
-      </ChatHistoryDiv>
+      <ChatHistoryWrapper>
+        {unreadCount > 0 && (
+          <UnreadPill onClick={snapToBottom}>
+            <FontAwesomeIcon icon={faArrowDown} />
+            {unreadCount > 99 ? "99+" : unreadCount} new message
+            {unreadCount > 1 ? "s" : ""}
+          </UnreadPill>
+        )}
+        <ChatHistoryDiv ref={ref} onScroll={onScrollObserved}>
+          {chatMessages.length === 0 ? (
+            <ChatMessageDiv
+              key="no-message"
+              $isSystemMessage={false}
+              $isHighlighted={false}
+            >
+              <span>No chatter yet. Say something?</span>
+            </ChatMessageDiv>
+          ) : undefined}
+          {chatMessages.map((msg, index, messages) => {
+            // Only suppress sender and timestamp if:
+            // * this is not the first message
+            // * this message was sent by the same person as the previous message
+            // * this message was sent within 60 seconds (60000 milliseconds) of the previous message
+            // * the message is not pinned
+            if (isReaction(msg)) {
+              return null;
+            }
+            const lastMessage = index > 0 ? messages[index - 1] : undefined;
+            const suppressSender =
+              !!lastMessage &&
+              lastMessage.sender === msg.sender &&
+              lastMessage.timestamp.getTime() + 60000 >
+                msg.timestamp.getTime() &&
+              msg.pinTs == null;
+            const isHighlighted = messageDingsUser(msg, selfUser);
+            return (
+              <ChatHistoryMessage
+                key={msg._id}
+                message={msg}
+                displayNames={displayNames}
+                isSystemMessage={msg.sender === undefined}
+                isPinned={msg.pinTs != null}
+                isHighlighted={isHighlighted}
+                suppressSender={suppressSender}
+                selfUserId={selfUser._id}
+                scrollToMessage={(messageId: string) => {
+                  scrollToMessageInternal(messageId, () => {
+                    highlightMessage(messageId);
+                  });
+                }}
+                parentId={msg.parentId}
+                messageRef={(el) => messageRefs.current.set(msg._id, el!)}
+                isPulsing={pulsingMessageId === msg._id}
+                setReplyingTo={setReplyingTo}
+                isReplyingTo={replyingTo === msg._id}
+                shownEmojiPicker={shownEmojiPicker}
+                setShownEmojiPicker={setShownEmojiPicker}
+                puzzles={puzzles}
+                roles={roles}
+                imageOnLoad={scrollChat}
+              />
+            );
+          })}
+        </ChatHistoryDiv>
+      </ChatHistoryWrapper>
     );
   },
 );
