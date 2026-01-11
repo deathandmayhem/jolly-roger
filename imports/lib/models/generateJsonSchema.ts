@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { Email, URL, UUID } from "./regexes";
+import { Email, Url, UUID } from "./regexes";
 
 // This file is heavily inspired by zod-to-json-schema, but we use our own
 // version because (a) zod-to-json-schema supports a different version of
@@ -109,7 +109,7 @@ function stringToSchema(def: z.ZodStringDef): JsonSchema {
             pattern = UUID;
             break;
           case "url":
-            pattern = URL;
+            pattern = Url;
             break;
         }
         if (pattern.flags !== "") {
