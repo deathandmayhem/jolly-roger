@@ -1,9 +1,9 @@
 import { check } from "meteor/check";
+import CachedDocuments from "../../lib/models/CachedDocuments";
 import MeteorUsers from "../../lib/models/MeteorUsers";
 import { checkAdmin } from "../../lib/permission_stubs";
 import purgeHuntDocumentCache from "../../methods/purgeHuntDocumentCache";
 import { deleteDocument } from "../gdrive";
-import CachedDocuments from "../lib/models/CachedDocuments";
 import defineMethod from "./defineMethod";
 
 defineMethod(purgeHuntDocumentCache, {
@@ -18,6 +18,7 @@ defineMethod(purgeHuntDocumentCache, {
 
     const hunt = huntId;
     const cachedDocuments = await CachedDocuments.find({ hunt });
+    // eslint-disable-next-line jolly-roger/no-disallowed-sync-methods
     cachedDocuments.forEach((cachedDocument) => {
       if (
         cachedDocument.provider === "google" &&
