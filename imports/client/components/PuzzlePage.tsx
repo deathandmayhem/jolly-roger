@@ -2021,8 +2021,6 @@ const PuzzleDeletedModal = ({
 const PuzzlePage = React.memo(() => {
   const puzzlePageDivRef = useRef<HTMLDivElement | null>(null);
   const chatSectionRef = useRef<ChatSectionHandle | null>(null);
-  const restoreButtonRef =
-    useRef<ReactElement<typeof PuzzleMetadataFloatingButton>>(null);
   const [sidebarWidth, setSidebarWidth] = useState<number>(DefaultSidebarWidth);
   const [isChatMinimized, setIsChatMinimized] = useState<boolean>(false);
   const [lastSidebarWidth, setLastSidebarWidth] =
@@ -2365,7 +2363,6 @@ const PuzzlePage = React.memo(() => {
       overlay={<Tooltip>Show puzzle information</Tooltip>}
     >
       <PuzzleMetadataFloatingButton
-        ref={restoreButtonRef}
         variant="secondary"
         size="sm"
         onClick={toggleMetadata}
