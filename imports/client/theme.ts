@@ -8,6 +8,7 @@ export interface Theme {
   colors: {
     background: string;
     text: string;
+    border: string;
     primary: string;
     secondary: string;
     callStateIcon: string;
@@ -88,6 +89,7 @@ export const lightTheme: Theme = {
   colors: {
     background: "var(--bs-body-bg)",
     text: "var(--bs-body-color)",
+    border: "var(--bs-border-color)",
     primary: "var(--bs-primary)",
     secondary: "var(--bs-secondary)",
     callStateIcon: "#dc3545",
@@ -196,6 +198,7 @@ export const darkTheme: Theme = {
   colors: {
     background: "var(--bs-dark-bg-subtle)",
     text: "var(--bs-body-color)",
+    border: "var(--bs-border-color)",
     primary: "var(--bs-primary)",
     secondary: "var(--bs-secondary)",
     callStateIcon: "#f8d7da",

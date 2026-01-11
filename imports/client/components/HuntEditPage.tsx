@@ -649,7 +649,7 @@ const HuntEditPage = () => {
               controlId={`${idPrefix}-hunt-form-announcement-discord-channel`}
             >
               <FormLabel column xs={3}>
-                Puzzle notifications Discord channel
+                Hunt announcements Discord channel
               </FormLabel>
               <Col xs={9}>
                 <DiscordChannelSelector
@@ -659,7 +659,7 @@ const HuntEditPage = () => {
                   onChange={onAnnnouncementDiscordChannelChanged}
                 />
                 <FormText>
-                  If this field is specified, announcements made on Jolly Meow
+                  If this field is specified, announcements made on Jolly Roger
                   will be mirrored to this channel.
                 </FormText>
               </Col>

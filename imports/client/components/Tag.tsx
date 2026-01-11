@@ -20,9 +20,9 @@ import styled, { css } from "styled-components";
 import { indexedById } from "../../lib/listUtils";
 import type { PuzzleType } from "../../lib/models/Puzzles";
 import type { TagType } from "../../lib/models/Tags";
+import { sortPuzzlesByRelevanceWithinPuzzleGroup } from "../../lib/puzzle-sort-and-group";
 import CopyToClipboardButton from "./CopyToClipboardButton";
 import { removePunctuation } from "./PuzzleAnswer";
-import { sortPuzzlesByRelevanceWithinPuzzleGroup } from "./RelatedPuzzleList";
 import RelatedPuzzleTable from "./RelatedPuzzleTable";
 
 const RemoveTagButton: FC<ComponentPropsWithRef<typeof Button>> = styled(
