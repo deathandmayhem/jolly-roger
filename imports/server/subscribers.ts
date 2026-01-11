@@ -13,20 +13,18 @@ import { registerPeriodicCleanupHook, serverId } from "./garbage-collection";
 import Subscribers from "./models/Subscribers";
 
 // Clean up leaked subscribers from dead servers periodically.
-async function cleanupHook(deadServer: string) {
-  await Subscribers.removeAsync({ server: deadServer });
+async function cleanupHook(deadServers: string[]) {
+  await Subscribers.removeAsync({ server: { $in: deadServers } });
 }
 registerPeriodicCleanupHook(cleanupHook);
 
 const contextMatcher = Match.Where(
-  (val: unknown): val is Record<string, string | boolean> => {
+  (val: unknown): val is Record<string, string> => {
     if (!Match.test(val, Object)) {
       return false;
     }
 
-    return Object.values(val).every(
-      (v) => Match.test(v, String) || Match.test(v, Boolean),
-    );
+    return Object.values(val).every((v) => Match.test(v, String));
   },
 );
 
@@ -45,7 +43,6 @@ Meteor.publish("subscribers.inc", async function (name, context) {
     name,
     context,
   });
-
   this.onStop(async () => Subscribers.removeAsync(doc));
 
   return [];
@@ -79,7 +76,7 @@ Meteor.publish("subscribers.counts", async function (q: Record<string, any>) {
   const handle = await cursor.observeAsync({
     added: (doc) => {
       const { name, user } = doc;
-      if (!Object.hasOwn(counters, name)) {
+      if (!Object.prototype.hasOwnProperty.call(counters, name)) {
         counters[name] = {};
 
         if (initialized) {
@@ -87,7 +84,7 @@ Meteor.publish("subscribers.counts", async function (q: Record<string, any>) {
         }
       }
 
-      if (!Object.hasOwn(counters[name]!, user)) {
+      if (!Object.prototype.hasOwnProperty.call(counters[name], user)) {
         counters[name]![user] = 0;
       }
 
