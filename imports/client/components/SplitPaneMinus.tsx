@@ -75,7 +75,10 @@ const PaneDiv = styled.div`
   }
 `;
 
-const ResizerSpan = styled.span<{ $split: "horizontal" | "vertical" }>`
+const ResizerSpan = styled.span<{
+  $split: "horizontal" | "vertical";
+  $allowResize: boolean;
+}>`
   background: #6c757d; /* was $gray-600 from bootstrap */
   z-index: 1;
   box-sizing: border-box;
@@ -85,35 +88,45 @@ const ResizerSpan = styled.span<{ $split: "horizontal" | "vertical" }>`
     transition: border 0.8s ease;
   }
 
-  ${({ $split }) =>
+  ${({ $split, $allowResize }) =>
     $split === "horizontal" &&
     css`
       height: 11px;
       margin: -5px 0;
       border-top: 5px solid rgb(255 255 255 / 0%);
       border-bottom: 5px solid rgb(255 255 255 / 0%);
-      cursor: row-resize;
       width: 100%;
+
+      ${
+        $allowResize &&
+        css`
+      cursor: row-resize;
 
       &:hover {
         border-top: 5px solid rgb(0 0 0 / 10%);
         border-bottom: 5px solid rgb(0 0 0 / 10%);
+      }`
       }
     `}
 
-  ${({ $split }) =>
+  ${({ $split, $allowResize }) =>
     $split === "vertical" &&
     css`
       width: 11px;
       margin: 0 -5px;
       border-left: 5px solid rgb(255 255 255 / 0%);
       border-right: 5px solid rgb(255 255 255 / 0%);
-      cursor: col-resize;
       height: 100%;
+
+      ${
+        $allowResize &&
+        css`
+      cursor: col-resize;
 
       &:hover {
         border-left: 5px solid rgb(0 0 0 / 10%);
         border-right: 5px solid rgb(0 0 0 / 10%);
+      }`
       }
     `}
 `;
@@ -433,6 +446,14 @@ const SplitPaneMinus = ({
     };
   }, [onWindowResized]);
 
+  useEffect(() => {
+    setState((prevState) => ({
+      ...prevState,
+      pane1Size: primary === "first" ? size : undefined,
+      pane2Size: primary === "second" ? size : undefined,
+    }));
+  }, [size, primary]);
+
   const className = classnames(
     "SplitPaneMinus",
     dragState.active ? "dragging" : "",
@@ -446,6 +467,7 @@ const SplitPaneMinus = ({
         key="resizer"
         role="presentation"
         $split={split}
+        $allowResize={allowResize}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
