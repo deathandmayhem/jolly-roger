@@ -92,12 +92,12 @@ const GoogleDocumentDisplay = ({
       return (
         <CopyToClipboardButton
           variant="link"
-          tooltipText="Copy for link sharing or advanced features"
+          tooltipText={`Copy link to ${document.value.type} for sharing or advanced features`}
           tooltipPlacement="right"
           text={url}
           size="sm"
         >
-          <span>{title}</span> <FontAwesomeIcon fixedWidth icon={faCopy} />
+          <FontAwesomeIcon fixedWidth icon={faCopy} />
         </CopyToClipboardButton>
       );
     case "link":
