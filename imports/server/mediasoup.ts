@@ -1,41 +1,40 @@
-import crypto from "crypto";
-import { promises as dns } from "dns";
-import EventEmitter from "events";
-import { networkInterfaces } from "os";
+import crypto from "node:crypto";
+import { promises as dns } from "node:dns";
+import EventEmitter from "node:events";
+import { networkInterfaces } from "node:os";
 import { Meteor } from "meteor/meteor";
 import { Random } from "meteor/random";
 import { Address6 } from "ip-address";
 import { createWorker, type types } from "mediasoup";
-import { AudioLevelObserverImpl } from "mediasoup/node/lib/AudioLevelObserver";
 import Flags from "../Flags";
 import Logger from "../Logger";
 import { ACTIVITY_GRANULARITY } from "../lib/config/activityTracking";
 import { RECENT_ACTIVITY_TIME_WINDOW_MS } from "../lib/config/webrtc";
-import type { ServerType } from "../lib/models/Servers";
-import Servers from "../lib/models/Servers";
 import CallHistories from "../lib/models/mediasoup/CallHistories";
 import ConnectAcks from "../lib/models/mediasoup/ConnectAcks";
-import ConnectRequests from "../lib/models/mediasoup/ConnectRequests";
 import type { ConnectRequestType } from "../lib/models/mediasoup/ConnectRequests";
-import ConsumerAcks from "../lib/models/mediasoup/ConsumerAcks";
+import ConnectRequests from "../lib/models/mediasoup/ConnectRequests";
 import type { ConsumerAckType } from "../lib/models/mediasoup/ConsumerAcks";
+import ConsumerAcks from "../lib/models/mediasoup/ConsumerAcks";
 import Consumers from "../lib/models/mediasoup/Consumers";
-import MonitorConnectAcks from "../lib/models/mediasoup/MonitorConnectAcks";
 import type { MonitorConnectAckType } from "../lib/models/mediasoup/MonitorConnectAcks";
-import MonitorConnectRequests from "../lib/models/mediasoup/MonitorConnectRequests";
+import MonitorConnectAcks from "../lib/models/mediasoup/MonitorConnectAcks";
 import type { MonitorConnectRequestType } from "../lib/models/mediasoup/MonitorConnectRequests";
+import MonitorConnectRequests from "../lib/models/mediasoup/MonitorConnectRequests";
 import Peers from "../lib/models/mediasoup/Peers";
-import ProducerClients from "../lib/models/mediasoup/ProducerClients";
 import type { ProducerClientType } from "../lib/models/mediasoup/ProducerClients";
+import ProducerClients from "../lib/models/mediasoup/ProducerClients";
 import ProducerServers from "../lib/models/mediasoup/ProducerServers";
-import Rooms from "../lib/models/mediasoup/Rooms";
 import type { RoomType } from "../lib/models/mediasoup/Rooms";
+import Rooms from "../lib/models/mediasoup/Rooms";
 import Routers from "../lib/models/mediasoup/Routers";
-import TransportRequests from "../lib/models/mediasoup/TransportRequests";
 import type { TransportRequestType } from "../lib/models/mediasoup/TransportRequests";
+import TransportRequests from "../lib/models/mediasoup/TransportRequests";
 import TransportStates from "../lib/models/mediasoup/TransportStates";
 import Transports from "../lib/models/mediasoup/Transports";
 import UserStatuses from "../lib/models/UserStatuses";
+import type { ServerType } from "../lib/models/Servers";
+import Servers from "../lib/models/Servers";
 import roundedTime from "../lib/roundedTime";
 import throttle from "../lib/throttle";
 import {
@@ -181,6 +180,10 @@ type ListenIp = {
   announcedIp?: string;
 };
 
+const isAudioLevelObserver = (
+  t: types.RtpObserver,
+): t is types.AudioLevelObserver => t.type === "audiolevel";
+
 class SFU {
   public ips: [ListenIp, ...ListenIp[]];
 
@@ -275,10 +278,14 @@ class SFU {
       routedServer: serverId,
     }).observeChangesAsync({
       added: (id, fields) => {
-        void this.roomCreated({ _id: id, ...fields } as RoomType);
+        this.roomCreated({ _id: id, ...fields } as RoomType).catch((error) => {
+          Logger.error("mediasoup roomCreated failed", { error, id });
+        });
       },
       removed: (id) => {
-        void this.roomRemoved(id);
+        this.roomRemoved(id).catch((error) => {
+          Logger.error("mediasoup roomRemoved failed", { error, id });
+        });
       },
     });
 
@@ -286,13 +293,23 @@ class SFU {
       routedServer: serverId,
     }).observeChangesAsync({
       added: (id, fields) => {
-        void this.transportRequestCreated({
+        this.transportRequestCreated({
           _id: id,
           ...fields,
-        } as TransportRequestType);
+        } as TransportRequestType).catch((error) => {
+          Logger.error("mediasoup transportRequestCreated failed", {
+            error,
+            id,
+          });
+        });
       },
       removed: (id) => {
-        void this.transportRequestRemoved(id);
+        this.transportRequestRemoved(id).catch((error) => {
+          Logger.error("mediasoup transportRequestRemoved failed", {
+            error,
+            id,
+          });
+        });
       },
     });
 
@@ -300,10 +317,12 @@ class SFU {
       routedServer: serverId,
     }).observeChangesAsync({
       added: (id, fields) => {
-        void this.connectRequestCreated({
+        this.connectRequestCreated({
           _id: id,
           ...fields,
-        } as ConnectRequestType);
+        } as ConnectRequestType).catch((error) => {
+          Logger.error("mediasoup connectRequestCreated failed", { error, id });
+        });
       },
       // nothing to do when this is removed
     });
@@ -312,16 +331,22 @@ class SFU {
       routedServer: serverId,
     }).observeChangesAsync({
       added: (id, fields) => {
-        void this.producerClientCreated({
+        this.producerClientCreated({
           _id: id,
           ...fields,
-        } as ProducerClientType);
+        } as ProducerClientType).catch((error) => {
+          Logger.error("mediasoup producerClientCreated failed", { error, id });
+        });
       },
       changed: (id, fields) => {
-        void this.producerClientChanged(id, fields);
+        this.producerClientChanged(id, fields).catch((error) => {
+          Logger.error("mediasoup producerClientChanged failed", { error, id });
+        });
       },
       removed: (id) => {
-        void this.producerClientRemoved(id);
+        this.producerClientRemoved(id).catch((error) => {
+          Logger.error("mediasoup producerClientRemoved failed", { error, id });
+        });
       },
     });
 
@@ -329,7 +354,12 @@ class SFU {
       routedServer: serverId,
     }).observeChangesAsync({
       added: (id, fields) => {
-        void this.consumerAckCreated({ _id: id, ...fields } as ConsumerAckType);
+        this.consumerAckCreated({
+          _id: id,
+          ...fields,
+        } as ConsumerAckType).catch((error) => {
+          Logger.error("mediasoup consumerAckCreated failed", { error, id });
+        });
       },
       // nothing to do when removed
     });
@@ -338,11 +368,17 @@ class SFU {
       _id: { $ne: serverId },
     }).observeChangesAsync({
       added: (id, fields) => {
-        void this.serverCreated({ _id: id, ...fields } as ServerType);
+        this.serverCreated({ _id: id, ...fields } as ServerType).catch(
+          (error) => {
+            Logger.error("mediasoup serverCreated failed", { error, id });
+          },
+        );
       },
       // don't care about changes
       removed: (id) => {
-        void this.serverRemoved(id);
+        this.serverRemoved(id).catch((error) => {
+          Logger.error("mediasoup serverRemoved failed", { error, id });
+        });
       },
     });
 
@@ -350,13 +386,23 @@ class SFU {
       receivingServer: serverId,
     }).observeChangesAsync({
       added: (id, fields) => {
-        void this.monitorConnectRequestCreated({
+        this.monitorConnectRequestCreated({
           _id: id,
           ...fields,
-        } as MonitorConnectRequestType);
+        } as MonitorConnectRequestType).catch((error) => {
+          Logger.error("mediasoup monitorConnectRequestCreated failed", {
+            error,
+            id,
+          });
+        });
       },
       removed: (id) => {
-        void this.monitorConnectRequestRemoved(id);
+        this.monitorConnectRequestRemoved(id).catch((error) => {
+          Logger.error("mediasoup monitorConnectRequestRemoved failed", {
+            error,
+            id,
+          });
+        });
       },
     });
 
@@ -364,10 +410,15 @@ class SFU {
       initiatingServer: serverId,
     }).observeChangesAsync({
       added: (id, fields) => {
-        void this.monitorConnectAckCreated({
+        this.monitorConnectAckCreated({
           _id: id,
           ...fields,
-        } as MonitorConnectAckType);
+        } as MonitorConnectAckType).catch((error) => {
+          Logger.error("mediasoup monitorConnectAckCreated failed", {
+            error,
+            id,
+          });
+        });
       },
     });
   }
@@ -581,7 +632,12 @@ class SFU {
           router: router.id,
         });
         this.routers.delete(routerAppData.call);
-        void Routers.removeAsync({ routerId: router.id });
+        Routers.removeAsync({ routerId: router.id }).catch((error) => {
+          Logger.error("mediasoup failed to remove shutdown router", {
+            error,
+            routerId: router.id,
+          });
+        });
       }),
     );
     router.observer.on(
@@ -594,23 +650,33 @@ class SFU {
       hunt: routerAppData.hunt,
       call: routerAppData.call,
     };
-    void router.createAudioLevelObserver({
-      threshold: -50,
-      interval: 100,
-      appData,
-    });
-    void Routers.insertAsync({
+    router
+      .createAudioLevelObserver({
+        threshold: -50,
+        interval: 100,
+        appData,
+      })
+      .catch((error) => {
+        Logger.error("mediasoup createAudioLevelObserver failed", {
+          error,
+          hunt: routerAppData.hunt,
+          call: routerAppData.call,
+        });
+      });
+    Routers.insertAsync({
       hunt: routerAppData.hunt,
       call: routerAppData.call,
       createdServer: serverId,
       routerId: router.id,
       rtpCapabilities: JSON.stringify(router.rtpCapabilities),
       createdBy: routerAppData.createdBy,
+    }).catch((error) => {
+      Logger.error("mediasoup failed to insert router", { error });
     });
   }
 
   onRtpObserverCreated(observer: types.RtpObserver) {
-    if (!(observer instanceof AudioLevelObserverImpl)) {
+    if (!isAudioLevelObserver(observer)) {
       return;
     }
 
@@ -663,13 +729,19 @@ class SFU {
 
     const updateCallHistory = throttle(
       Meteor.bindEnvironment(() => {
-        void CallHistories.upsertAsync(
+        CallHistories.upsertAsync(
           {
             hunt: observerAppData.hunt,
             call: observerAppData.call,
           },
           { $set: { lastActivity: new Date() } },
-        );
+        ).catch((error) => {
+          Logger.error("mediasoup CallHistories upsert failed", {
+            error,
+            hunt: observerAppData.hunt,
+            call: observerAppData.call,
+          });
+        });
       }),
       RECENT_ACTIVITY_TIME_WINDOW_MS,
     );
@@ -680,7 +752,13 @@ class SFU {
     });
 
     observer.observer.on("volumes", (volumes) => {
-      void updateCallActivity(volumes);
+      updateCallActivity(volumes).catch((error) => {
+        Logger.error("mediasoup updateCallActivity failed", {
+          error,
+          hunt: observerAppData.hunt,
+          call: observerAppData.call,
+        });
+      });
       updateCallHistory.attempt();
     });
 
@@ -717,8 +795,20 @@ class SFU {
         this.transports.delete(
           `${transportAppData.transportRequest}:${transportAppData.direction}`,
         );
-        void Transports.removeAsync({ transportId: transport.id });
-        void TransportStates.removeAsync({ transportId: transport.id });
+        Transports.removeAsync({ transportId: transport.id }).catch((error) => {
+          Logger.error("mediasoup failed to remove transport", {
+            error,
+            transportId: transport.id,
+          });
+        });
+        TransportStates.removeAsync({ transportId: transport.id }).catch(
+          (error) => {
+            Logger.error("mediasoup failed to remove transport states", {
+              error,
+              transportId: transport.id,
+            });
+          },
+        );
       }),
     );
 
@@ -736,7 +826,7 @@ class SFU {
     wtransport.observer.on(
       "icestatechange",
       Meteor.bindEnvironment((iceState: types.IceState) => {
-        void TransportStates.upsertAsync(
+        TransportStates.upsertAsync(
           {
             createdServer: serverId,
             transportId: transport.id,
@@ -747,13 +837,18 @@ class SFU {
               createdBy: transportAppData.createdBy,
             },
           },
-        );
+        ).catch((error) => {
+          Logger.error(
+            "mediasoup failed to upsert TransportStates on icestatechange",
+            { error, transportId: transport.id },
+          );
+        });
       }),
     );
     wtransport.observer.on(
       "iceselectedtuplechange",
       Meteor.bindEnvironment((iceSelectedTuple?: types.TransportTuple) => {
-        void TransportStates.upsertAsync(
+        TransportStates.upsertAsync(
           {
             createdServer: serverId,
             transportId: transport.id,
@@ -766,13 +861,18 @@ class SFU {
               createdBy: transportAppData.createdBy,
             },
           },
-        );
+        ).catch((error) => {
+          Logger.error(
+            "mediasoup failed to upsert TransportStates on iceselectedtuplechange",
+            { error, transportId: transport.id },
+          );
+        });
       }),
     );
     wtransport.observer.on(
       "dtlsstatechange",
       Meteor.bindEnvironment((dtlsState: types.DtlsState) => {
-        void TransportStates.upsertAsync(
+        TransportStates.upsertAsync(
           {
             createdServer: serverId,
             transportId: transport.id,
@@ -783,20 +883,36 @@ class SFU {
               createdBy: transportAppData.createdBy,
             },
           },
-        );
+        ).catch((error) => {
+          Logger.error(
+            "mediasoup failed to upsert TransportStates on dtlsstatechange",
+            { error, transportId: transport.id },
+          );
+        });
       }),
     );
 
     // This casts a wide net, but `createConsumer` will filter it down
     this.producers.forEach((producer) => {
-      void this.createConsumer(transportAppData.direction, transport, producer);
+      this.createConsumer(
+        transportAppData.direction,
+        transport,
+        producer,
+      ).catch((error) => {
+        Logger.error("mediasoup createConsumer failed", {
+          error,
+          direction: transportAppData.direction,
+          transportId: transport.id,
+          producerAppData: producer.appData,
+        });
+      });
     });
 
     this.transports.set(
       `${transportAppData.transportRequest}:${transportAppData.direction}`,
       wtransport,
     );
-    void Transports.insertAsync({
+    Transports.insertAsync({
       call: transportAppData.call,
       createdServer: serverId,
       peer: transportAppData.peer,
@@ -808,6 +924,12 @@ class SFU {
       dtlsParameters: JSON.stringify(wtransport.dtlsParameters),
       createdBy: transportAppData.createdBy,
       turnConfig: generateTurnConfig(),
+    }).catch((error) => {
+      Logger.error("mediasoup Transports.insertAsync failed", {
+        error,
+        call: transportAppData.call,
+        peer: transportAppData.peer,
+      });
     });
   }
 
@@ -817,7 +939,14 @@ class SFU {
       "close",
       Meteor.bindEnvironment(() => {
         this.producers.delete(producerAppData.producerClient);
-        void ProducerServers.removeAsync({ producerId: producer.id });
+        ProducerServers.removeAsync({ producerId: producer.id }).catch(
+          (error) => {
+            Logger.error("mediasoup ProducerServers.removeAsync failed", {
+              error,
+              producerId: producer.id,
+            });
+          },
+        );
       }),
     );
 
@@ -825,16 +954,31 @@ class SFU {
     // transports than we actually want to use, but `createConsumer` will filter
     // it down)
     this.transports.forEach((transport, key) => {
-      void this.createConsumer(key.split(":")[1]!, transport, producer);
+      this.createConsumer(key.split(":")[1]!, transport, producer).catch(
+        (error) => {
+          Logger.error("mediasoup createConsumer failed", {
+            error,
+            key,
+            transportId: transport.id,
+            producerId: producer.id,
+          });
+        },
+      );
     });
 
     const observer = this.observers.get(producerAppData.call);
     if (observer) {
-      void observer.addProducer({ producerId: producer.id });
+      observer.addProducer({ producerId: producer.id }).catch((error) => {
+        Logger.error("mediasoup addProducer failed", {
+          error,
+          observerId: observer.id,
+          producerId: producer.id,
+        });
+      });
     }
 
     this.producers.set(producerAppData.producerClient, producer);
-    void ProducerServers.insertAsync({
+    ProducerServers.insertAsync({
       createdServer: serverId,
       call: producerAppData.call,
       peer: producerAppData.peer,
@@ -843,6 +987,12 @@ class SFU {
       trackId: producerAppData.trackId,
       producerId: producer.id,
       createdBy: producerAppData.createdBy,
+    }).catch((error) => {
+      Logger.error("mediasoup ProducerServers.insertAsync failed", {
+        error,
+        call: producerAppData.call,
+        peer: producerAppData.peer,
+      });
     });
   }
 
@@ -854,26 +1004,41 @@ class SFU {
         this.consumers.delete(
           `${consumerAppData.transportRequest}:${consumer.producerId}`,
         );
-        void Consumers.removeAsync({ consumerId: consumer.id });
+        Consumers.removeAsync({ consumerId: consumer.id }).catch((error) => {
+          Logger.error("mediasoup Consumers.removeAsync failed", {
+            error,
+            consumerId: consumer.id,
+          });
+        });
       }),
     );
 
     consumer.observer.on(
       "pause",
       Meteor.bindEnvironment(() => {
-        void Consumers.updateAsync(
+        Consumers.updateAsync(
           { consumerId: consumer.id },
           { $set: { paused: true } },
-        );
+        ).catch((error) => {
+          Logger.error(
+            "mediasoup Consumers.updateAsync failed on consumer pause",
+            { error, consumerId: consumer.id },
+          );
+        });
       }),
     );
     consumer.observer.on(
       "resume",
       Meteor.bindEnvironment(() => {
-        void Consumers.updateAsync(
+        Consumers.updateAsync(
           { consumerId: consumer.id },
           { $set: { paused: false } },
-        );
+        ).catch((error) => {
+          Logger.error(
+            "mediasoup Consumers.updateAsync failed on consumer resume",
+            { error, consumerId: consumer.id },
+          );
+        });
       }),
     );
 
@@ -881,7 +1046,7 @@ class SFU {
       `${consumerAppData.transportRequest}:${consumer.producerId}`,
       consumer,
     );
-    void Consumers.insertAsync({
+    Consumers.insertAsync({
       createdServer: serverId,
       call: consumerAppData.call,
       peer: consumerAppData.peer,
@@ -894,6 +1059,13 @@ class SFU {
       rtpParameters: JSON.stringify(consumer.rtpParameters),
       paused: consumer.paused,
       createdBy: consumerAppData.createdBy,
+    }).catch((error) => {
+      Logger.error("meidasoup failed to insert consumer", {
+        error,
+        call: consumerAppData.call,
+        peer: consumerAppData.peer,
+        consumerId: consumer.id,
+      });
     });
   }
 
@@ -925,13 +1097,18 @@ class SFU {
       transport.observer.on(
         "close",
         Meteor.bindEnvironment(() => {
-          void MonitorConnectRequests.removeAsync({
+          MonitorConnectRequests.removeAsync({
             transportId: transport.id,
+          }).catch((error) => {
+            Logger.error("Failed to remove MonitorConnectRequests", {
+              error,
+              transportId: transport.id,
+            });
           });
         }),
       );
 
-      void (async () => {
+      (async () => {
         const consumer = await transport.consumeData({
           dataProducerId: this.heartbeatDataProducer.id,
           // These options determine the reliability of the packets that we send
@@ -965,16 +1142,28 @@ class SFU {
           producerLabel: consumer.label,
           producerProtocol: consumer.protocol,
         });
-      })();
+      })().catch((error) => {
+        Logger.error("mediasoup failed to consume monitor transport", {
+          error,
+          dataProducerId: this.heartbeatDataProducer.id,
+        });
+      });
     } else if (transportAppData.type === "monitor-received") {
       ptransport.observer.on(
         "close",
         Meteor.bindEnvironment(() => {
-          void MonitorConnectAcks.removeAsync({ transportId: transport.id });
+          MonitorConnectAcks.removeAsync({ transportId: transport.id }).catch(
+            (error) => {
+              Logger.error("mediasoup failed to remove MonitorConnectAcks", {
+                error,
+                transportId: transport.id,
+              });
+            },
+          );
         }),
       );
 
-      void (async () => {
+      (async () => {
         try {
           await ptransport.connect({
             ip: transportAppData.ip,
@@ -1020,7 +1209,14 @@ class SFU {
             error,
           });
         }
-      })();
+      })().catch((error) => {
+        Logger.error("mediasoup failed to produce monitor transport", {
+          error,
+          ip: transportAppData.ip,
+          port: transportAppData.port,
+          transport: ptransport.id,
+        });
+      });
     } else {
       Logger.error("Unexpected monitor transport type", {
         transport: ptransport.id,
@@ -1203,7 +1399,7 @@ class SFU {
   }
 
   async producerClientChanged(id: string, fields: Partial<ProducerClientType>) {
-    if (!Object.prototype.hasOwnProperty.call(fields, "paused")) {
+    if (!Object.hasOwn(fields, "paused")) {
       return;
     }
 
@@ -1266,7 +1462,12 @@ class SFU {
             server: server._id,
           },
         );
-        void cleanupDeadServer(server._id);
+        cleanupDeadServer(server._id).catch((error) => {
+          Logger.error("mediasoup cleanupDeadServer failed", {
+            error,
+            serverId: server._id,
+          });
+        });
       }),
     );
     this.heartbeatWatchdogs.set(server._id, watchdog);
@@ -1429,7 +1630,7 @@ const lookupIPSources = async (ipv: "v4" | "v6") => {
     sources.map(async (source) => {
       try {
         return await lookupIPSource(ipv, source);
-      } catch (e) {
+      } catch {
         return undefined;
       }
     }),
@@ -1495,28 +1696,28 @@ const getLocalIPAddresses = (): ListenIp[] => {
     });
 };
 
-registerPeriodicCleanupHook(async (deadServers) => {
+registerPeriodicCleanupHook(async (deadServer) => {
   await MonitorConnectAcks.removeAsync({
-    receivingServer: { $in: deadServers },
+    receivingServer: deadServer,
   });
   await MonitorConnectRequests.removeAsync({
-    initiatingServer: { $in: deadServers },
+    initiatingServer: deadServer,
   });
 
-  await ConsumerAcks.removeAsync({ createdServer: { $in: deadServers } });
-  await Consumers.removeAsync({ createdServer: { $in: deadServers } });
+  await ConsumerAcks.removeAsync({ createdServer: deadServer });
+  await Consumers.removeAsync({ createdServer: deadServer });
 
-  await ProducerServers.removeAsync({ createdServer: { $in: deadServers } });
-  await ProducerClients.removeAsync({ createdServer: { $in: deadServers } });
+  await ProducerServers.removeAsync({ createdServer: deadServer });
+  await ProducerClients.removeAsync({ createdServer: deadServer });
 
-  await ConnectAcks.removeAsync({ createdServer: { $in: deadServers } });
-  await ConnectRequests.removeAsync({ createdServer: { $in: deadServers } });
+  await ConnectAcks.removeAsync({ createdServer: deadServer });
+  await ConnectRequests.removeAsync({ createdServer: deadServer });
 
-  await TransportStates.removeAsync({ createdServer: { $in: deadServers } });
-  await Transports.removeAsync({ createdServer: { $in: deadServers } });
-  await TransportRequests.removeAsync({ createdServer: { $in: deadServers } });
+  await TransportStates.removeAsync({ createdServer: deadServer });
+  await Transports.removeAsync({ createdServer: deadServer });
+  await TransportRequests.removeAsync({ createdServer: deadServer });
 
-  await Routers.removeAsync({ createdServer: { $in: deadServers } });
+  await Routers.removeAsync({ createdServer: deadServer });
 });
 
 // A note: the current behavior of Meteor.startup is that it blocks the
@@ -1551,7 +1752,12 @@ Meteor.startup(async () => {
   const observer = await Flags.observeChangesAsync(
     "disable.webrtc",
     (active) => {
-      void updateSFU(!active);
+      updateSFU(!active).catch((error) => {
+        Logger.error(
+          "mediasoup updateSFU failed on disable.webrtc flag change",
+          { error, disable: active },
+        );
+      });
     },
   );
 
