@@ -1201,6 +1201,10 @@ const ChatHistory = React.forwardRef(
       }
     }, [chatMessages.length, saveScrollBottomTarget, snapToBottom]);
 
+    useLayoutEffect(() => {
+      scrollChat();
+    }, [scrollChat]);
+
     const [shownEmojiPicker, setShownEmojiPicker] = useState<string | null>(
       null,
     );
