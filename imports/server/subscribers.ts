@@ -134,31 +134,95 @@ Meteor.publish("subscribers.fetch", async function (name) {
     return [];
   }
 
-  const users: Record<string, number> = {};
+  // Map<UserId, Map<DocId, { visible, updatedAt }>>
+  const userMap = new Map<
+    string,
+    Map<string, { visible: boolean; updatedAt: Date }>
+  >();
+
+  const updateClient = (user: string) => {
+    const publicationId = `${name}:${user}`;
+    const docs = userMap.get(user);
+
+    if (!docs || docs.size === 0) {
+      this.removed("subscribers", publicationId);
+      return;
+    }
+
+    // Aggregation Logic:
+    // 1. Visible if ANY connection is visible.
+    // 2. LastActivity is the MAX updatedAt across connections.
+    let isAnyVisible = false;
+    let maxUpdatedAt = 0;
+
+    for (const d of docs.values()) {
+      if (d.visible) isAnyVisible = true;
+      if (d.updatedAt.getTime() > maxUpdatedAt) {
+        maxUpdatedAt = d.updatedAt.getTime();
+      }
+    }
+
+    const payload = {
+      name,
+      user,
+      visible: isAnyVisible,
+      lastActivity: new Date(maxUpdatedAt),
+    };
+
+    // We store a '_sent' flag on the Map object itself to know if we need to Add or Change
+    const state = docs as any;
+    if (state._sent) {
+      this.changed("subscribers", publicationId, payload);
+    } else {
+      this.added("subscribers", publicationId, payload);
+      state._sent = true;
+    }
+  };
 
   const cursor = Subscribers.find({ name });
   const handle = await cursor.observeAsync({
     added: (doc) => {
       const { user } = doc;
-
-      if (!Object.hasOwn(users, user)) {
-        users[user] = 0;
-        this.added("subscribers", `${name}:${user}`, { name, user });
+      if (!userMap.has(user)) {
+        userMap.set(user, new Map());
       }
 
-      users[user]! += 1;
+      const visible = doc.context?.visible === "visible";
+      const updatedAt = doc.updatedAt || new Date();
+
+      userMap.get(user)!.set(doc._id, { visible, updatedAt });
+      updateClient(user);
+    },
+
+    changed: (doc) => {
+      const { user } = doc;
+      if (userMap.has(user)) {
+        const docs = userMap.get(user)!;
+        if (docs.has(doc._id)) {
+          const visible = doc.context?.visible === "visible";
+          const updatedAt = doc.updatedAt || new Date();
+          docs.set(doc._id, { visible, updatedAt });
+          updateClient(user);
+        }
+      }
     },
 
     removed: (doc) => {
       const { user } = doc;
+      if (userMap.has(user)) {
+        const docs = userMap.get(user)!;
+        docs.delete(doc._id);
 
-      users[user]! -= 1;
-      if (users[user] === 0) {
-        delete users[user];
-        this.removed("subscribers", `${name}:${user}`);
+        if (docs.size === 0) {
+          updateClient(user); // Sends 'removed'
+          userMap.delete(user);
+        } else {
+          updateClient(user); // Sends 'changed'
+        }
       }
     },
   });
+
   this.onStop(() => handle.stop());
   this.ready();
   return undefined;
@@ -223,11 +287,6 @@ Meteor.publish("subscribers.fetchAll", async function (hunt) {
 
   const handle = cursor.observe({
     added: (doc) => {
-      // Filter manually since we are observing all Subscribers (if desired)
-      // or rely on client side filtering.
-      // Assuming 'hunt' context matches or filtering happens in `find`:
-      // if (doc.hunt !== hunt) return;
-
       const key = `${doc.name}:${doc.user}`;
 
       if (!state.has(key)) {
@@ -265,11 +324,6 @@ Meteor.publish("subscribers.fetchAll", async function (hunt) {
         group.delete(doc._id);
 
         if (group.size === 0) {
-          // If empty, remove the group entirely so updateClient sends 'removed'
-          // We need to call updateClient BEFORE deleting the map entry
-          // so it sees size 0? No, updateClient checks checks size.
-          // But if we delete the map entry, we lose the '_sent' flag.
-          // So we keep the map entry until after updateClient, then delete if empty.
           updateClient(key, doc.name, doc.user);
           state.delete(key);
         } else {
