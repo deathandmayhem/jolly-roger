@@ -42,6 +42,10 @@ import {
   PeopleListDiv,
 } from "./styling/PeopleComponents";
 
+
+const ACTIVE_SLACK_MS = 1 * 60 * 1000;
+const IDLE_TIMEOUT_MS = 5 * 60 * 1000;
+
 interface ViewerSubscriber {
   user: string;
   name: string | undefined;
@@ -54,11 +58,34 @@ interface PersonBoxProps extends ViewerSubscriber {
   popperBoundaryRef: React.RefObject<HTMLElement | null>;
 }
 
+const ActivityDot = styled.div<{ $status: "online" | "idle" | "away" }>`
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid ${({ theme }) => theme.colors.chatterSectionBackground};
+  background-color: ${({ $status }) => {
+    // biome-ignore lint/style/useDefaultSwitchClause: These are exhaustive cases
+    switch ($status) {
+      case "online":
+        return "#28a745"; // Success green
+      case "idle":
+        return "#ffc107"; // Warning yellow
+      case "away":
+        return "#6c757d"; // Secondary grey
+    }
+  }};
+  z-index: 1;
+`;
+
 const ViewerPersonBox = ({
   user,
   name,
   discordAccount,
   children,
+  status,
   popperBoundaryRef,
 }: PersonBoxProps) => {
   const id = useId();
@@ -81,13 +108,16 @@ const ViewerPersonBox = ({
       overlay={<Tooltip id={id}>{name}</Tooltip>}
     >
       <PeopleItemDiv>
-        <Avatar
-          _id={user}
-          displayName={name}
-          discordAccount={discordAccount}
-          size={44}
-        />
-        {children}
+        <div style={{ position: "relative" }}>
+          <Avatar
+            _id={user}
+            displayName={name}
+            discordAccount={discordAccount}
+            size={44}
+          />
+          {children}
+          <ActivityDot $status={status} />
+        </div>
       </PeopleItemDiv>
     </OverlayTrigger>
   );
@@ -224,11 +254,24 @@ const ChatPeople = ({
         return;
       }
 
+      let status: "online" | "idle" | "away" = "online";
+      const userLastSeen = Date.now() - s.lastActivity;
+      if (s.visible) {
+        status = "online";
+      } else if (!s.visible && userLastSeen < ACTIVE_SLACK_MS) {
+        status = "online";
+      } else if (!s.visible && userLastSeen < IDLE_TIMEOUT_MS) {
+        status = "idle";
+      } else {
+        status = "away";
+      }
+
       viewersAcc.push({
         user: s.user,
         name: user.displayName,
         discordAccount: user.discordAccount,
         tab: undefined,
+        status,
       });
     });
 
