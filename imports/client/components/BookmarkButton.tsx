@@ -1,8 +1,9 @@
-import { faStar as faStarRegular } from "@fortawesome/free-regular-svg-icons/faStar";
-import { faStar as faStarSolid } from "@fortawesome/free-solid-svg-icons/faStar";
+import { faBookmark as faBookmarkRegular } from "@fortawesome/free-regular-svg-icons/faBookmark";
+import { faBookmark as faBookmarkSolid } from "@fortawesome/free-solid-svg-icons/faBookmark";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { useCallback, useState } from "react";
 import Button from "react-bootstrap/Button";
+import { useTheme } from "styled-components";
 import bookmarkPuzzle from "../../methods/bookmarkPuzzle";
 
 interface BookmarkButtonProps<As extends React.ElementType = React.ElementType>
@@ -35,6 +36,8 @@ const BookmarkButton: BookmarkButtonType = React.forwardRef<
     })();
   }, [puzzleId, bookmarked]);
 
+  const theme = useTheme();
+
   return (
     <Component
       ref={ref}
@@ -43,7 +46,8 @@ const BookmarkButton: BookmarkButtonType = React.forwardRef<
       {...props}
     >
       <FontAwesomeIcon
-        icon={bookmarked ? faStarSolid : faStarRegular}
+        icon={bookmarked ? faBookmarkSolid : faBookmarkRegular}
+        color={bookmarked ? theme.colors.warning : theme.colors.text}
         beat={animateBookmark}
         onAnimationEnd={onAnimationEnd}
         style={{

@@ -1,8 +1,13 @@
 import React from "react";
+import styled from "styled-components";
 import type { ChatMessageType } from "../../lib/models/ChatMessages";
 import type { PuzzleType } from "../../lib/models/Puzzles";
 import type { TagType } from "../../lib/models/Tags";
 import Puzzle from "./Puzzle";
+
+const StyledPuzzleListDiv = styled.div`
+  margin-bottom: 1em;
+`;
 
 const PuzzleList = React.memo(
   ({
@@ -34,7 +39,7 @@ const PuzzleList = React.memo(
     // Adjusting order based on tags, tag groups, etc. is to be done at
     // a higher layer.
     return (
-      <div>
+      <StyledPuzzleListDiv className="puzzle-list">
         {puzzles.map((puzzle) => {
           const puzzleId = puzzle._id;
           return (
@@ -60,7 +65,7 @@ const PuzzleList = React.memo(
             />
           );
         })}
-      </div>
+      </StyledPuzzleListDiv>
     );
   },
 );

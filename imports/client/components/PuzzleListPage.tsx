@@ -697,6 +697,7 @@ const PuzzleListView = ({
       retainedDeletedPuzzles: PuzzleType[] | undefined,
       solvedOverConstrains: boolean,
       allPuzzlesCount: number,
+      listTitle: string,
     ) => {
       const maybeMatchWarning = solvedOverConstrains && (
         <Alert variant="info">
@@ -782,6 +783,7 @@ const PuzzleListView = ({
           break;
         }
       }
+
       return (
         <div>
           {maybeMatchWarning}
@@ -797,7 +799,7 @@ const PuzzleListView = ({
           </PuzzleListToolbar>
           {bookmarkedPuzzles.length > 0 && (
             <PuzzleGroupDiv>
-              <div>Bookmarked</div>
+              <h5>Bookmarked</h5>
               <RelatedPuzzleList
                 key="bookmarked"
                 relatedPuzzles={bookmarkedPuzzles}
@@ -810,6 +812,7 @@ const PuzzleListView = ({
                 subscribers={puzzleSubscribers}
                 puzzleUsers={puzzleUsers}
               />
+              <h5>{listTitle}</h5>
             </PuzzleGroupDiv>
           )}
           {listComponent}
@@ -844,10 +847,10 @@ const PuzzleListView = ({
       puzzleSubscribers,
       puzzleUsers,
       huntId,
-      searchString,
       showAddModalWithTags,
       canExpandAllGroups,
       expandAllGroups,
+      searchString,
     ],
   );
 
@@ -928,6 +931,16 @@ const PuzzleListView = ({
     );
   const retainedDeletedPuzzles =
     deletedPuzzles && puzzlesMatchingSearchString(deletedPuzzles);
+
+  const listTitle = useTracker(() => {
+    let listTitle = "All puzzles";
+    if (searchString.trim().length > 0) {
+      listTitle = "Search results";
+    } else if (!showSolved) {
+      listTitle = "Unsolved puzzles";
+    }
+    return listTitle;
+  }, [searchString, showSolved]);
 
   return (
     <div>
@@ -1062,6 +1075,7 @@ const PuzzleListView = ({
         retainedDeletedPuzzles,
         solvedOverConstrains,
         allPuzzles.length,
+        listTitle,
       )}
     </div>
   );
