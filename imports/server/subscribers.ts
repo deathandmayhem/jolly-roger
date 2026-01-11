@@ -13,8 +13,8 @@ import { registerPeriodicCleanupHook, serverId } from "./garbage-collection";
 import Subscribers from "./models/Subscribers";
 
 // Clean up leaked subscribers from dead servers periodically.
-async function cleanupHook(deadServer: string) {
-  await Subscribers.removeAsync({ server: deadServer });
+async function cleanupHook(deadServers: string[]) {
+  await Subscribers.removeAsync({ server: { $in: deadServers } });
 }
 registerPeriodicCleanupHook(cleanupHook);
 
