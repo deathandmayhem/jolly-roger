@@ -32,8 +32,9 @@ const MinimizedChatInfoContainer = styled.div`
   gap: 8px;
   background-color: ${({ theme }) => theme.colors.chatterSectionBackground};
   padding: 4px 2px;
-  border-radius: 0 4px 4px 0;
+  border-radius: 0 8px 8px 0;
   z-index: 10;
+  width: 38px;
 `;
 
 const InfoPill = styled.div`

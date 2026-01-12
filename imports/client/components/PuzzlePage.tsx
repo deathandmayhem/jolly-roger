@@ -2675,67 +2675,111 @@ const MinimizeChatButton = styled.button<{
     `}
 `;
 
-const TickerToast = styled(Toast)`
-  && {
-    border-left: 5px solid #007bff;
-    overflow: hidden;
-    width: 350px;
-    pointer-events: auto;
-    position: relative;
-  }
-
-  .toast-body {
-    position: relative;
-    z-index: 1;
-    background: transparent !important;
-  }
+const slideInAnimation = keyframes`
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 `;
 
-const TickerToastBody = styled(Toast.Body)`
+const TickerContainer = styled.div`
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  width: 350px;
+  pointer-events: auto;
+`;
+
+const TickerQueuePill = styled.div`
+  align-self: flex-start;
+  background-color: #6c757d;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: bold;
+  padding: 2px 10px;
+  border-radius: 12px;
+  margin-bottom: 4px;
+  box-shadow: 0 2px 4px rgb(0 0 0 / 20%);
+  animation: ${slideInAnimation} 0.3s ease;
+`;
+
+const TickerToast = styled.div`
+  width: 100%;
+  background-color: ${({ theme }) => theme.colors.background};
+  color: ${({ theme }) => theme.colors.text};
+  border: 1px solid rgb(0 0 0 / 10%);
+  border-left: ${({ theme }) => theme.colors.muted};
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+  font-size: 0.9rem;
+
+  /* Stacking & Animation */
+  transition: all 0.3s ease-in-out;
+  animation: ${slideInAnimation} 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  will-change: transform, opacity;
+`;
+
+const TickerToastBody = styled.div`
+  padding: 10px 12px;
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
+  gap: 8px;
+  position: relative;
+  z-index: 1;
 `;
 
 const TickerToastContent = styled.div`
+  flex: 1;
   overflow: hidden;
-  text-overflow: ellipsis;
+  overflow-wrap: break-word;
 `;
 
-const TickerProgress = styled(ProgressBar)`
+const TickerProgress = styled.div<{ $percent: number }>`
   position: absolute;
-  inset: 0;
-  height: auto;
-  border-radius: 0;
-  z-index: 0;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: ${({ $percent }) => $percent}%;
+  background-color: ${({ theme }) => theme.colors.muted};
   opacity: 0.1;
-
-  .progress-bar {
-    transition: none;
-    background-color: #007bff;
-  }
+  z-index: 0;
+  transition: width 0.1s linear;
 `;
+
+type TickerToastType = {
+  id: string;
+  text: string;
+  sender: string;
+  duration: number;
+};
 
 const ManagedTickerToast: FC<{
   msg: TickerToastType;
+  isPaused: boolean;
   dismiss: (id: string) => void;
-  onRestore: (e: React.MouseEvent) => void;
-}> = ({ msg, dismiss, onRestore }) => {
+  onRestore: (id: string) => void;
+}> = ({ msg, isPaused, dismiss, onRestore }) => {
   const [remaining, setRemaining] = useState(msg.duration);
-  const paused = useRef(false);
   const lastTick = useRef<number>(Date.now());
   const rafId = useRef<number | null>(null);
 
   const tick = useCallback(() => {
     const now = Date.now();
-    const isPageVisible = document.visibilityState === "visible";
-    if (!paused.current && isPageVisible) {
-      const delta = now - lastTick.current;
+    const delta = now - lastTick.current;
+
+    if (!isPaused && document.visibilityState === "visible") {
       setRemaining((prev) => Math.max(0, prev - delta));
     }
+
     lastTick.current = now;
     rafId.current = requestAnimationFrame(tick);
-  }, []);
+  }, [isPaused]);
 
   useEffect(() => {
     if (remaining <= 0) {
@@ -2751,53 +2795,28 @@ const ManagedTickerToast: FC<{
     };
   }, [tick]);
 
-  const handleMouseEnter = () => {
-    paused.current = true;
-  };
-
-  const handleMouseLeave = () => {
-    lastTick.current = Date.now();
-    paused.current = false;
-  };
-
   return (
-    <TickerToast
-      onClose={() => dismiss(msg.id)}
-      show
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-      onClick={() => dismiss(msg.id)}
-    >
-      <TickerProgress now={(remaining / msg.duration) * 100} />
+    <TickerToast onClick={() => dismiss(msg.id)} role="button" tabIndex={0}>
+      <TickerProgress $percent={(remaining / msg.duration) * 100} />
       <TickerToastBody>
         <TickerToastContent>
           <strong>{msg.sender}:</strong> {msg.text}
         </TickerToastContent>
         <Button
-          variant="primary"
+          variant="outline-primary"
           size="sm"
-          onClick={onRestore}
-          title="Restore Chat"
+          style={{ padding: "0px 6px", border: "none" }}
+          onClick={(e) => {
+            e.stopPropagation();
+            onRestore(e);
+          }}
+          title="Open Chat"
         >
-          <FontAwesomeIcon icon={faComments} size="sm" />
+          <FontAwesomeIcon icon={faComments} />
         </Button>
       </TickerToastBody>
     </TickerToast>
   );
-};
-
-const TickerContainer = styled(ToastContainer)`
-  z-index: 9999;
-  position: fixed;
-  bottom: 20px;
-  left: 20px;
-`;
-
-type TickerToastType = {
-  id: string;
-  text: string;
-  sender: string;
-  duration: number;
 };
 
 const getPlainTextMessage = (
@@ -3473,7 +3492,7 @@ const PuzzleDeletedModal = ({
 const PuzzlePage = React.memo(() => {
   const puzzlePageDivRef = useRef<HTMLDivElement | null>(null);
   const chatSectionRef = useRef<ChatSectionHandle | null>(null);
-const [persistentWidth, setPersistentWidth] = usePersistedSidebarWidth();
+  const [persistentWidth, setPersistentWidth] = usePersistedSidebarWidth();
   const [selectedDocumentIndex, setSelectedDocumentIndex] = useState<number>(0);
   const [secondaryDocumentIndex, setSecondaryDocumentIndex] = useState<
     number | null
@@ -3503,6 +3522,8 @@ const [persistentWidth, setPersistentWidth] = usePersistedSidebarWidth();
     }
   };
   const [tickerQueue, setTickerQueue] = useState<TickerToastType[]>([]);
+  const [isTickerHovered, setIsTickerHovered] = useState(false);
+  const tickerHoverTimeout = useRef<NodeJS.Timeout | null>(null);
 
   const prevIsChatMinimized = useRef(isChatMinimized);
 
@@ -3602,9 +3623,10 @@ const [persistentWidth, setPersistentWidth] = usePersistedSidebarWidth();
           if (msg.sender) {
             const text = getPlainTextMessage(msg.content, displayNames);
             const senderName = displayNames.get(msg.sender) ?? "???";
+
             const duration = Math.max(
               3000,
-              Math.min(10000, (text.length / 20) * 1000),
+              Math.min(8000, (text.length / 20) * 1000),
             );
 
             setTickerQueue((prev) => [
@@ -3615,25 +3637,41 @@ const [persistentWidth, setPersistentWidth] = usePersistedSidebarWidth();
         });
       }
     }
-
     prevMessagesLength.current = chatMessages.length;
   }, [chatMessages, isChatMinimized, displayNames]);
+
+  const handleTickerMouseEnter = useCallback(() => {
+    if (tickerHoverTimeout.current) {
+      clearTimeout(tickerHoverTimeout.current);
+      tickerHoverTimeout.current = null;
+    }
+    setIsTickerHovered(true);
+  }, []);
+
+  const handleTickerMouseLeave = useCallback(() => {
+    // 500ms grace period before resuming
+    tickerHoverTimeout.current = setTimeout(() => {
+      setIsTickerHovered(false);
+    }, 500);
+  }, []);
 
   const dismissTickerMessage = (id: string) => {
     setTickerQueue((prev) => prev.filter((m) => m.id !== id));
   };
 
   const handleRestoreFromTicker = useCallback(
-    (e: React.MouseEvent) => {
-      e.stopPropagation();
+    (id: string) => {
       setIsChatMinimized(false);
       setTickerQueue([]);
+      setIsTickerHovered(false);
       setSidebarWidth(lastSidebarWidth);
       setTimeout(() => {
         if (chatSectionRef.current) {
           setTimeout(() => {
             chatSectionRef.current?.scrollHistoryToTarget();
-            chatSectionRef.current.snapToBottom();
+            chatSectionRef.current.scrollToMessage(messageId, () => {
+              setPulsingMessageId(messageId);
+            });
           }, 100);
         }
       }, 0);
@@ -3725,6 +3763,7 @@ const [persistentWidth, setPersistentWidth] = usePersistedSidebarWidth();
           setLastSidebarWidth(sidebarWidth);
         }
       } else {
+        setIsTickerHovered(false);
         setTickerQueue([]);
         setSidebarWidth(lastSidebarWidth);
         setTimeout(() => {
@@ -3969,21 +4008,28 @@ const [persistentWidth, setPersistentWidth] = usePersistedSidebarWidth();
       </PuzzleMetadataFloatingButton>
     </OverlayTrigger>
   ) : null;
+
+  const visibleTickers = tickerQueue.slice(0, 3);
+  const overflowCount = Math.max(0, tickerQueue.length - 3);
+
   const tickerPortal =
     isChatMinimized &&
     tickerQueue.length > 0 &&
     createPortal(
-      <TickerContainer position="bottom-start" className="p-3">
-        {tickerQueue.length > 1 && (
-          <Badge bg="secondary" pill>
-            +{tickerQueue.length - 1} more message
-            {tickerQueue.length > 2 ? "s" : ""}
-          </Badge>
+      <TickerContainer
+        onMouseEnter={handleTickerMouseEnter}
+        onMouseLeave={handleTickerMouseLeave}
+      >
+        {overflowCount > 0 && (
+          <TickerQueuePill>
+            +{overflowCount} more message{overflowCount > 1 ? "s" : ""}
+          </TickerQueuePill>
         )}
-        {tickerQueue.slice(0, 1).map((msg) => (
+        {visibleTickers.map((msg, idx) => (
           <ManagedTickerToast
             key={msg.id}
             msg={msg}
+            isPaused={isTickerHovered || idx !== 0}
             dismiss={dismissTickerMessage}
             onRestore={handleRestoreFromTicker}
           />
