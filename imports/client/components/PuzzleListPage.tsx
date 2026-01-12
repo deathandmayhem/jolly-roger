@@ -15,6 +15,7 @@ import { faStar } from "@fortawesome/free-solid-svg-icons/faStar";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   type ComponentPropsWithRef,
+  createContext,
   type FC,
   useCallback,
   useEffect,
@@ -51,6 +52,7 @@ import presenceForHunt from "../../lib/publications/presenceForHunt";
 import puzzleActivityForHunt from "../../lib/publications/puzzleActivityForHunt";
 import puzzlesForPuzzleList from "../../lib/publications/puzzlesForPuzzleList";
 import statusesForHuntUsers from "../../lib/publications/statusesForHuntUsers";
+import type { PuzzleGroup } from "../../lib/puzzle-sort-and-group";
 import {
   filteredPuzzleGroups,
   puzzleGroupsByRelevance,
@@ -206,6 +208,31 @@ const getTextWidth = (text: string, font: string) => {
   return 0;
 };
 
+export const PuzzleHoverContext = createContext<{
+  hoveredPuzzleId: string | null;
+  setHoveredPuzzleId: (id: string | null) => void;
+  multiOccurrenceIds: Set<string>; // Add this
+}>({
+  hoveredPuzzleId: null,
+  setHoveredPuzzleId: () => {},
+  multiOccurrenceIds: new Set(),
+});
+
+const countPuzzlesInGroups = (
+  groups: PuzzleGroup[],
+  counts: Map<string, number>,
+) => {
+  groups.forEach((g) => {
+    g.puzzles.forEach((p) => {
+      counts.set(p._id, (counts.get(p._id) ?? 0) + 1);
+    });
+    // Recursively count subgroups
+    if (g.subgroups.length > 0) {
+      countPuzzlesInGroups(g.subgroups, counts);
+    }
+  });
+};
+
 const PuzzleListView = ({
   huntId,
   canAdd,
@@ -253,6 +280,8 @@ const PuzzleListView = ({
   const [huntPuzzleListCollapseGroups, setHuntPuzzleListCollapseGroups] =
     useHuntPuzzleListCollapseGroups(huntId);
   const [cursorOffset, setCursorOffset] = useState<number>(10);
+
+  const [hoveredPuzzleId, setHoveredPuzzleId] = useState<string | null>(null);
 
   const expandAllGroups = useCallback(() => {
     setHuntPuzzleListCollapseGroups({});
@@ -712,6 +741,8 @@ const PuzzleListView = ({
         bookmarked.has(puzzle._id),
       );
 
+      const multiOccurrenceIds = new Set<string>();
+
       let listComponent;
       let listControls;
       // biome-ignore lint/style/useDefaultSwitchClause: migration from eslint
@@ -725,6 +756,20 @@ const PuzzleListView = ({
             unfilteredGroups,
             retainedIds,
           );
+
+          const counts = new Map<string, number>();
+          countPuzzlesInGroups(puzzleGroups, counts);
+
+          if (bookmarkedPuzzles.length > 0) {
+            bookmarkedPuzzles.forEach((p) =>
+              counts.set(p._id, (counts.get(p._id) ?? 0) + 1),
+            );
+          }
+
+          counts.forEach((count, id) => {
+            if (count > 1) multiOccurrenceIds.add(id);
+          });
+
           listComponent = puzzleGroups.map((g) => {
             const suppressedTagIds = [];
             if (g.sharedTag) {
@@ -785,7 +830,9 @@ const PuzzleListView = ({
       }
 
       return (
-        <div>
+        <PuzzleHoverContext.Provider
+          value={{ hoveredPuzzleId, setHoveredPuzzleId, multiOccurrenceIds }}
+        >
           {maybeMatchWarning}
           <PuzzleListToolbar>
             <div>{listControls}</div>
@@ -834,7 +881,7 @@ const PuzzleListView = ({
               addPuzzleCallback={showAddModalWithTags}
             />
           )}
-        </div>
+        </PuzzleHoverContext.Provider>
       );
     },
     [
@@ -851,6 +898,7 @@ const PuzzleListView = ({
       canExpandAllGroups,
       expandAllGroups,
       searchString,
+      hoveredPuzzleId,
     ],
   );
 
