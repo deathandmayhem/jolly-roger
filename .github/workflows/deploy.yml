@@ -17,7 +17,6 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     env:
-      MEDIASOUP_WORKER_PREBUILT_DOWNLOAD_BASE_URL: https://github.com/versatica/mediasoup/releases/download
       PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
 
     steps:
@@ -68,6 +67,5 @@ jobs:
             tar -xzf jolly-roger.tar.gz
             rm jolly-roger.tar.gz
             cd bundle/programs/server
-            rm -rf node_modules
             npm install
             sudo systemctl restart jolly-roger
