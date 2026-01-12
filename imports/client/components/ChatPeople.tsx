@@ -60,11 +60,11 @@ interface PersonBoxProps extends ViewerSubscriber {
 
 const ActivityDot = styled.div<{ $status: "online" | "idle" | "away" }>`
   position: absolute;
-  bottom: -2px;
-  right: -2px;
+  bottom: 0;
+  right: 0;
   width: 12px;
   height: 12px;
-  border-radius: 50%;
+  border-radius: 0;
   border: 2px solid ${({ theme }) => theme.colors.chatterSectionBackground};
   background-color: ${({ $status }) => {
     // biome-ignore lint/style/useDefaultSwitchClause: These are exhaustive cases
