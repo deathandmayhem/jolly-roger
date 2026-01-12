@@ -8,18 +8,14 @@ export interface Theme {
   colors: {
     background: string;
     text: string;
+    border: string;
     primary: string;
     secondary: string;
-    muted: string;
-    danger: string;
-    warning: string;
-    info: string;
-    success: string;
     callStateIcon: string;
     mutedIconBorder: string;
     deafenedIconBorder: string;
     mutedIconText: string;
-    deafenedIconText: string;
+    localMutedIconText: string;
     remoteMuteButtonHoverBackground: string;
     remoteMuteButtonHoverText: string;
     chatterSectionBackground: string;
