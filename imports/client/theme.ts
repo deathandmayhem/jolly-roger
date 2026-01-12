@@ -15,6 +15,7 @@ export interface Theme {
     mutedIconBorder: string;
     deafenedIconBorder: string;
     mutedIconText: string;
+    localMutedIconText: string;
     remoteMuteButtonHoverBackground: string;
     remoteMuteButtonHoverText: string;
     chatterSectionBackground: string;
@@ -94,7 +95,8 @@ export const lightTheme: Theme = {
     callStateIcon: "#dc3545",
     mutedIconBorder: "#0d6efd",
     deafenedIconBorder: "#0d6efd",
-    mutedIconText: "black",
+    mutedIconText: "red",
+    localMutedIconText: "black",
     remoteMuteButtonHoverBackground: "rgb(30 30 30 / 50%)",
     remoteMuteButtonHoverText: "#ccc",
     chatterSectionBackground: "#f3e5e5",
@@ -202,7 +204,8 @@ export const darkTheme: Theme = {
     callStateIcon: "#f8d7da",
     mutedIconBorder: "#6fa8dc",
     deafenedIconBorder: "#6fa8dc",
-    mutedIconText: "black",
+    mutedIconText: "red",
+    localMutedIconText: "black",
     remoteMuteButtonHoverBackground: "rgb(200 200 200 / 50%)",
     remoteMuteButtonHoverText: "#ccc",
     chatterSectionBackground: "#333",
