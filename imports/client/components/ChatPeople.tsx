@@ -186,7 +186,7 @@ const ChatPeople = ({
   const rtcDisabled = useTracker(() => Flags.active("disable.webrtc"), []);
 
   const recentVoiceActivity = useTracker(
-    () => CallHistories.findOne({ call: puzzleId })?.lastActivity,
+    () => CallHistories.findOne({ call: puzzleId })?.updatedAt,
     [puzzleId],
   );
   const [voiceActivityRelative, setVoiceActivityRelative] = useState<string>();
@@ -260,7 +260,7 @@ const ChatPeople = ({
       }
 
       let status: "online" | "idle" | "away" = "online";
-      const userLastSeen = Date.now() - s.lastActivity;
+      const userLastSeen = Date.now() - s.updatedAt;
       if (s.visible) {
         status = "online";
       } else if (!s.visible && userLastSeen < ACTIVE_SLACK_MS) {

@@ -148,7 +148,7 @@ Meteor.publish("subscribers.fetch", async function (name) {
 
     // Aggregation Logic:
     // 1. Visible if ANY connection is visible.
-    // 2. LastActivity is the MAX updatedAt across connections.
+    // 2. updatedAt is the MAX updatedAt across connections.
     let isAnyVisible = false;
     let maxUpdatedAt = 0;
 
@@ -163,7 +163,7 @@ Meteor.publish("subscribers.fetch", async function (name) {
       name,
       user,
       visible: isAnyVisible,
-      lastActivity: new Date(maxUpdatedAt),
+      updatedAt: new Date(maxUpdatedAt),
     };
 
     // We store a '_sent' flag on the Map object itself to know if we need to Add or Change
