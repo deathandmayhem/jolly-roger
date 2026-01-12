@@ -1,13 +1,12 @@
+import { Meteor } from "meteor/meteor";
 import Logger from "../Logger";
 import Tags from "../lib/models/Tags";
-import { Meteor } from "meteor/meteor";
 
 export default async function getOrCreateTagByName(
   userId: string,
   huntId: string,
   name: string,
 ): Promise<string> {
-
   const cleanName = name.trim().replace(/\s+/g, " ");
 
   if (!cleanName) {
@@ -16,7 +15,10 @@ export default async function getOrCreateTagByName(
 
   const existingTag = await Tags.findOneAsync({
     hunt: huntId,
-    name: { $regex: new RegExp(`^${escapeRegExp(cleanName)}$`, "i") }
+    $or: [
+      { name: { $regex: new RegExp(`^${cleanName}$`, "i") } },
+      { aliases: cleanName },
+    ],
   });
   if (existingTag) {
     return existingTag._id;

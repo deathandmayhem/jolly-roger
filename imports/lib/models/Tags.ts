@@ -8,6 +8,7 @@ const Tag = withCommon(
   z.object({
     name: nonEmptyString,
     hunt: foreignKey,
+    aliases: z.array(nonEmptyString.optional()),
   }),
 );
 

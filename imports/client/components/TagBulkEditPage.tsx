@@ -1,19 +1,21 @@
 import { useTracker } from "meteor/react-meteor-data";
-import { faTags } from "@fortawesome/free-solid-svg-icons";
 import { faEraser } from "@fortawesome/free-solid-svg-icons/faEraser";
 import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus";
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus";
+import { faTags } from "@fortawesome/free-solid-svg-icons/faTags";
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import React, { useCallback, useRef, useState } from "react";
-import { Alert, ButtonGroup, InputGroup } from "react-bootstrap";
+import React, { useCallback, useId, useRef, useState } from "react";
+import Alert from "react-bootstrap/Alert";
 import Button from "react-bootstrap/Button";
+import ButtonGroup from "react-bootstrap/ButtonGroup";
 import Col from "react-bootstrap/Col";
 import Container from "react-bootstrap/Container";
 import Form from "react-bootstrap/Form";
 import type { FormControlProps } from "react-bootstrap/FormControl";
 import FormControl from "react-bootstrap/FormControl";
 import FormGroup from "react-bootstrap/FormGroup";
+import InputGroup from "react-bootstrap/InputGroup";
 import Row from "react-bootstrap/Row";
 import type { FormProps } from "react-router-dom";
 import { useParams } from "react-router-dom";
@@ -36,7 +38,6 @@ import useTypedSubscribe from "../hooks/useTypedSubscribe";
 import type { Theme } from "../theme";
 import type { ModalFormHandle } from "./ModalForm";
 import ModalForm from "./ModalForm";
-import { backgroundColorLookupTable } from "./styling/constants";
 import { mediaBreakpointDown } from "./styling/responsive";
 import TagList from "./TagList";
 
@@ -156,7 +157,7 @@ const TagToggleButtons = React.memo(
         }
       });
       return false;
-    }, [puzzleId, bulkTags, puzzle.tags]);
+    }, [puzzleId, bulkTags, puzzle.tags, tagNamesForIds]);
 
     const disableBulkTagActions = bulkTags.length === 0;
     const disableBulkAdd = bulkTags.every((t) => puzzle.tags.includes(t));
@@ -187,6 +188,71 @@ const TagToggleButtons = React.memo(
   },
 );
 
+const TagPuzzle = React.memo(
+  ({
+    puzzle,
+    allTags,
+    bulkTags,
+  }: {
+    puzzle: PuzzleType;
+    allTags: TagType[];
+    bulkTags: string[];
+  }) => {
+    const solvedness = computeSolvedness(puzzle);
+
+    const tagIndex = indexedById(allTags);
+    const puzzleTags = puzzle.tags.map((tagId) => {
+      return tagIndex.get(tagId);
+    });
+
+    return (
+      <TagPuzzleDiv $solvedness={solvedness}>
+        <PuzzleControlButtonsColumn>
+          <TagToggleButtons
+            puzzle={puzzle}
+            bulkTags={bulkTags}
+            allTags={allTags}
+          />
+        </PuzzleControlButtonsColumn>
+        <PuzzleTitleColumn>{puzzle.title}</PuzzleTitleColumn>
+        <TagListColumn
+          puzzle={puzzle}
+          tags={puzzleTags}
+          linkToSearch
+          popoverRelated={false}
+        />
+      </TagPuzzleDiv>
+    );
+  },
+);
+
+const PuzzlesForTagList = React.memo(
+  ({
+    puzzles,
+    allTags,
+    bulkTags,
+  }: {
+    puzzles: PuzzleType[];
+    allTags: TagType[];
+    bulkTags: string[];
+  }) => {
+    return (
+      <div>
+        {puzzles.map((puzzle) => {
+          return (
+            <TagPuzzle
+              key={puzzle._id}
+              puzzle={puzzle}
+              allTags={allTags}
+              bulkTags={bulkTags}
+            />
+          );
+        })}
+      </div>
+    );
+  },
+);
+
 const TagBulkEditPage = () => {
   const huntId = useParams<{ huntId: string }>().huntId!;
   const puzzlesLoading = useTypedSubscribe(puzzlesForPuzzleList, {
@@ -213,20 +279,22 @@ const TagBulkEditPage = () => {
 
   const [selectedTag, setSelectedTag] = useState<string | undefined>("");
 
-  const onNameChanged = useCallback<NonNullable<FormControlProps["onChange"]>>(
-    (e) => {
-      setNewTagName(e.currentTarget.value);
-      setDirtyRename(tagToRename?.name.trim() != newTagName?.trim());
-    },
-    [],
-  );
+  const [alias, setAlias] = useState<boolean>(false);
 
   const tagToRename = useTracker(
     () => (selectedTag ? Tags.findOne({ _id: selectedTag }) : null),
-    [selectedTag, submitState],
+    [selectedTag],
   );
   const [newTagName, setNewTagName] = useState<string | undefined>(
     tagToRename?.name ?? "",
+  );
+
+  const onNameChanged = useCallback<NonNullable<FormControlProps["onChange"]>>(
+    (e) => {
+      setNewTagName(e.currentTarget.value);
+      setDirtyRename(tagToRename?.name.trim() !== newTagName?.trim());
+    },
+    [newTagName?.trim, tagToRename?.name.trim],
   );
 
   const allTags = useTracker(
@@ -248,7 +316,6 @@ const TagBulkEditPage = () => {
 
   const onRenameTagChanged = useCallback((value: TagSelectOption) => {
     setSelectedTag(value.value);
-    setNewTagName(value.label);
     setDirtyRename(false);
   }, []);
 
@@ -347,7 +414,7 @@ const TagBulkEditPage = () => {
         });
       });
     },
-    [huntId, bulkTags, matchingSearch],
+    [bulkTags, matchingSearch],
   );
 
   const tagNamesForIds = useCallback(
@@ -371,87 +438,19 @@ const TagBulkEditPage = () => {
         });
       });
     },
-    [huntId, bulkTags, matchingSearch],
+    [bulkTags, matchingSearch, tagNamesForIds],
   );
 
   const searchBarRef = useRef<HTMLInputElement>(null);
 
   const onSearchStringChange: NonNullable<FormControlProps["onChange"]> =
-    useCallback(
-      (e) => {
-        setSearchString(e.currentTarget.value);
-      },
-      [setSearchString],
-    );
+    useCallback((e) => {
+      setSearchString(e.currentTarget.value);
+    }, []);
 
   const clearSearch = useCallback(() => {
     setSearchString("");
-  }, [setSearchString]);
-
-  const TagPuzzle = React.memo(
-    ({
-      puzzle,
-      allTags,
-      bulkTags,
-    }: {
-      puzzle: PuzzleType;
-      allTags: TagType[];
-      bulkTags: string[];
-    }) => {
-      const solvedness = computeSolvedness(puzzle);
-
-      const tagIndex = indexedById(allTags);
-      const puzzleTags = puzzle.tags.map((tagId) => {
-        return tagIndex.get(tagId);
-      });
-
-      return (
-        <TagPuzzleDiv $solvedness={solvedness}>
-          <PuzzleControlButtonsColumn>
-            <TagToggleButtons
-              puzzle={puzzle}
-              bulkTags={bulkTags}
-              allTags={allTags}
-            />
-          </PuzzleControlButtonsColumn>
-          <PuzzleTitleColumn>{puzzle.title}</PuzzleTitleColumn>
-          <TagListColumn
-            puzzle={puzzle}
-            tags={puzzleTags}
-            linkToSearch
-            popoverRelated={false}
-          />
-        </TagPuzzleDiv>
-      );
-    },
-  );
-
-  const PuzzlesForTagList = React.memo(
-    ({
-      puzzles,
-      allTags,
-      bulkTags,
-    }: {
-      puzzles: PuzzleType[];
-      allTags: TagType[];
-      bulkTags: string[];
-    }) => {
-      return (
-        <div>
-          {puzzles.map((puzzle) => {
-            return (
-              <TagPuzzle
-                key={puzzle._id}
-                puzzle={puzzle}
-                allTags={allTags}
-                bulkTags={bulkTags}
-              />
-            );
-          })}
-        </div>
-      );
-    },
-  );
+  }, []);
 
   const renderList = useCallback(
     (allPuzzles: PuzzleType[], allTags: TagType[], bulkTags: string[]) => {
@@ -463,7 +462,7 @@ const TagBulkEditPage = () => {
         />
       );
     },
-    [allPuzzles, allTags, bulkTags],
+    [],
   );
 
   const disableBulkTagActions = bulkTags.length === 0;
@@ -489,22 +488,35 @@ const TagBulkEditPage = () => {
     } else {
       setSubmitState(SubmitState.SUCCESS);
       setErrorMessage("");
+      setSelectedTag("");
+      setAlias(false);
+      setNewTagName("");
     }
   });
+
+  const onAliasChanged = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setAlias(e.target.checked);
+    },
+    [],
+  );
 
   const onFormSubmit = useCallback<NonNullable<FormProps["onSubmit"]>>(
     (e) => {
       e.preventDefault();
       setSubmitState(SubmitState.SUBMITTING);
+      console.log(selectedTag, newTagName, alias);
       renameTag.call(
-        { tagId: selectedTag, name: newTagName },
+        { tagId: selectedTag, name: newTagName, alias },
         onUpdateCallback,
       );
     },
-    [selectedTag, newTagName],
+    [selectedTag, newTagName, alias, onUpdateCallback],
   );
 
   const theme = useTheme();
+
+  const idPrefix = useId();
 
   return (
     <Container>
@@ -542,6 +554,7 @@ const TagBulkEditPage = () => {
         ) : null}
       </ModalForm>
       <h1>Tag Manager</h1>
+      {errorMessage ? <Alert variant="danger">{errorMessage}</Alert> : null}
       <h2>Rename tag</h2>
       <p>
         Select a tag from the drop-down, then type its new name, and choose
@@ -549,21 +562,33 @@ const TagBulkEditPage = () => {
       </p>
       <Form onSubmit={onFormSubmit}>
         <FormGroup as={Row} className="mb-3">
-          <Col xs={5}>
+          <Col xs={6}>
+            <Form.Label>Tag to rename</Form.Label>
             <Select
-              id="tag-rename-selected-tag"
+              value={selectedTag}
+              id={`${idPrefix}tag-rename-selected-tag`}
               options={selectOptions}
               onChange={onRenameTagChanged}
               theme={theme.reactSelectTheme}
             />
           </Col>
-          <Col xs={5}>
+          <Col xs={6}>
+            <Form.Label>New tag name</Form.Label>
             <FormControl
-              id="tag-rename-new-name"
+              id={`${idPrefix}tag-rename-new-name`}
               type="text"
               onChange={onNameChanged}
               placeholder={tagToRename?.name}
               value={newTagName}
+            />
+          </Col>
+        </FormGroup>
+        <FormGroup as={Row} className="mb-3">
+          <Col xs={10}>
+            <Form.Check
+              type="checkbox"
+              label="This is an alias of the new tag name"
+              onChange={onAliasChanged}
             />
           </Col>
           <Col xs={2}>
@@ -583,7 +608,7 @@ const TagBulkEditPage = () => {
       <FormGroup as={Row} className="mb-3">
         <Col xs={8}>
           <Select
-            id="tag-bulk-selected-tags"
+            id={`${idPrefix}-tag-bulk-selected-tags`}
             isMulti
             options={selectOptions}
             onChange={onSelectedTagsChanged}
@@ -614,7 +639,7 @@ const TagBulkEditPage = () => {
       <SearchFormGroup>
         <InputGroup>
           <FormControl
-            id="jr-puzzle-search"
+            id={`${idPrefix}-jr-puzzle-search`}
             as="input"
             type="text"
             ref={searchBarRef}
