@@ -102,6 +102,25 @@ Meteor.publish("mediasoup:metadata", async function (hunt, call) {
   return [Peers.find({ hunt, call }), CallHistories.find({ hunt, call })];
 });
 
+Meteor.publish("mediasoup:metadataAll", async function (hunt) {
+  check(hunt, String);
+
+  if (!this.userId) {
+    throw new Meteor.Error(401, "Not logged in");
+  }
+
+  if (
+    !userMayJoinCallsForHunt(
+      await MeteorUsers.findOneAsync(this.userId),
+      await Hunts.findOneAsync(hunt),
+    )
+  ) {
+    throw new Meteor.Error(403, "Not a member of this hunt");
+  }
+
+  return Peers.find({ hunt });
+});
+
 Meteor.publish("mediasoup:join", async function (hunt, call, tab) {
   check(hunt, String);
   check(call, String);
