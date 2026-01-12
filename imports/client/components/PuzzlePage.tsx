@@ -3655,38 +3655,54 @@ const PuzzlePage = React.memo(() => {
     }, 500);
   }, []);
 
-  const dismissTickerMessage = (id: string) => {
+const dismissTickerMessage = useCallback(
+  (id: string) => {
     setTickerQueue((prev) => prev.filter((m) => m.id !== id));
-  };
 
-  const handleRestoreFromTicker = useCallback(
-    (id: string) => {
-      setIsChatMinimized(false);
-      setTickerQueue([]);
-      setIsTickerHovered(false);
-      setSidebarWidth(lastSidebarWidth);
-      setTimeout(() => {
-        if (chatSectionRef.current) {
-          setTimeout(() => {
-            chatSectionRef.current?.scrollHistoryToTarget();
-            chatSectionRef.current.scrollToMessage(messageId, () => {
-              setPulsingMessageId(messageId);
-            });
-          }, 100);
-        }
-      }, 0);
-    },
-    [lastSidebarWidth],
-  );
+    if ("BroadcastChannel" in window) {
+      const channel = new BroadcastChannel(`puzzle_ticker_${puzzleId}`);
+      channel.postMessage({ type: "DISMISS_TICKER", id });
+      channel.close();
+    }
+  },
+  [puzzleId],
+);
 
-  const puzzlesSubscribe = useTypedSubscribe(puzzlesForHunt, { huntId });
+const handleRestoreFromTicker = useCallback(
+  (messageId: string) => {
+    setIsChatMinimized(false);
+    setTickerQueue([]);
+    setIsTickerHovered(false);
+
+    if ("BroadcastChannel" in window) {
+      // Fixes the stuck hover state
+
+      // Broadcast the "Clear All" command
+      const channel = new BroadcastChannel(`puzzle_ticker_${puzzleId}`);
+      channel.postMessage({ type: "CLEAR_QUEUE" });
+      channel.close();
+    }
+
+    setSidebarWidth(lastSidebarWidth);
+    setTimeout(() => {
+      if (chatSectionRef.current) {
+        chatSectionRef.current.scrollHistoryToTarget();
+        chatSectionRef.current.scrollToMessage(messageId, () => {
+          setPulsingMessageId(messageId);
+        });
+      }
+    }, 100);
+  },
+  [lastSidebarWidth, puzzleId], // Added puzzleId to dependencies
+);
+
+const puzzlesSubscribe = useTypedSubscribe(puzzlesForHunt, { huntId });
   const puzzlesLoading = puzzlesSubscribe();
   const puzzles = useTracker(() => {
     return puzzlesLoading ? [] : Puzzles.find({ hunt: huntId }).fetch();
   }, [puzzlesLoading, huntId]);
 
-  // Sort by created at so that the "first" document always has consistent meaning
-
+// Sort by created at so that the "first" document always has consistent meaning
   const allDocs = useTracker(
     () =>
       puzzleDataLoading
@@ -3764,6 +3780,12 @@ const PuzzlePage = React.memo(() => {
         }
       } else {
         setIsTickerHovered(false);
+
+        if ("BroadcastChannel" in window) {
+          const channel = new BroadcastChannel(`puzzle_ticker_${puzzleId}`);
+          channel.postMessage({ type: "CLEAR_QUEUE" });
+          channel.close();
+        }
         setTickerQueue([]);
         setSidebarWidth(lastSidebarWidth);
         setTimeout(() => {
@@ -3816,6 +3838,31 @@ const PuzzlePage = React.memo(() => {
       chatSectionRef.current.scrollHistoryToTarget();
     }
   }, [sidebarWidth]);
+
+  useEffect(() => {
+    // Graceful degradation check
+    if (!("BroadcastChannel" in window)) {
+      return;
+    }
+
+    const channel = new BroadcastChannel(`puzzle_ticker_${puzzleId}`);
+
+    channel.onmessage = (event) => {
+      const { type, id } = event.data;
+
+      if (type === "DISMISS_TICKER") {
+        // Remove a specific message (Syncs the stack)
+        setTickerQueue((prev) => prev.filter((m) => m.id !== id));
+      } else if (type === "CLEAR_QUEUE") {
+        // Clear everything (Syncs the restore action)
+        setTickerQueue([]);
+      }
+    };
+
+    return () => {
+      channel.close();
+    };
+  }, [puzzleId]);
 
   useEffect(() => {
     // Populate sidebar width on mount
