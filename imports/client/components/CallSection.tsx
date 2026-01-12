@@ -52,13 +52,13 @@ const CallStateIcon = styled.span`
   background: white;
 `;
 
-const MutedIcon = styled(CallStateIcon)`
+const MutedIcon = styled(CallStateIcon)<{ $local?: boolean }>`
   top: 0;
   border-bottom-left-radius: 6px;
   border: 0.5px solid ${({ theme }) => theme.colors.mutedIconBorder};
   border-left: 0.5px solid ${({ theme }) => theme.colors.mutedIconBorder};
   border-bottom: 1px solid ${({ theme }) => theme.colors.mutedIconBorder};
-  color: ${({ theme }) => theme.colors.mutedIconText};
+  color: ${({ $local, theme }) => ($local ? theme.colors.localMutedIconText : theme.colors.mutedIconText)};
 `;
 
 const DeafenedIcon = styled(CallStateIcon)`
@@ -427,7 +427,7 @@ const PeerBox = ({
               </MutedIcon>
             )}
             {!muted && isLocalMuted && (
-              <MutedIcon $local={true}>
+              <MutedIcon $local>
                 <FontAwesomeIcon icon={faMicrophoneSlash} />
               </MutedIcon>
             )}
