@@ -148,7 +148,7 @@ Meteor.publish("subscribers.fetch", async function (name) {
 
     // Aggregation Logic:
     // 1. Visible if ANY connection is visible.
-    // 2. LastActivity is the MAX updatedAt across connections.
+    // 2. updatedAt is the MAX updatedAt across connections.
     let isAnyVisible = false;
     let maxUpdatedAt = 0;
 
@@ -163,7 +163,7 @@ Meteor.publish("subscribers.fetch", async function (name) {
       name,
       user,
       visible: isAnyVisible,
-      lastActivity: new Date(maxUpdatedAt),
+      updatedAt: new Date(maxUpdatedAt),
     };
 
     // We store a '_sent' flag on the Map object itself to know if we need to Add or Change
@@ -228,11 +228,9 @@ Meteor.publish("subscribers.fetch", async function (name) {
 // this is the unsafe version of the above
 Meteor.publish("subscribers.fetchAll", async function (hunt) {
   check(hunt, String);
-
   if (!this.userId) {
     throw new Meteor.Error(401, "Not logged in");
   }
-
   const user = await MeteorUsers.findOneAsync(this.userId);
   if (!user?.hunts?.includes(hunt)) {
     throw new Meteor.Error(403, "Not a member of this hunt");
@@ -280,9 +278,9 @@ Meteor.publish("subscribers.fetchAll", async function (hunt) {
     }
   };
 
-  const cursor = Subscribers.find({});
+  const cursor = Subscribers.find({ "context.hunt": hunt });
 
-  const handle = cursor.observe({
+  const handle = await cursor.observeAsync({
     added: (doc) => {
       const key = `${doc.name}:${doc.user}`;
 
