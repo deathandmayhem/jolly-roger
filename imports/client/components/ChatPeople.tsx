@@ -60,11 +60,11 @@ interface PersonBoxProps extends ViewerSubscriber {
 
 const ActivityDot = styled.div<{ $status: "online" | "idle" | "away" }>`
   position: absolute;
-  bottom: -2px;
-  right: -2px;
+  bottom: 0;
+  right: 0;
   width: 12px;
   height: 12px;
-  border-radius: 50%;
+  border-radius: 0;
   border: 2px solid ${({ theme }) => theme.colors.chatterSectionBackground};
   background-color: ${({ $status }) => {
     // biome-ignore lint/style/useDefaultSwitchClause: These are exhaustive cases
@@ -105,7 +105,12 @@ const ViewerPersonBox = ({
           },
         ],
       }}
-      overlay={<Tooltip id={id}>{name}</Tooltip>}
+      overlay={
+        <Tooltip id={id}>
+          {name}
+          {status === "online" ? "" : ` (${status})`}
+        </Tooltip>
+      }
     >
       <PeopleItemDiv>
         <div style={{ position: "relative" }}>
@@ -181,7 +186,7 @@ const ChatPeople = ({
   const rtcDisabled = useTracker(() => Flags.active("disable.webrtc"), []);
 
   const recentVoiceActivity = useTracker(
-    () => CallHistories.findOne({ call: puzzleId })?.lastActivity,
+    () => CallHistories.findOne({ call: puzzleId })?.updatedAt,
     [puzzleId],
   );
   const [voiceActivityRelative, setVoiceActivityRelative] = useState<string>();
@@ -255,7 +260,7 @@ const ChatPeople = ({
       }
 
       let status: "online" | "idle" | "away" = "online";
-      const userLastSeen = Date.now() - s.lastActivity;
+      const userLastSeen = Date.now() - s.updatedAt;
       if (s.visible) {
         status = "online";
       } else if (!s.visible && userLastSeen < ACTIVE_SLACK_MS) {

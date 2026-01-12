@@ -10,7 +10,7 @@ export type SubscriberType = {
   _id: string;
   name: string;
   user: string;
-  visible?: string;
+  visible?: boolean;
   updatedAt?: Date;
 };
 

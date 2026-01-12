@@ -551,7 +551,6 @@ const Puzzle = React.memo(
         </Tooltip>
       );
     }, [puzzleId, rtcUsers, activeUsers, passiveUsers]);
-
     return (
       <PuzzleDiv $solvedness={solvedness}>
         {showEditModal ? (
