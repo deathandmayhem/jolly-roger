@@ -29,6 +29,7 @@ export default async function getOrCreateTagByName(
     hunt: huntId,
     name: cleanName,
     createdBy: userId,
+    aliases: [],
   });
 
   // When creating a `group:*` tag, also ensure a matching `meta-for:` tag exists.
