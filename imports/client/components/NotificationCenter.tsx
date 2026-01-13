@@ -692,14 +692,14 @@ const PuzzleNotificationMessage = ({
   puzzle,
   content,
   ephemeral,
-  className,
+  background,
 }: {
   pn: PuzzleNotificationType;
   hunt: HuntType;
   puzzle: PuzzleType;
   content: string;
   ephemeral: boolean | undefined;
-  className?: string;
+  background?: string;
 }) => {
   const id = pn._id;
   const dismiss = useCallback(
@@ -714,7 +714,7 @@ const PuzzleNotificationMessage = ({
   return (
     <Toast
       onClose={dismiss}
-      className={className}
+      background={background}
       delay={ephemeralLingerPeriod}
       autohide={ephemeral}
     >
