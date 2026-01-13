@@ -4,7 +4,7 @@ import { faAngleDoubleUp } from "@fortawesome/free-solid-svg-icons/faAngleDouble
 import { faAngleDown } from "@fortawesome/free-solid-svg-icons/faAngleDown";
 import { faEdit } from "@fortawesome/free-solid-svg-icons/faEdit";
 import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus";
-import { faPenNib } from "@fortawesome/free-solid-svg-icons/faPenNib";
+import { faNoteSticky } from "@fortawesome/free-solid-svg-icons/faNoteSticky";
 import { faPhone } from "@fortawesome/free-solid-svg-icons/faPhone";
 import { faPuzzlePiece } from "@fortawesome/free-solid-svg-icons/faPuzzlePiece";
 import { faStar } from "@fortawesome/free-solid-svg-icons/faStar";
@@ -421,7 +421,7 @@ const Puzzle = React.memo(
       );
     });
 
-    const noteTooltip = useTracker(() => {
+    const noteTooltip = useMemo(() => {
       if (!puzzle.noteContent) {
         return null;
       }
@@ -466,7 +466,7 @@ const Puzzle = React.memo(
           {noteTT}
         </Tooltip>
       );
-    }, [puzzleId, puzzle.noteContent]);
+    }, [puzzleId, JSON.stringify(puzzle.noteContent)]);
 
     const puzzleIsMeta = useTracker(() => {
       if (isMetameta) {
@@ -578,20 +578,24 @@ const Puzzle = React.memo(
             {showEdit && editButtons}
           </ButtonGroup>
         </PuzzleControlButtonsColumn>
-        <PuzzleTitleColumn>
-          <Link to={linkTarget}>{puzzle.title}</Link>
-          {puzzle.noteContent && noteTooltip ? (
-            <OverlayTrigger
-              placement="top"
-              overlay={noteTooltip}
-              trigger={["hover", "click"]}
-            >
+        {puzzle.noteContent && noteTooltip ? (
+          <OverlayTrigger
+            placement="top"
+            overlay={noteTooltip}
+            trigger={["hover", "click"]}
+          >
+            <PuzzleTitleColumn>
+              <Link to={linkTarget}>{puzzle.title}</Link>
               <PuzzleNote>
-                <FontAwesomeIcon icon={faPenNib} />
+                <FontAwesomeIcon icon={faNoteSticky} />
               </PuzzleNote>
-            </OverlayTrigger>
-          ) : null}
-        </PuzzleTitleColumn>
+            </PuzzleTitleColumn>
+          </OverlayTrigger>
+        ) : (
+          <PuzzleTitleColumn>
+            <Link to={linkTarget}>{puzzle.title}</Link>
+          </PuzzleTitleColumn>
+        )}
         <PuzzlePriorityColumn>
           {statusEmoji && statusTooltip ? (
             <OverlayTrigger placement="top" overlay={statusTooltip}>
