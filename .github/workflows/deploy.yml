@@ -63,9 +63,10 @@ jobs:
           hosts: "${{ secrets.JR_VPS_USERNAME }}@${{ secrets.JR_VPS_HOST }}"
           privateKey: ${{ secrets.JR_VPS_KEY }}
           command: |
+            export PATH="/home/jollyrogeruser/.nvm/versions/node/v20.19.6/bin:$PATH"
             cd /home/jollyrogeruser/app
             tar -xzf jolly-roger.tar.gz
             rm jolly-roger.tar.gz
             cd bundle/programs/server
-            /home/jollyrogeruser/.nvm/versions/node/v20.19.6/bin/npm install
+            npm install
             sudo systemctl restart jolly-roger
