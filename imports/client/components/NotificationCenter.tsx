@@ -777,7 +777,7 @@ const ChatNotificationMessage = ({
       cn.dingwords?.filter((word) => {
         const isLocallyMuted = locallyMutedWords.includes(word);
         const isProfileMuted = suppressedFromProfile.includes(word);
-        const isAllMuted = suppressedFromProfile.includes("__ALL__");
+        const isAllMuted = suppressedFromProfile.includes("__ALL__") || locallyMutedWords.includes("__ALL__");
 
         return !isLocallyMuted && !isProfileMuted && !isAllMuted;
       }) ?? [];
