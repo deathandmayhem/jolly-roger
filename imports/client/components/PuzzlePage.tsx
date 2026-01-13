@@ -3522,6 +3522,7 @@ const PuzzlePage = React.memo(() => {
     }
   };
   const [tickerQueue, setTickerQueue] = useState<TickerToastType[]>([]);
+  const [messagesWhileMinimized, setMessagesWhileMinimized] = useState<string[]>([]);
   const [isTickerHovered, setIsTickerHovered] = useState(false);
   const tickerHoverTimeout = useRef<NodeJS.Timeout | null>(null);
 
@@ -3633,6 +3634,7 @@ const PuzzlePage = React.memo(() => {
               ...prev,
               { id: msg._id, text, sender: senderName, duration },
             ]);
+            setMessagesWhileMinimized((prev) => [...prev, msg._id]);
           }
         });
       }
@@ -3658,6 +3660,7 @@ const PuzzlePage = React.memo(() => {
 const dismissTickerMessage = useCallback(
   (id: string) => {
     setTickerQueue((prev) => prev.filter((m) => m.id !== id));
+    setMessagesWhileMinimized((prev) => prev.filter((mid) => mid !== id));
 
     if ("BroadcastChannel" in window) {
       const channel = new BroadcastChannel(`puzzle_ticker_${puzzleId}`);
@@ -3672,6 +3675,7 @@ const handleRestoreFromTicker = useCallback(
   (messageId: string) => {
     setIsChatMinimized(false);
     setTickerQueue([]);
+    setMessagesWhileMinimized([]);
     setIsTickerHovered(false);
 
     if ("BroadcastChannel" in window) {
@@ -3853,9 +3857,11 @@ const puzzlesSubscribe = useTypedSubscribe(puzzlesForHunt, { huntId });
       if (type === "DISMISS_TICKER") {
         // Remove a specific message (Syncs the stack)
         setTickerQueue((prev) => prev.filter((m) => m.id !== id));
+        setMessagesWhileMinimized((prev) => prev.filter((mid) => mid !== id));
       } else if (type === "CLEAR_QUEUE") {
         // Clear everything (Syncs the restore action)
         setTickerQueue([]);
+        setMessagesWhileMinimized([]);
       }
     };
 
