@@ -1,0 +1,12 @@
+{
+  "year_one": "year",
+  "year_other": "years",
+  "day_one": "day",
+  "day_other": "days",
+  "hour_one": "hour",
+  "hour_other": "hours",
+  "minute_one": "minute",
+  "minute_other": "minutes",
+  "second_one": "second",
+  "second_other": "seconds"
+}

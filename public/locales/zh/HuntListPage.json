@@ -1,0 +1,22 @@
+{
+  "title": "解谜活动",
+  "loading": "加载中",
+  "breadcrumbTitle": "解谜活动",
+  "Hunts you are a member of": "你加入了以下解谜活动",
+  "New hunt": "新建解谜活动",
+  "No my hunts": "你尚未加入任何解谜活动。",
+  "Other hunts": "其它解谜活动",
+  "No other hunts": "没有你尚未加入的解谜活动。",
+  "delete": {
+    "title": "删除活动",
+    "confirm": {
+      "title": "删除解谜活动",
+      "submit": "删除",
+      "text": "确定要删除解谜活动 {{huntName}} 吗？这将同时删除所有谜题及相关状态。"
+    }
+  },
+  "edit": {
+    "title": "编辑活动"
+  },
+  "": ""
+}

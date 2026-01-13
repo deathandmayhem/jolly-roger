@@ -1,0 +1,26 @@
+{
+  "title": "个人信息",
+  "email": "电子邮箱",
+  "Saving": "保存中",
+  "SaveSuccess": "已保存更改。",
+  "SaveFailed": "保存失败",
+  "displayName": {
+    "label": "显示名称",
+    "help": "为了以防跟其他人混淆，请尽量使用有辨识性的名字。"
+  },
+  "phoneNumber": {
+    "label": "电话号码（可选）",
+    "help": "在我们需要通过电话联系你时使用。"
+  },
+  "dingwords": {
+    "label": "关键词（测试性功能）",
+    "help": "当有人在谜题聊天中提到这些词时，你会收到通知。（用逗号分隔多个关键词）"
+  },
+  "Discord": {
+    "account": "Discord 账号",
+    "help": "绑定 Discord 账号会将你加入 {{teamName}} 的 Discord 服务器，在谜题页面语音聊天时也会显示你的 Discord 头像。",
+    "link": "绑定 Discord 账号",
+    "unlink": "解锁绑定",
+    "linkDifferent": "绑定其它 Discord 账号"
+  }
+}

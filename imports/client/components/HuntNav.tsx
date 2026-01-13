@@ -8,6 +8,7 @@ import { faTags } from "@fortawesome/free-solid-svg-icons/faTags";
 import { faUsers } from "@fortawesome/free-solid-svg-icons/faUsers";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Nav from "react-bootstrap/Nav";
+import { useTranslation } from "react-i18next";
 import { NavLink, useParams } from "react-router-dom";
 import styled, { css } from "styled-components";
 import Hunts from "../../lib/models/Hunts";
@@ -144,59 +145,80 @@ const HuntNav = () => {
       canUpdate: userMayWritePuzzlesForHunt(Meteor.user(), hunt),
     };
   }, [hunt]);
+  const { t } = useTranslation("HuntNav");
+
   if (huntId && hunt) {
     const huntLink = hunt.homepageUrl && (
       <HuntLinkAnchor
         to={hunt.homepageUrl}
         target="_blank"
         rel="noopener noreferrer"
-        title="Open the hunt homepage"
+        title={t("hunt.title", "Open the hunt homepage")}
       >
         <MenuIcon icon={faMap} />
-        <StyledPuzzleListLinkLabel>Hunt</StyledPuzzleListLinkLabel>
+        <StyledPuzzleListLinkLabel>
+          {t("hunt.link", "Hunt")}
+        </StyledPuzzleListLinkLabel>
       </HuntLinkAnchor>
     );
     return (
       <JRLinkList>
         <StyledPuzzleListLinkAnchor
           to={`/hunts/${huntId}/announcements`}
-          title="Announcements"
+          title={t("announcements.title", "Announcements")}
         >
           <MenuIcon icon={faBullhorn} />
-          <StyledPuzzleListLinkLabel>Announcements</StyledPuzzleListLinkLabel>
+          <StyledPuzzleListLinkLabel>
+            {t("announcements.link", "Announcements")}
+          </StyledPuzzleListLinkLabel>
         </StyledPuzzleListLinkAnchor>
 
         <StyledPuzzleListLinkAnchor
           to={`/hunts/${huntId}/guesses`}
-          title={hunt.hasGuessQueue ? "Guess queue" : "Answer log"}
+          title={
+            hunt.hasGuessQueue
+              ? t("guess.title", "Guesses")
+              : t("answer.title", "Answers")
+          }
         >
           <MenuIcon icon={faReceipt} />
           <StyledPuzzleListLinkLabel>
-            {hunt.hasGuessQueue ? "Guesses" : "Answers"}
+            {hunt.hasGuessQueue
+              ? t("guess.link", "Guesses")
+              : t("answer.link", "Answers")}
           </StyledPuzzleListLinkLabel>
         </StyledPuzzleListLinkAnchor>
 
         <StyledPuzzleListLinkAnchor
           to={`/hunts/${huntId}/hunters`}
-          title="Hunters"
+          title={t("hunters.title", "Hunters")}
         >
           <MenuIcon icon={faUsers} />
-          <StyledPuzzleListLinkLabel>Hunters</StyledPuzzleListLinkLabel>
+          <StyledPuzzleListLinkLabel>
+            {t("hunters.link", "Hunters")}
+          </StyledPuzzleListLinkLabel>
         </StyledPuzzleListLinkAnchor>
 
-        <StyledPuzzleListLinkAnchor to={`/hunts/${huntId}/tags`} title="Tags">
+        <StyledPuzzleListLinkAnchor
+          to={`/hunts/${huntId}/tags`}
+          title={t("tags.title", "Tags")}
+        >
           <MenuIcon icon={faTags} />
-          <StyledPuzzleListLinkLabel>Tags</StyledPuzzleListLinkLabel>
+          <StyledPuzzleListLinkLabel>
+            {t("tags.link", "Tags")}
+          </StyledPuzzleListLinkLabel>
         </StyledPuzzleListLinkAnchor>
 
         {/* Show firehose link only to operators */}
         {canUpdate && (
           <StyledPuzzleListLinkAnchor
             to={`/hunts/${huntId}/firehose`}
-            title="Firehose"
+            title={t("firehose.title", "Firehose")}
           >
             <MenuIcon icon={faFaucet} />
-            <StyledPuzzleListLinkLabel>Firehose</StyledPuzzleListLinkLabel>
+            <StyledPuzzleListLinkLabel>
+              {t("firehose.link", "Firehose")}
+            </StyledPuzzleListLinkLabel>
           </StyledPuzzleListLinkAnchor>
         )}
         {huntLink}

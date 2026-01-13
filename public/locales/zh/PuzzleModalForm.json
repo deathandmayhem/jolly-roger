@@ -1,0 +1,11 @@
+{
+  "Add puzzle": "添加谜题",
+  "Edit puzzle": "编辑谜题",
+  "Title": "标题",
+  "URL": "URL",
+  "Tags": "标签",
+  "Document type": "文档类型",
+  "Document type help": "此项在谜题创建后无法更改。一般情况下请使用 Spreadsheet。我们只打算将 Document 用于管理类文档。",
+  "AnswerCount": "预期答案个数",
+  "allowDuplicateUrls": "允许多个谜题有相同网址"
+}

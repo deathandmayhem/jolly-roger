@@ -18,6 +18,7 @@ import FormText from "react-bootstrap/FormText";
 import Modal from "react-bootstrap/Modal";
 import Row from "react-bootstrap/Row";
 import { createPortal } from "react-dom";
+import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 import DiscordCache from "../../lib/models/DiscordCache";
 import type {
@@ -197,8 +198,12 @@ const HuntEditPage = () => {
     [huntId],
   );
 
+  const { t } = useTranslation("HuntEditPage");
+
   useBreadcrumb({
-    title: huntId ? "Edit Hunt" : "Create Hunt",
+    title: huntId
+      ? t("breadcrumbTitle.edit", "Edit Hunt")
+      : t("breadcrumbTitle.new", "Create Hunt"),
     path: `/hunts/${huntId ? `${huntId}/edit` : "new"}`,
   });
 
@@ -429,7 +434,9 @@ const HuntEditPage = () => {
 
   return (
     <Container>
-      <h1>{huntId ? "Edit Hunt" : "New Hunt"}</h1>
+      <h1>
+        {huntId ? t("title.edit", "Edit Hunt") : t("title.new", "New Hunt")}
+      </h1>
 
       <Form onSubmit={onFormSubmit}>
         <FormGroup
@@ -438,7 +445,7 @@ const HuntEditPage = () => {
           controlId={`${idPrefix}-hunt-form-name`}
         >
           <FormLabel column xs={3}>
-            Name
+            {t("name", "Name")}
           </FormLabel>
           <Col xs={9}>
             <FormControl
@@ -450,7 +457,7 @@ const HuntEditPage = () => {
           </Col>
         </FormGroup>
 
-        <h3>Users and permissions</h3>
+        <h3>{t("Users and permissions", "Users and permissions")}</h3>
 
         <FormGroup
           as={Row}
@@ -481,7 +488,7 @@ const HuntEditPage = () => {
           controlId={`${idPrefix}-hunt-form-open-signups`}
         >
           <FormLabel column xs={3}>
-            Open invites
+            {t("openInvites.field", "Open invites")}
           </FormLabel>
           <Col xs={9}>
             <FormCheck
@@ -491,9 +498,10 @@ const HuntEditPage = () => {
               disabled={disableForm}
             />
             <FormText>
-              If open invites are enabled, then any current member of the hunt
-              can add a new member to the hunt. Otherwise, only operators can
-              add new members.
+              {t(
+                "openInvites.help",
+                "If open invites are enabled, then any current member of the hunt can add a new member to the hunt. Otherwise, only operators can add new members.",
+              )}
             </FormText>
           </Col>
         </FormGroup>
@@ -554,7 +562,7 @@ const HuntEditPage = () => {
 
         {termsOfUsePreview}
 
-        <h3>Hunt website</h3>
+        <h3>{t("Hunt website", "Hunt website")}</h3>
 
         <FormGroup
           as={Row}
@@ -562,7 +570,7 @@ const HuntEditPage = () => {
           controlId={`${idPrefix}-hunt-form-homepage-url`}
         >
           <FormLabel column xs={3}>
-            Homepage URL
+            {t("url.field", "Homepage URL")}
           </FormLabel>
           <Col xs={9}>
             <FormControl
@@ -572,8 +580,10 @@ const HuntEditPage = () => {
               disabled={disableForm}
             />
             <FormText>
-              If provided, a link to the hunt homepage will be placed on the
-              landing page.
+              {t(
+                "url.help",
+                "If provided, a link to the hunt homepage will be placed on the landing page.",
+              )}
             </FormText>
           </Col>
         </FormGroup>
@@ -617,7 +627,7 @@ const HuntEditPage = () => {
           </Col>
         </FormGroup>
 
-        <h3>External integrations</h3>
+        <h3>{t("External integrations", "External integrations")}</h3>
 
         <FormGroup
           as={Row}
@@ -625,7 +635,7 @@ const HuntEditPage = () => {
           controlId={`${idPrefix}-hunt-form-mailing-lists`}
         >
           <FormLabel column xs={3}>
-            Mailing lists
+            {t("mailingLists.field", "Mailing lists")}
           </FormLabel>
           <Col xs={9}>
             <FormControl
@@ -635,8 +645,10 @@ const HuntEditPage = () => {
               disabled={disableForm}
             />
             <FormText>
-              Users joining this hunt will be automatically added to all of
-              these (comma-separated) lists
+              {t(
+                "mailingLists.help",
+                "Users joining this hunt will be automatically added to all of these (comma-separated) lists",
+              )}
             </FormText>
           </Col>
         </FormGroup>
@@ -649,7 +661,10 @@ const HuntEditPage = () => {
               controlId={`${idPrefix}-hunt-form-announcement-discord-channel`}
             >
               <FormLabel column xs={3}>
-                Hunt announcements Discord channel
+                {t(
+                  "announcementChannel.field",
+                  "Hunt announcements Discord channel",
+                )}
               </FormLabel>
               <Col xs={9}>
                 <DiscordChannelSelector
@@ -659,8 +674,10 @@ const HuntEditPage = () => {
                   onChange={onAnnnouncementDiscordChannelChanged}
                 />
                 <FormText>
-                  If this field is specified, announcements made on Jolly Roger
-                  will be mirrored to this channel.
+                  {t(
+                    "announcementChannel.help",
+                    "If this field is specified, announcements made on Jolly Roger will be mirrored to this channel.",
+                  )}
                 </FormText>
               </Col>
             </FormGroup>
@@ -671,7 +688,10 @@ const HuntEditPage = () => {
               controlId={`${idPrefix}-hunt-form-puzzle-hooks-discord-channel`}
             >
               <FormLabel column xs={3}>
-                Puzzle notifications Discord channel
+                {t(
+                  "puzzleChannel.field",
+                  "Puzzle notifications Discord channel",
+                )}
               </FormLabel>
               <Col xs={9}>
                 <DiscordChannelSelector
@@ -681,9 +701,10 @@ const HuntEditPage = () => {
                   onChange={onPuzzleHooksDiscordChannelChanged}
                 />
                 <FormText>
-                  If this field is specified, when a puzzle in this hunt is
-                  added or solved, a message will be sent to the specified
-                  channel.
+                  {t(
+                    "puzzleChannel.help",
+                    "If this field is specified, when a puzzle in this hunt is added or solved, a message will be sent to the specified channel.",
+                  )}
                 </FormText>
               </Col>
             </FormGroup>
@@ -694,7 +715,7 @@ const HuntEditPage = () => {
               controlId={`${idPrefix}-hunt-form-firehose-discord-channel`}
             >
               <FormLabel column xs={3}>
-                Firehose Discord channel
+                {t("firehoseChannel.field", "Firehose Discord channel")}
               </FormLabel>
               <Col xs={9}>
                 <DiscordChannelSelector
@@ -704,9 +725,10 @@ const HuntEditPage = () => {
                   onChange={onFirehoseDiscordChannelChanged}
                 />
                 <FormText>
-                  If this field is specified, all chat messages written in
-                  puzzles associated with this hunt will be mirrored to the
-                  specified Discord channel.
+                  {t(
+                    "firehoseChannel.help",
+                    "If this field is specified, all chat messages written in puzzles associated with this hunt will be mirrored to the specified Discord channel.",
+                  )}
                 </FormText>
               </Col>
             </FormGroup>
@@ -748,14 +770,14 @@ const HuntEditPage = () => {
           )}
           {submitState === SubmitState.SUCCESS && (
             <Alert variant="success" dismissible onClose={onSuccessDismiss}>
-              Hunt information successfully updated
+              {t("SaveSuccess", "Hunt information successfully updated")}
             </Alert>
           )}
 
           <ActionButtonRow>
             <FormGroup className="mb-3">
               <Button variant="primary" type="submit" disabled={disableForm}>
-                {huntId ? "Save" : "Create"}
+                {huntId ? t("Save", "Save") : t("Create", "Create")}
               </Button>
             </FormGroup>
           </ActionButtonRow>

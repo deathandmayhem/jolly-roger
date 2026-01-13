@@ -1,0 +1,42 @@
+{
+  "title": {
+    "edit": "编辑解谜活动",
+    "new": "新建解谜活动"
+  },
+  "breadcrumbTitle": {
+    "edit": "编辑活动",
+    "new": "新建活动"
+  },
+  "name": "活动名称",
+  "Users and permissions": "用户与权限",
+  "openInvites": {
+    "field": "公开邀请链接",
+    "help": "已勾选时，任何队员都可以邀请新人加入活动；否则，只有管理员可以邀请新人加入活动。"
+  },
+  "Hunt website": "解谜活动官网",
+  "url": {
+    "field": "网站 URL",
+    "help": "如果提供，解谜活动官网的链接将会显示在首页上。"
+  },
+  "External integrations": "外部集成",
+  "mailingLists": {
+    "field": "邮件列表",
+    "help": "加入活动的队员会自动被添加到以上的邮件列表里；多个邮件列表以半角逗号（,）分隔。"
+  },
+  "announcementChannel": {
+    "field": "Discord 公告频道",
+    "help": "Jolly Roger 上发布的公告会自动发送到该频道。"
+  },
+  "puzzleChannel": {
+    "field": "Discord 谜题频道",
+    "help": "新加谜题和解开谜题时，会自动发送消息到该频道。"
+  },
+  "firehoseChannel": {
+    "field": "Discord 聊天频道",
+    "help": "所有谜题内的聊天消息会自动发送到该频道。"
+  },
+  "Save": "保存",
+  "SaveSuccess": "解谜活动信息已成功保存",
+  "Create": "创建",
+  "": ""
+}

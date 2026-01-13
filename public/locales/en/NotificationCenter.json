@@ -1,0 +1,10 @@
+{
+  "chatNotificationMessage": "{{name}} on <puzzleLink>{{puzzleTitle}}</puzzleLink>",
+  "bookmarkNotification": {
+    "message_one": "A puzzle you have bookmarked {{describeState}}. The answer is: <puzzleAnswer />",
+    "message_other": "A puzzle you have bookmarked {{describeState}}. The new answer is: <puzzleAnswer />"
+  },
+  "guessMessage": {
+    "header": "Guess for <puzzleLink /> from <guesser />"
+  }
+}

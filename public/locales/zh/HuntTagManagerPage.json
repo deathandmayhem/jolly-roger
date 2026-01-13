@@ -1,0 +1,26 @@
+{
+  "title": "标签管理",
+  "breadcrumbTitle": "标签",
+  "RenameTagSection": {
+    "title": "重命名标签",
+    "description": "从下拉菜单中选择一个标签，输入新名称，然后点击“重命名”。",
+    "selectLabel": "选择标签",
+    "newNameLabel": "新名称",
+    "renameButton": "重命名"
+  },
+  "BulkAddRemoveSection": {
+    "title": "批量添加/移除标签",
+    "description": "选择要修改的谜题，然后选择要添加或移除的标签",
+    "showCount": "显示 {{matchCount}} / {{totalCount}} 道谜题",
+    "selected": "已选 {{count}} 道谜题",
+    "add": "添加到已选的 {{count}} 道谜题",
+    "remove": "从已选的 {{count}} 道谜题中移除",
+    "tagsToApply": "选择进行操作的标签"
+  },
+  "SelectablePuzzleList": {
+    "Puzzle": "谜题",
+    "Tags": "标签"
+  },
+  "send": "发布",
+  "": ""
+}

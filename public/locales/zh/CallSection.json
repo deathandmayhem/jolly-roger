@@ -1,0 +1,17 @@
+{
+  "Leave call": "退出通话",
+  "caller": "位语音通话中",
+  "Mute self": "关麦",
+  "Unmute": "开麦",
+  "Deafen self": "静音",
+  "Undeafen": "取消静音",
+  "tooltip": {
+    "inTheCall": "你加入了通话。",
+    "muted": "你现在是关麦模式。",
+    "deafened": "你现在是静音模式。"
+  },
+  "MutedBySomeone": "你被{{mutedBy}}静音了。这通常发生在你离开电脑但麦克风仍然开启的时候。你可以随时取消静音。",
+  "MutedOnJoin": "鉴于通话人数较多，我们暂时帮你静音了。你可以随时取消静音。",
+  "Got it": "知道了",
+  "": ""
+}
