@@ -1,6 +1,7 @@
 import express from "express";
 import authenticator from "./api/authenticator";
 import createPuzzle from "./api/resources/createPuzzle";
+import health from "./api/resources/health";
 import hunts from "./api/resources/hunts";
 import puzzles from "./api/resources/puzzles";
 import tags from "./api/resources/tags";
@@ -11,6 +12,7 @@ const api = express();
 
 const publicApi = express.Router();
 publicApi.use("/updatePuzzleNote", updatePuzzleNote);
+publicApi.use("/health", health);
 
 api.use(publicApi);
 api.use(authenticator);
