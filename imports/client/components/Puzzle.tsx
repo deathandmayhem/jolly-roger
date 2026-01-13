@@ -13,6 +13,7 @@ import React, {
   type ComponentPropsWithRef,
   type FC,
   useCallback,
+  useId,
   useMemo,
   useRef,
   useState,
@@ -74,16 +75,10 @@ const PuzzleDiv = styled.div<{
 `;
 
 const PuzzleNote = styled.span`
-  min-width: 4.66rem;
   align-items: center;
   justify-content: center;
   text-align: right;
   margin: 0 0 0 0.5rem;
-
-  span {
-    margin-right: 0.25rem;
-    margin-left: 0.125rem;
-  }
 `;
 
 const PuzzleColumn = styled.div`
@@ -427,25 +422,30 @@ const Puzzle = React.memo(
       }
       const note = puzzle.noteContent;
 
+      const truncate = (text: string, length: number) => {
+        if (text.length <= length) return text;
+        return text.substring(0, length) + "…";
+      };
+
       const noteTT = [];
       if (note.flavor) {
         noteTT.push(
-          <div>
-            <strong>Flavor: </strong> <em>{note.flavor}</em>
+          <div key="flavor">
+            <strong>Flavor: </strong> <em>{truncate(note.flavor, 250)}</em>
           </div>,
         );
       }
       if (note.summary) {
         noteTT.push(
-          <div>
-            <strong>Summary:</strong> {note.summary}
+          <div key="summary">
+            <strong>Summary:</strong> {truncate(note.summary, 250)}
           </div>,
         );
       }
       if (note.theories) {
         noteTT.push(
-          <div>
-            <strong>Theories: </strong> <em>{note.theories}</em>
+          <div key="theories">
+            <strong>Theories: </strong> <em>{truncate(note.theories, 250)}</em>
           </div>,
         );
       }
@@ -454,19 +454,23 @@ const Puzzle = React.memo(
         return null;
       }
 
-      return (
+      const noteTooltip = (props: ComponentPropsWithRef<typeof Tooltip>) => (
         <Tooltip
           id={`puzzle-pin-message-${puzzleId}`}
-          placement="top"
+          {...props}
           style={{
             maxHeight: "9.55rem",
             borderRadius: "5px",
+            pointerEvents: "none",
+            ...props.style,
           }}
         >
           {noteTT}
         </Tooltip>
       );
-    }, [puzzleId, JSON.stringify(puzzle.noteContent)]);
+
+      return noteTooltip;
+    }, [puzzleId, puzzle.noteContent]);
 
     const puzzleIsMeta = useTracker(() => {
       if (isMetameta) {
@@ -578,24 +582,16 @@ const Puzzle = React.memo(
             {showEdit && editButtons}
           </ButtonGroup>
         </PuzzleControlButtonsColumn>
-        {puzzle.noteContent && noteTooltip ? (
-          <OverlayTrigger
-            placement="top"
-            overlay={noteTooltip}
-            trigger={["hover", "click"]}
-          >
-            <PuzzleTitleColumn>
-              <Link to={linkTarget}>{puzzle.title}</Link>
+        <PuzzleTitleColumn>
+          <Link to={linkTarget}>{puzzle.title}</Link>
+          {puzzle.noteContent && noteTooltip && (
+            <OverlayTrigger placement="top" overlay={noteTooltip}>
               <PuzzleNote>
                 <FontAwesomeIcon icon={faNoteSticky} />
               </PuzzleNote>
-            </PuzzleTitleColumn>
-          </OverlayTrigger>
-        ) : (
-          <PuzzleTitleColumn>
-            <Link to={linkTarget}>{puzzle.title}</Link>
-          </PuzzleTitleColumn>
-        )}
+            </OverlayTrigger>
+          )}
+        </PuzzleTitleColumn>
         <PuzzlePriorityColumn>
           {statusEmoji && statusTooltip ? (
             <OverlayTrigger placement="top" overlay={statusTooltip}>
