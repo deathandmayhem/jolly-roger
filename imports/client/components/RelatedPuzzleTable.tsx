@@ -3,7 +3,7 @@ import { indexedById } from "../../lib/listUtils";
 import type { PuzzleType } from "../../lib/models/Puzzles";
 import type { TagType } from "../../lib/models/Tags";
 import PuzzleTable from "./PuzzleTable";
-import { sortPuzzlesByRelevanceWithinPuzzleGroup } from "./RelatedPuzzleList";
+import { sortPuzzlesByRelevanceWithinPuzzleGroup } from "../../lib/puzzle-sort-and-group";
 
 const RelatedPuzzleTable = React.memo(
   ({
