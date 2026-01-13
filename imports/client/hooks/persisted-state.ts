@@ -2,7 +2,19 @@ import type { SetStateAction } from "react";
 import { useCallback } from "react";
 import { useLocalStorage } from "usehooks-ts";
 
-export type AppThemeState = "dark" | "light";
+
+export const useNotesPageViewMode = () => {
+  return useLocalStorage<"list" | "table" | "fullwidth">(
+    "notesPageViewMode",
+    "list",
+  );
+};
+
+export const useNotesPageShowSolved = () => {
+  return useLocalStorage<boolean>("notesPageShowSolved", false);
+};
+
+export type AppThemeState = "dark" | "light" | "auto";
 export const useAppThemeState = () => {
   return useLocalStorage<AppThemeState>("appTheme", "dark");
 };
@@ -53,8 +65,8 @@ export type PuzzleListState = {
 const defaultPuzzleListState = () => {
   return {
     displayMode: "group",
-    showSolved: true,
-    showSolvers: "hide",
+    showSolved: false,
+    showSolvers: "viewers",
     collapseGroups: {},
   } as PuzzleListState;
 };
