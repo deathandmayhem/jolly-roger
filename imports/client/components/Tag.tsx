@@ -25,7 +25,7 @@ import type { PuzzleType } from "../../lib/models/Puzzles";
 import type { TagType } from "../../lib/models/Tags";
 import CopyToClipboardButton from "./CopyToClipboardButton";
 import { removePunctuation } from "./PuzzleAnswer";
-import { sortPuzzlesByRelevanceWithinPuzzleGroup } from "./RelatedPuzzleList";
+import { sortPuzzlesByRelevanceWithinPuzzleGroup } from "../../lib/puzzle-sort-and-group";
 import RelatedPuzzleTable from "./RelatedPuzzleTable";
 
 const RemoveTagButton: FC<ComponentPropsWithRef<typeof Button>> = styled(
