@@ -1070,7 +1070,7 @@ const NotificationCenter = () => {
   useSubscribe(
     activeOperatorHunts.length > 0 ? "subscribers.inc" : undefined,
     "operators",
-    Object.fromEntries(activeOperatorHunts.map((h) => [h, true])),
+    Object.fromEntries(activeOperatorHunts.map((h) => [h, "true"])),
   );
 
   const pendingAnnouncementsLoading = useTypedSubscribe(
