@@ -67,7 +67,7 @@ const EditableHunt = z.object({
   allowPuzzleEmbed: z.boolean().default(false).optional(),
   customLinkUrl: nonEmptyString.url().optional(),
   customLinkName: nonEmptyString.optional(),
-  customLinkEmbed: boolean().default(false).optional(),
+  customLinkEmbed: z.boolean().default(false).optional(),
 });
 export type EditableHuntType = z.infer<typeof EditableHunt>;
 const Hunt = withCommon(EditableHunt);

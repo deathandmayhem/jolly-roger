@@ -10,6 +10,7 @@ import { darkTheme, lightTheme } from "../theme";
 import AllProfileListPage from "./AllProfileListPage";
 import AnnouncementsPage from "./AnnouncementsPage";
 import { AuthenticatedPage, UnauthenticatedPage } from "./authentication";
+import CustomLinkEmbedPage from "./CustomLinkEmbedPage";
 import EnrollForm from "./EnrollForm";
 import FirehosePage from "./FirehosePage";
 import FirstUserForm from "./FirstUserForm";
@@ -68,6 +69,7 @@ export const AuthenticatedRouteList: RouteObject[] = [
           { path: "tags", element: <TagBulkEditPage /> },
           { path: "notes", element: <NotesPage /> },
           { path: "purge", element: <HuntPurgePage /> },
+          { path: "custom-link", element: <CustomLinkEmbedPage /> },
           { path: "", element: <Navigate to="puzzles" replace /> },
         ],
       },
