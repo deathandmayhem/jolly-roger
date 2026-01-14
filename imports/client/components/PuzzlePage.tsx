@@ -3072,7 +3072,7 @@ const PuzzleGuessModal = React.forwardRef(
         </FormGroup>
 
         <FormGroup as={Row} className="mb-3">
-          <FormLabel column xs={3} htmlFor="jr-puzzle-guess-confidence">
+          <FormLabel column xs={3}>
             Confidence {haveSetConfidence}
           </FormLabel>
           <Col xs={9}>

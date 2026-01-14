@@ -182,7 +182,7 @@ const UserInvitePage = () => {
 
             <form onSubmit={onSubmit} className="form-horizontal">
               <FormGroup as={Row} className="mb-3">
-                <FormLabel htmlFor={`${idPrefix}-email`} column md={3}>
+                <FormLabel column md={3}>
                   E-mail address
                 </FormLabel>
                 <Col md={9}>

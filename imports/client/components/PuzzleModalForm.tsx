@@ -513,7 +513,7 @@ const PuzzleModalForm = React.forwardRef(
             className="mb-3"
             controlId={`${idPrefix}-new-puzzle-tags-function`}
           >
-            <FormLabel column xs={3} htmlFor="jr-new-puzzle-tags-function">
+            <FormLabel column xs={3}>
               Functional Tags
             </FormLabel>
             <Col xs={9}>
@@ -542,7 +542,7 @@ const PuzzleModalForm = React.forwardRef(
             className="mb-3"
             controlId={`${idPrefix}-new-puzzle-tags-content`}
           >
-            <FormLabel column xs={3} htmlFor="jr-new-puzzle-tags-content">
+            <FormLabel column xs={3}>
               Content Tags
             </FormLabel>
             <Col xs={9}>
