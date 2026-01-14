@@ -161,7 +161,7 @@ const MinimizedChatInfo = ({
 
   const idPrefix = useId();
 
-  const callButton =
+  const callButtons =
     callState.callState === CallJoinState.IN_CALL ? (
       <>
         <OverlayTrigger
@@ -239,7 +239,7 @@ const MinimizedChatInfo = ({
           )}
         </div>
       </OverlayTrigger>
-      {rtcDisabled ? null : callButton}
+      {rtcDisabled ? null : callButtons}
     </MinimizedChatInfoContainer>
   );
 };
