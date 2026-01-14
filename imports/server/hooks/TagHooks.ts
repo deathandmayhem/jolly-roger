@@ -45,7 +45,7 @@ const TagHooks: Hookset = {
           puzzle: puzzleId,
           hunt: puzzle.hunt,
           content: `${puzzle.title} has been tagged with '${tagName}'`,
-          className: "text-bg-secondary",
+          background: "secondary",
         });
       }),
     );
