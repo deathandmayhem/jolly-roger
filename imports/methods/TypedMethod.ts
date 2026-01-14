@@ -1,47 +1,39 @@
 import { check } from "meteor/check";
-import type { EJSONable, EJSONableProperty } from "meteor/ejson";
 import { EJSON } from "meteor/ejson";
 import { Meteor } from "meteor/meteor";
 import Bugsnag from "@bugsnag/js";
+import type z from "zod";
 import Logger from "../Logger";
-import type ValidateShape from "../lib/ValidateShape";
+import type {
+  ValidateEJSONableArgs,
+  ValidateEJSONableReturn,
+} from "../lib/ValidateEJSONable";
 
-export type TypedMethodParam = EJSONable | EJSONableProperty;
-export type TypedMethodArgs = Record<string, TypedMethodParam> | void;
-type TypedMethodCallback<Return extends TypedMethodParam | void> =
-  Return extends void
-    ? (error?: Meteor.Error) => void
-    : <Error extends true | false>(
-        error: Error extends true ? Meteor.Error : undefined,
-        result: Error extends false ? Return : undefined,
-      ) => void;
-type TypedMethodCallArgs<
-  T,
-  Arg extends TypedMethodArgs,
-  Return extends TypedMethodParam | void,
-> = Arg extends void
-  ? [TypedMethodCallback<Return>] | []
-  :
-      | [ValidateShape<T, Arg>, TypedMethodCallback<Return>]
-      | [ValidateShape<T, Arg>];
-type TypedMethodCallPromiseArgs<
-  T,
-  Arg extends TypedMethodArgs,
-> = Arg extends void ? [] : [ValidateShape<T, Arg>];
+type TypedMethodCallback<Return extends z.ZodTypeAny> = (
+  error: Meteor.Error | null,
+  result: z.output<Return> | undefined,
+) => void;
 
-class TypedMethod<
-  Args extends TypedMethodArgs,
-  Return extends TypedMethodParam | void,
-> {
+class TypedMethod<Args extends z.AnyZodTuple, Return extends z.ZodTypeAny> {
   name: string;
+  args: Args;
+  return: Return;
 
-  constructor(name: string) {
+  constructor(
+    name: string,
+    args: ValidateEJSONableArgs<Args>,
+    returnType: ValidateEJSONableReturn<Return>,
+  ) {
     check(name, String);
 
     this.name = name;
+    this.args = args;
+    this.return = returnType;
   }
 
-  call<T>(...args: TypedMethodCallArgs<T, Args, Return>): void {
+  call(
+    ...args: [...z.input<Args>, callback?: TypedMethodCallback<Return>]
+  ): void {
     let callback: TypedMethodCallback<Return> | undefined;
     if (typeof args.at(-1) === "function") {
       callback = args.pop() as TypedMethodCallback<Return>;
@@ -59,29 +51,33 @@ class TypedMethod<
       );
     }
 
-    Meteor.call(this.name, ...args, (error: Meteor.Error, result: Return) => {
-      if (error) {
-        const severity =
-          error instanceof Meteor.Error &&
-          typeof error.error === "number" &&
-          error.error >= 400 &&
-          error.error < 500
-            ? "info"
-            : "error";
-        Logger[severity](`Meteor method call failed: ${this.name}`, {
-          error,
-          method: this.name,
-          arguments:
-            typeof args[0] === "object" ? EJSON.stringify(args[0]) : undefined,
-        });
-      }
-      callback?.(error, result as any);
-    });
+    Meteor.call(
+      this.name,
+      ...args,
+      (error: Meteor.Error, result: z.output<Return>) => {
+        if (error) {
+          const severity =
+            error instanceof Meteor.Error &&
+            typeof error.error === "number" &&
+            error.error >= 400 &&
+            error.error < 500
+              ? "info"
+              : "error";
+          Logger[severity](`Meteor method call failed: ${this.name}`, {
+            error,
+            method: this.name,
+            arguments:
+              typeof args[0] === "object"
+                ? EJSON.stringify(args[0])
+                : undefined,
+          });
+        }
+        callback?.(error, result as any);
+      },
+    );
   }
 
-  async callPromise<T>(
-    ...args: TypedMethodCallPromiseArgs<T, Args>
-  ): Promise<Return> {
+  async callPromise(...args: z.input<Args>): Promise<z.output<Return>> {
     try {
       if (Bugsnag.isStarted()) {
         Bugsnag.leaveBreadcrumb(
@@ -97,7 +93,7 @@ class TypedMethod<
         );
       }
       const result = await Meteor.callAsync(this.name, ...args);
-      return result as Return;
+      return result as z.output<Return>;
     } catch (error) {
       if (error) {
         const severity =
