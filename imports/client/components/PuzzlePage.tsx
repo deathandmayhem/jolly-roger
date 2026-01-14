@@ -360,7 +360,7 @@ const ChatHistoryMessage = React.memo(
     roles: string[];
     imageOnLoad: () => void;
   }) => {
-    const { t, i18n } = useTranslation();
+    const { t, i18n } = useTranslation("DateAndTime");
     const ts = shortCalendarTimeFormat(message.timestamp, t, i18n.language);
 
     const senderDisplayName =

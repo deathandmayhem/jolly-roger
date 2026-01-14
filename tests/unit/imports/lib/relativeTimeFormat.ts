@@ -3,8 +3,8 @@ import type { TFunction } from "i18next";
 import i18next from "i18next";
 import type { RelativeTimeFormatOpts } from "../../../../imports/lib/relativeTimeFormat";
 import { complete } from "../../../../imports/lib/relativeTimeFormat";
-import en from "../../../../public/locales/en/DateAndTime.json";
-import zh from "../../../../public/locales/zh/DateAndTime.json";
+import en from "../../../../imports/locales/en/DateAndTime.json";
+import zh from "../../../../imports/locales/zh/DateAndTime.json";
 
 function initTestI18n(language: string) {
   const newInstance = i18next.createInstance();
