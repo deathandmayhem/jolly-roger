@@ -2235,9 +2235,7 @@ const PuzzlePage = React.memo(() => {
 
   const effectiveSidebarWidth = isChatMinimized ? 0 : sidebarWidth;
 
-  const chat = isChatMinimized ? (
-    <div />
-  ) : (
+  const chat = isChatMinimized ? null : (
     <ChatSectionMemo
       ref={chatSectionRef}
       chatDataLoading={chatDataLoading}
