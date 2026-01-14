@@ -100,12 +100,13 @@ const ResizerSpan = styled.span<{
       ${
         $allowResize &&
         css`
-      cursor: row-resize;
+        cursor: row-resize;
 
-      &:hover {
-        border-top: 5px solid rgb(0 0 0 / 10%);
-        border-bottom: 5px solid rgb(0 0 0 / 10%);
-      }`
+        &:hover {
+          border-top: 5px solid rgb(0 0 0 / 10%);
+          border-bottom: 5px solid rgb(0 0 0 / 10%);
+        }
+      `
       }
     `}
 
@@ -121,12 +122,13 @@ const ResizerSpan = styled.span<{
       ${
         $allowResize &&
         css`
-      cursor: col-resize;
+        cursor: col-resize;
 
-      &:hover {
-        border-left: 5px solid rgb(0 0 0 / 10%);
-        border-right: 5px solid rgb(0 0 0 / 10%);
-      }`
+        &:hover {
+          border-left: 5px solid rgb(0 0 0 / 10%);
+          border-right: 5px solid rgb(0 0 0 / 10%);
+        }
+      `
       }
     `}
 `;

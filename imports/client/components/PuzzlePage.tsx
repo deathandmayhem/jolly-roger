@@ -210,13 +210,15 @@ const ChatMessageDiv = styled.div<{
     $isHighlighted &&
     !$isSystemMessage &&
     css`
-      background-color: ${({ theme }) => theme.colors.pinnedChatMessageBackground};
-      `}
+      background-color: ${({ theme }) =>
+        theme.colors.pinnedChatMessageBackground};
+    `}
 
   ${({ $isSystemMessage }) =>
     $isSystemMessage &&
     css`
-      background-color: ${({ theme }) => theme.colors.systemChatMessageBackground};
+      background-color: ${({ theme }) =>
+        theme.colors.systemChatMessageBackground};
     `}
 `;
 
