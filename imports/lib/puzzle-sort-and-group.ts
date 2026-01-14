@@ -23,6 +23,7 @@ function puzzleInterestingness(
   puzzle: PuzzleType,
   indexedTags: Map<string, TagType>,
   group: string | undefined,
+  isOffsite?: boolean,
 ): number {
   // If the shared tag for this group is group:<something>, then group will equal '<something>', and
   // we wish to sort a puzzle named 'meta-for:<something>' at the top.
@@ -33,6 +34,20 @@ function puzzleInterestingness(
   let isAdministrivia = false;
   let isGroup = false;
   let minScore = 0;
+
+  puzzle.tags.forEach((tagId) => {
+    const tag = indexedTags.get(tagId);
+    if (tag) {
+      if (
+        isOffsite &&
+        (tag.name === "where:campus" || tag.name === "where:mit")
+      ) {
+        minScore = Math.max(2, minScore);
+      } else if (tag.name === "priority:low") {
+        minScore = Math.max(1, minScore);
+      }
+    }
+  });
 
   puzzle.tags.forEach((tagId) => {
     const tag = indexedTags.get(tagId);
@@ -397,6 +412,7 @@ function sortPuzzlesByRelevanceWithinPuzzleGroup(
   puzzles: PuzzleType[],
   sharedTag: TagType | undefined,
   indexedTags: Map<string, TagType>,
+  isOffsite?: boolean,
 ) {
   let group: string | undefined;
   if (sharedTag && sharedTag.name.lastIndexOf("group:", 0) === 0) {
@@ -404,8 +420,8 @@ function sortPuzzlesByRelevanceWithinPuzzleGroup(
   }
   const sortedPuzzles = puzzles.slice(0);
   sortedPuzzles.sort((a, b) => {
-    const ia = puzzleInterestingness(a, indexedTags, group);
-    const ib = puzzleInterestingness(b, indexedTags, group);
+    const ia = puzzleInterestingness(a, indexedTags, group, isOffsite ?? false);
+    const ib = puzzleInterestingness(b, indexedTags, group, isOffsite ?? false);
     if (ia !== ib) {
       return ia - ib;
     } else {

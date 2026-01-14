@@ -6,6 +6,7 @@ import { useCallback, useId, useMemo, useState } from "react";
 import Alert from "react-bootstrap/Alert";
 import Button from "react-bootstrap/Button";
 import Container from "react-bootstrap/Container";
+import FormCheck from "react-bootstrap/FormCheck";
 import type { FormControlProps } from "react-bootstrap/FormControl";
 import FormControl from "react-bootstrap/FormControl";
 import FormGroup from "react-bootstrap/FormGroup";
@@ -227,6 +228,9 @@ const OwnProfilePage = ({
   const [dingwordsOpenMatch, setDingwordsOpenMatch] = useState<boolean>(
     initialUser.dingwordsOpenMatch ?? false,
   );
+  const [isOffsite, setIsOffsite] = useState<boolean>(
+    initialUser.isOffsite ?? false,
+  );
   const [submitState, setSubmitState] = useState<OwnProfilePageSubmitState>(
     OwnProfilePageSubmitState.IDLE,
   );
@@ -253,6 +257,13 @@ const OwnProfilePage = ({
     setDingwordsOpenMatch(newMode === "open");
   }, []);
 
+  const handleIsOffsiteChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setIsOffsite(e.currentTarget.checked);
+    },
+    [],
+  );
+
   const handleSaveForm = useCallback(() => {
     const trimmedDisplayName = displayName.trim();
     if (trimmedDisplayName === "") {
@@ -273,6 +284,7 @@ const OwnProfilePage = ({
       phoneNumber: phoneNumber !== "" ? phoneNumber : undefined,
       dingwords,
       dingwordsOpenMatch,
+      isOffsite,
     };
     updateProfile.call(newProfile, (error) => {
       if (error) {
@@ -282,7 +294,7 @@ const OwnProfilePage = ({
         setSubmitState(OwnProfilePageSubmitState.SUCCESS);
       }
     });
-  }, [dingwordsFlat, dingwordsOpenMatch, displayName, phoneNumber]);
+  }, [dingwordsFlat, dingwordsOpenMatch, displayName, phoneNumber, isOffsite]);
 
   const dismissAlert = useCallback(() => {
     setSubmitState(OwnProfilePageSubmitState.IDLE);
@@ -333,9 +345,7 @@ const OwnProfilePage = ({
       </FormGroup>
 
       <FormGroup className="mb-3" controlId={`${idPrefix}-dingwords`}>
-        <FormLabel htmlFor="jr-profile-edit-dingwords">
-          Dingwords (comma-separated)
-        </FormLabel>
+        <FormLabel>Dingwords (comma-separated)</FormLabel>
         <FormControl
           type="text"
           value={dingwordsFlat}
@@ -351,9 +361,7 @@ const OwnProfilePage = ({
       </FormGroup>
 
       <FormGroup className="mb-3" controlId={`${idPrefix}-dingwords-open`}>
-        <FormLabel htmlFor={`${idPrefix}-dingwords-open`}>
-          Dingwords matching mode
-        </FormLabel>
+        <FormLabel>Dingwords matching mode</FormLabel>
         <LabelledRadioGroup
           header=""
           name={`${idPrefix}-dingwords-open`}
@@ -384,6 +392,14 @@ const OwnProfilePage = ({
           initialValue={dingwordsOpenMatch ? "open" : "exact"}
           help=""
           onChange={handleDingwordsModeChange}
+        />
+      </FormGroup>
+      <FormGroup className="mb-3" controlId={`${idPrefix}-is-offsite`}>
+        <FormLabel>Are you hunting remotely?</FormLabel>
+        <FormCheck
+          checked={isOffsite}
+          onChange={handleIsOffsiteChange}
+          label="I'm hunting remotely"
         />
       </FormGroup>
       {submitState === "submitting" ? (

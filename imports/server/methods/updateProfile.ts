@@ -12,12 +12,19 @@ defineMethod(updateProfile, {
       phoneNumber: Match.Optional(String),
       dingwords: [String],
       dingwordsOpenMatch: Match.Optional(Boolean),
+      isOffsite: Match.Optional(Boolean),
     });
 
     return arg;
   },
 
-  async run({ displayName, phoneNumber, dingwords, dingwordsOpenMatch }) {
+  async run({
+    displayName,
+    phoneNumber,
+    dingwords,
+    dingwordsOpenMatch,
+    isOffsite,
+  }) {
     // Allow users to update/upsert profile data.
     check(this.userId, String);
 
@@ -41,6 +48,7 @@ defineMethod(updateProfile, {
           phoneNumber,
           dingwords,
           dingwordsOpenMatch,
+          isOffsite,
         },
         $unset: unset,
       },

@@ -21,6 +21,7 @@ const profileFields: Record<ProfileFields, 1> = {
   dingwords: 1,
   dingwordsOpenMatch: 1,
   suppressedDingwords: 1,
+  isOffsite: 1,
 };
 
 // This overrides the default set of fields that are published to the

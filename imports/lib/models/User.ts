@@ -63,6 +63,7 @@ export const User = z.object({
   suppressedDingwords: z
     .record(z.string(), z.record(z.string(), nonEmptyString.array()))
     .optional(),
+  isOffsite: z.boolean().optional(),
 });
 validateSchema(User);
 
@@ -74,6 +75,7 @@ export type ProfileFields =
   | "hunts"
   | "dingwords"
   | "dingwordsOpenMatch"
-  | "suppressedDingwords";
+  | "suppressedDingwords"
+  | "isOffsite";
 
 export default User;
