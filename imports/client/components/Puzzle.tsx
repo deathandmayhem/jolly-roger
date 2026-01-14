@@ -66,6 +66,12 @@ const PuzzleDiv = styled.div<{
   line-height: 24px;
   padding: 4px 2px;
   margin-bottom: 4px;
+  transition: filter 0.1s ease-in-out;
+
+  &:hover {
+    filter: ${({ theme }) =>
+      theme.basicMode === "dark" ? "brightness(1.2)" : "brightness(0.95)"};
+  }
   ${mediaBreakpointDown(
     "xs",
     css`
