@@ -686,6 +686,10 @@ const ProfileMissingMessage = ({ onDismiss }: { onDismiss: () => void }) => {
   );
 };
 
+const StyledPuzzleNotificationBody = styled(Toast.Body)`
+  color: black;
+`;
+
 const PuzzleNotificationMessage = ({
   pn,
   hunt,
@@ -714,7 +718,7 @@ const PuzzleNotificationMessage = ({
   return (
     <Toast
       onClose={dismiss}
-      background={background}
+      bg={background}
       delay={ephemeralLingerPeriod}
       autohide={ephemeral}
     >
@@ -738,9 +742,7 @@ const PuzzleNotificationMessage = ({
           />
         )}
       </Toast.Header>
-      <Toast.Body>
-        <div>{content}</div>
-      </Toast.Body>
+      <StyledPuzzleNotificationBody>{content}</StyledPuzzleNotificationBody>
     </Toast>
   );
 };
@@ -1358,7 +1360,7 @@ const NotificationCenter = () => {
         puzzle={puzzle}
         content={pn.content}
         ephemeral={pn.ephemeral ?? false}
-        className={pn.className}
+        background={pn.background}
       />,
     );
   });
