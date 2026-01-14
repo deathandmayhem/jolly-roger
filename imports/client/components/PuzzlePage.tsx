@@ -1,9 +1,12 @@
 import { Meteor } from "meteor/meteor";
 import { Random } from "meteor/random";
 import { useSubscribe, useTracker } from "meteor/react-meteor-data";
+import { faAngleDoubleDown } from "@fortawesome/free-solid-svg-icons/faAngleDoubleDown";
+import { faAngleDoubleUp } from "@fortawesome/free-solid-svg-icons/faAngleDoubleUp";
 import { faArrowLeft } from "@fortawesome/free-solid-svg-icons/faArrowLeft";
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons/faArrowRight";
 import { faCheck } from "@fortawesome/free-solid-svg-icons/faCheck";
+import { faChevronLeft } from "@fortawesome/free-solid-svg-icons/faChevronLeft";
 import { faCopy } from "@fortawesome/free-solid-svg-icons/faCopy";
 import { faEdit } from "@fortawesome/free-solid-svg-icons/faEdit";
 import { faImage } from "@fortawesome/free-solid-svg-icons/faImage";
@@ -107,6 +110,7 @@ import {
 } from "./guessDetails";
 import InsertImage from "./InsertImage";
 import Markdown from "./Markdown";
+import MinimizedChatInfo from "./MinimizedChatInfo";
 import type { ModalFormHandle } from "./ModalForm";
 import ModalForm from "./ModalForm";
 import PuzzleAnswer from "./PuzzleAnswer";
@@ -189,7 +193,7 @@ const ChatHistoryDiv = styled.div`
 
   /* Nothing should overflow the box, but if you nest blockquotes super deep you
      can do horrible things.  We should still avoid horizontal scroll bars,
-     since the make the log harder to read at the bottom. */
+     since they make the log harder to read at the bottom. */
   overflow-x: hidden;
 `;
 
@@ -206,13 +210,15 @@ const ChatMessageDiv = styled.div<{
     $isHighlighted &&
     !$isSystemMessage &&
     css`
-      background-color: ${({ theme }) => theme.colors.pinnedChatMessageBackground};
-      `}
+      background-color: ${({ theme }) =>
+        theme.colors.pinnedChatMessageBackground};
+    `}
 
   ${({ $isSystemMessage }) =>
     $isSystemMessage &&
     css`
-      background-color: ${({ theme }) => theme.colors.systemChatMessageBackground};
+      background-color: ${({ theme }) =>
+        theme.colors.systemChatMessageBackground};
     `}
 `;
 
@@ -284,6 +290,13 @@ const AnswerRemoveButton: FC<ComponentPropsWithRef<typeof Button>> = styled(
     margin: 0 -6px 0 6px;
     padding: 0;
   }
+`;
+
+const PuzzleMetadataFloatingButton = styled(Button)`
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 20;
 `;
 
 const PuzzleMetadataRow = styled.div`
@@ -896,6 +909,7 @@ const ChatSection = React.forwardRef(
       huntId,
       callState,
       callDispatch,
+      joinCall,
       selfUser,
     }: {
       chatDataLoading: boolean;
@@ -905,6 +919,7 @@ const ChatSection = React.forwardRef(
       huntId: string;
       callState: CallState;
       callDispatch: React.Dispatch<Action>;
+      joinCall: () => void;
       selfUser: Meteor.User;
     },
     forwardedRef: React.Ref<ChatSectionHandle>,
@@ -966,6 +981,7 @@ const ChatSection = React.forwardRef(
           onHeightChange={scrollHistoryToTarget}
           callState={callState}
           callDispatch={callDispatch}
+          joinCall={joinCall}
         />
         <ChatHistoryMemo
           ref={historyRef}
@@ -994,6 +1010,7 @@ const PuzzlePageMetadata = ({
   document,
   isDesktop,
   selfUser,
+  onMinimizeMetadata,
 }: {
   puzzle: PuzzleType;
   bookmarked: boolean;
@@ -1001,9 +1018,11 @@ const PuzzlePageMetadata = ({
   document?: DocumentType;
   isDesktop: boolean;
   selfUser: Meteor.User;
+  onMinimizeMetadata: () => void;
 }) => {
   const huntId = puzzle.hunt;
   const puzzleId = puzzle._id;
+  const idPrefix = useId();
 
   const hunt = useTracker(() => Hunts.findOne(huntId), [huntId]);
   const hasGuessQueue = hunt?.hasGuessQueue ?? false;
@@ -1171,6 +1190,19 @@ const PuzzlePageMetadata = ({
     );
   }
 
+  const minimizeMetadataButton = (
+    <OverlayTrigger
+      placement="bottom"
+      overlay={
+        <Tooltip id={`${idPrefix}-hide-puzzle-info`}>Hide puzzle info</Tooltip>
+      }
+    >
+      <Button onClick={onMinimizeMetadata} size="sm">
+        <FontAwesomeIcon icon={faAngleDoubleUp} />
+      </Button>
+    </OverlayTrigger>
+  );
+
   return (
     <PuzzleMetadata>
       <PuzzleModalForm
@@ -1194,6 +1226,7 @@ const PuzzlePageMetadata = ({
           {editButton}
           {imageInsert}
           {guessButton}
+          {minimizeMetadataButton}
         </PuzzleMetadataButtons>
       </PuzzleMetadataActionRow>
       <PuzzleMetadataRow>{answersElement}</PuzzleMetadataRow>
@@ -1358,6 +1391,22 @@ const AdditionalNotesCell = styled(GuessCell)`
 const StyledCopyToClipboardButton = styled(CopyToClipboardButton)`
   padding: 0;
   vertical-align: baseline;
+`;
+
+const MinimizeChatButton = styled.button`
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+  background-color: ${({ theme }) => theme.colors.secondary};
+  border: 1px solid ${({ theme }) => theme.colors.text};
+  color: ${({ theme }) => theme.colors.text};
+  border-left: none;
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px;
+  padding: 8px 4px;
+  cursor: pointer;
+  height: 40px;
 `;
 
 enum PuzzleGuessSubmitState {
@@ -1961,12 +2010,16 @@ const PuzzlePage = React.memo(() => {
   const puzzlePageDivRef = useRef<HTMLDivElement | null>(null);
   const chatSectionRef = useRef<ChatSectionHandle | null>(null);
   const [sidebarWidth, setSidebarWidth] = useState<number>(DefaultSidebarWidth);
+  const [isChatMinimized, setIsChatMinimized] = useState<boolean>(false);
+  const [isMetadataMinimized, setIsMetadataMinimized] =
+    useState<boolean>(false);
   const [isDesktop, setIsDesktop] = useState<boolean>(
     window.innerWidth >= MinimumDesktopWidth,
   );
 
   const huntId = useParams<"huntId">().huntId!;
   const puzzleId = useParams<"puzzleId">().puzzleId!;
+  const idPrefix = useId();
 
   // Add the current user to the collection of people viewing this puzzle.
   const subscribersTopic = `puzzle:${puzzleId}`;
@@ -2023,6 +2076,16 @@ const PuzzlePage = React.memo(() => {
         : indexedDisplayNames(),
     [puzzleDataLoading, chatDataLoading],
   );
+
+  const chatMessages: FilteredChatMessageType[] = useTracker(() => {
+    return chatDataLoading
+      ? []
+      : ChatMessages.find(
+          { puzzle: puzzleId },
+          { sort: { timestamp: 1 } },
+        ).fetch();
+  }, [puzzleId, chatDataLoading]);
+
   // Sort by created at so that the "first" document always has consistent meaning
   const document = useTracker(
     () =>
@@ -2055,7 +2118,11 @@ const PuzzlePage = React.memo(() => {
   const documentTitle = `${title} :: Jolly Roger`;
   useDocumentTitle(documentTitle);
 
-  const [callState, dispatch] = useCallState({ huntId, puzzleId, tabId });
+  const {
+    state: callState,
+    dispatch,
+    joinCall,
+  } = useCallState({ huntId, puzzleId, tabId });
 
   const onResize = useCallback(() => {
     setIsDesktop(window.innerWidth >= MinimumDesktopWidth);
@@ -2065,18 +2132,57 @@ const PuzzlePage = React.memo(() => {
     }
   }, []);
 
-  const onCommitSideBarSize = useCallback((newSidebarWidth: number) => {
-    setSidebarWidth(newSidebarWidth);
+  const minimizeChat = useCallback(() => {
+    setIsChatMinimized(true);
   }, []);
 
-  const onChangeSideBarSize = useCallback(() => {
-    trace("PuzzlePage onChangeSideBarSize", {
-      hasRef: !!chatSectionRef.current,
-    });
-    if (chatSectionRef.current) {
-      chatSectionRef.current.scrollHistoryToTarget();
-    }
+  const restoreChat = useCallback(() => {
+    setIsChatMinimized(false);
   }, []);
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies(chatMessages.length): We do want to trigger this effect on chatMessages length change
+  useEffect(() => {
+    // Any time a new chat message comes in, show the chat again.
+    setIsChatMinimized(false);
+  }, [chatMessages.length]);
+
+  useEffect(() => {
+    // There's no point hiding the chat scrollback at mobile widths; we don't
+    // embed the sheet at that size, so we'd just get a blank white area.
+    if (!isDesktop) {
+      setIsChatMinimized(false);
+    }
+  }, [isDesktop]);
+
+  const onChangeSideBarSize = useCallback(
+    (newSize: number) => {
+      // Why only when !isChatMinimized?
+      // We'll still get sidebar size change events from SplitPaneMinus when the
+      // window size changes. Ignore them, lest we commit the new sidebar size
+      // of 0.
+      if (!isChatMinimized) {
+        setSidebarWidth(newSize);
+        trace("PuzzlePage onChangeSideBarSize", {
+          hasRef: !!chatSectionRef.current,
+          newSize,
+        });
+        if (chatSectionRef.current) {
+          chatSectionRef.current.scrollHistoryToTarget();
+        }
+      }
+    },
+    [isChatMinimized],
+  );
+
+  const toggleMetadata = useCallback(() => {
+    setIsMetadataMinimized((prev) => !prev);
+  }, []);
+
+  const answersCount = activePuzzle?.answers?.length ?? 0;
+  // biome-ignore lint/correctness/useExhaustiveDependencies(answersCount): We want to force the metadata section to be visible when the answers change, so solvers will not miss the puzzle being solved.
+  useEffect(() => {
+    setIsMetadataMinimized(false);
+  }, [answersCount]);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies(sidebarWidth): When the sidebar width changes, we want to scroll to the target.
   useLayoutEffect(() => {
@@ -2087,22 +2193,22 @@ const PuzzlePage = React.memo(() => {
   }, [sidebarWidth]);
 
   useEffect(() => {
-    // Populate sidebar width on mount
-    if (puzzlePageDivRef.current) {
-      setSidebarWidth(
-        Math.min(
-          DefaultSidebarWidth,
-          puzzlePageDivRef.current.clientWidth - MinimumDocumentWidth,
-        ),
-      );
-    }
-
     window.addEventListener("resize", onResize);
 
     return () => {
       window.removeEventListener("resize", onResize);
     };
   }, [onResize]);
+
+  useLayoutEffect(() => {
+    // Adjust sidebar width based on window size on initial mount
+    if (puzzlePageDivRef.current) {
+      const clientWidth = puzzlePageDivRef.current.clientWidth;
+      setSidebarWidth((sidebarWidth) => {
+        return Math.min(sidebarWidth, clientWidth - MinimumDocumentWidth);
+      });
+    }
+  }, []);
 
   useEffect(() => {
     if (activePuzzle && !activePuzzle.deleted) {
@@ -2126,7 +2232,7 @@ const PuzzlePage = React.memo(() => {
       </FixedLayout>
     );
   }
-  const metadata = (
+  const metadata = isMetadataMinimized ? null : (
     <PuzzlePageMetadata
       puzzle={activePuzzle}
       bookmarked={bookmarked}
@@ -2134,9 +2240,13 @@ const PuzzlePage = React.memo(() => {
       displayNames={displayNames}
       isDesktop={isDesktop}
       selfUser={selfUser}
+      onMinimizeMetadata={toggleMetadata}
     />
   );
-  const chat = (
+
+  const effectiveSidebarWidth = isChatMinimized ? 0 : sidebarWidth;
+
+  const chat = isChatMinimized ? null : (
     <ChatSectionMemo
       ref={chatSectionRef}
       chatDataLoading={chatDataLoading}
@@ -2146,6 +2256,7 @@ const PuzzlePage = React.memo(() => {
       puzzleId={puzzleId}
       callState={callState}
       callDispatch={dispatch}
+      joinCall={joinCall}
       selfUser={selfUser}
     />
   );
@@ -2196,23 +2307,64 @@ const PuzzlePage = React.memo(() => {
     );
   }
 
+  const showMetadataButton = isMetadataMinimized ? (
+    <OverlayTrigger
+      placement="bottom-end"
+      overlay={
+        <Tooltip id={`${idPrefix}-show-puzzle-info`}>Show puzzle info</Tooltip>
+      }
+    >
+      <PuzzleMetadataFloatingButton
+        variant="secondary"
+        size="sm"
+        onClick={toggleMetadata}
+      >
+        <FontAwesomeIcon icon={faAngleDoubleDown} />
+      </PuzzleMetadataFloatingButton>
+    </OverlayTrigger>
+  ) : null;
   if (isDesktop) {
     return (
       <>
         {deletedModal}
         <FixedLayout ref={puzzlePageDivRef}>
+          {isChatMinimized ? (
+            <MinimizedChatInfo
+              huntId={huntId}
+              puzzleId={puzzleId}
+              callState={callState}
+              callDispatch={dispatch}
+              joinCall={joinCall}
+              onRestore={restoreChat}
+            />
+          ) : (
+            <OverlayTrigger
+              placement="right"
+              overlay={
+                <Tooltip id={`${idPrefix}-hide-chat`}>Minimize chat</Tooltip>
+              }
+            >
+              <MinimizeChatButton
+                style={{ left: `${isChatMinimized ? 1 : sidebarWidth + 15}px` }}
+                onClick={minimizeChat}
+              >
+                <FontAwesomeIcon icon={faChevronLeft} />
+              </MinimizeChatButton>
+            </OverlayTrigger>
+          )}
           <SplitPaneMinus
             split="vertical"
-            minSize={MinimumSidebarWidth}
+            minSize={isChatMinimized ? 0 : MinimumSidebarWidth}
             maxSize={-MinimumDocumentWidth}
             primary="first"
-            size={sidebarWidth}
+            size={effectiveSidebarWidth}
             onChanged={onChangeSideBarSize}
-            onPaneChanged={onCommitSideBarSize}
+            allowResize={!isChatMinimized}
           >
             {chat}
             <PuzzleContent>
               {metadata}
+              {showMetadataButton}
               <PuzzlePageMultiplayerDocument
                 document={document}
                 selfUser={selfUser}
@@ -2231,6 +2383,7 @@ const PuzzlePage = React.memo(() => {
       {deletedModal}
       <FixedLayout $narrow>
         {metadata}
+        {showMetadataButton}
         {chat}
       </FixedLayout>
     </>

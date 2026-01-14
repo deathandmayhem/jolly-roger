@@ -75,7 +75,10 @@ const PaneDiv = styled.div`
   }
 `;
 
-const ResizerSpan = styled.span<{ $split: "horizontal" | "vertical" }>`
+const ResizerSpan = styled.span<{
+  $split: "horizontal" | "vertical";
+  $allowResize: boolean;
+}>`
   background: #6c757d; /* was $gray-600 from bootstrap */
   z-index: 1;
   box-sizing: border-box;
@@ -85,35 +88,47 @@ const ResizerSpan = styled.span<{ $split: "horizontal" | "vertical" }>`
     transition: border 0.8s ease;
   }
 
-  ${({ $split }) =>
+  ${({ $split, $allowResize }) =>
     $split === "horizontal" &&
     css`
       height: 11px;
       margin: -5px 0;
       border-top: 5px solid rgb(255 255 255 / 0%);
       border-bottom: 5px solid rgb(255 255 255 / 0%);
-      cursor: row-resize;
       width: 100%;
 
-      &:hover {
-        border-top: 5px solid rgb(0 0 0 / 10%);
-        border-bottom: 5px solid rgb(0 0 0 / 10%);
+      ${
+        $allowResize &&
+        css`
+        cursor: row-resize;
+
+        &:hover {
+          border-top: 5px solid rgb(0 0 0 / 10%);
+          border-bottom: 5px solid rgb(0 0 0 / 10%);
+        }
+      `
       }
     `}
 
-  ${({ $split }) =>
+  ${({ $split, $allowResize }) =>
     $split === "vertical" &&
     css`
       width: 11px;
       margin: 0 -5px;
       border-left: 5px solid rgb(255 255 255 / 0%);
       border-right: 5px solid rgb(255 255 255 / 0%);
-      cursor: col-resize;
       height: 100%;
 
-      &:hover {
-        border-left: 5px solid rgb(0 0 0 / 10%);
-        border-right: 5px solid rgb(0 0 0 / 10%);
+      ${
+        $allowResize &&
+        css`
+        cursor: col-resize;
+
+        &:hover {
+          border-left: 5px solid rgb(0 0 0 / 10%);
+          border-right: 5px solid rgb(0 0 0 / 10%);
+        }
+      `
       }
     `}
 `;
@@ -152,28 +167,15 @@ const Pane = ({
 };
 
 type SplitPaneMinusProps = {
-  children: React.ReactNode[];
+  children: [React.ReactNode, React.ReactNode];
   split: "vertical" | "horizontal"; // what direction does the divider run the full dimension?
   minSize?: number;
   maxSize?: number;
   primary: "first" | "second";
   size: number; // Size, in pixels of the primary pane.
   onChanged?: (newSize: number) => void; // callback called any time the sidebar size changes (including while dragging)
-  onPaneChanged?: (newSize: number) => void; // callback called at the end of the drag
-
-  // This feature appears to be unused.
-  // autoCollapse1?: number; // Size, in pixels, below which the first pane is automatically collapsed.  Respected by drag and resize.  Disabled if not provided.
-  // autoCollapse2?: number; // Same as autoCollapse1, but for the second pane.
   allowResize?: boolean; // defaults to true
 };
-
-interface SplitPaneMinusState {
-  collapseWarning: 0 | 1 | 2; // TODO: implement support for collapse again if needed
-  dragInProgress: boolean;
-  draggedSize?: number;
-  pane1Size?: number;
-  pane2Size?: number;
-}
 
 type SplitPaneDragState =
   | {
@@ -193,20 +195,6 @@ function unfocus(window: Window) {
   window.getSelection()?.removeAllRanges();
 }
 
-function getDefaultSize(
-  defaultSize: number | undefined,
-  minSize: number | undefined,
-  maxSize: number | undefined,
-  draggedSize: number | undefined,
-) {
-  if (draggedSize !== undefined) {
-    const min = minSize ?? 0;
-    const max = maxSize !== undefined && maxSize >= 0 ? maxSize : Infinity;
-    return Math.max(min, Math.min(max, draggedSize));
-  }
-  return defaultSize ?? minSize;
-}
-
 const SplitPaneMinus = ({
   children,
   split,
@@ -215,19 +203,8 @@ const SplitPaneMinus = ({
   primary,
   size,
   onChanged,
-  onPaneChanged,
   allowResize = true,
 }: SplitPaneMinusProps) => {
-  const [state, setState] = useState<SplitPaneMinusState>(() => {
-    const initialSize =
-      size ?? getDefaultSize(undefined, minSize, maxSize, undefined);
-    return {
-      collapseWarning: 0,
-      dragInProgress: false,
-      pane1Size: primary === "first" ? initialSize : undefined,
-      pane2Size: primary === "second" ? initialSize : undefined,
-    };
-  });
   const [dragState, setDragState] = useState<SplitPaneDragState>({
     active: false,
     position: undefined,
@@ -336,14 +313,6 @@ const SplitPaneMinus = ({
           }
 
           if (onChanged) onChanged(clampedSize);
-
-          setState((prevState) => {
-            return {
-              ...prevState,
-              draggedSize: clampedSize,
-              [isPrimaryFirst ? "pane1Size" : "pane2Size"]: clampedSize,
-            };
-          });
         }
       }
     },
@@ -362,22 +331,7 @@ const SplitPaneMinus = ({
   const onPointerRelease: PointerEventHandler<HTMLSpanElement> = useCallback(
     (e) => {
       e.currentTarget.releasePointerCapture(e.pointerId);
-      if (allowResize && dragState.active) {
-        setState((prevState) => {
-          return {
-            ...prevState,
-            collapseWarning: 0,
-            dragInProgress: false,
-          };
-        });
-        if (
-          onPaneChanged &&
-          state.draggedSize !== undefined &&
-          state.draggedSize !== size
-        ) {
-          // console.log("onPaneChanged", state.draggedSize);
-          onPaneChanged(state.draggedSize);
-        }
+      if (dragState.active) {
         setDragState((prevState) => {
           return {
             ...prevState,
@@ -386,7 +340,7 @@ const SplitPaneMinus = ({
         });
       }
     },
-    [allowResize, size, onPaneChanged, dragState.active, state.draggedSize],
+    [dragState.active],
   );
 
   const onPointerCancel: PointerEventHandler<HTMLSpanElement> = useCallback(
@@ -414,13 +368,6 @@ const SplitPaneMinus = ({
       if (requestedSize !== undefined) {
         const [clampedSize, _didClamp] = clampSize(requestedSize);
         if (onChanged) onChanged(clampedSize);
-        setState((prevState) => {
-          return {
-            ...prevState,
-            draggedSize: clampedSize,
-            [isPrimaryFirst ? "pane1Size" : "pane2Size"]: clampedSize,
-          };
-        });
       }
     },
     [primary, measurePane, clampSize, onChanged],
@@ -437,21 +384,24 @@ const SplitPaneMinus = ({
     "SplitPaneMinus",
     dragState.active ? "dragging" : "",
   );
+  const pane1Size = primary === "first" ? size : undefined;
+  const pane2Size = primary === "second" ? size : undefined;
   return (
     <SplitPaneMinusDiv $split={split} className={className} ref={ref}>
-      <Pane split={split} size={state.pane1Size} eleRef={pane1ref}>
+      <Pane split={split} size={pane1Size} eleRef={pane1ref}>
         {children[0]}
       </Pane>
       <ResizerSpan
         key="resizer"
         role="presentation"
         $split={split}
+        $allowResize={allowResize}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerCancel}
       />
-      <Pane split={split} size={state.pane2Size} eleRef={pane2ref}>
+      <Pane split={split} size={pane2Size} eleRef={pane2ref}>
         {children[1]}
       </Pane>
     </SplitPaneMinusDiv>
