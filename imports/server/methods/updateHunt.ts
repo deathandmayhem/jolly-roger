@@ -2,7 +2,7 @@ import { check } from "meteor/check";
 import { Meteor } from "meteor/meteor";
 import Logger from "../../Logger";
 import type { HuntType } from "../../lib/models/Hunts";
-import Hunts, { HuntPattern } from "../../lib/models/Hunts";
+import Hunts, { EditableHunt, HuntPattern } from "../../lib/models/Hunts";
 import MeteorUsers from "../../lib/models/MeteorUsers";
 import { checkAdmin } from "../../lib/permission_stubs";
 import updateHunt from "../../methods/updateHunt";
@@ -11,11 +11,6 @@ import { ensureHuntFolder, huntFolderName, renameDocument } from "../gdrive";
 import defineMethod from "./defineMethod";
 
 defineMethod(updateHunt, {
-  validate(arg) {
-    check(arg, { huntId: String, value: HuntPattern });
-    return arg;
-  },
-
   async run({ huntId, value }) {
     check(this.userId, String);
     checkAdmin(await MeteorUsers.findOneAsync(this.userId));
