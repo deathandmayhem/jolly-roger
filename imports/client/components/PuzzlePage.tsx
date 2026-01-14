@@ -2200,6 +2200,16 @@ const PuzzlePage = React.memo(() => {
     };
   }, [onResize]);
 
+  useLayoutEffect(() => {
+    // Adjust sidebar width based on window size on initial mount
+    if (puzzlePageDivRef.current) {
+      const clientWidth = puzzlePageDivRef.current.clientWidth;
+      setSidebarWidth((sidebarWidth) => {
+        return Math.min(sidebarWidth, clientWidth - MinimumDocumentWidth);
+      });
+    }
+  }, []);
+
   useEffect(() => {
     if (activePuzzle && !activePuzzle.deleted) {
       ensurePuzzleDocument.call({ puzzleId: activePuzzle._id });
