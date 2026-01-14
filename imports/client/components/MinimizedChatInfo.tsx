@@ -44,7 +44,7 @@ const InfoPill = styled.div`
   font-size: 12px;
 `;
 
-const VoiceButton = styled(Button)`
+const SquareIconButton = styled(Button)`
   font-size: 12px;
   padding: 0;
   width: 28px;
@@ -172,12 +172,12 @@ const MinimizedChatInfo = ({
             </Tooltip>
           }
         >
-          <VoiceButton
+          <SquareIconButton
             variant={muted ? "secondary" : "light"}
             onClick={onToggleMute}
           >
             <FontAwesomeIcon icon={muted ? faMicrophoneSlash : faMicrophone} />
-          </VoiceButton>
+          </SquareIconButton>
         </OverlayTrigger>
 
         <OverlayTrigger
@@ -186,9 +186,9 @@ const MinimizedChatInfo = ({
             <Tooltip id={`${idPrefix}-mini-leave-call`}>Leave call</Tooltip>
           }
         >
-          <VoiceButton variant="danger" onClick={onLeaveCall}>
+          <SquareIconButton variant="danger" onClick={onLeaveCall}>
             <FontAwesomeIcon icon={faPhoneSlash} />
-          </VoiceButton>
+          </SquareIconButton>
         </OverlayTrigger>
       </>
     ) : (
@@ -200,13 +200,13 @@ const MinimizedChatInfo = ({
           </Tooltip>
         }
       >
-        <VoiceButton
+        <SquareIconButton
           variant="primary"
           onClick={joinCall}
           title={callers > 0 ? "Join audio call" : "Start audio call"}
         >
           <FontAwesomeIcon icon={faPhone} />
-        </VoiceButton>
+        </SquareIconButton>
       </OverlayTrigger>
     );
 
@@ -218,9 +218,9 @@ const MinimizedChatInfo = ({
           <Tooltip id={`${idPrefix}-mini-restore`}>Restore Chat</Tooltip>
         }
       >
-        <VoiceButton onClick={onRestore} style={{ marginBottom: "4px" }}>
+        <SquareIconButton onClick={onRestore} style={{ marginBottom: "4px" }}>
           <FontAwesomeIcon icon={faChevronRight} />
-        </VoiceButton>
+        </SquareIconButton>
       </OverlayTrigger>
       <OverlayTrigger
         placement="right"
