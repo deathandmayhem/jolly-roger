@@ -2132,13 +2132,6 @@ const PuzzlePage = React.memo(() => {
     }
   }, []);
 
-  const onCommitSideBarSize = useCallback((newSidebarWidth: number) => {
-    trace("PuzzlePage onCommitSideBarSize", { newSidebarWidth });
-    if (newSidebarWidth > 0) {
-      setSidebarWidth(newSidebarWidth);
-    }
-  }, []);
-
   const minimizeChat = useCallback(() => {
     setIsChatMinimized(true);
   }, []);
@@ -2161,16 +2154,25 @@ const PuzzlePage = React.memo(() => {
     }
   }, [isDesktop]);
 
-  const onChangeSideBarSize = useCallback((newSize: number) => {
-    setSidebarWidth(newSize);
-    trace("PuzzlePage onChangeSideBarSize", {
-      hasRef: !!chatSectionRef.current,
-      newSize,
-    });
-    if (chatSectionRef.current) {
-      chatSectionRef.current.scrollHistoryToTarget();
-    }
-  }, []);
+  const onChangeSideBarSize = useCallback(
+    (newSize: number) => {
+      // Why only when !isChatMinimized?
+      // We'll still get sidebar size change events from SplitPaneMinus when the
+      // window size changes. Ignore them, lest we commit the new sidebar size
+      // of 0.
+      if (!isChatMinimized) {
+        setSidebarWidth(newSize);
+        trace("PuzzlePage onChangeSideBarSize", {
+          hasRef: !!chatSectionRef.current,
+          newSize,
+        });
+        if (chatSectionRef.current) {
+          chatSectionRef.current.scrollHistoryToTarget();
+        }
+      }
+    },
+    [isChatMinimized],
+  );
 
   const toggleMetadata = useCallback(() => {
     setIsMetadataMinimized((prev) => !prev);
@@ -2191,22 +2193,12 @@ const PuzzlePage = React.memo(() => {
   }, [sidebarWidth]);
 
   useEffect(() => {
-    // Populate sidebar width on mount
-    if (puzzlePageDivRef.current) {
-      setSidebarWidth(
-        Math.min(
-          sidebarWidth,
-          puzzlePageDivRef.current.clientWidth - MinimumDocumentWidth,
-        ),
-      );
-    }
-
     window.addEventListener("resize", onResize);
 
     return () => {
       window.removeEventListener("resize", onResize);
     };
-  }, [onResize, sidebarWidth]);
+  }, [onResize]);
 
   useEffect(() => {
     if (activePuzzle && !activePuzzle.deleted) {
@@ -2357,7 +2349,6 @@ const PuzzlePage = React.memo(() => {
             primary="first"
             size={effectiveSidebarWidth}
             onChanged={onChangeSideBarSize}
-            onPaneChanged={onCommitSideBarSize}
             allowResize={!isChatMinimized}
           >
             {chat}
