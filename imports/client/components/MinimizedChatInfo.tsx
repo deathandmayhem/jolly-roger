@@ -52,6 +52,22 @@ const VoiceButton = styled(Button)`
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+`;
+
+const NotificationBadge = styled.span`
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background-color:${({ theme }) => theme.colors.danger};
+  color: white;
+  border-radius: 4px;
+  padding: 0 3px;
+  font-size: 12px;
+  line-height: 14px;
+  min-width: 14px;
+  text-align: center;
+  font-weight: bold;
 `;
 
 const MinimizedChatInfo = ({
@@ -60,12 +76,14 @@ const MinimizedChatInfo = ({
   callState,
   callDispatch,
   onRestore,
+  missedMessages,
 }: {
   huntId: string;
   puzzleId: string;
   callState: CallState;
   callDispatch: React.Dispatch<Action>;
   onRestore: () => void;
+  missedMessages?: number;
 }) => {
   const subscriberTopic = `puzzle:${puzzleId}`;
   const { callers, viewers } = useTracker(() => {
@@ -167,6 +185,11 @@ const MinimizedChatInfo = ({
       >
         <VoiceButton onClick={onRestore} style={{ marginBottom: "4px" }}>
           <FontAwesomeIcon icon={faChevronRight} />
+          {missedMessages > 0 && (
+            <NotificationBadge>
+              {missedMessages > 9 ? "9+" : missedMessages}
+            </NotificationBadge>
+          )}
         </VoiceButton>
       </OverlayTrigger>
       <OverlayTrigger
