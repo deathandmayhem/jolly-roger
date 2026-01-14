@@ -26,6 +26,7 @@ import ListGroup from "react-bootstrap/ListGroup";
 import ListGroupItem from "react-bootstrap/ListGroupItem";
 import Modal from "react-bootstrap/Modal";
 import { createPortal } from "react-dom";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { formatDiscordName } from "../../lib/discord";
@@ -121,6 +122,8 @@ const ConfirmationModal = React.forwardRef(
       setDisabled(true);
     }, [performAction, hide]);
 
+    const { t } = useTranslation("ProfileList");
+
     const modal = (
       <Modal show={visible} onHide={hide}>
         <Modal.Header closeButton>
@@ -136,7 +139,7 @@ const ConfirmationModal = React.forwardRef(
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={hide} disabled={disabled}>
-            Cancel
+            {t("Cancel", "Cancel")}
           </Button>
           <Button
             variant="danger"
@@ -267,6 +270,8 @@ const OperatorControls = ({
     e.preventDefault();
   }, []);
 
+  const { t } = useTranslation("ProfileList");
+
   return (
     <OperatorBox onClick={preventPropagation}>
       {renderPromoteModal && (
@@ -291,11 +296,11 @@ const OperatorControls = ({
               Demote
             </Button>
           )}
-          <Badge bg="info">Operator</Badge>
+          <Badge bg="info">{t("Operator", "Operator")}</Badge>
         </>
       ) : (
         <Button size="sm" variant="warning" onClick={showPromoteModal}>
-          Make operator
+          {t("Make operator", "Make operator")}
         </Button>
       )}
     </OperatorBox>
@@ -318,17 +323,34 @@ const GenerateInvitationLinkModal = ({
     [huntId],
   );
 
+  const { t } = useTranslation("ProfileList");
+
   return (
     <ConfirmationModal
       title={
-        isRegenerate ? "Regenerate Invitation Link" : "Generate Invitation Link"
+        isRegenerate
+          ? t(
+              "InvitationLink.modal.regenerateTitle",
+              "Regenerate Invitation Link",
+            )
+          : t("InvitationLink.modal.generateTitle", "Generate Invitation Link")
       }
       body={
         isRegenerate
-          ? "Are you sure you want to regenerate the invitation link to this hunt? The current link will no longer be valid."
-          : "Generate an invitation link to this hunt? Anyone with access to invite users will see this link, and anyone with the link will be able to join."
+          ? t(
+              "InvitationLink.modal.regenerateBody",
+              "Are you sure you want to regenerate the invitation link to this hunt? The current link will no longer be valid.",
+            )
+          : t(
+              "InvitationLink.modal.generateBody",
+              "Generate an invitation link to this hunt? Anyone with access to invite users will see this link, and anyone with the link will be able to join.",
+            )
       }
-      action={isRegenerate ? "Regenerate link" : "Generate link"}
+      action={
+        isRegenerate
+          ? t("InvitationLink.modal.regenerateButton", "Regenerate link")
+          : t("InvitationLink.modal.generateButton", "Generate link")
+      }
       performAction={performAction}
       ref={forwardedRef}
     />
@@ -349,11 +371,16 @@ const DisableInvitationLinkModal = ({
     [huntId],
   );
 
+  const { t } = useTranslation("ProfileList");
+
   return (
     <ConfirmationModal
-      title="Disable Invitation Link"
-      body="Are you sure you want to disable the invitation link to this hunt? The current link will no longer be valid."
-      action="Disable link"
+      title={t("InvitationLink.modal.disableTitle", "Disable Invitation Link")}
+      body={t(
+        "InvitationLink.modal.disableBody",
+        "Are you sure you want to disable the invitation link to this hunt? The current link will no longer be valid.",
+      )}
+      action={t("InvitationLink.modal.disableButton", "Disable link")}
       performAction={performAction}
       ref={forwardedRef}
     />
@@ -488,6 +515,8 @@ const ProfileList = ({
     [renderDisableInvitationLinkModal],
   );
 
+  const { t } = useTranslation("ProfileList");
+
   const invitationLink = useMemo(() => {
     if (!hunt || !canInvite || !invitationCode) {
       return null;
@@ -497,7 +526,7 @@ const ProfileList = ({
 
     return (
       <p>
-        Invitation link:{" "}
+        {t("InvitationLink.link", "Invitation link")}:{" "}
         <StyledCopyToClipboardButton
           text={invitationUrl}
           variant="link"
@@ -508,7 +537,7 @@ const ProfileList = ({
         {invitationUrl}
       </p>
     );
-  }, [hunt, canInvite, invitationCode]);
+  }, [hunt, canInvite, invitationCode, t]);
 
   const invitationLinkManagementButtons = useMemo(() => {
     if (!hunt || !canUpdateHuntInvitationCode) {
@@ -532,8 +561,8 @@ const ProfileList = ({
         )}
         <Button variant="info" onClick={showGenerateInvitationLinkModal}>
           {invitationCode
-            ? "Regenerate invitation link"
-            : "Generate invitation link"}
+            ? t("InvitationLink.regenerate", "Regenerate invitation link")
+            : t("InvitationLink.generate", "Generate invitation link")}
         </Button>
         {invitationCode && (
           <Button
@@ -541,12 +570,14 @@ const ProfileList = ({
             className="ms-1"
             onClick={showDisableInvitationLinkModal}
           >
-            Disable invitation link
+            {t("InvitationLink.disable", "Disable invitation link")}
           </Button>
         )}
         <FormText>
-          Manage the public invitation link that can be used by anyone to join
-          this hunt
+          {t(
+            "InvitationLink.hint",
+            "Manage the public invitation link that can be used by anyone to join this hunt",
+          )}
         </FormText>
       </FormGroup>
     );
@@ -558,6 +589,7 @@ const ProfileList = ({
     showGenerateInvitationLinkModal,
     renderDisableInvitationLinkModal,
     showDisableInvitationLinkModal,
+    t,
   ]);
 
   const inviteToHuntItem = useMemo(() => {
@@ -576,11 +608,11 @@ const ProfileList = ({
           <ImageBlock>
             <FontAwesomeIcon icon={faPlus} />
           </ImageBlock>
-          <strong>Invite someone...</strong>
+          <strong>{t("Invite someone", "Invite someone")}...</strong>
         </ListItemContainer>
       </ListGroupItem>
     );
-  }, [hunt, canInvite]);
+  }, [hunt, canInvite, t]);
 
   const globalInfo = useMemo(() => {
     if (hunt) {
@@ -599,10 +631,13 @@ const ProfileList = ({
   const searchId = useId();
 
   const matching = users.filter(matcher);
+
   return (
     <div>
-      <h1>List of hunters</h1>
-      <ProfilesSummary>Total hunters: {users.length}</ProfilesSummary>
+      <h1>{t("title", "List of hunters")}</h1>
+      <ProfilesSummary>
+        {t("Total hunters", "Total hunters")}: {users.length}
+      </ProfilesSummary>
 
       {syncDiscordButton}
 
@@ -610,7 +645,7 @@ const ProfileList = ({
       {invitationLinkManagementButtons}
 
       <FormGroup className="mb-3" controlId={searchId}>
-        <FormLabel>Search</FormLabel>
+        <FormLabel>{t("Search", "Search")}</FormLabel>
         <InputGroup>
           <FormControl
             type="text"

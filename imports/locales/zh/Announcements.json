@@ -1,0 +1,12 @@
+{
+  "Page": {
+    "title": "公告",
+    "breadcrumbTitle": "公告",
+    "WriteAnAnnouncement": "撰写公告（请保持简洁明了）",
+    "send": "发布"
+  },
+  "Toast": {
+    "announcementFrom": "来自 {{name}} 的公告"
+  },
+  "": ""
+}

@@ -1,0 +1,20 @@
+{
+  "maybeMatchWarning": "没有未解谜题符合搜索条件，下面显示符合条件的已解谜题",
+  "Solved puzzles": "已解谜题",
+  "Hidden": "隐藏",
+  "Shown": "显示",
+  "Operator Interface": "管理员界面",
+  "Off": "关",
+  "On": "开",
+  "Organize by": "排序方式",
+  "Group": "按分区",
+  "Unlock": "按解锁",
+  "Add a puzzle": "添加谜题",
+  "filteredPuzzleCountMessage": "共有 {{allPuzzlesCount}} 道谜题，显示 {{retainedCount}} 道",
+  "Bookmarked": "已关注",
+  "no group specified": "未指定分区",
+  "deletedPuzzlesGroup": "已删除的谜题（仅管理员可见）",
+  "Expand all": "全部展开",
+  "FilterByPlaceholder": "按标题、答案、或标签筛选",
+  "": ""
+}

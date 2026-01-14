@@ -1,0 +1,38 @@
+{
+  "no chatter": "尚无对话记录。",
+  "EditButton": {
+    "title": "编辑谜题...",
+    "text": "编辑"
+  },
+  "Answer": {
+    "buttonText": "提交答案",
+    "title": "提交 {{puzzleTitle}} 的答案",
+    "answer": "答案",
+    "submit": "提交",
+    "confirmSubmit": "确认提交",
+    "repeatAnswer": "该答案已被提交过。",
+    "alreadySolved": "该谜题已被解出。",
+    "areYouSure": "你确定要提交这个答案吗？"
+  },
+  "Guess": {
+    "buttonText": "提交猜测",
+    "title": {
+      "history": "{{puzzle}} 的猜测记录",
+      "submitGuess": "提交 {{puzzle}} 答案猜测"
+    },
+    "guess": "答案猜测",
+    "noGuesses": "尚未提交过任何猜测。",
+    "previousSubmissions": "提交记录",
+    "direction": "解题方向",
+    "directionHelp": "选择一个介于 -10（未打开谜题即反向解出）到 10（未用到本题之外的信息即正向解出）之间的数字，以表明你是正向解出还是反向解出。",
+    "confidence": "信心指数",
+    "confidenceHelp": "选择一个介于 0 和 100 之间的数字，表示你认为这个答案正确的概率。",
+    "submit": "提交",
+    "confirmSubmit": "确认提交",
+    "repeatAnswer": "该答案已被提交过。",
+    "alreadySolved": "该谜题已被解出。",
+    "areYouSure": "你确定要提交这个猜测吗？"
+  },
+  "No tags yet": "本题尚无标签",
+  "": ""
+}

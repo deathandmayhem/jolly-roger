@@ -1,0 +1,19 @@
+{
+  "title": {
+    "answer": "答案记录",
+    "guess": "猜测记录"
+  },
+  "tableHeader": {
+    "puzzle": "谜题",
+    "answer": "答案",
+    "status": "状态",
+    "submitter": "提交者",
+    "time": "提交时间",
+    "direction": "解题方向",
+    "confidence": "信心指数",
+    "confidenceTooltip": "提交者估计该答案正确的可能性"
+  },
+  "openDiscussionTooltip": "打开 Jolly Roger 讨论区",
+  "openPuzzleTooltip": "打开谜题页面",
+  "returnToQueue": "返回队列"
+}

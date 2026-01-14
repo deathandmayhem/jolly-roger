@@ -15,6 +15,7 @@ import type { FormControlProps } from "react-bootstrap/FormControl";
 import FormControl from "react-bootstrap/FormControl";
 import FormGroup from "react-bootstrap/FormGroup";
 import InputGroup from "react-bootstrap/InputGroup";
+import { useTranslation } from "react-i18next";
 import { useParams, useSearchParams } from "react-router-dom";
 import styled from "styled-components";
 import { shortCalendarTimeFormat } from "../../lib/calendarTimeFormat";
@@ -79,7 +80,8 @@ function asFlatString(
 }
 
 const Message = React.memo(({ msg, displayNames, puzzle }: MessageProps) => {
-  const ts = shortCalendarTimeFormat(msg.timestamp);
+  const { t, i18n } = useTranslation("DateAndTime");
+  const ts = shortCalendarTimeFormat(msg.timestamp, t, i18n.language);
   const displayName = msg.sender
     ? (displayNames.get(msg.sender) ?? "???")
     : "jolly-roger";
@@ -307,6 +309,8 @@ const FirehosePage = () => {
 
   const searchId = useId();
 
+  const { t } = useTranslation("FirehosePage");
+
   if (loading) {
     return <div>Loading all chat messages. Expect this to take a while.</div>;
   }
@@ -314,15 +318,20 @@ const FirehosePage = () => {
   return (
     <FixedLayout>
       <FirehosePageLayout>
-        <h1>Firehose</h1>
-        <p>This log includes all chat messages hunt-wide. Expect some lag.</p>
+        <h1>{t("title", "Firehose")}</h1>
+        <p>
+          {t(
+            "description",
+            "This log includes all chat messages hunt-wide. Expect some lag.",
+          )}
+        </p>
         <FormGroup className="mb-3" controlId={searchId}>
           <InputGroup>
             <FormControl
               as="input"
               type="text"
               ref={searchBarRef}
-              placeholder="Filter by message contents"
+              placeholder={t("searchPlaceholder", "Filter by message contents")}
               value={searchString}
               onChange={onSearchStringChange}
             />
@@ -332,7 +341,14 @@ const FirehosePage = () => {
           </InputGroup>
         </FormGroup>
         <div>
-          {`Showing ${chats.length}/${(chatMessages ?? []).length} messages`}
+          {t(
+            "messageCount",
+            "Showing {{filteredCount}}/{{totalCount}} messages",
+            {
+              filteredCount: chats.length,
+              totalCount: (chatMessages ?? []).length,
+            },
+          )}
         </div>
         <MessagesPane
           ref={messagesPaneRef}
