@@ -2762,7 +2762,7 @@ type TickerToastType = {
 const ManagedTickerToast: FC<{
   msg: TickerToastType;
   isPaused: boolean;
-  dismiss: (id: string) => void;
+  dismiss: (id: string, auto: boolean) => void;
   onRestore: (id: string) => void;
 }> = ({ msg, isPaused, dismiss, onRestore }) => {
   const [remaining, setRemaining] = useState(msg.duration);
@@ -2783,7 +2783,7 @@ const ManagedTickerToast: FC<{
 
   useEffect(() => {
     if (remaining <= 0) {
-      dismiss(msg.id);
+      dismiss(msg.id, true);
     }
   }, [remaining, dismiss, msg.id]);
 
@@ -2796,7 +2796,11 @@ const ManagedTickerToast: FC<{
   }, [tick]);
 
   return (
-    <TickerToast onClick={() => dismiss(msg.id)} role="button" tabIndex={0}>
+    <TickerToast
+      onClick={() => dismiss(msg.id, false)}
+      role="button"
+      tabIndex={0}
+    >
       <TickerProgress $percent={(remaining / msg.duration) * 100} />
       <TickerToastBody>
         <TickerToastContent>
@@ -3658,9 +3662,11 @@ const PuzzlePage = React.memo(() => {
   }, []);
 
 const dismissTickerMessage = useCallback(
-  (id: string) => {
+  (id: string, auto: boolean) => {
     setTickerQueue((prev) => prev.filter((m) => m.id !== id));
-    setMessagesWhileMinimized((prev) => prev.filter((mid) => mid !== id));
+    if (!auto) {
+      setMessagesWhileMinimized((prev) => prev.filter((mid) => mid !== id));
+    }
 
     if ("BroadcastChannel" in window) {
       const channel = new BroadcastChannel(`puzzle_ticker_${puzzleId}`);
@@ -4104,6 +4110,7 @@ const puzzlesSubscribe = useTypedSubscribe(puzzlesForHunt, { huntId });
               callState={callState}
               callDispatch={dispatch}
               onRestore={toggleChatMinimize}
+              missedMessages={messagesWhileMinimized.length}
             />
           )}
           {!isChatMinimized && (
