@@ -140,7 +140,7 @@ export async function huntFolderName(huntName: string) {
 }
 
 export async function puzzleDocumentName(puzzleTitle: string) {
-  return `${puzzleTitle}: ${await getTeamName()}`;
+  return `↔️ ${puzzleTitle}`;
 }
 
 export async function renameDocument(id: string, name: string) {
