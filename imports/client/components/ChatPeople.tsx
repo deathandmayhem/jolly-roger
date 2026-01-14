@@ -28,7 +28,6 @@ import { CallJoinState } from "../hooks/useCallState";
 import useSubscribeAvatars from "../hooks/useSubscribeAvatars";
 import { Subscribers } from "../subscribers";
 import { trace } from "../tracing";
-import { PREFERRED_AUDIO_DEVICE_STORAGE_KEY } from "./AudioConfig";
 import Avatar from "./Avatar";
 import CallSection from "./CallSection";
 import { PuzzlePagePadding } from "./styling/constants";
@@ -114,6 +113,7 @@ const ChatPeople = ({
   onHeightChange,
   callState,
   callDispatch,
+  joinCall,
 }: {
   huntId: string;
   puzzleId: string;
@@ -121,8 +121,8 @@ const ChatPeople = ({
   onHeightChange: () => void;
   callState: CallState;
   callDispatch: React.Dispatch<Action>;
+  joinCall: () => void;
 }) => {
-  const [error, setError] = useState<string>("");
   const chatterRef = useRef<HTMLDivElement>(null);
 
   const { audioControls, audioState } = callState;
@@ -251,56 +251,6 @@ const ChatPeople = ({
 
   const { muted, deafened } = audioControls;
 
-  const joinCall = useCallback(() => {
-    void (async () => {
-      trace("ChatPeople joinCall");
-      if (navigator.mediaDevices) {
-        callDispatch({ type: "request-capture" });
-        const preferredAudioDeviceId =
-          localStorage.getItem(PREFERRED_AUDIO_DEVICE_STORAGE_KEY) ?? undefined;
-        // Get the user media stream.
-        const mediaStreamConstraints = {
-          audio: {
-            echoCancellation: { ideal: true },
-            autoGainControl: { ideal: true },
-            noiseSuppression: { ideal: true },
-            deviceId: preferredAudioDeviceId,
-          },
-          // TODO: conditionally allow video if enabled by feature flag?
-        };
-
-        let mediaSource: MediaStream;
-        try {
-          mediaSource = await navigator.mediaDevices.getUserMedia(
-            mediaStreamConstraints,
-          );
-        } catch (e) {
-          setError(`Couldn't get local microphone: ${(e as Error).message}`);
-          callDispatch({ type: "capture-error", error: e as Error });
-          return;
-        }
-
-        const AudioContext =
-          window.AudioContext ||
-          (window as { webkitAudioContext?: AudioContext }).webkitAudioContext;
-        const audioContext = new AudioContext();
-
-        callDispatch({
-          type: "join-call",
-          audioState: {
-            mediaSource,
-            audioContext,
-          },
-        });
-      } else {
-        const msg =
-          "Couldn't get local microphone: browser denies access on non-HTTPS origins";
-        setError(msg);
-        callDispatch({ type: "capture-error", error: new Error(msg) });
-      }
-    })();
-  }, [callDispatch]);
-
   // biome-ignore lint/correctness/useExhaustiveDependencies(disabled): We want the parent to re-render when anything might have changed our rendered size
   useLayoutEffect(() => {
     trace("ChatPeople useLayoutEffect", {
@@ -390,7 +340,7 @@ const ChatPeople = ({
           />
         );
       case CallJoinState.STREAM_ERROR:
-        return <div>{`ERROR GETTING MIC: ${error}`}</div>;
+        return <div>{`ERROR GETTING MIC: ${callState.error?.message}`}</div>;
       default:
         // Unreachable.  TypeScript knows this, but eslint doesn't.
         return <div />;

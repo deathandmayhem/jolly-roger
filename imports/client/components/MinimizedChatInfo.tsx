@@ -16,8 +16,6 @@ import Peers from "../../lib/models/mediasoup/Peers";
 import type { Action, CallState } from "../hooks/useCallState";
 import { CallJoinState } from "../hooks/useCallState";
 import { Subscribers } from "../subscribers";
-import { trace } from "../tracing";
-import { PREFERRED_AUDIO_DEVICE_STORAGE_KEY } from "./AudioConfig";
 
 const MinimizedChatInfoContainer = styled.div`
   position: absolute;
@@ -59,12 +57,14 @@ const MinimizedChatInfo = ({
   puzzleId,
   callState,
   callDispatch,
+  joinCall,
   onRestore,
 }: {
   huntId: string;
   puzzleId: string;
   callState: CallState;
   callDispatch: React.Dispatch<Action>;
+  joinCall: () => void;
   onRestore: () => void;
 }) => {
   const subscriberTopic = `puzzle:${puzzleId}`;
@@ -92,54 +92,6 @@ const MinimizedChatInfo = ({
       viewers: uniqueViewersNotCallers.size,
     };
   }, [huntId, puzzleId, subscriberTopic]);
-
-  const joinCall = React.useCallback(() => {
-    void (async () => {
-      trace("MinimizedChatInfo joinCall");
-      if (navigator.mediaDevices) {
-        callDispatch({ type: "request-capture" });
-        const preferredAudioDeviceId =
-          localStorage.getItem(PREFERRED_AUDIO_DEVICE_STORAGE_KEY) ?? undefined;
-        const mediaStreamConstraints = {
-          audio: {
-            echoCancellation: { ideal: true },
-            autoGainControl: { ideal: true },
-            noiseSuppression: { ideal: true },
-            deviceId: preferredAudioDeviceId,
-          },
-        };
-
-        let mediaSource: MediaStream;
-        try {
-          mediaSource = await navigator.mediaDevices.getUserMedia(
-            mediaStreamConstraints,
-          );
-        } catch (e) {
-          // TODO: Show an error to the user
-          callDispatch({ type: "capture-error", error: e as Error });
-          return;
-        }
-
-        const AudioContext =
-          window.AudioContext ||
-          (window as { webkitAudioContext?: AudioContext }).webkitAudioContext;
-        const audioContext = new AudioContext();
-
-        callDispatch({
-          type: "join-call",
-          audioState: {
-            mediaSource,
-            audioContext,
-          },
-        });
-      } else {
-        const msg =
-          "Couldn't get local microphone: browser denies access on non-HTTPS origins";
-        // TODO: show an error to the user
-        callDispatch({ type: "capture-error", error: new Error(msg) });
-      }
-    })();
-  }, [callDispatch]);
 
   const onToggleMute = React.useCallback(() => {
     callDispatch({ type: "toggle-mute" });

@@ -909,6 +909,7 @@ const ChatSection = React.forwardRef(
       huntId,
       callState,
       callDispatch,
+      joinCall,
       selfUser,
     }: {
       chatDataLoading: boolean;
@@ -918,6 +919,7 @@ const ChatSection = React.forwardRef(
       huntId: string;
       callState: CallState;
       callDispatch: React.Dispatch<Action>;
+      joinCall: () => void;
       selfUser: Meteor.User;
     },
     forwardedRef: React.Ref<ChatSectionHandle>,
@@ -979,6 +981,7 @@ const ChatSection = React.forwardRef(
           onHeightChange={scrollHistoryToTarget}
           callState={callState}
           callDispatch={callDispatch}
+          joinCall={joinCall}
         />
         <ChatHistoryMemo
           ref={historyRef}
@@ -2115,7 +2118,11 @@ const PuzzlePage = React.memo(() => {
   const documentTitle = `${title} :: Jolly Roger`;
   useDocumentTitle(documentTitle);
 
-  const [callState, dispatch] = useCallState({ huntId, puzzleId, tabId });
+  const {
+    state: callState,
+    dispatch,
+    joinCall,
+  } = useCallState({ huntId, puzzleId, tabId });
 
   const onResize = useCallback(() => {
     setIsDesktop(window.innerWidth >= MinimumDesktopWidth);
@@ -2247,6 +2254,7 @@ const PuzzlePage = React.memo(() => {
       puzzleId={puzzleId}
       callState={callState}
       callDispatch={dispatch}
+      joinCall={joinCall}
       selfUser={selfUser}
     />
   );
@@ -2324,6 +2332,7 @@ const PuzzlePage = React.memo(() => {
               puzzleId={puzzleId}
               callState={callState}
               callDispatch={dispatch}
+              joinCall={joinCall}
               onRestore={restoreChat}
             />
           ) : (
