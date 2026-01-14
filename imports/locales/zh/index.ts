@@ -1,3 +1,4 @@
+import Announcements from "./Announcements.json";
 import App from "./App.json";
 import BookmarkButton from "./BookmarkButton.json";
 import CallSection from "./CallSection.json";
@@ -22,6 +23,7 @@ import PuzzleModalForm from "./PuzzleModalForm.json";
 import PuzzlePage from "./PuzzlePage.json";
 
 export default {
+  Announcements,
   App,
   BookmarkButton,
   CallSection,
