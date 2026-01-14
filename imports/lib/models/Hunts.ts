@@ -65,6 +65,9 @@ const EditableHunt = z.object({
   originalHuntUrlRegex: nonEmptyString.optional(),
   // If set, this is a boolean that enables/disables showing puzzle pages in Jolly Roger
   allowPuzzleEmbed: z.boolean().default(false).optional(),
+  customLinkUrl: nonEmptyString.url().optional(),
+  customLinkName: nonEmptyString.optional(),
+  customLinkEmbed: z.boolean().default(false).optional(),
 });
 export type EditableHuntType = z.infer<typeof EditableHunt>;
 const Hunt = withCommon(EditableHunt);
@@ -94,6 +97,9 @@ export const HuntPattern = {
   moreInfo: Match.Optional(String),
   archivedHuntUrl: Match.Optional(String),
   originalHuntUrlRegex: Match.Optional(String),
+  customLinkUrl: Match.Optional(String),
+  customLinkName: Match.Optional(String),
+  customLinkEmbed: Match.Optional(Boolean),
 };
 
 const Hunts = new SoftDeletedModel("jr_hunts", Hunt);

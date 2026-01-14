@@ -1,11 +1,11 @@
 import { Meteor } from "meteor/meteor";
 import { useTracker } from "meteor/react-meteor-data";
 import { faBullhorn } from "@fortawesome/free-solid-svg-icons/faBullhorn";
+import { faDisplay } from "@fortawesome/free-solid-svg-icons/faDisplay";
 import { faEllipsisH } from "@fortawesome/free-solid-svg-icons/faEllipsisH";
-import { faFaucet } from "@fortawesome/free-solid-svg-icons/faFaucet";
+import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons/faExternalLinkAlt";
 import { faMap } from "@fortawesome/free-solid-svg-icons/faMap";
 import { faNoteSticky } from "@fortawesome/free-solid-svg-icons/faNoteSticky";
-import { faReceipt } from "@fortawesome/free-solid-svg-icons/faReceipt";
 import { faTags } from "@fortawesome/free-solid-svg-icons/faTags";
 import { faUsers } from "@fortawesome/free-solid-svg-icons/faUsers";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -167,16 +167,25 @@ const HuntNav = () => {
           <MenuIcon icon={faBullhorn} />
           <StyledPuzzleListLinkLabel>Announcements</StyledPuzzleListLinkLabel>
         </StyledPuzzleListLinkAnchor>
-
-        <StyledPuzzleListLinkAnchor
-          to={`/hunts/${huntId}/guesses`}
-          title={hunt.hasGuessQueue ? "Guess queue" : "Answer log"}
-        >
-          <MenuIcon icon={faReceipt} />
-          <StyledPuzzleListLinkLabel>
-            {hunt.hasGuessQueue ? "Guesses" : "Answers"}
-          </StyledPuzzleListLinkLabel>
-        </StyledPuzzleListLinkAnchor>
+        {hunt.customLinkName ? (
+          <StyledPuzzleListLinkAnchor
+            to={
+              hunt.customLinkEmbed
+                ? `/hunts/${huntId}/custom-link`
+                : hunt.customLinkUrl!
+            }
+            title={hunt.customLinkName}
+            target={hunt.customLinkEmbed ? undefined : "_blank"}
+            rel={hunt.customLinkEmbed ? undefined : "noopener noreferrer"}
+          >
+            <MenuIcon
+              icon={hunt.customLinkEmbed ? faDisplay : faExternalLinkAlt}
+            />
+            <StyledPuzzleListLinkLabel>
+              {hunt.customLinkName}
+            </StyledPuzzleListLinkLabel>
+          </StyledPuzzleListLinkAnchor>
+        ) : null}
 
         <StyledPuzzleListLinkAnchor
           to={`/hunts/${huntId}/hunters`}

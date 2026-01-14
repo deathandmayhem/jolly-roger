@@ -97,17 +97,25 @@ const MoreAppPage = () => {
         <hr />
         <h2>Firehose</h2>
         <p>
-          <a
-            style={{
-              fontSize: "1.2rem",
-            }}
-            href={`/hunts/${huntId}/firehose`}
+          <Link
+            to={`/hunts/${huntId}/firehose`}
           >
-            🧑‍🚒 Firehose page
-          </a>
+            <FontAwesomeIcon icon={faFaucet} /> Firehose page
+          </Link>
           <br />
           <br />
           The firehose includes all puzzle updates, including guesses, solves and chat messages.
+        </p>
+        <h2>Guesses</h2>
+        <p>
+          <Link
+            to={`/hunts/${huntId}/guesses`}
+          >
+            <FontAwesomeIcon icon={faReceipt} /> Guess log
+          </Link>
+          <br />
+          <br />
+          The guess log includes all user guesses and their results.
         </p>
       </FirehosePageLayout>
     </FixedLayout>

@@ -290,6 +290,15 @@ const HuntEditPage = () => {
   const [memberDiscordRole, setMemberDiscordRole] = useState<
     SavedDiscordObjectType | undefined
   >(hunt?.memberDiscordRole);
+  const [customLinkUrl, setCustomLinkUrl] = useState<string>(
+    hunt?.customLinkUrl ?? "",
+  );
+  const [customLinkName, setCustomLinkName] = useState<string>(
+    hunt?.customLinkName ?? "",
+  );
+  const [customLinkEmbed, setCustomLinkEmbed] = useState<boolean>(
+    hunt?.customLinkEmbed ?? false,
+  );
 
   const onNameChanged = useCallback<NonNullable<FormControlProps["onChange"]>>(
     (e) => {
@@ -438,6 +447,24 @@ const HuntEditPage = () => {
     [],
   );
 
+  const onCustomLinkUrlChanged = useCallback<
+    NonNullable<FormControlProps["onChange"]>
+  >((e) => {
+    setCustomLinkUrl(e.currentTarget.value);
+  }, []);
+
+  const onCustomLinkNameChanged = useCallback<
+    NonNullable<FormControlProps["onChange"]>
+  >((e) => {
+    setCustomLinkName(e.currentTarget.value);
+  }, []);
+
+  const onCustomLinkEmbedChanged = useCallback<
+    NonNullable<FormControlProps["onChange"]>
+  >((e) => {
+    setCustomLinkEmbed(e.currentTarget.checked);
+  }, []);
+
   const onFormCallback = useCallback(
     (error?: Error, newHuntId?: string) => {
       if (error) {
@@ -488,6 +515,9 @@ const HuntEditPage = () => {
         archivedHuntUrl: archivedHuntUrl === "" ? undefined : archivedHuntUrl,
         originalHuntUrlRegex:
           originalHuntUrlRegex === "" ? undefined : originalHuntUrlRegex,
+        customLinkUrl,
+        customLinkName,
+        customLinkEmbed,
       };
 
       if (huntId) {
@@ -523,6 +553,9 @@ const HuntEditPage = () => {
       signupMessage,
       submitTemplate,
       termsOfUse,
+      customLinkUrl,
+      customLinkName,
+      customLinkEmbed,
     ],
   );
 
@@ -1027,6 +1060,56 @@ const HuntEditPage = () => {
             Discord has not been configured, so Discord settings are disabled.
           </Alert>
         )}
+
+        <h3>Additional settings</h3>
+        <h4>Custom Menu Link</h4>
+        <FormGroup
+          as={Row}
+          className="mb-3"
+          controlId={`${idPrefix}-hunt-form-custom-url`}
+        >
+          <FormLabel column xs={3}>
+            Custom link name
+          </FormLabel>
+          <Col xs={9}>
+            <FormControl
+              type="text"
+              value={customLinkName}
+              onChange={onCustomLinkNameChanged}
+              disabled={disableForm}
+            />
+          </Col>
+          <FormLabel column xs={3}>
+            Custom URL
+          </FormLabel>
+          <Col xs={9}>
+            <FormControl
+              type="text"
+              value={customLinkUrl}
+              onChange={onCustomLinkUrlChanged}
+              disabled={disableForm}
+            />
+            <FormText>
+              If provided, a link to the hunt homepage will be placed on the
+              landing page.
+            </FormText>
+          </Col>
+          <FormLabel column xs={3}>
+            Embed custom link
+          </FormLabel>
+          <Col xs={9}>
+            <FormCheck
+              checked={customLinkEmbed}
+              onChange={onCustomLinkEmbedChanged}
+              disabled={disableForm}
+              label={customLinkEmbed ? "Enabled" : "Disabled"}
+            />
+            <FormText>
+              If enabled, we will embed the custom link provided in Jolly Roger.
+              Otherwise, it's a link.
+            </FormText>
+          </Col>
+        </FormGroup>
 
         <div ref={footer}>
           {submitState === SubmitState.FAILED && (
