@@ -577,7 +577,7 @@ const HuntEditPage = () => {
         </FormGroup>
         {huntId ? null : (
           <FormGroup as={Row} className="mb-3">
-            <FormLabel column xs={3} htmlFor="hunt-form-name">
+            <FormLabel column xs={3}>
               Initial tags
             </FormLabel>
             <Col xs={9}>
@@ -618,7 +618,7 @@ const HuntEditPage = () => {
         </FormGroup>
 
         <FormGroup as={Row} className="mb-3">
-          <FormLabel column xs={3} htmlFor="hunt-form-more-info">
+          <FormLabel column xs={3}>
             More Information
           </FormLabel>
           <Col xs={9}>
@@ -638,7 +638,7 @@ const HuntEditPage = () => {
         </FormGroup>
 
         <FormGroup as={Row} className="mb-3">
-          <FormLabel column xs={3} htmlFor="hunt-form-default-roles">
+          <FormLabel column xs={3}>
             Default roles
           </FormLabel>
           <Col xs={9}>
@@ -802,7 +802,7 @@ const HuntEditPage = () => {
         </FormGroup>
 
         <FormGroup as={Row} className="mb-3">
-          <FormLabel column xs={3} htmlFor="hunt-form-allow-embed">
+          <FormLabel column xs={3}>
             Allow puzzle embedding
           </FormLabel>
           <Col xs={9}>
@@ -823,7 +823,7 @@ const HuntEditPage = () => {
         </FormGroup>
 
         <FormGroup as={Row} className="mb-3">
-          <FormLabel column xs={3} htmlFor="hunt-form-is-archived">
+          <FormLabel column xs={3}>
             Archive hunt
           </FormLabel>
           <Col xs={9}>
@@ -840,7 +840,7 @@ const HuntEditPage = () => {
         </FormGroup>
 
         <FormGroup as={Row} className="mb-3">
-          <FormLabel column xs={3} htmlFor="hunt-form-archive-url">
+          <FormLabel column xs={3}>
             Archive URL
           </FormLabel>
           <Col xs={9}>
@@ -859,7 +859,7 @@ const HuntEditPage = () => {
         </FormGroup>
 
         <FormGroup as={Row} className="mb-3">
-          <FormLabel column xs={3} htmlFor="hunt-form-original-pattern">
+          <FormLabel column xs={3}>
             Original Hunt URL Regex
           </FormLabel>
           <Col xs={9}>

@@ -1228,7 +1228,7 @@ const S3ImageBucketForm = ({
         </Alert>
       ) : null}
       <FormGroup className="mb-3">
-        <FormLabel htmlFor="jr-setup-edit-s3-image-bucket">S3 bucket</FormLabel>
+        <FormLabel>S3 bucket</FormLabel>
         <Creatable
           isDisabled={shouldDisableForm}
           isClearable
