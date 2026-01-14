@@ -165,7 +165,7 @@ const Pane = ({
 };
 
 type SplitPaneMinusProps = {
-  children: React.ReactNode[];
+  children: [React.ReactNode, React.ReactNode];
   split: "vertical" | "horizontal"; // what direction does the divider run the full dimension?
   minSize?: number;
   maxSize?: number;
