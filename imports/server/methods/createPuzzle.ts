@@ -17,6 +17,7 @@ defineMethod(createPuzzle, {
         ...(Object.keys(GdriveMimeTypes) as GdriveMimeTypesType[]),
       ),
       allowDuplicateUrls: Match.Optional(Boolean),
+      completedWithNoAnswer: Match.Optional(Boolean),
     });
     return arg;
   },
@@ -29,6 +30,7 @@ defineMethod(createPuzzle, {
     docType,
     url,
     allowDuplicateUrls,
+    completedWithNoAnswer,
   }) {
     check(this.userId, String);
     return addPuzzle({
@@ -39,6 +41,7 @@ defineMethod(createPuzzle, {
       docType,
       url,
       allowDuplicateUrls,
+      completedWithNoAnswer,
     });
   },
 });

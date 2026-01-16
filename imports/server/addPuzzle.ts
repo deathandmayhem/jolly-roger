@@ -32,6 +32,7 @@ async function createDocumentAndInsertPuzzle(
   tags: string[],
   url: string | undefined,
   docType: GdriveMimeTypesType,
+  completedWithNoAnswer: boolean | undefined,
 ): Promise<string> {
   // Look up each tag by name and map them to tag IDs.
   const tagIds = await Promise.all(
@@ -48,6 +49,7 @@ async function createDocumentAndInsertPuzzle(
     tags: [...new Set(tagIds)],
     answers: [],
     url,
+    completedWithNoAnswer,
   };
 
   // By creating the document before we save the puzzle, we make sure nobody
@@ -70,6 +72,7 @@ export default async function addPuzzle({
   docType,
   url,
   allowDuplicateUrls,
+  completedWithNoAnswer,
 }: {
   huntId: string;
   title: string;
@@ -78,6 +81,7 @@ export default async function addPuzzle({
   expectedAnswerCount: number;
   docType: GdriveMimeTypesType;
   allowDuplicateUrls?: boolean;
+  completedWithNoAnswer?: boolean;
 }) {
   const userId = Meteor.userId();
 
@@ -91,6 +95,7 @@ export default async function addPuzzle({
     Match.OneOf(...(Object.keys(GdriveMimeTypes) as GdriveMimeTypesType[])),
   );
   check(allowDuplicateUrls, Match.Optional(Boolean));
+  check(completedWithNoAnswer, Match.Optional(Boolean));
 
   const hunt = await Hunts.findOneAsync(huntId);
   if (!hunt) {
@@ -128,6 +133,7 @@ export default async function addPuzzle({
       tags,
       url,
       docType,
+      completedWithNoAnswer,
     );
   } else {
     // With a lock, look for a puzzle with the same URL. If present, we reject the insertion
@@ -143,6 +149,7 @@ export default async function addPuzzle({
         tags,
         url,
         docType,
+        completedWithNoAnswer,
       );
     });
   }

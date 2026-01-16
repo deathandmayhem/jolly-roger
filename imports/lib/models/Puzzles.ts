@@ -23,6 +23,7 @@ const Puzzle = withCommon(
     url: z.string().url().optional(),
     answers: answer.array(),
     expectedAnswerCount: z.number().int().nonnegative(),
+    completedWithNoAnswer: z.boolean().optional(),
     replacedBy: foreignKey.optional(),
   }),
 );
