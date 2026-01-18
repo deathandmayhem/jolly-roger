@@ -1,4 +1,3 @@
-import { Match } from "meteor/check";
 import { z } from "zod";
 import { nonEmptyString, snowflake } from "./customTypes";
 import type { ModelType } from "./Model";
@@ -12,7 +11,7 @@ export const SavedDiscordObjectFields = z.object({
 
 export type SavedDiscordObjectType = z.infer<typeof SavedDiscordObjectFields>;
 
-const EditableHunt = z.object({
+export const EditableHunt = z.object({
   name: nonEmptyString,
   // Everyone that joins the hunt will be added to these mailing lists
   mailingLists: nonEmptyString.array().default([]),
@@ -52,26 +51,6 @@ const EditableHunt = z.object({
 });
 export type EditableHuntType = z.infer<typeof EditableHunt>;
 const Hunt = withCommon(EditableHunt);
-
-const SavedDiscordObjectPattern = {
-  id: String,
-  name: String,
-};
-
-export const HuntPattern = {
-  name: String,
-  mailingLists: [String] as [StringConstructor],
-  signupMessage: Match.Optional(String),
-  openSignups: Boolean,
-  hasGuessQueue: Boolean,
-  termsOfUse: Match.Optional(String),
-  submitTemplate: Match.Optional(String),
-  homepageUrl: Match.Optional(String),
-  announcementDiscordChannel: Match.Optional(SavedDiscordObjectPattern),
-  puzzleHooksDiscordChannel: Match.Optional(SavedDiscordObjectPattern),
-  firehoseDiscordChannel: Match.Optional(SavedDiscordObjectPattern),
-  memberDiscordRole: Match.Optional(SavedDiscordObjectPattern),
-};
 
 const Hunts = new SoftDeletedModel("jr_hunts", Hunt);
 export type HuntType = ModelType<typeof Hunts>;
