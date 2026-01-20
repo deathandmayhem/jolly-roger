@@ -51,7 +51,7 @@
     "marked": "^17.0.1",
     "mediasoup": "^3.19.14",
     "mediasoup-client": "^3.18.3",
-    "meteor-node-stubs": "^1.2.24",
+    "meteor-node-stubs": "^1.2.25",
     "mime-types": "^3.0.2",
     "mustache": "^4.2.0",
     "react": "^19.2.3",
