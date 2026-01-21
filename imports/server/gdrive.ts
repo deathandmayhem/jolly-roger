@@ -53,7 +53,7 @@ async function createDocument(
     throw new Meteor.Error(400, `Invalid document type ${type}`);
   }
   await checkClientOk();
-  if (!GoogleClient.drive)
+  if (!GoogleClient.drive || !GoogleClient.sheets)
     throw new Meteor.Error(500, "Google integration is disabled");
 
   const template = (await Settings.findOneAsync({
@@ -79,10 +79,41 @@ async function createDocument(
 
   const fileId = file.data.id!;
 
-  await GoogleClient.drive.permissions.create({
-    fileId,
-    requestBody: { role: "writer", type: "anyone" },
-  });
+  const operationPromises: Promise<any>[] = [];
+
+  if (type === "spreadsheet") {
+    // Allow external URL access from imported functions by default, so someone doesn't need to
+    // hit the allow button on every new sheet. In general, we don't expect to be entering
+    // sensitive information into puzzle sheets and are using these functions to load safe
+    // external resources like images.
+    operationPromises.push(
+      GoogleClient.sheets.spreadsheets.batchUpdate({
+        spreadsheetId: fileId,
+        requestBody: {
+          requests: [
+            {
+              updateSpreadsheetProperties: {
+                properties: {
+                  importFunctionsExternalUrlAccessAllowed: true,
+                },
+                fields: "importFunctionsExternalUrlAccessAllowed",
+              },
+            },
+          ],
+        },
+      }),
+    );
+  }
+
+  operationPromises.push(
+    GoogleClient.drive.permissions.create({
+      fileId,
+      requestBody: { role: "writer", type: "anyone" },
+    }),
+  );
+
+  await Promise.all(operationPromises);
+
   return fileId;
 }
 

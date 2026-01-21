@@ -32,7 +32,7 @@ files:
   - imports/server/models/DriveActivityLatests.ts
   - imports/server/setup.ts
   - private/google-script/main.js
-updated: 2025-12-22
+updated: 2026-01-20
 ---
 
 # Google Drive Integration
@@ -117,6 +117,12 @@ they call on loading a puzzle page. In order to prevent thundering herds of
 creation attempts, when creating a new puzzle, the document is created *before*
 saving the puzzle to MongoDB, so that once clients discover the new puzzle, the
 document should already be present.
+
+When creating spreadsheets, we also use the Google Sheets API to enable external
+URL access from formulas by default. Without this, consent needs to be granted
+for every sheet, and granting consent is impossible from an iframed document.
+We don't expect puzzle sheets to contain sensitive information, and we only tend
+to use such formulas for safe use cases like loading images from external URLs.
 
 Both folders and documents are renamed when the hunt or puzzle (respectively) is
 renamed.
