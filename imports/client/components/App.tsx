@@ -118,14 +118,16 @@ const ErrorFallback = ({
   error,
   clearError,
 }: {
-  error: Error;
+  error: unknown;
   clearError: () => void;
 }) => {
   const [frames, setFrames] = useState<StackFrame[] | undefined>(undefined);
 
   useEffect(() => {
     void (async () => {
-      setFrames(await StackTrace.fromError(error));
+      if (error instanceof Error) {
+        setFrames(await StackTrace.fromError(error));
+      }
     })();
   }, [error]);
 
@@ -150,12 +152,10 @@ const ErrorFallback = ({
         </p>
 
         <pre>
+          {error instanceof Error ? error.message : String(error)}
+          {"\n"}
           {frames ? (
-            <>
-              {error.message}
-              {"\n"}
-              {frames.map((f) => `    ${f.toString()}`).join("\n")}
-            </>
+            frames.map((f) => `    ${f.toString()}`).join("\n")
           ) : (
             <Loading inline />
           )}
