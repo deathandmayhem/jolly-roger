@@ -679,7 +679,7 @@ const GoogleScriptForm = ({
           >
             Google Cloud console
           </a>{" "}
-          and click &quot;ENABLE API&quot; near the top of the page.
+          and click &quot;Enable&quot; near the top of the page.
         </li>
         <li>
           Go to the{" "}
@@ -951,6 +951,39 @@ const GoogleIntegrationSection = () => {
         <p>
           Then, copy the client ID and secret into the fields here and click the
           Save button.
+        </p>
+        <p>
+          You will also need to enable the following APIs by clicking
+          &quot;Enable&quot; near the top of the page:
+          <ul>
+            <li>
+              <a
+                href="https://console.developers.google.com/apis/api/drive.googleapis.com/overview"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Google Drive API
+              </a>
+            </li>
+            <li>
+              <a
+                href="https://console.developers.google.com/apis/api/driveactivity.googleapis.com/overview"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Drive Activity
+              </a>
+            </li>
+            <li>
+              <a
+                href="https://console.developers.google.com/apis/api/sheets.googleapis.com/overview"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Google Sheets API
+              </a>
+            </li>
+          </ul>
         </p>
         <GoogleOAuthForm
           initialClientId={clientId}
