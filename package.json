@@ -23,7 +23,7 @@
     "@aws-sdk/s3-presigned-post": "^3.974.0",
     "@babel/runtime": "^7.28.6",
     "@bugsnag/js": "^8.6.0",
-    "@bugsnag/plugin-react": "^8.6.0",
+    "@bugsnag/plugin-react": "^8.8.0",
     "@fortawesome/fontawesome-svg-core": "^7.1.0",
     "@fortawesome/free-regular-svg-icons": "^7.1.0",
     "@fortawesome/free-solid-svg-icons": "^7.1.0",
