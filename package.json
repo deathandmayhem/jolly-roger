@@ -40,7 +40,7 @@
     "discord.js": "^14.25.1",
     "disposablestack": "^1.1.7",
     "dompurify": "^3.3.1",
-    "entities": "^7.0.0",
+    "entities": "^7.0.1",
     "express": "^5.2.1",
     "form-data": "^4.0.5",
     "gaxios": "^7.1.3",
