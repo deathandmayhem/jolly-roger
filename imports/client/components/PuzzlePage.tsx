@@ -918,7 +918,7 @@ const ChatSection = React.memo(
     selfUser: Meteor.User;
     ref: React.Ref<ChatSectionHandle>;
   }) => {
-    const historyRef = useRef<React.ElementRef<typeof ChatHistory>>(null);
+    const historyRef = useRef<React.ComponentRef<typeof ChatHistory>>(null);
     const scrollToTargetRequestRef = useRef<boolean>(false);
 
     const scrollHistoryToTarget = useCallback(() => {
@@ -1037,10 +1037,11 @@ const PuzzlePageMetadata = ({
     [huntId, puzzleId],
   );
 
-  const editModalRef = useRef<React.ElementRef<typeof PuzzleModalForm>>(null);
-  const guessModalRef = useRef<React.ElementRef<typeof PuzzleGuessModal>>(null);
+  const editModalRef = useRef<React.ComponentRef<typeof PuzzleModalForm>>(null);
+  const guessModalRef =
+    useRef<React.ComponentRef<typeof PuzzleGuessModal>>(null);
   const answerModalRef =
-    useRef<React.ElementRef<typeof PuzzleAnswerModal>>(null);
+    useRef<React.ComponentRef<typeof PuzzleAnswerModal>>(null);
   const onCreateTag = useCallback(
     (tagName: string) => {
       addPuzzleTag.call({ puzzleId, tagName });
@@ -1433,7 +1434,7 @@ const PuzzleGuessModal = ({
     PuzzleGuessSubmitState.IDLE,
   );
   const [submitError, setSubmitError] = useState<string>("");
-  const formRef = useRef<React.ElementRef<typeof ModalForm>>(null);
+  const formRef = useRef<React.ComponentRef<typeof ModalForm>>(null);
 
   useImperativeHandle(ref, () => ({
     show: () => {

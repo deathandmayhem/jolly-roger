@@ -144,7 +144,7 @@ const Pane = ({
   split: "vertical" | "horizontal";
   size?: number | undefined;
   style?: React.CSSProperties;
-  eleRef: React.MutableRefObject<HTMLDivElement | null>;
+  eleRef: React.RefObject<HTMLDivElement | null>;
 }) => {
   const style: React.CSSProperties = {};
   if (size !== undefined) {
