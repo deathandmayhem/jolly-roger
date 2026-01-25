@@ -2,15 +2,19 @@ import { useSubscribe, useTracker } from "meteor/react-meteor-data";
 import React, {
   Suspense,
   useCallback,
+  useId,
   useImperativeHandle,
   useState,
 } from "react";
 import Button from "react-bootstrap/Button";
+import FormCheck from "react-bootstrap/FormCheck";
 import Modal from "react-bootstrap/Modal";
 import { createPortal } from "react-dom";
+import Documents from "../../lib/models/Documents";
 import Peers from "../../lib/models/mediasoup/Peers";
 import type { PuzzleType } from "../../lib/models/Puzzles";
 import Puzzles from "../../lib/models/Puzzles";
+import documentsForPuzzleDeleteModal from "../../lib/publications/documentsForPuzzleDeleteModal";
 import puzzlesForHunt from "../../lib/publications/puzzlesForHunt";
 import destroyPuzzle from "../../methods/destroyPuzzle";
 import useSubscribeDisplayNames from "../hooks/useSubscribeDisplayNames";
@@ -44,6 +48,9 @@ const PuzzleDeleteModal = React.forwardRef(
     useImperativeHandle(forwardedRef, () => ({ show }), [show]);
 
     const subscriberTopic = `puzzle:${puzzle._id}`;
+    const documentsLoading = useTypedSubscribe(documentsForPuzzleDeleteModal, {
+      huntId: puzzle.hunt,
+    });
     const puzzlesLoading = useTypedSubscribe(puzzlesForHunt, {
       huntId: puzzle.hunt,
     });
@@ -58,6 +65,7 @@ const PuzzleDeleteModal = React.forwardRef(
       puzzlesLoading() ||
       viewersLoading() ||
       callersLoading() ||
+      documentsLoading() ||
       displayNamesLoading();
 
     const puzzles = useTracker(
@@ -75,6 +83,10 @@ const PuzzleDeleteModal = React.forwardRef(
         loading ? [] : Subscribers.find({ name: subscriberTopic }).fetch(),
       [loading, subscriberTopic],
     );
+    const documents = useTracker(
+      () => (loading ? [] : Documents.find({ hunt: puzzle.hunt }).fetch()),
+      [loading, puzzle.hunt],
+    );
     const callers = useTracker(
       () =>
         loading
@@ -82,6 +94,7 @@ const PuzzleDeleteModal = React.forwardRef(
           : Peers.find({ hunt: puzzle.hunt, puzzle: puzzle._id }).fetch(),
       [loading, puzzle.hunt, puzzle._id],
     );
+
     const displayNames = indexedDisplayNames();
     const uniqueViewers = [
       ...new Set([
@@ -92,14 +105,42 @@ const PuzzleDeleteModal = React.forwardRef(
       return { id: u, name: displayNames.get(u) ?? "Unknown viewer" };
     });
 
+    const thisPuzzleHasSheets = useTracker(() => {
+      if (loading) return false;
+      return documents.some(
+        (d) => d.puzzle === puzzle._id && d.value.type === "spreadsheet",
+      );
+    }, [loading, documents, puzzle._id]);
+
     const [replacementId, setReplacementId] =
       useState<PuzzleSelectOption | null>(null);
+    const [replacementHasSheets, setReplacementHasSheets] =
+      useState<boolean>(false);
+
     const setReplacementIdCallback = useCallback(
       (v: PuzzleSelectOption | null) => {
+        if (thisPuzzleHasSheets) {
+          setReplacementHasSheets(
+            v != null &&
+              documents.some(
+                (d) => d.puzzle === v?.value && d.value.type === "spreadsheet",
+              ),
+          );
+        }
         return setReplacementId(v);
+      },
+      [thisPuzzleHasSheets, documents],
+    );
+
+    const [copySheetsToReplacement, setCopySheetsToReplacement] =
+      useState<boolean>(true);
+    const onCopySheetsToReplacementChange = useCallback(
+      (event: React.ChangeEvent<HTMLInputElement>) => {
+        setCopySheetsToReplacement(event.currentTarget.checked);
       },
       [],
     );
+
     const replacementOptions: PuzzleSelectOption[] = [
       ...puzzles.map((p) => ({ label: p.title, value: p._id })),
     ];
@@ -108,10 +149,23 @@ const PuzzleDeleteModal = React.forwardRef(
       destroyPuzzle.call({
         puzzleId: puzzle._id,
         replacedBy: replacementId?.value,
+        copySheetsToReplacement:
+          thisPuzzleHasSheets &&
+          replacementHasSheets &&
+          copySheetsToReplacement,
       });
       // Hide immediately before the component gets unmounted
       hide();
-    }, [puzzle._id, replacementId?.value, hide]);
+    }, [
+      puzzle._id,
+      replacementId?.value,
+      hide,
+      thisPuzzleHasSheets,
+      replacementHasSheets,
+      copySheetsToReplacement,
+    ]);
+
+    const idPrefix = useId();
 
     const modal = (
       <Modal show={visible} onHide={hide}>
@@ -133,16 +187,24 @@ const PuzzleDeleteModal = React.forwardRef(
             </p>
             <p>
               You can optionally specify a replacement to be used instead of
-              this puzzle
+              this puzzle and copy the sheets over (if applicable)
             </p>
-            <p>
-              <Select
-                isClearable
-                options={replacementOptions}
-                value={replacementId}
-                onChange={setReplacementIdCallback}
+            <Select
+              isClearable
+              options={replacementOptions}
+              value={replacementId}
+              onChange={setReplacementIdCallback}
+            />
+            {replacementId && thisPuzzleHasSheets && replacementHasSheets && (
+              <FormCheck
+                id={`${idPrefix}-copy-sheets-to-replacement`}
+                label="Copy the sheets to the replacement puzzle"
+                type="checkbox"
+                defaultChecked
+                onChange={onCopySheetsToReplacementChange}
+                className="mt-1"
               />
-            </p>
+            )}
             <p>
               This puzzle is currently being viewed by {uniqueViewers.length}{" "}
               {uniqueViewers.length === 1 ? "person" : "people"}

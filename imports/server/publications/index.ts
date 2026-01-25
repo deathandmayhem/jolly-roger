@@ -7,6 +7,7 @@ import "./chatMessagesForPuzzle";
 import "./discordChannelsForConfiguredGuild";
 import "./discordGuildsAll";
 import "./discordRolesForConfiguredGuild";
+import "./documentsForPuzzleDeleteModal";
 import "./featureFlagsAll";
 import "./guessesForGuessQueue";
 import "./huntForHuntApp";
