@@ -403,21 +403,20 @@ type ChatHistoryHandle = {
   scrollToTarget: () => void;
 };
 
-const ChatHistory = React.forwardRef(
-  (
-    {
-      huntId,
-      puzzleId,
-      displayNames,
-      selfUser,
-    }: {
-      huntId: string;
-      puzzleId: string;
-      displayNames: Map<string, string>;
-      selfUser: Meteor.User;
-    },
-    forwardedRef: React.Ref<ChatHistoryHandle>,
-  ) => {
+const ChatHistory = React.memo(
+  ({
+    huntId,
+    puzzleId,
+    displayNames,
+    selfUser,
+    ref,
+  }: {
+    huntId: string;
+    puzzleId: string;
+    displayNames: Map<string, string>;
+    selfUser: Meteor.User;
+    ref: React.Ref<ChatHistoryHandle>;
+  }) => {
     // TODO: consider using useFind once fixed upstream
     const chatMessages: FilteredChatMessageType[] = useTracker(() => {
       return ChatMessages.find(
@@ -426,15 +425,15 @@ const ChatHistory = React.forwardRef(
       ).fetch();
     }, [puzzleId]);
 
-    const ref = useRef<HTMLDivElement>(null);
+    const historyRef = useRef<HTMLDivElement>(null);
     const scrollBottomTarget = useRef<number>(0);
     const shouldIgnoreNextScrollEvent = useRef<boolean>(false);
 
     const saveScrollBottomTarget = useCallback(() => {
-      if (ref.current) {
-        const rect = ref.current.getClientRects()[0]!;
-        const scrollHeight = ref.current.scrollHeight;
-        const scrollTop = ref.current.scrollTop;
+      if (historyRef.current) {
+        const rect = historyRef.current.getClientRects()[0]!;
+        const scrollHeight = historyRef.current.scrollHeight;
+        const scrollTop = historyRef.current.scrollTop;
         const hiddenHeight = scrollHeight - rect.height;
         const distanceFromBottom = hiddenHeight - scrollTop;
         trace("ChatHistory saveScrollBottomTarget", {
@@ -465,10 +464,10 @@ const ChatHistory = React.forwardRef(
     }, [saveScrollBottomTarget]);
 
     const scrollToTarget = useCallback(() => {
-      if (ref.current) {
-        const rect = ref.current.getClientRects()[0]!;
-        const scrollHeight = ref.current.scrollHeight;
-        const scrollTop = ref.current.scrollTop;
+      if (historyRef.current) {
+        const rect = historyRef.current.getClientRects()[0]!;
+        const scrollHeight = historyRef.current.scrollHeight;
+        const scrollTop = historyRef.current.scrollTop;
         const hiddenHeight = scrollHeight - rect.height;
         // if distanceFromBottom is hiddenHeight - scrollTop, then
         // our desired scrollTop is hiddenHeight - distanceFromBottom
@@ -484,7 +483,7 @@ const ChatHistory = React.forwardRef(
         });
         if (scrollTop !== scrollTopTarget) {
           shouldIgnoreNextScrollEvent.current = true;
-          ref.current.scrollTop = scrollTopTarget;
+          historyRef.current.scrollTop = scrollTopTarget;
         }
       } else {
         trace("ChatHistory scrollToTarget", {
@@ -500,7 +499,7 @@ const ChatHistory = React.forwardRef(
       scrollToTarget();
     }, [scrollToTarget]);
 
-    useImperativeHandle(forwardedRef, () => ({
+    useImperativeHandle(ref, () => ({
       saveScrollBottomTarget,
       snapToBottom,
       scrollToTarget,
@@ -551,7 +550,7 @@ const ChatHistory = React.forwardRef(
 
     trace("ChatHistory render", { messageCount: chatMessages.length });
     return (
-      <ChatHistoryDiv ref={ref} onScroll={onScrollObserved}>
+      <ChatHistoryDiv ref={historyRef} onScroll={onScrollObserved}>
         {chatMessages.length === 0 ? (
           <ChatMessageDiv
             key="no-message"
@@ -590,10 +589,6 @@ const ChatHistory = React.forwardRef(
     );
   },
 );
-
-// The ESlint prop-types check seems to stumble over prop type checks somehow
-// if we put the memo() and forwardRef() on the same line above.
-const ChatHistoryMemo = React.memo(ChatHistory);
 
 const StyledFancyEditor = styled(FancyEditor)`
   flex: 1;
@@ -899,32 +894,31 @@ interface ChatSectionHandle {
   scrollHistoryToTarget: () => void;
 }
 
-const ChatSection = React.forwardRef(
-  (
-    {
-      chatDataLoading,
-      disabled,
-      displayNames,
-      puzzleId,
-      huntId,
-      callState,
-      callDispatch,
-      joinCall,
-      selfUser,
-    }: {
-      chatDataLoading: boolean;
-      disabled: boolean;
-      displayNames: Map<string, string>;
-      puzzleId: string;
-      huntId: string;
-      callState: CallState;
-      callDispatch: React.Dispatch<Action>;
-      joinCall: () => void;
-      selfUser: Meteor.User;
-    },
-    forwardedRef: React.Ref<ChatSectionHandle>,
-  ) => {
-    const historyRef = useRef<React.ElementRef<typeof ChatHistoryMemo>>(null);
+const ChatSection = React.memo(
+  ({
+    chatDataLoading,
+    disabled,
+    displayNames,
+    puzzleId,
+    huntId,
+    callState,
+    callDispatch,
+    joinCall,
+    selfUser,
+    ref,
+  }: {
+    chatDataLoading: boolean;
+    disabled: boolean;
+    displayNames: Map<string, string>;
+    puzzleId: string;
+    huntId: string;
+    callState: CallState;
+    callDispatch: React.Dispatch<Action>;
+    joinCall: () => void;
+    selfUser: Meteor.User;
+    ref: React.Ref<ChatSectionHandle>;
+  }) => {
+    const historyRef = useRef<React.ElementRef<typeof ChatHistory>>(null);
     const scrollToTargetRequestRef = useRef<boolean>(false);
 
     const scrollHistoryToTarget = useCallback(() => {
@@ -951,7 +945,7 @@ const ChatSection = React.forwardRef(
       }
     }, []);
 
-    useImperativeHandle(forwardedRef, () => ({
+    useImperativeHandle(ref, () => ({
       scrollHistoryToTarget,
     }));
 
@@ -983,7 +977,7 @@ const ChatSection = React.forwardRef(
           callDispatch={callDispatch}
           joinCall={joinCall}
         />
-        <ChatHistoryMemo
+        <ChatHistory
           ref={historyRef}
           puzzleId={puzzleId}
           displayNames={displayNames}
@@ -1001,7 +995,6 @@ const ChatSection = React.forwardRef(
     );
   },
 );
-const ChatSectionMemo = React.memo(ChatSection);
 
 const PuzzlePageMetadata = ({
   puzzle,
@@ -1418,340 +1411,332 @@ type PuzzleGuessModalHandle = {
   show: () => void;
 };
 
-const PuzzleGuessModal = React.forwardRef(
-  (
-    {
-      puzzle,
-      guesses,
-      displayNames,
-    }: {
-      puzzle: PuzzleType;
-      guesses: GuessType[];
-      displayNames: Map<string, string>;
-    },
-    forwardedRef: React.Ref<PuzzleGuessModalHandle>,
-  ) => {
-    const [guessInput, setGuessInput] = useState<string>("");
-    const [directionInput, setDirectionInput] = useState<number>(0);
-    const [haveSetDirection, setHaveSetDirection] = useState<boolean>(false);
-    const [confidenceInput, setConfidenceInput] = useState<number>(50);
-    const [haveSetConfidence, setHaveSetConfidence] = useState<boolean>(false);
-    const [confirmingSubmit, setConfirmingSubmit] = useState<boolean>(false);
-    const [confirmationMessage, setConfirmationMessage] = useState<string>("");
-    const [submitState, setSubmitState] = useState<PuzzleGuessSubmitState>(
-      PuzzleGuessSubmitState.IDLE,
-    );
-    const [submitError, setSubmitError] = useState<string>("");
-    const formRef = useRef<React.ElementRef<typeof ModalForm>>(null);
+const PuzzleGuessModal = ({
+  puzzle,
+  guesses,
+  displayNames,
+  ref,
+}: {
+  puzzle: PuzzleType;
+  guesses: GuessType[];
+  displayNames: Map<string, string>;
+  ref: React.Ref<PuzzleGuessModalHandle>;
+}) => {
+  const [guessInput, setGuessInput] = useState<string>("");
+  const [directionInput, setDirectionInput] = useState<number>(0);
+  const [haveSetDirection, setHaveSetDirection] = useState<boolean>(false);
+  const [confidenceInput, setConfidenceInput] = useState<number>(50);
+  const [haveSetConfidence, setHaveSetConfidence] = useState<boolean>(false);
+  const [confirmingSubmit, setConfirmingSubmit] = useState<boolean>(false);
+  const [confirmationMessage, setConfirmationMessage] = useState<string>("");
+  const [submitState, setSubmitState] = useState<PuzzleGuessSubmitState>(
+    PuzzleGuessSubmitState.IDLE,
+  );
+  const [submitError, setSubmitError] = useState<string>("");
+  const formRef = useRef<React.ElementRef<typeof ModalForm>>(null);
 
-    useImperativeHandle(forwardedRef, () => ({
-      show: () => {
-        if (formRef.current) {
-          formRef.current.show();
-        }
-      },
-    }));
-
-    const onGuessInputChange: NonNullable<FormControlProps["onChange"]> =
-      useCallback((event) => {
-        setGuessInput(event.currentTarget.value.toUpperCase());
-        setConfirmingSubmit(false);
-      }, []);
-
-    const onDirectionInputChange: NonNullable<FormControlProps["onChange"]> =
-      useCallback((event) => {
-        setHaveSetDirection(true);
-        setDirectionInput(parseInt(event.currentTarget.value, 10));
-      }, []);
-
-    const onConfidenceInputChange: NonNullable<FormControlProps["onChange"]> =
-      useCallback((event) => {
-        setHaveSetConfidence(true);
-        setConfidenceInput(parseInt(event.currentTarget.value, 10));
-      }, []);
-
-    const solvedness = useMemo(() => {
-      return computeSolvedness(puzzle);
-    }, [puzzle]);
-
-    const onSubmitGuess = useCallback(() => {
-      const strippedGuess = guessInput.replaceAll(/\s/g, "");
-      const repeatGuess = guesses.find((g) => {
-        return g.guess.replaceAll(/\s/g, "") === strippedGuess;
-      });
-      if ((repeatGuess || solvedness !== "unsolved") && !confirmingSubmit) {
-        const repeatGuessStr = repeatGuess
-          ? "This answer has already been submitted. "
-          : "";
-        const solvednessStr = {
-          solved: "This puzzle has already been solved. ",
-          noAnswers:
-            "This puzzle does not expect any answers to be submitted. ",
-          unsolved: "",
-        }[solvedness];
-        const msg = `${solvednessStr} ${repeatGuessStr} Are you sure you want to submit this guess?`;
-        setConfirmationMessage(msg);
-        setConfirmingSubmit(true);
-      } else if (!haveSetDirection || !haveSetConfidence) {
-        setSubmitError("Please set a direction and confidence for your guess.");
-        setSubmitState(PuzzleGuessSubmitState.FAILED);
-      } else {
-        createGuess.call(
-          {
-            puzzleId: puzzle._id,
-            guess: guessInput,
-            direction: directionInput,
-            confidence: confidenceInput,
-          },
-          (error) => {
-            if (error) {
-              setSubmitError(error.message);
-              setSubmitState(PuzzleGuessSubmitState.FAILED);
-            } else {
-              // Clear the input box.  Don't dismiss the dialog.
-              setGuessInput("");
-              setHaveSetConfidence(false);
-              setConfidenceInput(50);
-              setHaveSetDirection(false);
-              setDirectionInput(0);
-              setSubmitError("");
-              setSubmitState(PuzzleGuessSubmitState.IDLE);
-            }
-            setConfirmingSubmit(false);
-          },
-        );
+  useImperativeHandle(ref, () => ({
+    show: () => {
+      if (formRef.current) {
+        formRef.current.show();
       }
-    }, [
-      guesses,
-      puzzle._id,
-      solvedness,
-      guessInput,
-      directionInput,
-      confidenceInput,
-      confirmingSubmit,
-      haveSetDirection,
-      haveSetConfidence,
-    ]);
+    },
+  }));
 
-    const idPrefix = useId();
-
-    const directionTooltip = (
-      <Tooltip id={`${idPrefix}-direction-tooltip`}>
-        <strong>Solve direction:</strong> {formatGuessDirection(directionInput)}
-      </Tooltip>
-    );
-    const confidenceTooltip = (
-      <Tooltip id={`${idPrefix}-confidence-tooltip`}>
-        <strong>Confidence:</strong> {formatConfidence(confidenceInput)}
-      </Tooltip>
-    );
-
-    const clearError = useCallback(() => {
-      setSubmitState(PuzzleGuessSubmitState.IDLE);
+  const onGuessInputChange: NonNullable<FormControlProps["onChange"]> =
+    useCallback((event) => {
+      setGuessInput(event.currentTarget.value.toUpperCase());
+      setConfirmingSubmit(false);
     }, []);
 
-    const title = {
-      unsolved: `Submit answer to ${puzzle.title}`,
-      solved: `Guess history for ${puzzle.title}`,
-      noAnswers: `Guess history for ${puzzle.title}`,
-    }[solvedness];
+  const onDirectionInputChange: NonNullable<FormControlProps["onChange"]> =
+    useCallback((event) => {
+      setHaveSetDirection(true);
+      setDirectionInput(parseInt(event.currentTarget.value, 10));
+    }, []);
 
-    return (
-      <ModalForm
-        ref={formRef}
-        title={title}
-        onSubmit={onSubmitGuess}
-        submitLabel={confirmingSubmit ? "Confirm Submit" : "Submit"}
-        size="lg"
+  const onConfidenceInputChange: NonNullable<FormControlProps["onChange"]> =
+    useCallback((event) => {
+      setHaveSetConfidence(true);
+      setConfidenceInput(parseInt(event.currentTarget.value, 10));
+    }, []);
+
+  const solvedness = useMemo(() => {
+    return computeSolvedness(puzzle);
+  }, [puzzle]);
+
+  const onSubmitGuess = useCallback(() => {
+    const strippedGuess = guessInput.replaceAll(/\s/g, "");
+    const repeatGuess = guesses.find((g) => {
+      return g.guess.replaceAll(/\s/g, "") === strippedGuess;
+    });
+    if ((repeatGuess || solvedness !== "unsolved") && !confirmingSubmit) {
+      const repeatGuessStr = repeatGuess
+        ? "This answer has already been submitted. "
+        : "";
+      const solvednessStr = {
+        solved: "This puzzle has already been solved. ",
+        noAnswers: "This puzzle does not expect any answers to be submitted. ",
+        unsolved: "",
+      }[solvedness];
+      const msg = `${solvednessStr} ${repeatGuessStr} Are you sure you want to submit this guess?`;
+      setConfirmationMessage(msg);
+      setConfirmingSubmit(true);
+    } else if (!haveSetDirection || !haveSetConfidence) {
+      setSubmitError("Please set a direction and confidence for your guess.");
+      setSubmitState(PuzzleGuessSubmitState.FAILED);
+    } else {
+      createGuess.call(
+        {
+          puzzleId: puzzle._id,
+          guess: guessInput,
+          direction: directionInput,
+          confidence: confidenceInput,
+        },
+        (error) => {
+          if (error) {
+            setSubmitError(error.message);
+            setSubmitState(PuzzleGuessSubmitState.FAILED);
+          } else {
+            // Clear the input box.  Don't dismiss the dialog.
+            setGuessInput("");
+            setHaveSetConfidence(false);
+            setConfidenceInput(50);
+            setHaveSetDirection(false);
+            setDirectionInput(0);
+            setSubmitError("");
+            setSubmitState(PuzzleGuessSubmitState.IDLE);
+          }
+          setConfirmingSubmit(false);
+        },
+      );
+    }
+  }, [
+    guesses,
+    puzzle._id,
+    solvedness,
+    guessInput,
+    directionInput,
+    confidenceInput,
+    confirmingSubmit,
+    haveSetDirection,
+    haveSetConfidence,
+  ]);
+
+  const idPrefix = useId();
+
+  const directionTooltip = (
+    <Tooltip id={`${idPrefix}-direction-tooltip`}>
+      <strong>Solve direction:</strong> {formatGuessDirection(directionInput)}
+    </Tooltip>
+  );
+  const confidenceTooltip = (
+    <Tooltip id={`${idPrefix}-confidence-tooltip`}>
+      <strong>Confidence:</strong> {formatConfidence(confidenceInput)}
+    </Tooltip>
+  );
+
+  const clearError = useCallback(() => {
+    setSubmitState(PuzzleGuessSubmitState.IDLE);
+  }, []);
+
+  const title = {
+    unsolved: `Submit answer to ${puzzle.title}`,
+    solved: `Guess history for ${puzzle.title}`,
+    noAnswers: `Guess history for ${puzzle.title}`,
+  }[solvedness];
+
+  return (
+    <ModalForm
+      ref={formRef}
+      title={title}
+      onSubmit={onSubmitGuess}
+      submitLabel={confirmingSubmit ? "Confirm Submit" : "Submit"}
+      size="lg"
+    >
+      <FormGroup as={Row} className="mb-3" controlId={`${idPrefix}-guess`}>
+        <FormLabel column xs={3}>
+          Guess
+        </FormLabel>
+        <Col xs={9}>
+          <AnswerFormControl
+            type="text"
+            id={`${idPrefix}-guess`}
+            autoFocus
+            autoComplete="off"
+            onChange={onGuessInputChange}
+            value={guessInput}
+            disabled={puzzle.deleted}
+          />
+        </Col>
+      </FormGroup>
+
+      <FormGroup
+        as={Row}
+        className="mb-3"
+        controlId={`${idPrefix}-guess-direction`}
       >
-        <FormGroup as={Row} className="mb-3" controlId={`${idPrefix}-guess`}>
-          <FormLabel column xs={3}>
-            Guess
-          </FormLabel>
-          <Col xs={9}>
-            <AnswerFormControl
-              type="text"
-              id={`${idPrefix}-guess`}
-              autoFocus
-              autoComplete="off"
-              onChange={onGuessInputChange}
-              value={guessInput}
-              disabled={puzzle.deleted}
+        <FormLabel column xs={3}>
+          Solve direction
+        </FormLabel>
+        <Col xs={9}>
+          <ValidatedSliderContainer>
+            <OverlayTrigger placement="top" overlay={directionTooltip}>
+              <GuessSliderContainer>
+                <GuessSliderLeftLabel>
+                  <FontAwesomeIcon icon={faArrowLeft} fixedWidth />
+                </GuessSliderLeftLabel>
+                <GuessSlider
+                  id={`${idPrefix}-guess-direction`}
+                  type="range"
+                  min="-10"
+                  max="10"
+                  list={`${idPrefix}-guess-direction-list`}
+                  onChange={onDirectionInputChange}
+                  value={directionInput}
+                  disabled={puzzle.deleted}
+                />
+                <datalist id={`${idPrefix}-guess-direction-list`}>
+                  <option value="-10">-10</option>
+                  <option value="0">0</option>
+                  <option value="10">10</option>
+                </datalist>
+                <GuessSliderRightLabel>
+                  <FontAwesomeIcon icon={faArrowRight} fixedWidth />
+                </GuessSliderRightLabel>
+              </GuessSliderContainer>
+            </OverlayTrigger>
+            <FontAwesomeIcon
+              icon={faCheck}
+              color={haveSetDirection ? "green" : "transparent"}
+              fixedWidth
             />
-          </Col>
-        </FormGroup>
+          </ValidatedSliderContainer>
+          <FormText>
+            Pick a number between -10 (backsolved without opening the puzzle) to
+            10 (forward-solved without seeing the round) to indicate if you
+            forward- or back-solved.
+          </FormText>
+        </Col>
+      </FormGroup>
 
-        <FormGroup
-          as={Row}
-          className="mb-3"
-          controlId={`${idPrefix}-guess-direction`}
-        >
-          <FormLabel column xs={3}>
-            Solve direction
-          </FormLabel>
-          <Col xs={9}>
-            <ValidatedSliderContainer>
-              <OverlayTrigger placement="top" overlay={directionTooltip}>
-                <GuessSliderContainer>
-                  <GuessSliderLeftLabel>
-                    <FontAwesomeIcon icon={faArrowLeft} fixedWidth />
-                  </GuessSliderLeftLabel>
-                  <GuessSlider
-                    id={`${idPrefix}-guess-direction`}
-                    type="range"
-                    min="-10"
-                    max="10"
-                    list={`${idPrefix}-guess-direction-list`}
-                    onChange={onDirectionInputChange}
-                    value={directionInput}
-                    disabled={puzzle.deleted}
-                  />
-                  <datalist id={`${idPrefix}-guess-direction-list`}>
-                    <option value="-10">-10</option>
-                    <option value="0">0</option>
-                    <option value="10">10</option>
-                  </datalist>
-                  <GuessSliderRightLabel>
-                    <FontAwesomeIcon icon={faArrowRight} fixedWidth />
-                  </GuessSliderRightLabel>
-                </GuessSliderContainer>
-              </OverlayTrigger>
-              <FontAwesomeIcon
-                icon={faCheck}
-                color={haveSetDirection ? "green" : "transparent"}
-                fixedWidth
-              />
-            </ValidatedSliderContainer>
-            <FormText>
-              Pick a number between -10 (backsolved without opening the puzzle)
-              to 10 (forward-solved without seeing the round) to indicate if you
-              forward- or back-solved.
-            </FormText>
-          </Col>
-        </FormGroup>
+      <FormGroup
+        as={Row}
+        className="mb-3"
+        controlId={`${idPrefix}-guess-confidence`}
+      >
+        <FormLabel column xs={3}>
+          Confidence
+        </FormLabel>
+        <Col xs={9}>
+          <ValidatedSliderContainer>
+            <OverlayTrigger placement="top" overlay={confidenceTooltip}>
+              <GuessSliderContainer>
+                <GuessSliderLeftLabel>0%</GuessSliderLeftLabel>
+                <GuessSlider
+                  id={`${idPrefix}-guess-confidence`}
+                  type="range"
+                  min="0"
+                  max="100"
+                  list={`${idPrefix}-guess-confidence-list`}
+                  onChange={onConfidenceInputChange}
+                  value={confidenceInput}
+                  disabled={puzzle.deleted}
+                />
+                <datalist id={`${idPrefix}-guess-confidence-list`}>
+                  <option value="0">0%</option>
+                  <option value="25">25%</option>
+                  <option value="50">50%</option>
+                  <option value="75">75%</option>
+                  <option value="100">100%</option>
+                </datalist>
+                <GuessSliderRightLabel>100%</GuessSliderRightLabel>
+              </GuessSliderContainer>
+            </OverlayTrigger>
+            <FontAwesomeIcon
+              icon={faCheck}
+              color={haveSetConfidence ? "green" : "transparent"}
+              fixedWidth
+            />
+          </ValidatedSliderContainer>
+          <FormText>
+            Pick a number between 0 and 100 for the probability that you think
+            this answer is right.
+          </FormText>
+        </Col>
+      </FormGroup>
 
-        <FormGroup
-          as={Row}
-          className="mb-3"
-          controlId={`${idPrefix}-guess-confidence`}
-        >
-          <FormLabel column xs={3}>
-            Confidence
-          </FormLabel>
-          <Col xs={9}>
-            <ValidatedSliderContainer>
-              <OverlayTrigger placement="top" overlay={confidenceTooltip}>
-                <GuessSliderContainer>
-                  <GuessSliderLeftLabel>0%</GuessSliderLeftLabel>
-                  <GuessSlider
-                    id={`${idPrefix}-guess-confidence`}
-                    type="range"
-                    min="0"
-                    max="100"
-                    list={`${idPrefix}-guess-confidence-list`}
-                    onChange={onConfidenceInputChange}
-                    value={confidenceInput}
-                    disabled={puzzle.deleted}
-                  />
-                  <datalist id={`${idPrefix}-guess-confidence-list`}>
-                    <option value="0">0%</option>
-                    <option value="25">25%</option>
-                    <option value="50">50%</option>
-                    <option value="75">75%</option>
-                    <option value="100">100%</option>
-                  </datalist>
-                  <GuessSliderRightLabel>100%</GuessSliderRightLabel>
-                </GuessSliderContainer>
-              </OverlayTrigger>
-              <FontAwesomeIcon
-                icon={faCheck}
-                color={haveSetConfidence ? "green" : "transparent"}
-                fixedWidth
-              />
-            </ValidatedSliderContainer>
-            <FormText>
-              Pick a number between 0 and 100 for the probability that you think
-              this answer is right.
-            </FormText>
-          </Col>
-        </FormGroup>
-
-        {guesses.length === 0 ? (
-          <div>No previous submissions.</div>
-        ) : (
-          [
-            <div key="label">Previous submissions:</div>,
-            <GuessTable key="table">
-              {sortedBy(guesses, (g) => g.createdAt)
-                .reverse()
-                .map((guess) => {
-                  return (
-                    <GuessRow $state={guess.state} key={guess._id}>
-                      <GuessTableSmallRow>
-                        <GuessCell>
-                          <GuessState state={guess.state} short />
-                        </GuessCell>
-                        <GuessAnswerCell>
-                          <StyledCopyToClipboardButton
-                            variant="link"
-                            aria-label="Copy"
-                            text={guess.guess}
-                          >
-                            <FontAwesomeIcon icon={faCopy} fixedWidth />
-                          </StyledCopyToClipboardButton>
-                          <PuzzleAnswer
-                            answer={guess.guess}
-                            breakable
-                            indented
-                          />
-                        </GuessAnswerCell>
-                      </GuessTableSmallRow>
-                      <GuessTimestampCell>
-                        {calendarTimeFormat(guess.createdAt)}
-                      </GuessTimestampCell>
-                      <GuessSubmitterCell>
-                        <Breakable>
-                          {displayNames.get(guess.createdBy) ?? "???"}
-                        </Breakable>
-                      </GuessSubmitterCell>
-                      <GuessDirectionCell>
-                        <GuessDirection
-                          id={`${idPrefix}-${guess._id}-direction`}
-                          value={guess.direction}
+      {guesses.length === 0 ? (
+        <div>No previous submissions.</div>
+      ) : (
+        [
+          <div key="label">Previous submissions:</div>,
+          <GuessTable key="table">
+            {sortedBy(guesses, (g) => g.createdAt)
+              .reverse()
+              .map((guess) => {
+                return (
+                  <GuessRow $state={guess.state} key={guess._id}>
+                    <GuessTableSmallRow>
+                      <GuessCell>
+                        <GuessState state={guess.state} short />
+                      </GuessCell>
+                      <GuessAnswerCell>
+                        <StyledCopyToClipboardButton
+                          variant="link"
+                          aria-label="Copy"
+                          text={guess.guess}
+                        >
+                          <FontAwesomeIcon icon={faCopy} fixedWidth />
+                        </StyledCopyToClipboardButton>
+                        <PuzzleAnswer answer={guess.guess} breakable indented />
+                      </GuessAnswerCell>
+                    </GuessTableSmallRow>
+                    <GuessTimestampCell>
+                      {calendarTimeFormat(guess.createdAt)}
+                    </GuessTimestampCell>
+                    <GuessSubmitterCell>
+                      <Breakable>
+                        {displayNames.get(guess.createdBy) ?? "???"}
+                      </Breakable>
+                    </GuessSubmitterCell>
+                    <GuessDirectionCell>
+                      <GuessDirection
+                        id={`${idPrefix}-${guess._id}-direction`}
+                        value={guess.direction}
+                      />
+                    </GuessDirectionCell>
+                    <GuessConfidenceCell>
+                      <GuessConfidence
+                        id={`${idPrefix}-${guess._id}-confidence`}
+                        value={guess.confidence}
+                      />
+                    </GuessConfidenceCell>
+                    <GuessTableSmallRow>
+                      {guess.additionalNotes && (
+                        <Markdown
+                          as={AdditionalNotesCell}
+                          text={guess.additionalNotes}
                         />
-                      </GuessDirectionCell>
-                      <GuessConfidenceCell>
-                        <GuessConfidence
-                          id={`${idPrefix}-${guess._id}-confidence`}
-                          value={guess.confidence}
-                        />
-                      </GuessConfidenceCell>
-                      <GuessTableSmallRow>
-                        {guess.additionalNotes && (
-                          <Markdown
-                            as={AdditionalNotesCell}
-                            text={guess.additionalNotes}
-                          />
-                        )}
-                      </GuessTableSmallRow>
-                    </GuessRow>
-                  );
-                })}
-            </GuessTable>,
-          ]
-        )}
-        {confirmingSubmit ? (
-          <Alert variant="warning">{confirmationMessage}</Alert>
-        ) : null}
-        {submitState === PuzzleGuessSubmitState.FAILED ? (
-          <Alert variant="danger" dismissible onClose={clearError}>
-            {submitError}
-          </Alert>
-        ) : null}
-      </ModalForm>
-    );
-  },
-);
+                      )}
+                    </GuessTableSmallRow>
+                  </GuessRow>
+                );
+              })}
+          </GuessTable>,
+        ]
+      )}
+      {confirmingSubmit ? (
+        <Alert variant="warning">{confirmationMessage}</Alert>
+      ) : null}
+      {submitState === PuzzleGuessSubmitState.FAILED ? (
+        <Alert variant="danger" dismissible onClose={clearError}>
+          {submitError}
+        </Alert>
+      ) : null}
+    </ModalForm>
+  );
+};
 
 enum PuzzleAnswerSubmitState {
   IDLE = "idle",
@@ -1764,140 +1749,138 @@ type PuzzleAnswerModalHandle = {
   show: () => void;
 };
 
-const PuzzleAnswerModal = React.forwardRef(
-  (
-    {
-      puzzle,
-      guesses,
-    }: {
-      puzzle: PuzzleType;
-      guesses: GuessType[];
+const PuzzleAnswerModal = ({
+  puzzle,
+  guesses,
+  ref,
+}: {
+  puzzle: PuzzleType;
+  guesses: GuessType[];
+  ref: React.Ref<PuzzleAnswerModalHandle>;
+}) => {
+  const [answer, setAnswer] = useState<string>("");
+  const [confirmingSubmit, setConfirmingSubmit] = useState<boolean>(false);
+  const [confirmationMessage, setConfirmationMessage] = useState<string>("");
+  const [submitState, setSubmitState] = useState<PuzzleAnswerSubmitState>(
+    PuzzleAnswerSubmitState.IDLE,
+  );
+  const [submitError, setSubmitError] = useState<string>("");
+
+  const formRef = useRef<ModalFormHandle>(null);
+
+  const show = useCallback(() => {
+    if (formRef.current) {
+      formRef.current.show();
+    }
+  }, []);
+
+  useImperativeHandle(ref, () => ({
+    show,
+  }));
+
+  const hide = useCallback(() => {
+    if (formRef.current) {
+      formRef.current.hide();
+    }
+  }, []);
+
+  const onAnswerChange: NonNullable<FormControlProps["onChange"]> = useCallback(
+    (e) => {
+      setAnswer(e.currentTarget.value.toUpperCase());
+      setConfirmingSubmit(false);
     },
-    forwardedRef: React.Ref<PuzzleAnswerModalHandle>,
-  ) => {
-    const [answer, setAnswer] = useState<string>("");
-    const [confirmingSubmit, setConfirmingSubmit] = useState<boolean>(false);
-    const [confirmationMessage, setConfirmationMessage] = useState<string>("");
-    const [submitState, setSubmitState] = useState<PuzzleAnswerSubmitState>(
-      PuzzleAnswerSubmitState.IDLE,
-    );
-    const [submitError, setSubmitError] = useState<string>("");
+    [],
+  );
 
-    const formRef = useRef<ModalFormHandle>(null);
+  const onDismissError = useCallback(() => {
+    setSubmitState(PuzzleAnswerSubmitState.IDLE);
+    setSubmitError("");
+  }, []);
 
-    const show = useCallback(() => {
-      if (formRef.current) {
-        formRef.current.show();
-      }
-    }, []);
+  const solvedness = useMemo(() => {
+    return computeSolvedness(puzzle);
+  }, [puzzle]);
 
-    useImperativeHandle(forwardedRef, () => ({
-      show,
-    }));
-
-    const hide = useCallback(() => {
-      if (formRef.current) {
-        formRef.current.hide();
-      }
-    }, []);
-
-    const onAnswerChange: NonNullable<FormControlProps["onChange"]> =
-      useCallback((e) => {
-        setAnswer(e.currentTarget.value.toUpperCase());
-        setConfirmingSubmit(false);
-      }, []);
-
-    const onDismissError = useCallback(() => {
-      setSubmitState(PuzzleAnswerSubmitState.IDLE);
-      setSubmitError("");
-    }, []);
-
-    const solvedness = useMemo(() => {
-      return computeSolvedness(puzzle);
-    }, [puzzle]);
-
-    const onSubmit = useCallback(() => {
-      const strippedAnswer = answer.replaceAll(/\s/g, "");
-      const repeatAnswer = guesses.find((g) => {
-        return (
-          g.state === "correct" &&
-          g.guess.replaceAll(/\s/g, "") === strippedAnswer
-        );
-      });
-      if ((repeatAnswer || solvedness !== "unsolved") && !confirmingSubmit) {
-        const repeatAnswerStr = repeatAnswer
-          ? "This answer has already been submitted. "
-          : "";
-        const solvednessStr = {
-          solved: "This puzzle has already been solved. ",
-          noAnswers:
-            "This puzzle does not expect any answers to be submitted. ",
-          unsolved: "",
-        }[solvedness];
-        const msg = `${solvednessStr} ${repeatAnswerStr} Are you sure you want to submit this answer?`;
-        setConfirmationMessage(msg);
-        setConfirmingSubmit(true);
-        return;
-      }
-      setSubmitState(PuzzleAnswerSubmitState.SUBMITTING);
-      setSubmitError("");
-      addPuzzleAnswer.call(
-        {
-          puzzleId: puzzle._id,
-          answer,
-        },
-        (error) => {
-          if (error) {
-            setSubmitError(error.message);
-            setSubmitState(PuzzleAnswerSubmitState.FAILED);
-          } else {
-            setAnswer("");
-            setSubmitState(PuzzleAnswerSubmitState.IDLE);
-            hide();
-          }
-          setConfirmingSubmit(false);
-        },
+  const onSubmit = useCallback(() => {
+    const strippedAnswer = answer.replaceAll(/\s/g, "");
+    const repeatAnswer = guesses.find((g) => {
+      return (
+        g.state === "correct" &&
+        g.guess.replaceAll(/\s/g, "") === strippedAnswer
       );
-    }, [puzzle._id, confirmingSubmit, guesses, solvedness, answer, hide]);
-
-    const idPrefix = useId();
-
-    return (
-      <ModalForm
-        ref={formRef}
-        title={`Submit answer to ${puzzle.title}`}
-        onSubmit={onSubmit}
-        submitLabel={confirmingSubmit ? "Confirm Submit" : "Submit"}
-      >
-        <FormGroup as={Row} className="mb-3" controlId={`${idPrefix}-answer`}>
-          <FormLabel column xs={3}>
-            Answer
-          </FormLabel>
-          <Col xs={9}>
-            <AnswerFormControl
-              type="text"
-              id={`${idPrefix}-answer`}
-              autoFocus
-              autoComplete="off"
-              onChange={onAnswerChange}
-              value={answer}
-            />
-          </Col>
-        </FormGroup>
-
-        {confirmingSubmit ? (
-          <Alert variant="warning">{confirmationMessage}</Alert>
-        ) : null}
-        {submitState === PuzzleAnswerSubmitState.FAILED ? (
-          <Alert variant="danger" dismissible onClose={onDismissError}>
-            {submitError ||
-              "Something went wrong. Try again, or contact an admin?"}
-          </Alert>
-        ) : undefined}
-      </ModalForm>
+    });
+    if ((repeatAnswer || solvedness !== "unsolved") && !confirmingSubmit) {
+      const repeatAnswerStr = repeatAnswer
+        ? "This answer has already been submitted. "
+        : "";
+      const solvednessStr = {
+        solved: "This puzzle has already been solved. ",
+        noAnswers: "This puzzle does not expect any answers to be submitted. ",
+        unsolved: "",
+      }[solvedness];
+      const msg = `${solvednessStr} ${repeatAnswerStr} Are you sure you want to submit this answer?`;
+      setConfirmationMessage(msg);
+      setConfirmingSubmit(true);
+      return;
+    }
+    setSubmitState(PuzzleAnswerSubmitState.SUBMITTING);
+    setSubmitError("");
+    addPuzzleAnswer.call(
+      {
+        puzzleId: puzzle._id,
+        answer,
+      },
+      (error) => {
+        if (error) {
+          setSubmitError(error.message);
+          setSubmitState(PuzzleAnswerSubmitState.FAILED);
+        } else {
+          setAnswer("");
+          setSubmitState(PuzzleAnswerSubmitState.IDLE);
+          hide();
+        }
+        setConfirmingSubmit(false);
+      },
     );
-  },
-);
+  }, [puzzle._id, confirmingSubmit, guesses, solvedness, answer, hide]);
+
+  const idPrefix = useId();
+
+  return (
+    <ModalForm
+      ref={formRef}
+      title={`Submit answer to ${puzzle.title}`}
+      onSubmit={onSubmit}
+      submitLabel={confirmingSubmit ? "Confirm Submit" : "Submit"}
+    >
+      <FormGroup as={Row} className="mb-3" controlId={`${idPrefix}-answer`}>
+        <FormLabel column xs={3}>
+          Answer
+        </FormLabel>
+        <Col xs={9}>
+          <AnswerFormControl
+            type="text"
+            id={`${idPrefix}-answer`}
+            autoFocus
+            autoComplete="off"
+            onChange={onAnswerChange}
+            value={answer}
+          />
+        </Col>
+      </FormGroup>
+
+      {confirmingSubmit ? (
+        <Alert variant="warning">{confirmationMessage}</Alert>
+      ) : null}
+      {submitState === PuzzleAnswerSubmitState.FAILED ? (
+        <Alert variant="danger" dismissible onClose={onDismissError}>
+          {submitError ||
+            "Something went wrong. Try again, or contact an admin?"}
+        </Alert>
+      ) : undefined}
+    </ModalForm>
+  );
+};
 
 const PuzzleDocumentDiv = styled.div`
   width: 100%;
@@ -2247,7 +2230,7 @@ const PuzzlePage = React.memo(() => {
   const effectiveSidebarWidth = isChatMinimized ? 0 : sidebarWidth;
 
   const chat = isChatMinimized ? null : (
-    <ChatSectionMemo
+    <ChatSection
       ref={chatSectionRef}
       chatDataLoading={chatDataLoading}
       disabled={activePuzzle.deleted ?? true /* disable while still loading */}
