@@ -11,6 +11,8 @@ import type { people_v1 } from "@googleapis/people";
 import { people } from "@googleapis/people";
 import type { script_v1 } from "@googleapis/script";
 import { script } from "@googleapis/script";
+import type { sheets_v4 } from "@googleapis/sheets";
+import { sheets } from "@googleapis/sheets";
 import type { RetryConfig } from "gaxios";
 import type { SettingType } from "../lib/models/Settings";
 import Settings from "../lib/models/Settings";
@@ -23,6 +25,8 @@ class GoogleClientRefresher {
   public script?: script_v1.Script;
 
   public people?: people_v1.People;
+
+  public sheets?: sheets_v4.Sheets;
 
   private oauthClient?: InstanceType<typeof auth.OAuth2>;
 
@@ -126,6 +130,11 @@ class GoogleClientRefresher {
     });
     this.people = people({
       version: "v1",
+      auth: this.oauthClient,
+      retryConfig: this.retryConfig,
+    });
+    this.sheets = sheets({
+      version: "v4",
       auth: this.oauthClient,
       retryConfig: this.retryConfig,
     });
