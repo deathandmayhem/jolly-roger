@@ -173,6 +173,53 @@ export async function grantPermission(
   });
 }
 
+export async function copySheets(fromDocumentId: string, toDocumentId: string) {
+  if (!GoogleClient.sheets) {
+    throw new Meteor.Error(500, `Google integration is disabled`);
+  }
+
+  const fromDocument = await Documents.findOneAsync(fromDocumentId);
+  const toDocument = await Documents.findOneAsync(toDocumentId);
+  if (!fromDocument) {
+    throw new Meteor.Error(404, `Cannot find document ${fromDocumentId}`);
+  }
+  if (!toDocument) {
+    throw new Meteor.Error(404, `Cannot find document ${toDocumentId}`);
+  }
+  if (
+    fromDocument.value.type !== "spreadsheet" ||
+    toDocument.value.type !== "spreadsheet"
+  ) {
+    throw new Meteor.Error(
+      400,
+      `Cannot copy sheets between non-spreadsheet docs`,
+    );
+  }
+
+  const sheetInfo = await GoogleClient.sheets.spreadsheets.get({
+    spreadsheetId: fromDocument.value.id,
+  });
+  const sheetsToCopy = sheetInfo.data.sheets;
+  if (!sheetsToCopy) {
+    throw new Meteor.Error(
+      400,
+      `Could not get sheet information from sheet ${fromDocument.value.id}`,
+    );
+  }
+
+  for (const sheet of sheetsToCopy) {
+    if (sheet.properties?.sheetId != null) {
+      await GoogleClient.sheets.spreadsheets.sheets.copyTo({
+        sheetId: sheet.properties?.sheetId,
+        spreadsheetId: fromDocument.value.id,
+        requestBody: {
+          destinationSpreadsheetId: toDocument.value.id,
+        },
+      });
+    }
+  }
+}
+
 export async function makeReadOnly(fileId: string) {
   await checkClientOk();
   const client = GoogleClient.drive;
