@@ -83,10 +83,6 @@ const PuzzleDeleteModal = React.forwardRef(
         loading ? [] : Subscribers.find({ name: subscriberTopic }).fetch(),
       [loading, subscriberTopic],
     );
-    const documents = useTracker(
-      () => (loading ? [] : Documents.find({ hunt: puzzle.hunt }).fetch()),
-      [loading, puzzle.hunt],
-    );
     const callers = useTracker(
       () =>
         loading
@@ -94,7 +90,10 @@ const PuzzleDeleteModal = React.forwardRef(
           : Peers.find({ hunt: puzzle.hunt, puzzle: puzzle._id }).fetch(),
       [loading, puzzle.hunt, puzzle._id],
     );
-
+    const documents = useTracker(
+      () => (loading ? [] : Documents.find({ hunt: puzzle.hunt }).fetch()),
+      [loading, puzzle.hunt],
+    );
     const displayNames = indexedDisplayNames();
     const uniqueViewers = [
       ...new Set([
@@ -105,12 +104,9 @@ const PuzzleDeleteModal = React.forwardRef(
       return { id: u, name: displayNames.get(u) ?? "Unknown viewer" };
     });
 
-    const thisPuzzleHasSheets = useTracker(() => {
-      if (loading) return false;
-      return documents.some(
-        (d) => d.puzzle === puzzle._id && d.value.type === "spreadsheet",
-      );
-    }, [loading, documents, puzzle._id]);
+    const thisPuzzleHasSheets = documents.some(
+      (d) => d.puzzle === puzzle._id && d.value.type === "spreadsheet",
+    );
 
     const [replacementId, setReplacementId] =
       useState<PuzzleSelectOption | null>(null);
