@@ -97,10 +97,13 @@ const makeHuntFilterTransform = (
 ): ((user: Partial<Meteor.User>) => Partial<Meteor.User>) => {
   const huntSet = new Set(hunts);
   return (u) => {
-    return {
-      ...u,
-      hunts: u.hunts?.filter((h) => huntSet.has(h)),
-    };
+    if (u.hunts) {
+      return {
+        ...u,
+        hunts: u.hunts?.filter((h) => huntSet.has(h)),
+      };
+    }
+    return u;
   };
 };
 
