@@ -1,62 +1,47 @@
-import { useEffect, useRef } from "react";
-import useImmediateEffect from "./useImmediateEffect";
+import { useLayoutEffect, useRef } from "react";
 
-// Global state, but hey, document.title *is* a global
-const titles: string[] = [];
+// Track title entries by object identity. Set maintains insertion order,
+// so the last entry is always the innermost (most recently mounted) component.
+const entries = new Set<{ title: string }>();
 
 function updateDocumentTitle() {
-  if (titles.length > 0) {
-    document.title = titles[titles.length - 1]!;
+  const arr = [...entries];
+  if (arr.length > 0) {
+    document.title = arr[arr.length - 1]!.title;
   }
 }
 
-function addTitle(title: string) {
-  titles.push(title);
-  updateDocumentTitle();
-}
-
-function replaceTitle(prevTitle: string, title: string) {
-  // This assumes no one will place duplicate titles in the hierarchy, but
-  // that's probably fine
-  const idx = titles.lastIndexOf(prevTitle);
-  if (idx !== -1) {
-    titles[idx] = title;
-    updateDocumentTitle();
-  }
-}
-
-function removeTitle(title: string) {
-  const idx = titles.lastIndexOf(title);
-  if (idx !== -1) {
-    titles.splice(idx, 1);
-    updateDocumentTitle();
-  }
-}
-
+// Sets the document title, supporting nested usage where the innermost
+// component wins. When a component unmounts, the title reverts to the
+// next outermost component's title.
 function useDocumentTitle(title: string) {
-  const lastTitle = useRef<string | undefined>(undefined);
+  // Stable ref holding a mutable entry object. Using an object allows us to
+  // update the title in place without changing our position in the Set.
+  const entryRef = useRef<{ title: string }>(null!);
+  if (entryRef.current === null) {
+    entryRef.current = { title };
+  }
 
-  // we use useImmediateEffect here to ensure we're adding these to the array
-  // in component hierarchy order rather than effect schedule order.
-  useImmediateEffect(() => {
-    if (lastTitle.current === undefined) {
-      addTitle(title);
-    } else {
-      replaceTitle(lastTitle.current, title);
-    }
-
-    lastTitle.current = title;
-  }, [title]);
-
-  // We use separate effect calls for add/update and remove, since we only want
-  // to remove on the final teardown
-  useEffect(() => {
+  // Register on mount, unregister on unmount (empty deps).
+  // useLayoutEffect ensures parent registers before child, maintaining
+  // the correct hierarchy order in the Set.
+  useLayoutEffect(() => {
+    entries.add(entryRef.current);
+    updateDocumentTitle();
     return () => {
-      if (lastTitle.current !== undefined) {
-        removeTitle(lastTitle.current);
-      }
+      entries.delete(entryRef.current);
+      updateDocumentTitle();
     };
   }, []);
+
+  // Update our entry's title when it changes, then re-evaluate which title wins.
+  // This correctly handles parent title changes while a child is mounted:
+  // the parent's entry is updated, but updateDocumentTitle() still picks the
+  // child's entry (last in Set) as the winner.
+  useLayoutEffect(() => {
+    entryRef.current.title = title;
+    updateDocumentTitle();
+  }, [title]);
 }
 
 export default useDocumentTitle;
