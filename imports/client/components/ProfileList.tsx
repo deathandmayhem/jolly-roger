@@ -4,8 +4,9 @@ import { faCopy } from "@fortawesome/free-solid-svg-icons/faCopy";
 import { faEraser } from "@fortawesome/free-solid-svg-icons/faEraser";
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import type React from "react";
 import type { MouseEvent } from "react";
-import React, {
+import {
   useCallback,
   useId,
   useImperativeHandle,
@@ -82,76 +83,69 @@ type ModalHandle = {
   show(): void;
 };
 
-const ConfirmationModal = React.forwardRef(
-  (
-    {
-      title,
-      body,
-      action,
-      performAction,
-    }: {
-      title: string;
-      body: string | React.JSX.Element;
-      action: string;
-      performAction: (callback: (e?: Error) => void) => void;
-    },
-    forwardedRef: React.Ref<ModalHandle>,
-  ) => {
-    const [visible, setVisible] = useState(true);
-    const [error, setError] = useState<Error>();
-    const clearError = useCallback(() => setError(undefined), []);
-    const show = useCallback(() => setVisible(true), []);
-    const hide = useCallback(() => {
-      clearError();
-      setVisible(false);
-    }, [clearError]);
-    useImperativeHandle(forwardedRef, () => ({ show }), [show]);
+const ConfirmationModal = ({
+  title,
+  body,
+  action,
+  performAction,
+  ref,
+}: {
+  title: string;
+  body: string | React.JSX.Element;
+  action: string;
+  performAction: (callback: (e?: Error) => void) => void;
+  ref: React.Ref<ModalHandle>;
+}) => {
+  const [visible, setVisible] = useState(true);
+  const [error, setError] = useState<Error>();
+  const clearError = useCallback(() => setError(undefined), []);
+  const show = useCallback(() => setVisible(true), []);
+  const hide = useCallback(() => {
+    clearError();
+    setVisible(false);
+  }, [clearError]);
+  useImperativeHandle(ref, () => ({ show }), [show]);
 
-    const [disabled, setDisabled] = useState(false);
+  const [disabled, setDisabled] = useState(false);
 
-    const onActionClicked = useCallback(() => {
-      performAction((e) => {
-        setDisabled(false);
-        if (e) {
-          setError(e);
-        } else {
-          hide();
-        }
-      });
-      setDisabled(true);
-    }, [performAction, hide]);
+  const onActionClicked = useCallback(() => {
+    performAction((e) => {
+      setDisabled(false);
+      if (e) {
+        setError(e);
+      } else {
+        hide();
+      }
+    });
+    setDisabled(true);
+  }, [performAction, hide]);
 
-    const modal = (
-      <Modal show={visible} onHide={hide}>
-        <Modal.Header closeButton>
-          <Modal.Title>{title}</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <p>{body}</p>
-          {error && (
-            <Alert variant="danger" dismissible onClose={clearError}>
-              {error.message}
-            </Alert>
-          )}
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={hide} disabled={disabled}>
-            Cancel
-          </Button>
-          <Button
-            variant="danger"
-            onClick={onActionClicked}
-            disabled={disabled}
-          >
-            {action}
-          </Button>
-        </Modal.Footer>
-      </Modal>
-    );
+  const modal = (
+    <Modal show={visible} onHide={hide}>
+      <Modal.Header closeButton>
+        <Modal.Title>{title}</Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        <p>{body}</p>
+        {error && (
+          <Alert variant="danger" dismissible onClose={clearError}>
+            {error.message}
+          </Alert>
+        )}
+      </Modal.Body>
+      <Modal.Footer>
+        <Button variant="secondary" onClick={hide} disabled={disabled}>
+          Cancel
+        </Button>
+        <Button variant="danger" onClick={onActionClicked} disabled={disabled}>
+          {action}
+        </Button>
+      </Modal.Footer>
+    </Modal>
+  );
 
-    return createPortal(modal, document.body);
-  },
-);
+  return createPortal(modal, document.body);
+};
 
 const PromoteOperatorModal = ({
   user,

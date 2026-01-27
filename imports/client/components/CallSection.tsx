@@ -219,100 +219,97 @@ type PeerMuteConfirmModalHandle = {
   show: () => void;
 };
 
-const PeerMuteConfirmModal = React.forwardRef(
-  (
-    {
-      peerId,
-      name,
-      isLocallyMuted,
-      onLocalMuteToggle,
-    }: {
-      peerId: string;
-      name: string;
-      isLocallyMuted: boolean;
-      onLocalMuteToggle: () => void;
-    },
-    forwardedRef: React.Ref<PeerMuteConfirmModalHandle>,
-  ) => {
-    const [visible, setVisible] = useState(true);
-    const show = useCallback(() => setVisible(true), []);
-    const hide = useCallback(() => setVisible(false), []);
-    useImperativeHandle(forwardedRef, () => ({ show }), [show]);
+const PeerMuteConfirmModal = ({
+  peerId,
+  name,
+  isLocallyMuted,
+  onLocalMuteToggle,
+  ref,
+}: {
+  peerId: string;
+  name: string;
+  isLocallyMuted: boolean;
+  onLocalMuteToggle: () => void;
+  ref: React.Ref<PeerMuteConfirmModalHandle>;
+}) => {
+  const [visible, setVisible] = useState(true);
+  const show = useCallback(() => setVisible(true), []);
+  const hide = useCallback(() => setVisible(false), []);
+  useImperativeHandle(ref, () => ({ show }), [show]);
 
-    const [disabled, setDisabled] = useState(false);
-    const [error, setError] = useState<Error>();
-    const clearError = useCallback(() => setError(undefined), []);
+  const [disabled, setDisabled] = useState(false);
+  const [error, setError] = useState<Error>();
+  const clearError = useCallback(() => setError(undefined), []);
 
-    const mute = useCallback(() => {
-      mediasoupRemoteMutePeer.call({ peerId }, (err) => {
-        setDisabled(false);
-        if (err) {
-          setError(err);
-        } else {
-          hide();
-        }
-      });
-      setDisabled(true);
-    }, [peerId, hide]);
+  const mute = useCallback(() => {
+    mediasoupRemoteMutePeer.call({ peerId }, (err) => {
+      setDisabled(false);
+      if (err) {
+        setError(err);
+      } else {
+        hide();
+      }
+    });
+    setDisabled(true);
+  }, [peerId, hide]);
 
-    const handleLocalMuteToggle = useCallback(() => {
-      onLocalMuteToggle(); // Call the callback to update PeerBox's state and track.enabled
-      hide();
-    }, [onLocalMuteToggle, hide]);
+  const handleLocalMuteToggle = useCallback(() => {
+    onLocalMuteToggle(); // Call the callback to update PeerBox's state and track.enabled
+    hide();
+  }, [onLocalMuteToggle, hide]);
 
-    const modal = (
-      <Modal show={visible} onHide={hide}>
-        <Modal.Header closeButton>
-          <Modal.Title>Manage audio for {name}</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <div>
-            <h4>Mute for me</h4>
-            <p>
-              Toggle hearing audio from {name}. This will not affect what others
-              hear and you can (un)mute them here anytime. You will need to set
-              this each time you connect to a call.
-            </p>
-            <Button
-              variant={isLocallyMuted ? "primary" : "outline-primary"}
-              onClick={handleLocalMuteToggle}
-              className="mb-2"
-            >
-              {isLocallyMuted ? <>Unmute for me</> : <>Mute for me</>}
-            </Button>
-          </div>
-          <hr className="my-3" />
-          <div>
-            <h4>Mute for everyone</h4>
-            <p>
-              This will mute {name} for <strong>everyone</strong> on the call.
-              Use this only as a last resort if they are disruptive and cannot
-              mute themselves. Only they will be able to unmute themselves.
-            </p>
-
-            <p>Are you sure you want to mute {name}?</p>
-
-            {error && (
-              <Alert variant="danger" dismissible onClose={clearError}>
-                {error.message}
-              </Alert>
-            )}
-          </div>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={hide} disabled={disabled}>
-            Cancel
+  const modal = (
+    <Modal show={visible} onHide={hide}>
+      <Modal.Header closeButton>
+        <Modal.Title>Manage audio for {name}</Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        <div>
+          <h4>Mute for me</h4>
+          <p>
+            Toggle hearing audio from {name}. This will not affect what others
+            hear and you can (un)mute them here anytime. You will need to set
+            this each time you connect to a call.
+          </p>
+          <Button
+            variant={isLocallyMuted ? "primary" : "outline-primary"}
+            onClick={handleLocalMuteToggle}
+            className="mb-2"
+          >
+            {isLocallyMuted ? <>Unmute for me</> : <>Mute for me</>}
           </Button>
-          <Button variant="danger" onClick={mute} disabled={disabled}>
-            Mute for everyone
-          </Button>
-        </Modal.Footer>
-      </Modal>
-    );
+        </div>
+        <hr className="my-3" />
+        <div>
+          <h4>Mute for everyone</h4>
+          <p>
+            This will mute {name} for <strong>everyone</strong> on the call. Use
+            this only as a last resort if they are disruptive and cannot mute
+            themselves. Only they will be able to unmute themselves.
+          </p>
 
-    return createPortal(modal, document.body);
-  },
-);
+          <p>Are you sure you want to mute {name}?</p>
+
+          {error && (
+            <Alert variant="danger" dismissible onClose={clearError}>
+              {error.message}
+            </Alert>
+          )}
+        </div>
+      </Modal.Body>
+      <Modal.Footer>
+        <Button variant="secondary" onClick={hide} disabled={disabled}>
+          Cancel
+        </Button>
+        <Button variant="danger" onClick={mute} disabled={disabled}>
+          Mute for everyone
+        </Button>
+      </Modal.Footer>
+    </Modal>
+  );
+
+  return createPortal(modal, document.body);
+};
 
 const PeerBox = ({
   audioContext,

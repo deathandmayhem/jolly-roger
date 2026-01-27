@@ -149,9 +149,7 @@ const BreadcrumbsProvider = ({ children }: { children: React.ReactNode }) => {
   );
 
   return (
-    <BreadcrumbContext.Provider value={providerCallbacks}>
-      {children}
-    </BreadcrumbContext.Provider>
+    <BreadcrumbContext value={providerCallbacks}>{children}</BreadcrumbContext>
   );
 };
 

@@ -56,118 +56,117 @@ export type PuzzleModalFormHandle = {
   show: () => void;
 };
 
-const PuzzleModalForm = React.forwardRef(
-  (
-    {
-      huntId,
-      puzzle,
-      tags: propsTags,
-      onSubmit,
-      showOnMount,
-    }: {
-      huntId: string;
-      puzzle?: PuzzleType;
-      // All known tags for this hunt
-      tags: TagType[];
-      onSubmit: (
-        payload: PuzzleModalFormSubmitPayload,
-        callback: (error?: Error) => void,
-      ) => void;
-      showOnMount?: boolean;
+const PuzzleModalForm = ({
+  huntId,
+  puzzle,
+  tags: propsTags,
+  onSubmit,
+  showOnMount,
+  ref,
+}: {
+  huntId: string;
+  puzzle?: PuzzleType;
+  // All known tags for this hunt
+  tags: TagType[];
+  onSubmit: (
+    payload: PuzzleModalFormSubmitPayload,
+    callback: (error?: Error) => void,
+  ) => void;
+  showOnMount?: boolean;
+  ref: React.Ref<PuzzleModalFormHandle>;
+}) => {
+  const tagNamesForIds = useCallback(
+    (tagIds: string[]) => {
+      const tagNames: Record<string, string> = {};
+      propsTags.forEach((t) => {
+        tagNames[t._id] = t.name;
+      });
+      return tagIds.map((t) => tagNames[t] ?? t);
     },
-    forwardedRef: React.Ref<PuzzleModalFormHandle>,
-  ) => {
-    const tagNamesForIds = useCallback(
-      (tagIds: string[]) => {
-        const tagNames: Record<string, string> = {};
-        propsTags.forEach((t) => {
-          tagNames[t._id] = t.name;
-        });
-        return tagIds.map((t) => tagNames[t] ?? t);
-      },
-      [propsTags],
-    );
+    [propsTags],
+  );
 
-    const [title, setTitle] = useState<string>(puzzle?.title ?? "");
-    const [url, setUrl] = useState<string>(puzzle?.url ?? "");
-    const [tags, setTags] = useState<string[]>(
-      puzzle ? tagNamesForIds(puzzle.tags) : [],
-    );
-    const [docType, setDocType] = useState<GdriveMimeTypesType | undefined>(
-      puzzle ? undefined : "spreadsheet",
-    );
-    const [expectedAnswerCount, setExpectedAnswerCount] = useState<number>(
-      puzzle ? puzzle.expectedAnswerCount : 1,
-    );
-    const [considerCompletedWithNoAnswer, setConsiderCompletedWithNoAnswer] =
-      useState<boolean | undefined>(puzzle?.completedWithNoAnswer);
-    const [confirmingDuplicateUrl, setConfirmingDuplicateUrl] =
-      useState<boolean>(false);
-    const [allowDuplicateUrls, setAllowDuplicateUrls] = useState<
-      boolean | undefined
-    >(puzzle ? undefined : false);
-    const [submitState, setSubmitState] = useState<PuzzleModalFormSubmitState>(
-      PuzzleModalFormSubmitState.IDLE,
-    );
-    const [errorMessage, setErrorMessage] = useState<string>("");
-    const [titleDirty, setTitleDirty] = useState<boolean>(false);
-    const [urlDirty, setUrlDirty] = useState<boolean>(false);
-    const [tagsDirty, setTagsDirty] = useState<boolean>(false);
-    const [expectedAnswerCountDirty, setExpectedAnswerCountDirty] =
-      useState<boolean>(false);
-    const [
-      considerCompletedWithNoAnswerDirty,
-      setConsiderCompletedWithNoAnswerDirty,
-    ] = useState<boolean>(false);
+  const [title, setTitle] = useState<string>(puzzle?.title ?? "");
+  const [url, setUrl] = useState<string>(puzzle?.url ?? "");
+  const [tags, setTags] = useState<string[]>(
+    puzzle ? tagNamesForIds(puzzle.tags) : [],
+  );
+  const [docType, setDocType] = useState<GdriveMimeTypesType | undefined>(
+    puzzle ? undefined : "spreadsheet",
+  );
+  const [expectedAnswerCount, setExpectedAnswerCount] = useState<number>(
+    puzzle ? puzzle.expectedAnswerCount : 1,
+  );
+  const [considerCompletedWithNoAnswer, setConsiderCompletedWithNoAnswer] =
+    useState<boolean | undefined>(puzzle?.completedWithNoAnswer);
+  const [confirmingDuplicateUrl, setConfirmingDuplicateUrl] =
+    useState<boolean>(false);
+  const [allowDuplicateUrls, setAllowDuplicateUrls] = useState<
+    boolean | undefined
+  >(puzzle ? undefined : false);
+  const [submitState, setSubmitState] = useState<PuzzleModalFormSubmitState>(
+    PuzzleModalFormSubmitState.IDLE,
+  );
+  const [errorMessage, setErrorMessage] = useState<string>("");
+  const [titleDirty, setTitleDirty] = useState<boolean>(false);
+  const [urlDirty, setUrlDirty] = useState<boolean>(false);
+  const [tagsDirty, setTagsDirty] = useState<boolean>(false);
+  const [expectedAnswerCountDirty, setExpectedAnswerCountDirty] =
+    useState<boolean>(false);
+  const [
+    considerCompletedWithNoAnswerDirty,
+    setConsiderCompletedWithNoAnswerDirty,
+  ] = useState<boolean>(false);
 
-    const formRef = useRef<ModalFormHandle>(null);
+  const formRef = useRef<ModalFormHandle>(null);
 
-    const onTitleChange: NonNullable<FormControlProps["onChange"]> =
-      useCallback((event) => {
-        setTitle(event.currentTarget.value);
-        setTitleDirty(true);
-      }, []);
+  const onTitleChange: NonNullable<FormControlProps["onChange"]> = useCallback(
+    (event) => {
+      setTitle(event.currentTarget.value);
+      setTitleDirty(true);
+    },
+    [],
+  );
 
-    const onUrlChange: NonNullable<FormControlProps["onChange"]> = useCallback(
-      (event) => {
-        setUrl(event.currentTarget.value);
-        setUrlDirty(true);
-      },
-      [],
-    );
+  const onUrlChange: NonNullable<FormControlProps["onChange"]> = useCallback(
+    (event) => {
+      setUrl(event.currentTarget.value);
+      setUrlDirty(true);
+    },
+    [],
+  );
 
-    const onTagsChange = useCallback(
-      (
-        value: readonly TagSelectOption[],
-        action: ActionMeta<TagSelectOption>,
-      ) => {
-        let newTags = [];
-        switch (action.action) {
-          case "clear":
-          case "create-option":
-          case "deselect-option":
-          case "pop-value":
-          case "remove-value":
-          case "select-option":
-            newTags = value.map((v) => v.value);
-            break;
-          default:
-            return;
-        }
+  const onTagsChange = useCallback(
+    (
+      value: readonly TagSelectOption[],
+      action: ActionMeta<TagSelectOption>,
+    ) => {
+      let newTags = [];
+      switch (action.action) {
+        case "clear":
+        case "create-option":
+        case "deselect-option":
+        case "pop-value":
+        case "remove-value":
+        case "select-option":
+          newTags = value.map((v) => v.value);
+          break;
+        default:
+          return;
+      }
 
-        setTags(newTags);
-        setTagsDirty(true);
-      },
-      [],
-    );
+      setTags(newTags);
+      setTagsDirty(true);
+    },
+    [],
+  );
 
-    const onDocTypeChange = useCallback((newValue: string) => {
-      setDocType(newValue as GdriveMimeTypesType);
-    }, []);
+  const onDocTypeChange = useCallback((newValue: string) => {
+    setDocType(newValue as GdriveMimeTypesType);
+  }, []);
 
-    const onExpectedAnswerCountChange: NonNullable<
-      FormControlProps["onChange"]
-    > = useCallback((event) => {
+  const onExpectedAnswerCountChange: NonNullable<FormControlProps["onChange"]> =
+    useCallback((event) => {
       const string = event.currentTarget.value;
       const value = Number(string);
       setExpectedAnswerCount(value);
@@ -181,324 +180,323 @@ const PuzzleModalForm = React.forwardRef(
       }
     }, []);
 
-    const onAllowDuplicateUrlsChange = useCallback(
-      (event: React.ChangeEvent<HTMLInputElement>) => {
-        setAllowDuplicateUrls(event.currentTarget.checked);
-      },
-      [],
-    );
+  const onAllowDuplicateUrlsChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      setAllowDuplicateUrls(event.currentTarget.checked);
+    },
+    [],
+  );
 
-    const onConsiderSolvedWithNoAnswerChange = useCallback(
-      (event: React.ChangeEvent<HTMLInputElement>) => {
-        setConsiderCompletedWithNoAnswer(event.currentTarget.checked);
-        setConsiderCompletedWithNoAnswerDirty(true);
-      },
-      [],
-    );
+  const onConsiderSolvedWithNoAnswerChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      setConsiderCompletedWithNoAnswer(event.currentTarget.checked);
+      setConsiderCompletedWithNoAnswerDirty(true);
+    },
+    [],
+  );
 
-    const onFormSubmit = useCallback(
-      (callback: () => void) => {
-        setSubmitState(PuzzleModalFormSubmitState.SUBMITTING);
-        const payload: PuzzleModalFormSubmitPayload = {
-          huntId,
-          title,
-          url: url !== "" ? url : undefined, // Make sure we send undefined if url is falsy
-          tags,
-          expectedAnswerCount,
-          completedWithNoAnswer: considerCompletedWithNoAnswer,
-        };
-        if (docType) {
-          payload.docType = docType;
-        }
-        if (allowDuplicateUrls) {
-          payload.allowDuplicateUrls = allowDuplicateUrls;
-        }
-        onSubmit(payload, (error) => {
-          if (error) {
-            if (
-              error instanceof Meteor.Error &&
-              typeof error.error === "number" &&
-              error.error === 409
-            ) {
-              setErrorMessage(
-                "A puzzle already exists with this URL - did someone else already add this" +
-                  ' puzzle? To force creation anyway, check the "Allow puzzles with identical' +
-                  ' URLs" box above and try again.',
-              );
-              setConfirmingDuplicateUrl(true);
-            } else {
-              setErrorMessage(error.message);
-            }
-            setSubmitState(PuzzleModalFormSubmitState.FAILED);
-          } else {
-            setSubmitState(PuzzleModalFormSubmitState.IDLE);
-            setErrorMessage("");
-            setTitleDirty(false);
-            setUrlDirty(false);
-            setTagsDirty(false);
-            setExpectedAnswerCountDirty(false);
-            setConsiderCompletedWithNoAnswerDirty(false);
-            setConfirmingDuplicateUrl(false);
-            setAllowDuplicateUrls(false);
-            callback();
-          }
-        });
-      },
-      [
-        onSubmit,
+  const onFormSubmit = useCallback(
+    (callback: () => void) => {
+      setSubmitState(PuzzleModalFormSubmitState.SUBMITTING);
+      const payload: PuzzleModalFormSubmitPayload = {
         huntId,
         title,
-        url,
+        url: url !== "" ? url : undefined, // Make sure we send undefined if url is falsy
         tags,
         expectedAnswerCount,
-        docType,
-        allowDuplicateUrls,
-        considerCompletedWithNoAnswer,
-      ],
-    );
-
-    const show = useCallback(() => {
-      if (formRef.current) {
-        formRef.current.show();
+        completedWithNoAnswer: considerCompletedWithNoAnswer,
+      };
+      if (docType) {
+        payload.docType = docType;
       }
-    }, []);
-
-    const reset = useCallback(() => {
-      setTitle("");
-      setUrl("");
-      setTags([]);
-      setExpectedAnswerCount(1);
-      setDocType("spreadsheet");
-    }, []);
-
-    const currentTitle = useMemo(() => {
-      if (!titleDirty && puzzle) {
-        return puzzle.title;
-      } else {
-        return title;
+      if (allowDuplicateUrls) {
+        payload.allowDuplicateUrls = allowDuplicateUrls;
       }
-    }, [titleDirty, puzzle, title]);
-
-    const currentUrl = useMemo(() => {
-      if (!urlDirty && puzzle) {
-        // Always make this a string so that currentUrl is not undefined, which
-        // makes React confused about whether the input is controller or not.
-        // If the string is empty, we'll turn it back into undefined in onFormSubmit.
-        return puzzle.url ?? "";
-      } else {
-        return url;
-      }
-    }, [urlDirty, puzzle, url]);
-
-    const currentTags = useMemo(() => {
-      if (!tagsDirty && puzzle) {
-        return tagNamesForIds(puzzle.tags);
-      } else {
-        return tags;
-      }
-    }, [tagsDirty, puzzle, tagNamesForIds, tags]);
-
-    const currentExpectedAnswerCount = useMemo(() => {
-      if (!expectedAnswerCountDirty && puzzle) {
-        return puzzle.expectedAnswerCount;
-      } else {
-        return expectedAnswerCount;
-      }
-    }, [expectedAnswerCountDirty, puzzle, expectedAnswerCount]);
-
-    const currentConsiderCompletedWithNoAnswer = useMemo(() => {
-      if (!considerCompletedWithNoAnswerDirty && puzzle) {
-        return puzzle.completedWithNoAnswer ?? false;
-      } else {
-        return considerCompletedWithNoAnswer ?? false;
-      }
-    }, [
-      considerCompletedWithNoAnswerDirty,
-      puzzle,
-      considerCompletedWithNoAnswer,
-    ]);
-
-    useImperativeHandle(forwardedRef, () => ({
-      show,
-      reset,
-    }));
-
-    useEffect(() => {
-      if (showOnMount) {
-        show();
-      }
-    }, [showOnMount, show]);
-
-    const disableForm = submitState === PuzzleModalFormSubmitState.SUBMITTING;
-
-    const selectOptions: TagSelectOption[] = [
-      ...propsTags.map((t) => t.name),
-      ...tags,
-    ]
-      .filter(Boolean)
-      .map((t) => {
-        return { value: t, label: t };
+      onSubmit(payload, (error) => {
+        if (error) {
+          if (
+            error instanceof Meteor.Error &&
+            typeof error.error === "number" &&
+            error.error === 409
+          ) {
+            setErrorMessage(
+              "A puzzle already exists with this URL - did someone else already add this" +
+                ' puzzle? To force creation anyway, check the "Allow puzzles with identical' +
+                ' URLs" box above and try again.',
+            );
+            setConfirmingDuplicateUrl(true);
+          } else {
+            setErrorMessage(error.message);
+          }
+          setSubmitState(PuzzleModalFormSubmitState.FAILED);
+        } else {
+          setSubmitState(PuzzleModalFormSubmitState.IDLE);
+          setErrorMessage("");
+          setTitleDirty(false);
+          setUrlDirty(false);
+          setTagsDirty(false);
+          setExpectedAnswerCountDirty(false);
+          setConsiderCompletedWithNoAnswerDirty(false);
+          setConfirmingDuplicateUrl(false);
+          setAllowDuplicateUrls(false);
+          callback();
+        }
       });
+    },
+    [
+      onSubmit,
+      huntId,
+      title,
+      url,
+      tags,
+      expectedAnswerCount,
+      docType,
+      allowDuplicateUrls,
+      considerCompletedWithNoAnswer,
+    ],
+  );
 
-    const idPrefix = useId();
+  const show = useCallback(() => {
+    if (formRef.current) {
+      formRef.current.show();
+    }
+  }, []);
 
-    const docTypeSelector =
-      !puzzle && docType ? (
-        <FormGroup as={Row} className="mb-3">
+  const reset = useCallback(() => {
+    setTitle("");
+    setUrl("");
+    setTags([]);
+    setExpectedAnswerCount(1);
+    setDocType("spreadsheet");
+  }, []);
+
+  const currentTitle = useMemo(() => {
+    if (!titleDirty && puzzle) {
+      return puzzle.title;
+    } else {
+      return title;
+    }
+  }, [titleDirty, puzzle, title]);
+
+  const currentUrl = useMemo(() => {
+    if (!urlDirty && puzzle) {
+      // Always make this a string so that currentUrl is not undefined, which
+      // makes React confused about whether the input is controller or not.
+      // If the string is empty, we'll turn it back into undefined in onFormSubmit.
+      return puzzle.url ?? "";
+    } else {
+      return url;
+    }
+  }, [urlDirty, puzzle, url]);
+
+  const currentTags = useMemo(() => {
+    if (!tagsDirty && puzzle) {
+      return tagNamesForIds(puzzle.tags);
+    } else {
+      return tags;
+    }
+  }, [tagsDirty, puzzle, tagNamesForIds, tags]);
+
+  const currentExpectedAnswerCount = useMemo(() => {
+    if (!expectedAnswerCountDirty && puzzle) {
+      return puzzle.expectedAnswerCount;
+    } else {
+      return expectedAnswerCount;
+    }
+  }, [expectedAnswerCountDirty, puzzle, expectedAnswerCount]);
+
+  const currentConsiderCompletedWithNoAnswer = useMemo(() => {
+    if (!considerCompletedWithNoAnswerDirty && puzzle) {
+      return puzzle.completedWithNoAnswer ?? false;
+    } else {
+      return considerCompletedWithNoAnswer ?? false;
+    }
+  }, [
+    considerCompletedWithNoAnswerDirty,
+    puzzle,
+    considerCompletedWithNoAnswer,
+  ]);
+
+  useImperativeHandle(ref, () => ({
+    show,
+    reset,
+  }));
+
+  useEffect(() => {
+    if (showOnMount) {
+      show();
+    }
+  }, [showOnMount, show]);
+
+  const disableForm = submitState === PuzzleModalFormSubmitState.SUBMITTING;
+
+  const selectOptions: TagSelectOption[] = [
+    ...propsTags.map((t) => t.name),
+    ...tags,
+  ]
+    .filter(Boolean)
+    .map((t) => {
+      return { value: t, label: t };
+    });
+
+  const idPrefix = useId();
+
+  const docTypeSelector =
+    !puzzle && docType ? (
+      <FormGroup as={Row} className="mb-3">
+        <FormLabel column xs={3}>
+          Document type
+        </FormLabel>
+        <Col xs={9}>
+          <LabelledRadioGroup
+            header=""
+            options={[
+              {
+                value: "spreadsheet",
+                label: "Spreadsheet",
+              },
+              {
+                value: "document",
+                label: "Document",
+              },
+            ]}
+            initialValue={docType}
+            help="This can't be changed once a puzzle has been created. Unless you're absolutely sure, use a spreadsheet. We only expect to use documents for administrivia."
+            onChange={onDocTypeChange}
+          />
+        </Col>
+      </FormGroup>
+    ) : null;
+
+  const allowDuplicateUrlsCheckbox =
+    !puzzle && allowDuplicateUrls !== undefined && confirmingDuplicateUrl ? (
+      <FormCheck
+        id={`${idPrefix}-allow-duplicate-urls`}
+        label="Allow puzzles with identical URLs"
+        type="checkbox"
+        disabled={disableForm}
+        onChange={onAllowDuplicateUrlsChange}
+        className="mt-1"
+      />
+    ) : null;
+
+  const theme = useTheme();
+
+  return (
+    <Suspense
+      fallback={
+        <div>
+          <Loading />
+        </div>
+      }
+    >
+      <ModalForm
+        ref={formRef}
+        title={puzzle ? "Edit puzzle" : "Add puzzle"}
+        onSubmit={onFormSubmit}
+        submitDisabled={disableForm}
+      >
+        <FormGroup
+          as={Row}
+          className="mb-3"
+          controlId={`${idPrefix}-new-puzzle-title`}
+        >
           <FormLabel column xs={3}>
-            Document type
+            Title
           </FormLabel>
           <Col xs={9}>
-            <LabelledRadioGroup
-              header=""
-              options={[
-                {
-                  value: "spreadsheet",
-                  label: "Spreadsheet",
-                },
-                {
-                  value: "document",
-                  label: "Document",
-                },
-              ]}
-              initialValue={docType}
-              help="This can't be changed once a puzzle has been created. Unless you're absolutely sure, use a spreadsheet. We only expect to use documents for administrivia."
-              onChange={onDocTypeChange}
+            <FormControl
+              type="text"
+              autoFocus
+              disabled={disableForm}
+              onChange={onTitleChange}
+              value={currentTitle}
             />
           </Col>
         </FormGroup>
-      ) : null;
 
-    const allowDuplicateUrlsCheckbox =
-      !puzzle && allowDuplicateUrls !== undefined && confirmingDuplicateUrl ? (
-        <FormCheck
-          id={`${idPrefix}-allow-duplicate-urls`}
-          label="Allow puzzles with identical URLs"
-          type="checkbox"
-          disabled={disableForm}
-          onChange={onAllowDuplicateUrlsChange}
-          className="mt-1"
-        />
-      ) : null;
-
-    const theme = useTheme();
-
-    return (
-      <Suspense
-        fallback={
-          <div>
-            <Loading />
-          </div>
-        }
-      >
-        <ModalForm
-          ref={formRef}
-          title={puzzle ? "Edit puzzle" : "Add puzzle"}
-          onSubmit={onFormSubmit}
-          submitDisabled={disableForm}
+        <FormGroup
+          as={Row}
+          className="mb-3"
+          controlId={`${idPrefix}-new-puzzle-url`}
         >
-          <FormGroup
-            as={Row}
-            className="mb-3"
-            controlId={`${idPrefix}-new-puzzle-title`}
-          >
-            <FormLabel column xs={3}>
-              Title
-            </FormLabel>
-            <Col xs={9}>
-              <FormControl
-                type="text"
-                autoFocus
-                disabled={disableForm}
-                onChange={onTitleChange}
-                value={currentTitle}
-              />
-            </Col>
-          </FormGroup>
-
-          <FormGroup
-            as={Row}
-            className="mb-3"
-            controlId={`${idPrefix}-new-puzzle-url`}
-          >
-            <FormLabel column xs={3}>
-              URL
-            </FormLabel>
-            <Col xs={9}>
-              <FormControl
-                type="text"
-                disabled={disableForm}
-                onChange={onUrlChange}
-                value={currentUrl}
-              />
-              {allowDuplicateUrlsCheckbox}
-            </Col>
-          </FormGroup>
-
-          <FormGroup
-            as={Row}
-            className="mb-3"
-            controlId={`${idPrefix}-new-puzzle-tags`}
-          >
-            <FormLabel column xs={3}>
-              Tags
-            </FormLabel>
-            <Col xs={9}>
-              <Creatable
-                id={`${idPrefix}-new-puzzle-tags`}
-                theme={theme.reactSelectTheme}
-                options={selectOptions}
-                isMulti
-                isDisabled={disableForm}
-                onChange={onTagsChange}
-                value={currentTags.map((t) => {
-                  return { label: t, value: t };
-                })}
-              />
-            </Col>
-          </FormGroup>
-
-          {docTypeSelector}
-
-          <FormGroup
-            as={Row}
-            className="mb-3"
-            controlId={`${idPrefix}-new-puzzle-expected-answer-count`}
-          >
-            <FormLabel column xs={3}>
-              Expected # of answers
-            </FormLabel>
-            <Col xs={9}>
-              <FormControl
-                type="number"
-                disabled={disableForm}
-                onChange={onExpectedAnswerCountChange}
-                value={currentExpectedAnswerCount}
-                min={0}
-                step={1}
-              />
-            </Col>
-          </FormGroup>
-
-          {currentExpectedAnswerCount === 0 ? (
-            <FormCheck
-              id={`${idPrefix}-solved-with-no-answers`}
-              label="Consider solved with no answers"
-              type="checkbox"
-              checked={currentConsiderCompletedWithNoAnswer}
+          <FormLabel column xs={3}>
+            URL
+          </FormLabel>
+          <Col xs={9}>
+            <FormControl
+              type="text"
               disabled={disableForm}
-              onChange={onConsiderSolvedWithNoAnswerChange}
-              className="mt-1"
+              onChange={onUrlChange}
+              value={currentUrl}
             />
-          ) : undefined}
+            {allowDuplicateUrlsCheckbox}
+          </Col>
+        </FormGroup>
 
-          {submitState === PuzzleModalFormSubmitState.FAILED && (
-            <Alert variant="danger">{errorMessage}</Alert>
-          )}
-        </ModalForm>
-      </Suspense>
-    );
-  },
-);
+        <FormGroup
+          as={Row}
+          className="mb-3"
+          controlId={`${idPrefix}-new-puzzle-tags`}
+        >
+          <FormLabel column xs={3}>
+            Tags
+          </FormLabel>
+          <Col xs={9}>
+            <Creatable
+              id={`${idPrefix}-new-puzzle-tags`}
+              theme={theme.reactSelectTheme}
+              options={selectOptions}
+              isMulti
+              isDisabled={disableForm}
+              onChange={onTagsChange}
+              value={currentTags.map((t) => {
+                return { label: t, value: t };
+              })}
+            />
+          </Col>
+        </FormGroup>
+
+        {docTypeSelector}
+
+        <FormGroup
+          as={Row}
+          className="mb-3"
+          controlId={`${idPrefix}-new-puzzle-expected-answer-count`}
+        >
+          <FormLabel column xs={3}>
+            Expected # of answers
+          </FormLabel>
+          <Col xs={9}>
+            <FormControl
+              type="number"
+              disabled={disableForm}
+              onChange={onExpectedAnswerCountChange}
+              value={currentExpectedAnswerCount}
+              min={0}
+              step={1}
+            />
+          </Col>
+        </FormGroup>
+
+        {currentExpectedAnswerCount === 0 ? (
+          <FormCheck
+            id={`${idPrefix}-solved-with-no-answers`}
+            label="Consider solved with no answers"
+            type="checkbox"
+            checked={currentConsiderCompletedWithNoAnswer}
+            disabled={disableForm}
+            onChange={onConsiderSolvedWithNoAnswerChange}
+            className="mt-1"
+          />
+        ) : undefined}
+
+        {submitState === PuzzleModalFormSubmitState.FAILED && (
+          <Alert variant="danger">{errorMessage}</Alert>
+        )}
+      </ModalForm>
+    </Suspense>
+  );
+};
 
 export default PuzzleModalForm;

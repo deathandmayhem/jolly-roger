@@ -98,66 +98,68 @@ type CreateFixtureModalFormHandle = {
   show: () => void;
 };
 
-const CreateFixtureModal = React.forwardRef<CreateFixtureModalFormHandle>(
-  (_props, forwardedRef) => {
-    const [visible, setVisible] = useState(true);
-    const show = useCallback(() => setVisible(true), []);
-    const hide = useCallback(() => setVisible(false), []);
-    useImperativeHandle(forwardedRef, () => ({ show }), [show]);
+const CreateFixtureModal = ({
+  ref,
+}: {
+  ref: React.Ref<CreateFixtureModalFormHandle>;
+}) => {
+  const [visible, setVisible] = useState(true);
+  const show = useCallback(() => setVisible(true), []);
+  const hide = useCallback(() => setVisible(false), []);
+  useImperativeHandle(ref, () => ({ show }), [show]);
 
-    const [disabled, setDisabled] = useState(false);
-    const [error, setError] = useState<Error>();
-    const clearError = useCallback(() => setError(undefined), []);
+  const [disabled, setDisabled] = useState(false);
+  const [error, setError] = useState<Error>();
+  const clearError = useCallback(() => setError(undefined), []);
 
-    const createFixture = useCallback(() => {
-      createFixtureHunt.call((e) => {
-        setDisabled(false);
-        if (e) {
-          setError(e);
-        } else {
-          hide();
-        }
-      });
-      setDisabled(true);
-    }, [hide]);
+  const createFixture = useCallback(() => {
+    createFixtureHunt.call((e) => {
+      setDisabled(false);
+      if (e) {
+        setError(e);
+      } else {
+        hide();
+      }
+    });
+    setDisabled(true);
+  }, [hide]);
 
-    const modal = (
-      <Modal show={visible} onHide={hide}>
-        <Modal.Header closeButton>
-          <Modal.Title>Create sample hunt</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <p>
-            If you just want to see what Jolly Roger looks like in action, this
-            will create a sample hunt, using data from the 2018 MIT Mystery Hunt
-            (&quot;Operation: Head Hunters&quot;).
-          </p>
-          <p>
-            It shows the hunt partially solved (and therefore includes
-            spoilers). However, this provides an opportunity to demonstrate how
-            Jolly Roger can handle complex structures and various puzzle states.
-          </p>
+  const modal = (
+    <Modal show={visible} onHide={hide}>
+      <Modal.Header closeButton>
+        <Modal.Title>Create sample hunt</Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        <p>
+          If you just want to see what Jolly Roger looks like in action, this
+          will create a sample hunt, using data from the 2018 MIT Mystery Hunt
+          (&quot;Operation: Head Hunters&quot;).
+        </p>
+        <p>
+          It shows the hunt partially solved (and therefore includes spoilers).
+          However, this provides an opportunity to demonstrate how Jolly Roger
+          can handle complex structures and various puzzle states.
+        </p>
 
-          {error && (
-            <Alert variant="danger" dismissible onClose={clearError}>
-              {error.message}
-            </Alert>
-          )}
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={hide} disabled={disabled}>
-            Cancel
-          </Button>
-          <Button variant="danger" onClick={createFixture} disabled={disabled}>
-            Create sample hunt
-          </Button>
-        </Modal.Footer>
-      </Modal>
-    );
+        {error && (
+          <Alert variant="danger" dismissible onClose={clearError}>
+            {error.message}
+          </Alert>
+        )}
+      </Modal.Body>
+      <Modal.Footer>
+        <Button variant="secondary" onClick={hide} disabled={disabled}>
+          Cancel
+        </Button>
+        <Button variant="danger" onClick={createFixture} disabled={disabled}>
+          Create sample hunt
+        </Button>
+      </Modal.Footer>
+    </Modal>
+  );
 
-    return createPortal(modal, document.body);
-  },
-);
+  return createPortal(modal, document.body);
+};
 
 const HuntListPage = () => {
   const huntsLoading = useTypedSubscribe(huntsAll);

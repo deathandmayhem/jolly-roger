@@ -2,8 +2,9 @@ import { useSubscribe, useTracker } from "meteor/react-meteor-data";
 import { faImage } from "@fortawesome/free-solid-svg-icons/faImage";
 import { faSpinner } from "@fortawesome/free-solid-svg-icons/faSpinner";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import type React from "react";
 import type { ChangeEvent, MouseEvent } from "react";
-import React, {
+import {
   useCallback,
   useId,
   useImperativeHandle,
@@ -129,173 +130,169 @@ const makeImageSource = async ({
   };
 };
 
-const InsertImageModal = React.forwardRef(
-  (
-    { documentId, sheets }: { documentId: string; sheets: Sheet[] },
-    forwardedRef: React.Ref<ImageInsertModalHandle>,
-  ) => {
-    // Pop up by default when first rendered.
-    const [visible, setVisible] = useState(true);
-    const show = useCallback(() => setVisible(true), []);
-    const hide = useCallback(() => setVisible(false), []);
-    useImperativeHandle(forwardedRef, () => ({ show }), [show]);
+const InsertImageModal = ({
+  documentId,
+  sheets,
+  ref,
+}: {
+  documentId: string;
+  sheets: Sheet[];
+  ref: React.Ref<ImageInsertModalHandle>;
+}) => {
+  // Pop up by default when first rendered.
+  const [visible, setVisible] = useState(true);
+  const show = useCallback(() => setVisible(true), []);
+  const hide = useCallback(() => setVisible(false), []);
+  useImperativeHandle(ref, () => ({ show }), [show]);
 
-    const [submitState, setSubmitState] = useState<InsertImageSubmitState>(
-      InsertImageSubmitState.IDLE,
-    );
-    const [submitError, setSubmitError] = useState<string>("");
-    const clearError = useCallback(
-      () => setSubmitState(InsertImageSubmitState.IDLE),
-      [],
-    );
+  const [submitState, setSubmitState] = useState<InsertImageSubmitState>(
+    InsertImageSubmitState.IDLE,
+  );
+  const [submitError, setSubmitError] = useState<string>("");
+  const clearError = useCallback(
+    () => setSubmitState(InsertImageSubmitState.IDLE),
+    [],
+  );
 
-    const [sheet, setSheet] = useState<number>(sheets[0]?.id ?? 0);
-    const onChangeSheet = useCallback((e: ChangeEvent<HTMLSelectElement>) => {
-      setSheet(parseInt(e.target.value, 10));
-    }, []);
+  const [sheet, setSheet] = useState<number>(sheets[0]?.id ?? 0);
+  const onChangeSheet = useCallback((e: ChangeEvent<HTMLSelectElement>) => {
+    setSheet(parseInt(e.target.value, 10));
+  }, []);
 
-    const sheetOptions = useMemo(() => {
-      return sheets.map((s) => {
-        return (
-          <option key={s.id} value={s.id}>
-            {s.name}
-          </option>
-        );
-      });
-    }, [sheets]);
+  const sheetOptions = useMemo(() => {
+    return sheets.map((s) => {
+      return (
+        <option key={s.id} value={s.id}>
+          {s.name}
+        </option>
+      );
+    });
+  }, [sheets]);
 
-    const [imageSource, setImageSource] = useState<string>("upload");
-    const onSelectTab = useCallback((k: string | null) => {
-      if (k) {
-        setImageSource(k);
-      }
-    }, []);
+  const [imageSource, setImageSource] = useState<string>("upload");
+  const onSelectTab = useCallback((k: string | null) => {
+    if (k) {
+      setImageSource(k);
+    }
+  }, []);
 
-    const fileRef = useRef<HTMLInputElement>(null);
-    const [file, setFile] = useState<File>();
-    const [fileInvalid, setFileInvalid] = useState<boolean>(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [file, setFile] = useState<File>();
+  const [fileInvalid, setFileInvalid] = useState<boolean>(false);
 
-    const onChangeFile = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-      const newFile = e.target.files?.[0];
-      setFile(newFile);
-      setFileInvalid(false);
-      e.target.setCustomValidity("");
-    }, []);
+  const onChangeFile = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+    const newFile = e.target.files?.[0];
+    setFile(newFile);
+    setFileInvalid(false);
+    e.target.setCustomValidity("");
+  }, []);
 
-    const [url, setUrl] = useState<string>("");
-    const onChangeUrl = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-      setUrl(e.target.value);
-    }, []);
+  const [url, setUrl] = useState<string>("");
+  const onChangeUrl = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+    setUrl(e.target.value);
+  }, []);
 
-    const onSubmit = useCallback(
-      (e: MouseEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        e.stopPropagation();
+  const onSubmit = useCallback(
+    (e: MouseEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      e.stopPropagation();
 
-        void (async () => {
-          setSubmitState(InsertImageSubmitState.SUBMITTING);
-          try {
-            const image = await makeImageSource({
-              documentId,
-              imageSource,
-              file,
-              imageUrl: url,
-            });
+      void (async () => {
+        setSubmitState(InsertImageSubmitState.SUBMITTING);
+        try {
+          const image = await makeImageSource({
+            documentId,
+            imageSource,
+            file,
+            imageUrl: url,
+          });
 
-            await insertDocumentImage.callPromise({
-              documentId,
-              sheetId: sheet,
-              image,
-            });
+          await insertDocumentImage.callPromise({
+            documentId,
+            sheetId: sheet,
+            image,
+          });
+          setSubmitState(InsertImageSubmitState.IDLE);
+          hide();
+        } catch (err) {
+          if (err instanceof InvalidImage) {
+            setFileInvalid(true);
+            fileRef.current?.setCustomValidity(err.message);
+            fileRef.current?.reportValidity();
             setSubmitState(InsertImageSubmitState.IDLE);
-            hide();
-          } catch (err) {
-            if (err instanceof InvalidImage) {
-              setFileInvalid(true);
-              fileRef.current?.setCustomValidity(err.message);
-              fileRef.current?.reportValidity();
-              setSubmitState(InsertImageSubmitState.IDLE);
-            } else {
-              setSubmitState(InsertImageSubmitState.ERROR);
-              setSubmitError(
-                err instanceof Error ? err.message : "Unknown error",
-              );
-            }
+          } else {
+            setSubmitState(InsertImageSubmitState.ERROR);
+            setSubmitError(
+              err instanceof Error ? err.message : "Unknown error",
+            );
           }
-        })();
-      },
-      [documentId, imageSource, file, url, sheet, hide],
-    );
+        }
+      })();
+    },
+    [documentId, imageSource, file, url, sheet, hide],
+  );
 
-    const submitDisabled = submitState === InsertImageSubmitState.SUBMITTING;
+  const submitDisabled = submitState === InsertImageSubmitState.SUBMITTING;
 
-    const idPrefix = useId();
+  const idPrefix = useId();
 
-    const modal = (
-      <Modal show={visible} onHide={hide}>
-        <Modal.Header closeButton>Insert image</Modal.Header>
-        <Form onSubmit={onSubmit}>
-          <Modal.Body>
-            <FormGroup className="mb-3" controlId={`${idPrefix}-sheet-select`}>
-              <FormLabel>Choose a sheet</FormLabel>
-              <FormSelect
-                id={`${idPrefix}-sheet-select`}
-                onChange={onChangeSheet}
-                value={sheet}
-              >
-                {sheetOptions}
-              </FormSelect>
-            </FormGroup>
-            <Tabs
-              activeKey={imageSource}
-              onSelect={onSelectTab}
-              className="mb-3"
+  const modal = (
+    <Modal show={visible} onHide={hide}>
+      <Modal.Header closeButton>Insert image</Modal.Header>
+      <Form onSubmit={onSubmit}>
+        <Modal.Body>
+          <FormGroup className="mb-3" controlId={`${idPrefix}-sheet-select`}>
+            <FormLabel>Choose a sheet</FormLabel>
+            <FormSelect
+              id={`${idPrefix}-sheet-select`}
+              onChange={onChangeSheet}
+              value={sheet}
             >
-              <Tab eventKey="upload" title="Upload">
+              {sheetOptions}
+            </FormSelect>
+          </FormGroup>
+          <Tabs activeKey={imageSource} onSelect={onSelectTab} className="mb-3">
+            <Tab eventKey="upload" title="Upload">
+              <FormControl
+                type="file"
+                onChange={onChangeFile}
+                isInvalid={fileInvalid}
+                required={imageSource === "upload"}
+                ref={fileRef}
+                accept=".png,.jpg,.jpeg,.gif"
+              />
+            </Tab>
+            <Tab eventKey="link" title="Link">
+              <FormGroup className="mb-3" controlId={`${idPrefix}-image-link`}>
+                <FormLabel>Image URL</FormLabel>
                 <FormControl
-                  type="file"
-                  onChange={onChangeFile}
-                  isInvalid={fileInvalid}
-                  required={imageSource === "upload"}
-                  ref={fileRef}
-                  accept=".png,.jpg,.jpeg,.gif"
+                  type="url"
+                  required={imageSource === "link"}
+                  onChange={onChangeUrl}
+                  value={url}
                 />
-              </Tab>
-              <Tab eventKey="link" title="Link">
-                <FormGroup
-                  className="mb-3"
-                  controlId={`${idPrefix}-image-link`}
-                >
-                  <FormLabel>Image URL</FormLabel>
-                  <FormControl
-                    type="url"
-                    required={imageSource === "link"}
-                    onChange={onChangeUrl}
-                    value={url}
-                  />
-                </FormGroup>
-              </Tab>
-            </Tabs>
-          </Modal.Body>
-          <Modal.Footer>
-            <div className="mb-3">
-              <Button variant="primary" type="submit" disabled={submitDisabled}>
-                Insert
-              </Button>
-            </div>
-            {submitState === InsertImageSubmitState.ERROR ? (
-              <Alert variant="danger" dismissible onClose={clearError}>
-                {submitError}
-              </Alert>
-            ) : null}
-          </Modal.Footer>
-        </Form>
-      </Modal>
-    );
+              </FormGroup>
+            </Tab>
+          </Tabs>
+        </Modal.Body>
+        <Modal.Footer>
+          <div className="mb-3">
+            <Button variant="primary" type="submit" disabled={submitDisabled}>
+              Insert
+            </Button>
+          </div>
+          {submitState === InsertImageSubmitState.ERROR ? (
+            <Alert variant="danger" dismissible onClose={clearError}>
+              {submitError}
+            </Alert>
+          ) : null}
+        </Modal.Footer>
+      </Form>
+    </Modal>
+  );
 
-    return createPortal(modal, document.body);
-  },
-);
+  return createPortal(modal, document.body);
+};
 
 const InsertImage = ({ documentId }: { documentId: string }) => {
   useSubscribe("googleScriptInfo");
