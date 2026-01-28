@@ -10,7 +10,6 @@
   },
   "scripts": {
     "lint:types": "tsgo",
-    "lint:biome": "biome check",
     "lint:oxlint": "oxlint --tsconfig tsconfig.json --type-aware --deny-warnings --report-unused-disable-directives",
     "lint:eslint": "eslint --max-warnings 0 --ext js,jsx,ts,tsx,mjs,mts .",
     "lint:css": "stylelint '**/*.scss' '**/*.tsx'",

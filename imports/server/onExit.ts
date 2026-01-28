@@ -1,4 +1,4 @@
-// biome-ignore-all lint/suspicious/noConsole: signal handlers should minimize dependencies
+// oxlint-disable no-console -- signal handlers should minimize dependencies
 
 const exitHandlers: (() => void | Promise<void>)[] = [];
 

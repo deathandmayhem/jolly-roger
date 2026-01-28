@@ -299,8 +299,7 @@ const FirehosePage = () => {
     };
   }, [onLayoutMaybeChanged]);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies(loading): We want to run this effect when loading or chats.length changes.
-  // biome-ignore lint/correctness/useExhaustiveDependencies(chats.length): We want to run this effect when loading or chats.length changes.
+  // oxlint-disable-next-line react/exhaustive-deps -- We want to run this effect when loading or chats.length changes.
   useLayoutEffect(() => {
     onLayoutMaybeChanged();
   }, [loading, onLayoutMaybeChanged, chats.length]);

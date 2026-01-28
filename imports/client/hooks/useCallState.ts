@@ -515,9 +515,7 @@ const useCallState = ({
       : undefined,
   );
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies(huntId): We want to reset if the user navigates to a new puzzle
-  // biome-ignore lint/correctness/useExhaustiveDependencies(puzzleId): See above
-  // biome-ignore lint/correctness/useExhaustiveDependencies(tabId): See above
+  // oxlint-disable-next-line react/exhaustive-deps -- We want to reset if the user navigates to a new puzzle
   useEffect(() => {
     return () => {
       logger.debug("huntId/puzzleId/tabId changed, resetting call state");
@@ -876,7 +874,7 @@ const useCallState = ({
 
   const producerShouldBePaused =
     state.audioControls?.muted || state.audioControls?.deafened;
-  // biome-ignore lint/correctness/useExhaustiveDependencies(producerParamsGeneration): We want to force this effect to run when producerParams changes
+  // oxlint-disable-next-line react/exhaustive-deps -- We want to force this effect to run when producerParams changes
   useEffect(() => {
     logger.debug("producerTracks", { tracks: producerTracks.map((t) => t.id) });
     const activeTrackIds = new Set();
@@ -961,7 +959,7 @@ const useCallState = ({
   ]);
 
   // Ensure mute state is respected by mediasoup.
-  // biome-ignore lint/correctness/useExhaustiveDependencies(producerGeneration): We want to force this effect to run when we create a new producer
+  // oxlint-disable-next-line react/exhaustive-deps -- We want to force this effect to run when we create a new producer
   useEffect(() => {
     if (producerShouldBePaused !== undefined) {
       // Update producer pause state

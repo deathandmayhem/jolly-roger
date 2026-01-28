@@ -2140,7 +2140,7 @@ const PuzzlePage = React.memo(() => {
     setIsChatMinimized(false);
   }, []);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies(chatMessages.length): We do want to trigger this effect on chatMessages length change
+  // oxlint-disable-next-line react/exhaustive-deps -- We do want to trigger this effect on chatMessages length change
   useEffect(() => {
     // Any time a new chat message comes in, show the chat again.
     setIsChatMinimized(false);
@@ -2179,12 +2179,12 @@ const PuzzlePage = React.memo(() => {
   }, []);
 
   const answersCount = activePuzzle?.answers?.length ?? 0;
-  // biome-ignore lint/correctness/useExhaustiveDependencies(answersCount): We want to force the metadata section to be visible when the answers change, so solvers will not miss the puzzle being solved.
+  // oxlint-disable-next-line react/exhaustive-deps -- We want to force the metadata section to be visible when the answers change, so solvers will not miss the puzzle being solved.
   useEffect(() => {
     setIsMetadataMinimized(false);
   }, [answersCount]);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies(sidebarWidth): When the sidebar width changes, we want to scroll to the target.
+  // oxlint-disable-next-line react/exhaustive-deps -- When the sidebar width changes, we want to scroll to the target.
   useLayoutEffect(() => {
     trace("PuzzlePage useLayoutEffect", { hasRef: !!chatSectionRef.current });
     if (chatSectionRef.current) {

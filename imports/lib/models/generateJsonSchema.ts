@@ -97,7 +97,6 @@ function stringToSchema(def: z.ZodStringDef): JsonSchema {
       case "uuid":
       case "url": {
         let pattern;
-        // biome-ignore lint/style/useDefaultSwitchClause: migration from eslint
         switch (check.kind) {
           case "regex":
             pattern = check.regex;

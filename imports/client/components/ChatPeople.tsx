@@ -251,7 +251,7 @@ const ChatPeople = ({
 
   const { muted, deafened } = audioControls;
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies(disabled): We want the parent to re-render when anything might have changed our rendered size
+  // oxlint-disable-next-line react/exhaustive-deps -- We want the parent to re-render when anything might have changed our rendered size
   useLayoutEffect(() => {
     trace("ChatPeople useLayoutEffect", {
       loading,
