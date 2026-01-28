@@ -1,10 +1,12 @@
 import { check } from "meteor/check";
 import { Meteor } from "meteor/meteor";
+import i18n from "i18next";
 import Logger from "../../Logger";
 import { contentFromMessage } from "../../lib/models/ChatMessages";
 import Guesses from "../../lib/models/Guesses";
 import Hunts from "../../lib/models/Hunts";
 import Puzzles from "../../lib/models/Puzzles";
+import Settings from "../../lib/models/Settings";
 import addPuzzleAnswer from "../../methods/addPuzzleAnswer";
 import GlobalHooks from "../GlobalHooks";
 import sendChatMessageInternal from "../sendChatMessageInternal";
@@ -58,7 +60,16 @@ defineMethod(addPuzzleAnswer, {
     if (!savedAnswer) {
       throw new Meteor.Error(404, "No such correct guess");
     }
-    const message = `\`${savedAnswer.guess}\` was accepted as the correct answer`;
+    const lngObj = await Settings.findOneAsync({
+      name: "language",
+    });
+    const lng = lngObj?.value.language ?? "en";
+    const ns = "addPuzzleAnswer";
+    const message = i18n.t(
+      "acceptedAnswer",
+      `\`{{guess}}\` was accepted as the correct answer`,
+      { lng: lng, ns: ns, guess: savedAnswer.guess },
+    );
     const content = contentFromMessage(message);
     await sendChatMessageInternal({
       puzzleId: savedAnswer.puzzle,

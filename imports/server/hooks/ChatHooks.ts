@@ -1,6 +1,8 @@
+import i18n from "i18next";
 import { contentFromMessage } from "../../lib/models/ChatMessages";
 import type { PuzzleType } from "../../lib/models/Puzzles";
 import Puzzles from "../../lib/models/Puzzles";
+import Settings from "../../lib/models/Settings";
 import Tags from "../../lib/models/Tags";
 import sendChatMessageInternal from "../sendChatMessageInternal";
 import type Hookset from "./Hookset";
@@ -60,16 +62,30 @@ const ChatHooks: Hookset = {
     const puzzle = await Puzzles.findOneAsync(puzzleId);
     if (!puzzle) return;
 
+    const lngObj = await Settings.findOneAsync({
+      name: "language",
+    });
+    const lng = lngObj?.value.language ?? "en";
+    const ns = "ChatHooks";
+
     // If this puzzle has any associated metas, announce that it's solved.
     await sendMessageToPuzzles(
       await findMetaPuzzles(puzzle),
-      `${puzzle.title} (feeding into this meta) has been solved: \`${answer}\``,
+      i18n.t(
+        "feederSolved",
+        `{{puzzle}} (feeding into this meta) has been solved: \`{{answer}}\``,
+        { lng: lng, ns: ns, answer: answer, puzzle: puzzle.title },
+      ),
     );
 
     // If this was a meta puzzle, announce that it's solved to all feeders.
     await sendMessageToPuzzles(
       await findFeederPuzzles(puzzle),
-      `${puzzle.title} (meta for this puzzle) has been solved: \`${answer}\``,
+      i18n.t(
+        "metaSolved",
+        `{{puzzle}} (meta for this puzzle) has been solved: \`{{answer}}\``,
+        { lng: lng, ns: ns, answer: answer, puzzle: puzzle.title },
+      ),
     );
   },
 
@@ -77,16 +93,30 @@ const ChatHooks: Hookset = {
     const puzzle = await Puzzles.findOneAsync(puzzleId);
     if (!puzzle) return;
 
+    const lngObj = await Settings.findOneAsync({
+      name: "language",
+    });
+    const lng = lngObj?.value.language ?? "en";
+    const ns = "ChatHooks";
+
     // If this puzzle has any associated metas, announce that it's no longer solved.
     await sendMessageToPuzzles(
       await findMetaPuzzles(puzzle),
-      `Answer \`${answer}\` for ${puzzle.title} (feeding into this meta) was marked incorrect`,
+      i18n.t(
+        "feederWrong",
+        `Answer \`{{answer}}\` for {{puzzle}} (feeding into this meta) was marked incorrect`,
+        { lng: lng, ns: ns, answer: answer, puzzle: puzzle.title },
+      ),
     );
 
     // If this was a meta puzzle, announce that it's no longer solved to all feeders.
     await sendMessageToPuzzles(
       await findFeederPuzzles(puzzle),
-      `Answer \`${answer}\` for ${puzzle.title} (meta for this puzzle) was marked incorrect`,
+      i18n.t(
+        "metaWrong",
+        `Answer \`{{answer}}\` for {{puzzle}} (meta for this puzzle) was marked incorrect`,
+        { lng: lng, ns: ns, answer: answer, puzzle: puzzle.title },
+      ),
     );
   },
 };

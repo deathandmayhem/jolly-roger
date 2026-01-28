@@ -1,0 +1,6 @@
+{
+  "bookmarkNotification": {
+    "message_1": "A puzzle you have bookmarked {{describeState}}. The answer is: <puzzleAnswer />",
+    "message": "A puzzle you have bookmarked {{describeState}}. The new answer is: <puzzleAnswer />"
+  }
+}

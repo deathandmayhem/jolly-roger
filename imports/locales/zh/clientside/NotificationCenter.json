@@ -1,0 +1,25 @@
+{
+  "chatNotificationMessage": "{{name}} 在 <puzzleLink>{{puzzleTitle}}</puzzleLink> 召唤你",
+  "bookmarkNotification": {
+    "solved": "被解开了",
+    "partiallySolved": "解出了答案之一",
+    "message_1": "你关注的谜题{{describeState}}。答案是: <puzzleAnswer />",
+    "message": "你关注的谜题{{describeState}}。新添的答案是: <puzzleAnswer />"
+  },
+  "discordNotification": {
+    "header": "尚未绑定 Discord",
+    "addMe": "绑定账号",
+    "message": "绑定 Discord 账号会将你加入队伍的 Discord 服务器，在谜题页面语音聊天时也会显示你的 Discord 头像。"
+  },
+  "guessMessage": {
+    "header": "<guesser /> 在 <puzzleLink /> 提交了猜测",
+    "correct": "正确",
+    "intermediate": "中间答案",
+    "intermediateInstruction": "粘贴或填写任何需要传达给解谜者的额外说明：",
+    "incorrect": "错误",
+    "reject": "退回",
+    "rejectInstruction": "填写该猜测被退回的理由：",
+    "save": "保存（或按回车键）",
+    "additionalNotes": "附加信息"
+  }
+}

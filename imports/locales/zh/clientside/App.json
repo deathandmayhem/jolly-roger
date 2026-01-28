@@ -1,0 +1,15 @@
+{
+  "AppNavBar": {
+    "MyProfile": "个人信息",
+    "ReportAnIssue": "报告问题",
+    "ServerSetup": "服务器设置",
+    "SignOut": "退出登录",
+    "Theme": {
+      "Header": "主题",
+      "Auto": "跟随系统",
+      "Light": "浅色",
+      "Dark": "深色"
+    },
+    "Language": "语言"
+  }
+}

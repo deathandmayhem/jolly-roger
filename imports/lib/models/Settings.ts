@@ -50,6 +50,10 @@ const SettingDiscriminatedUnion = z.discriminatedUnion("name", [
     value: z.object({ teamName: nonEmptyString }),
   }),
   z.object({
+    name: z.literal("language"),
+    value: z.object({ language: nonEmptyString }),
+  }),
+  z.object({
     name: z.literal("google.script"),
     value: z.object({
       sharedSecret: nonEmptyString,

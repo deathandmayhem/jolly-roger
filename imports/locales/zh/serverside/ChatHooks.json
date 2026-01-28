@@ -1,0 +1,6 @@
+{
+  "feederSolved": "本 meta 下面的小题 {{puzzle}} 被解出来了： `{{answer}}`",
+  "metaSolved": "本题所属的 meta 题目 {{puzzle}} 被解出来了： `{{answer}}`",
+  "feederWrong": "本 meta 下面的小题 {{puzzle}} 之前答案 `{{answer}}` 作废",
+  "metaWrong": "本题所属的 meta 题目 {{puzzle}} 之前答案 `{{answer}}` 作废"
+}

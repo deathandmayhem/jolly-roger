@@ -1,0 +1,11 @@
+{
+  "title": "服务器设置",
+  "Not authorized": "未授权",
+  "You're not an admin": "此页面仅供服务器管理员重新配置服务器使用，你没有权限访问。",
+  "Language": "语言",
+  "LanguageHelp": "客户端的显示语言取决于用户选择，但是服务端生成的文字（例如 jolly-roger 在聊天频道发的系统信息）的语言取决于这里的选项。",
+  "Save": "保存",
+  "Saved changes.": "成功保存。",
+  "Saving...": "正在保存……",
+  "Saving failed": "保存失败。"
+}

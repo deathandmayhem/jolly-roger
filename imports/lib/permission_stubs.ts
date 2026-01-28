@@ -240,6 +240,12 @@ export function userMayConfigureEmailBranding(
   return isAdmin(user);
 }
 
+export function userMayConfigureServerLanguage(
+  user: Pick<Meteor.User, "roles"> | null | undefined,
+): boolean {
+  return isAdmin(user);
+}
+
 export function userMayConfigureTeamName(
   user: Pick<Meteor.User, "roles"> | null | undefined,
 ): boolean {

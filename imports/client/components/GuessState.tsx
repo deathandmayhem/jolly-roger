@@ -9,6 +9,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useId } from "react";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Tooltip from "react-bootstrap/Tooltip";
+import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 import type { GuessType } from "../../lib/models/Guesses";
 
@@ -42,6 +43,8 @@ const GuessState = ({
 
   const tooltipId = useId();
 
+  const { t } = useTranslation("GuessState");
+
   if (!short) {
     return (
       <>
@@ -50,14 +53,16 @@ const GuessState = ({
           color={iconColor(state)}
           fixedWidth
         />{" "}
-        {stateDescriptionTable[state] ?? "unknown"}
+        {t(stateDescriptionTable[state], stateDescriptionTable[state]) ??
+          t("unknown", "unknown")}
       </>
     );
   }
 
   const tooltip = (
     <Tooltip id={tooltipId}>
-      {stateDescriptionTable[state] ?? "unknown"}
+      {t(stateDescriptionTable[state], stateDescriptionTable[state]) ??
+        t("unknown", "unknown")}
     </Tooltip>
   );
   return (

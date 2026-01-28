@@ -10,6 +10,7 @@ import React, { useId, useMemo } from "react";
 import Button from "react-bootstrap/Button";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Tooltip from "react-bootstrap/Tooltip";
+import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Flags from "../../Flags";
 import Peers from "../../lib/models/mediasoup/Peers";
@@ -70,6 +71,8 @@ const MinimizedChatInfo = ({
   const subscriberTopic = `puzzle:${puzzleId}`;
   const rtcDisabled = useTracker(() => Flags.active("disable.webrtc"), []);
 
+  const { t } = useTranslation("MinimizedChatInfo");
+
   const { callers, viewers } = useTracker(() => {
     const callerIds = Peers.find(
       { hunt: huntId, call: puzzleId },
@@ -104,12 +107,19 @@ const MinimizedChatInfo = ({
   const { muted } = callState.audioControls;
 
   const tooltipText = useMemo(() => {
-    const viewersString = `${viewers === 0 ? "No" : viewers} ${viewers !== 1 ? "viewers" : "viewer"}`;
-    const callersString = `${callers === 0 ? "no" : callers} ${callers !== 1 ? "callers" : "caller"}`;
+    const viewersString = t("viewers", {
+      context: `${viewers}`,
+      count: viewers,
+    });
+    const callersString = t("callers", {
+      context: `${callers}`,
+      count: callers,
+    });
+    const andString = t("and", " and ");
     return rtcDisabled
       ? viewersString
-      : `${viewersString} and ${callersString}`;
-  }, [rtcDisabled, callers, viewers]);
+      : `${viewersString}${andString}${callersString}`;
+  }, [rtcDisabled, callers, viewers, t]);
 
   const idPrefix = useId();
 
@@ -120,7 +130,7 @@ const MinimizedChatInfo = ({
           placement="right"
           overlay={
             <Tooltip id={`${idPrefix}-mini-mute`}>
-              {muted ? "Unmute" : "Mute"}
+              {muted ? t("Unmute", "Unmute") : t("Mute", "Mute")}
             </Tooltip>
           }
         >
@@ -135,7 +145,9 @@ const MinimizedChatInfo = ({
         <OverlayTrigger
           placement="right"
           overlay={
-            <Tooltip id={`${idPrefix}-mini-leave-call`}>Leave call</Tooltip>
+            <Tooltip id={`${idPrefix}-mini-leave-call`}>
+              {t("Leave call", "Leave call")}
+            </Tooltip>
           }
         >
           <SquareIconButton variant="danger" onClick={onLeaveCall}>
@@ -148,14 +160,20 @@ const MinimizedChatInfo = ({
         placement="right"
         overlay={
           <Tooltip id={`${idPrefix}-mini-join-call`}>
-            {callers > 0 ? "Join audio call" : "Start audio call"}
+            {callers > 0
+              ? t("Join audio call", "Join audio call")
+              : t("Start audio call", "Start audio call")}
           </Tooltip>
         }
       >
         <SquareIconButton
           variant="primary"
           onClick={joinCall}
-          title={callers > 0 ? "Join audio call" : "Start audio call"}
+          title={
+            callers > 0
+              ? t("Join audio call", "Join audio call")
+              : t("Start audio call", "Start audio call")
+          }
         >
           <FontAwesomeIcon icon={faPhone} />
         </SquareIconButton>
@@ -167,7 +185,9 @@ const MinimizedChatInfo = ({
       <OverlayTrigger
         placement="right"
         overlay={
-          <Tooltip id={`${idPrefix}-mini-restore`}>Restore Chat</Tooltip>
+          <Tooltip id={`${idPrefix}-mini-restore`}>
+            {t("Restore Chat", "Restore Chat")}
+          </Tooltip>
         }
       >
         <SquareIconButton onClick={onRestore} style={{ marginBottom: "4px" }}>

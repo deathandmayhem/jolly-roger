@@ -15,6 +15,7 @@ import Button from "react-bootstrap/Button";
 import ButtonGroup from "react-bootstrap/ButtonGroup";
 import Modal from "react-bootstrap/Modal";
 import { createPortal } from "react-dom";
+import { useTranslation } from "react-i18next";
 import { LinkContainer } from "react-router-bootstrap";
 import { Link } from "react-router-dom";
 import type { HuntType } from "../../lib/models/Hunts";
@@ -58,23 +59,30 @@ const Hunt = React.memo(({ hunt }: { hunt: HuntType }) => {
     }
   }, []);
 
+  const { t } = useTranslation("HuntListPage");
   return (
     <li>
       <ModalForm
         ref={deleteModalRef}
-        title="Delete Hunt"
-        submitLabel="Delete"
+        title={t("delete.confirm.title", "Delete Hunt")}
+        submitLabel={t("delete.confirm.submit", "Delete")}
         submitStyle="danger"
         onSubmit={onDelete}
       >
-        Are you sure you want to delete &quot;
-        {hunt.name}
-        &quot;? This will additionally delete all puzzles and associated state.
+        {t(
+          "delete.confirm.text",
+          'Are you sure you want to delete "{{huntName}}"? This will additionally delete all puzzles and associated state.',
+          { huntName: hunt.name },
+        )}
       </ModalForm>
       <ButtonGroup size="sm">
         {canUpdate ? (
           <LinkContainer to={`/hunts/${huntId}/edit`}>
-            <Button as="a" variant="outline-secondary" title="Edit hunt...">
+            <Button
+              as="a"
+              variant="outline-secondary"
+              title={`${t("edit.title", "Edit hunt")}...`}
+            >
               <FontAwesomeIcon fixedWidth icon={faEdit} />
             </Button>
           </LinkContainer>
@@ -83,7 +91,7 @@ const Hunt = React.memo(({ hunt }: { hunt: HuntType }) => {
           <Button
             onClick={showDeleteModal}
             variant="danger"
-            title="Delete hunt..."
+            title={`${t("delete.title", "Delete hunt")}...`}
           >
             <FontAwesomeIcon fixedWidth icon={faMinus} />
           </Button>
@@ -188,9 +196,10 @@ const HuntListPage = () => {
     [renderCreateFixtureModal],
   );
 
+  const { t } = useTranslation("HuntListPage");
   const body: ReactNode[] = [];
   if (loading) {
-    body.push(<div key="loading">Loading...</div>);
+    body.push(<div key="loading">{t("loading", "Loading")}...</div>);
   } else {
     const joinedHunts: React.JSX.Element[] = [];
     const otherHunts: React.JSX.Element[] = [];
@@ -203,24 +212,32 @@ const HuntListPage = () => {
       }
     });
 
-    body.push(<h2 key="myhuntsheader">Hunts you are a member of:</h2>);
+    body.push(
+      <h2 key="myhuntsheader">
+        {t("Hunts you are a member of", "Hunts you are a member of")}:
+      </h2>,
+    );
     if (joinedHunts.length > 0) {
       body.push(<ul key="myhunts">{joinedHunts}</ul>);
     } else {
       body.push(
         <div key="nomyhunts">
-          You&apos;re not a member of any hunts yet. Consider joining one, or
-          asking an operator to invite you.
+          {t(
+            "No my hunts",
+            "You're not a member of any hunts yet. Consider joining one, or asking an operator to invite you.",
+          )}
         </div>,
       );
     }
-    body.push(<h2 key="otherhuntsheader">Other hunts:</h2>);
+    body.push(
+      <h2 key="otherhuntsheader">{t("Other hunts", "Other hunts")}:</h2>,
+    );
     if (otherHunts.length > 0) {
       body.push(<ul key="otherhunts">{otherHunts}</ul>);
     } else {
       body.push(
         <div key="nootherhunts">
-          There are no other hunts you haven&apos;t joined.
+          {t("No other hunts", "There are no other hunts you haven't joined.")}
         </div>,
       );
     }
@@ -228,12 +245,12 @@ const HuntListPage = () => {
 
   return (
     <div>
-      <h1>Hunts</h1>
+      <h1>{t("title", "Hunts")}</h1>
       {canAdd && (
         <>
           <LinkContainer to="/hunts/new">
             <Button as="a" variant="success" size="sm">
-              New hunt...
+              {t("New hunt", "New hunt")}...
             </Button>
           </LinkContainer>
           {!loading && hunts.length === 0 && (

@@ -1,0 +1,10 @@
+{
+  "title": "邀请队友",
+  "Invite": "邀请队友",
+  "instruction": "邀请某人加入此解谜活动。他们会收到一封包含操作说明的电子邮件（即使他们已经有 Jolly Roger 账户）。",
+  "Email address": "电子邮箱地址",
+  "Send invite": "发出邀请邮件",
+  "Bulk invite": "批量邀请",
+  "bulkInstruction": "电子邮箱地址（每行一个）",
+  "Send bulk invites": "批量发送邀请"
+}
