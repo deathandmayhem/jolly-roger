@@ -104,6 +104,7 @@ Meteor.startup(() => {
   // Defer the first run so that other startup hooks run first, but don't catch
   // this async function's errors, because if it fails we want the failure to
   // bubble up and abort the process
+  // oxlint-disable-next-line typescript/no-misused-promises -- intentionally unhandled
   setImmediate(async () => {
     Logger.info("New server starting", {
       serverId,

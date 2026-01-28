@@ -132,7 +132,10 @@ class DiscordBot {
     const opts = this.authHeaders();
     opts.method = "PUT";
     opts.body = JSON.stringify({ access_token: discordUserToken });
-    opts.headers = { ...opts.headers, "Content-Type": "application/json" };
+    opts.headers = {
+      ...(opts.headers as Record<string, string>),
+      "Content-Type": "application/json",
+    };
     let response: Response;
     try {
       response = await fetch(
@@ -225,7 +228,10 @@ class DiscordBot {
       const opts = this.authHeaders();
       opts.method = "POST";
       opts.body = JSON.stringify(message);
-      opts.headers = { ...opts.headers, "Content-Type": "application/json" };
+      opts.headers = {
+        ...(opts.headers as Record<string, string>),
+        "Content-Type": "application/json",
+      };
       response = await fetch(
         `${API_BASE}/channels/${channelId}/messages`,
         opts,

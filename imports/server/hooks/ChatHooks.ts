@@ -32,11 +32,11 @@ async function findPuzzlesWithMatchingTag(
   }).fetchAsync();
 }
 
-async function findMetaPuzzles(puzzle: PuzzleType): Promise<PuzzleType[]> {
+function findMetaPuzzles(puzzle: PuzzleType): Promise<PuzzleType[]> {
   return findPuzzlesWithMatchingTag(puzzle, "group:", "meta-for:");
 }
 
-async function findFeederPuzzles(puzzle: PuzzleType): Promise<PuzzleType[]> {
+function findFeederPuzzles(puzzle: PuzzleType): Promise<PuzzleType[]> {
   return findPuzzlesWithMatchingTag(puzzle, "meta-for:", "group:");
 }
 

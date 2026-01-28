@@ -23,7 +23,7 @@ defineMethod(createPuzzle, {
     return arg;
   },
 
-  async run({
+  run({
     huntId,
     title,
     tags,

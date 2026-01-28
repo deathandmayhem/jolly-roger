@@ -37,7 +37,7 @@ async function createDocumentAndInsertPuzzle(
 ): Promise<string> {
   // Look up each tag by name and map them to tag IDs.
   const tagIds = await Promise.all(
-    tags.map(async (tagName) => {
+    tags.map((tagName) => {
       return getOrCreateTagByName(huntId, tagName);
     }),
   );

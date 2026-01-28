@@ -712,7 +712,7 @@ const useCallState = ({
         },
       });
       return () => {
-        observerPromise.then(
+        void observerPromise.then(
           (handle) => handle.stop(),
           (error) => {
             logger.error("ConnectAcks observeChangesAsync rejected:", error);
@@ -867,7 +867,7 @@ const useCallState = ({
       },
     });
     return () => {
-      observerPromise.then(
+      void observerPromise.then(
         (handle) => handle.stop(),
         (error) => {
           logger.error("ProducerServers observeChangesAsync rejected:", error);

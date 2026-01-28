@@ -18,7 +18,7 @@ const CopyToClipboardButton = (props: CopyToClipboardProps) => {
   );
   const onClick = useCallback(() => {
     const flatText: string = typeof text === "function" ? text() : text;
-    navigator.clipboard.writeText(flatText).then(
+    void navigator.clipboard.writeText(flatText).then(
       () => {
         if (timeoutRef.current !== undefined) {
           clearTimeout(timeoutRef.current);

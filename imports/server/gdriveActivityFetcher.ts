@@ -156,7 +156,7 @@ async function fetchDriveActivity() {
 
 const FEATURE_FLAG_NAME = "disable.gdrive_document_activity";
 
-async function featureFlagChanged() {
+function featureFlagChanged() {
   return new Promise<void>((resolve, reject) => {
     let handleThunk: Meteor.LiveQueryHandle | undefined;
     const callback = () => {

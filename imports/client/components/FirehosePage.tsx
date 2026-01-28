@@ -93,7 +93,7 @@ const Message = React.memo(({ msg, displayNames, puzzle }: MessageProps) => {
         [{ts}] [
         {puzzle !== undefined ? (
           <>
-            <span>{`${puzzle.deleted ? "deleted: " : ""}`}</span>
+            <span>{puzzle.deleted ? "deleted: " : ""}</span>
             <a
               href={`/hunts/${msg.hunt}/puzzles/${msg.puzzle}`}
               target="_blank"
