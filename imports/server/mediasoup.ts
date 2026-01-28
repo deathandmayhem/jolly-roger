@@ -1618,8 +1618,9 @@ const getLocalIPAddresses = (): ListenIp[] => {
       const ipv6 = [...filtered]
         .toReversed()
         .find((address) => address.family === "IPv6");
-      return [ipv4?.address, ipv6?.address].filter<string>((v): v is string =>
-        Boolean(v),
+      return [ipv4?.address, ipv6?.address].filter<string>(
+        // oxlint-disable-next-line unicorn/prefer-native-coercion-functions -- type predicate
+        (v): v is string => Boolean(v),
       );
     })
     .map((ip) => {

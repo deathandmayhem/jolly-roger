@@ -120,7 +120,7 @@ export default class WorkerPool {
         });
 
         const index = this.workers.indexOf(worker);
-        if (index >= 0) {
+        if (index !== -1) {
           this.workers.splice(index, 1);
           delete this.workersMap[worker.id];
         }
