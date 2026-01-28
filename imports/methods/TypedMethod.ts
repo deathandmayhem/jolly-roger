@@ -45,7 +45,7 @@ class TypedMethod<
 
   call<T>(...args: TypedMethodCallArgs<T, Args, Return>): void {
     let callback: TypedMethodCallback<Return> | undefined;
-    if (typeof args[args.length - 1] === "function") {
+    if (typeof args.at(-1) === "function") {
       callback = args.pop() as TypedMethodCallback<Return>;
     }
 

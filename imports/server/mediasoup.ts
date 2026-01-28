@@ -1613,10 +1613,10 @@ const getLocalIPAddresses = (): ListenIp[] => {
       // particular, modern OS's generate new addresses periodically, which can
       // cause this list to otherwise get quite long.
       const ipv4 = [...filtered]
-        .reverse()
+        .toReversed()
         .find((address) => address.family === "IPv4");
       const ipv6 = [...filtered]
-        .reverse()
+        .toReversed()
         .find((address) => address.family === "IPv6");
       return [ipv4?.address, ipv6?.address].filter<string>((v): v is string =>
         Boolean(v),

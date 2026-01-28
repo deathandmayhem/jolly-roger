@@ -7,7 +7,7 @@ const titles: string[] = [];
 
 function updateDocumentTitle() {
   if (titles.length > 0) {
-    document.title = titles[titles.length - 1]!;
+    document.title = titles.at(-1)!;
   }
 }
 
