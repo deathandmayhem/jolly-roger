@@ -135,7 +135,7 @@ if (apiKey) {
         // names
         const sourceMapContents = await fs.readFile(
           path.join(process.cwd(), "..", arch, file.sourceMap),
-          "utf-8",
+          "utf8",
         );
         // Strip the anti-XSSI prefix
         const sourceMap = JSON.parse(
