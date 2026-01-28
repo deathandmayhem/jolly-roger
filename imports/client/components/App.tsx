@@ -139,8 +139,7 @@ const ErrorFallback = ({
     <Container>
       <Alert variant="danger">
         <Alert.Heading>
-          <FontAwesomeIcon icon={faExclamationTriangle} fixedWidth /> Something
-          went wrong
+          <FontAwesomeIcon icon={faExclamationTriangle} /> Something went wrong
         </Alert.Heading>
 
         <p>
@@ -317,13 +316,13 @@ const AppNavbar = ({
             <Dropdown.Divider />
             <DropdownHeader>Theme</DropdownHeader>
             <DropdownItem onClick={setAutoMode} active={appTheme === "auto"}>
-              <FontAwesomeIcon icon={faWandMagicSparkles} fixedWidth /> Auto
+              <FontAwesomeIcon icon={faWandMagicSparkles} /> Auto
             </DropdownItem>
             <DropdownItem onClick={setLightMode} active={appTheme === "light"}>
-              <FontAwesomeIcon icon={faSun} fixedWidth /> Light mode
+              <FontAwesomeIcon icon={faSun} /> Light mode
             </DropdownItem>
             <DropdownItem onClick={setDarkMode} active={appTheme === "dark"}>
-              <FontAwesomeIcon icon={faMoon} fixedWidth /> Dark mode
+              <FontAwesomeIcon icon={faMoon} /> Dark mode
             </DropdownItem>
           </DropdownMenu>
         </Dropdown>

@@ -77,7 +77,7 @@ const Hunt = React.memo(({ hunt }: { hunt: HuntType }) => {
         {canUpdate ? (
           <LinkContainer to={`/hunts/${huntId}/edit`}>
             <Button as="a" variant="outline-secondary" title="Edit hunt...">
-              <FontAwesomeIcon fixedWidth icon={faEdit} />
+              <FontAwesomeIcon icon={faEdit} />
             </Button>
           </LinkContainer>
         ) : undefined}
@@ -87,7 +87,7 @@ const Hunt = React.memo(({ hunt }: { hunt: HuntType }) => {
             variant="danger"
             title="Delete hunt..."
           >
-            <FontAwesomeIcon fixedWidth icon={faMinus} />
+            <FontAwesomeIcon icon={faMinus} />
           </Button>
         ) : undefined}
       </ButtonGroup>{" "}

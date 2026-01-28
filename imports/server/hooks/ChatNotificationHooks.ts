@@ -76,7 +76,6 @@ const ChatNotificationHooks: Hookset = {
               });
             }
           } else {
-            // oxlint-disable-next-line no-unused-expressions -- exhaustive check
             roleId satisfies never;
           }
         }

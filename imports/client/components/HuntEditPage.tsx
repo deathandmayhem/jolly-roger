@@ -738,7 +738,7 @@ const HuntEditPage = () => {
           </>
         ) : (
           <Alert variant="info">
-            <FontAwesomeIcon icon={faInfo} fixedWidth />
+            <FontAwesomeIcon icon={faInfo} />
             Discord has not been configured, so Discord settings are disabled.
           </Alert>
         )}

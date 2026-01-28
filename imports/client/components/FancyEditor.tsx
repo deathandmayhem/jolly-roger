@@ -171,7 +171,6 @@ const EditableMentionRenderer = ({
       name = element.roleId;
       break;
     default:
-      // oxlint-disable-next-line no-unused-expressions -- exhaustive check
       element satisfies never;
   }
   const Elem = selected && focused ? SelectedMentionSpan : MentionSpan;
@@ -377,7 +376,6 @@ const MatchCandidate = ({
         </MatchCandidateRow>
       );
     default:
-      // oxlint-disable-next-line no-unused-expressions -- exhaustive check
       mention satisfies never;
       return null;
   }
@@ -930,7 +928,6 @@ const FancyEditor = React.forwardRef(
                   break;
                 }
                 default:
-                  // oxlint-disable-next-line no-unused-expressions -- exhaustive check
                   mention satisfies never;
               }
               setCompletionAnchorRange(undefined);
@@ -1021,7 +1018,6 @@ const FancyEditor = React.forwardRef(
             insertRoleMention(editor, m.roleId);
             break;
           default:
-            // oxlint-disable-next-line no-unused-expressions -- exhaustive check
             m satisfies never;
         }
         setCompletionAnchorRange(undefined);

@@ -301,7 +301,6 @@ const FirehosePage = () => {
     };
   }, [onLayoutMaybeChanged]);
 
-  // oxlint-disable-next-line react/exhaustive-deps -- We want to run this effect when loading or chats.length changes.
   useLayoutEffect(() => {
     onLayoutMaybeChanged();
   }, [loading, onLayoutMaybeChanged, chats.length]);

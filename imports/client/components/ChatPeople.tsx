@@ -253,7 +253,6 @@ const ChatPeople = ({
 
   const { muted, deafened } = audioControls;
 
-  // oxlint-disable-next-line react/exhaustive-deps -- We want the parent to re-render when anything might have changed our rendered size
   useLayoutEffect(() => {
     trace("ChatPeople useLayoutEffect", {
       loading,
@@ -304,7 +303,7 @@ const ChatPeople = ({
             </AVActions>
             <ChatterSubsection>
               <PeopleListHeader onClick={toggleCallersExpanded}>
-                <FontAwesomeIcon fixedWidth icon={callersHeaderIcon} />
+                <FontAwesomeIcon icon={callersHeaderIcon} />
                 {`${rtcViewers.length} caller${
                   rtcViewers.length !== 1 ? "s" : ""
                 }`}
@@ -356,7 +355,7 @@ const ChatPeople = ({
       {!rtcDisabled && !disabled && callersSubsection}
       <ChatterSubsection ref={chatterRef}>
         <PeopleListHeader onClick={toggleViewersExpanded}>
-          <FontAwesomeIcon fixedWidth icon={viewersHeaderIcon} />
+          <FontAwesomeIcon icon={viewersHeaderIcon} />
           {`${totalViewers} viewer${totalViewers !== 1 ? "s" : ""}`}
         </PeopleListHeader>
         <PeopleListDiv $collapsed={!viewersExpanded}>

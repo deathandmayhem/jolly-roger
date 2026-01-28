@@ -519,7 +519,6 @@ const useCallState = ({
       : undefined,
   );
 
-  // oxlint-disable-next-line react/exhaustive-deps -- We want to reset if the user navigates to a new puzzle
   useEffect(() => {
     return () => {
       logger.debug("huntId/puzzleId/tabId changed, resetting call state");
@@ -878,7 +877,6 @@ const useCallState = ({
 
   const producerShouldBePaused =
     state.audioControls?.muted || state.audioControls?.deafened;
-  // oxlint-disable-next-line react/exhaustive-deps -- We want to force this effect to run when producerParams changes
   useEffect(() => {
     logger.debug("producerTracks", { tracks: producerTracks.map((t) => t.id) });
     const activeTrackIds = new Set();
@@ -963,7 +961,6 @@ const useCallState = ({
   ]);
 
   // Ensure mute state is respected by mediasoup.
-  // oxlint-disable-next-line react/exhaustive-deps -- We want to force this effect to run when we create a new producer
   useEffect(() => {
     if (producerShouldBePaused !== undefined) {
       // Update producer pause state

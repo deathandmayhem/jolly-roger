@@ -507,7 +507,7 @@ const ProfileList = ({
           variant="link"
           aria-label="Copy"
         >
-          <FontAwesomeIcon icon={faCopy} fixedWidth />
+          <FontAwesomeIcon icon={faCopy} />
         </StyledCopyToClipboardButton>
         {invitationUrl}
       </p>

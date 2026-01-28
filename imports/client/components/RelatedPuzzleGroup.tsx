@@ -98,10 +98,7 @@ const RelatedPuzzleGroup = ({
   return (
     <PuzzleGroupDiv>
       <PuzzleGroupHeader onClick={toggleCollapse}>
-        <FontAwesomeIcon
-          fixedWidth
-          icon={collapsed ? faCaretRight : faCaretDown}
-        />
+        <FontAwesomeIcon icon={collapsed ? faCaretRight : faCaretDown} />
         {sharedTag ? (
           <Tag tag={sharedTag} linkToSearch={false} popoverRelated={false} />
         ) : (

@@ -621,7 +621,7 @@ const BulkAddRemoveSection = ({
               disabled={canAddTag.length === 0}
               onClick={addTagsToSelectedAndVisible}
             >
-              <FontAwesomeIcon fixedWidth icon={faTags} />
+              <FontAwesomeIcon icon={faTags} />
               Add to {canAddTag.length} selected
             </Button>
             <Button
@@ -629,7 +629,7 @@ const BulkAddRemoveSection = ({
               disabled={canRemoveTag.length === 0}
               onClick={removeTagsFromSelectedAndVisible}
             >
-              <FontAwesomeIcon fixedWidth icon={faTimes} />
+              <FontAwesomeIcon icon={faTimes} />
               Remove from {canRemoveTag.length} selected
             </Button>
           </ButtonGroup>

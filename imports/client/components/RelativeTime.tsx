@@ -36,7 +36,6 @@ const RelativeTime = ({
     setFormatted(initial);
   }, [date, maxElements, minimumUnit, now, terse]);
 
-  // oxlint-disable-next-line react/exhaustive-deps -- We explicitly include this so that we set a new timeout if the formatted string changes but (by chance) millisUntilChange doesn't
   useEffect(() => {
     // Set up reevaluation when we'd expect the string to change
     const timeout = Meteor.setTimeout(() => {

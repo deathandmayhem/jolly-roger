@@ -45,8 +45,8 @@ if (Meteor.isClient) {
     UnauthenticatedRouteList,
   }: typeof import("../../imports/client/components/Routes") = require("../../imports/client/components/Routes");
 
-  const location: React.MutableRefObject<Location | null> = { current: null };
-  const navigate: React.MutableRefObject<NavigateFunction | null> = {
+  const location: React.RefObject<Location | null> = { current: null };
+  const navigate: React.RefObject<NavigateFunction | null> = {
     current: null,
   };
 

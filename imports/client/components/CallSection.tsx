@@ -502,7 +502,7 @@ const Callers = ({
   return (
     <ChatterSubsection ref={chatterRef}>
       <ChatterSubsectionHeader onClick={onToggleCallersExpanded}>
-        <FontAwesomeIcon fixedWidth icon={callersHeaderIcon} />
+        <FontAwesomeIcon icon={callersHeaderIcon} />
         {`${callerCount} caller${callerCount !== 1 ? "s" : ""}`}
       </ChatterSubsectionHeader>
       <PeopleListDiv $collapsed={!callersExpanded}>

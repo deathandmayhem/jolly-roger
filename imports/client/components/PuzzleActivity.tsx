@@ -104,7 +104,6 @@ const PuzzleActivity = ({
   const [finalBucket, setFinalBucket] = useState(
     roundedTime(ACTIVITY_GRANULARITY),
   );
-  // oxlint-disable-next-line react/exhaustive-deps -- This does actually depend on finalBucket because we want to reset the timer whenever it changes.
   useEffect(() => {
     const nextBucket =
       roundedTime(ACTIVITY_GRANULARITY).getTime() + ACTIVITY_GRANULARITY;
@@ -196,7 +195,7 @@ const PuzzleActivity = ({
       </PuzzleActivityDetailTimeRange>
       <PuzzleActivityDetail>
         <div>
-          <FontAwesomeIcon icon={faCommentDots} fixedWidth />
+          <FontAwesomeIcon icon={faCommentDots} />
         </div>
         <div>Chat</div>
         <div>
@@ -209,7 +208,7 @@ const PuzzleActivity = ({
         </div>
         <div>{displayNumber(chats)}</div>
         <div>
-          <FontAwesomeIcon icon={faPhoneVolume} fixedWidth />
+          <FontAwesomeIcon icon={faPhoneVolume} />
         </div>
         <div>Call</div>
         <div>
@@ -222,7 +221,7 @@ const PuzzleActivity = ({
         </div>
         <div>{displayNumber(calls)}</div>
         <div>
-          <FontAwesomeIcon icon={faFilePen} fixedWidth />
+          <FontAwesomeIcon icon={faFilePen} />
         </div>
         <div>Doc</div>
         <div>
@@ -253,7 +252,7 @@ const PuzzleActivity = ({
       </OverlayTrigger>
       <OverlayTrigger placement="top" overlay={sparklineTooltip}>
         <PuzzleActivitySparkline>
-          <FontAwesomeIcon icon={faPeopleGroup} fixedWidth />
+          <FontAwesomeIcon icon={faPeopleGroup} />
           {/* Sparklines doesn't accept a className argument, so we can't use styled-components */}
           <Sparklines
             data={totals}

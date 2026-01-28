@@ -284,12 +284,12 @@ const GuessBlock = React.memo(
               rel="noopener noreferrer"
               aria-labelledby={`guess-${guess._id}-puzzle-tooltip`}
             >
-              <FontAwesomeIcon icon={faPuzzlePiece} fixedWidth />
+              <FontAwesomeIcon icon={faPuzzlePiece} />
             </a>
           </OverlayTrigger>{" "}
           <OverlayTrigger placement="top" overlay={discussionTooltip}>
             <Link to={`/hunts/${puzzle.hunt}/puzzles/${puzzle._id}`}>
-              <FontAwesomeIcon icon={faSkullCrossbones} fixedWidth />
+              <FontAwesomeIcon icon={faSkullCrossbones} />
             </Link>
           </OverlayTrigger>{" "}
           <Breakable>{puzzle.title}</Breakable>
@@ -300,7 +300,7 @@ const GuessBlock = React.memo(
             aria-label="Copy"
             text={guess.guess}
           >
-            <FontAwesomeIcon icon={faCopy} fixedWidth />
+            <FontAwesomeIcon icon={faCopy} />
           </StyledCopyToClipboardButton>
           <PuzzleAnswer answer={guess.guess} breakable indented />
         </StyledGuessCell>

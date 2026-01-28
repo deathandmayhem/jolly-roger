@@ -34,6 +34,7 @@ const StyledIframe = styled.iframe`
   border: 0;
   padding-bottom: env(safe-area-inset-bottom, 0);
   background-color: #f1f3f4;
+  overflow: hidden;
 `;
 
 export const DocumentMessage = styled.span`
@@ -81,12 +82,12 @@ const GoogleDocumentDisplay = ({
     case "link":
       return (
         <StyledDeepLink href={url} target="_blank" rel="noreferrer noopener">
-          <FontAwesomeIcon fixedWidth icon={icon} /> <span>{title}</span>
+          <FontAwesomeIcon icon={icon} /> <span>{title}</span>
         </StyledDeepLink>
       );
     case "embed":
-      /* To workaround iOS Safari iframe behavior, scrolling should be "no" */
-      return <StyledIframe title="document" scrolling="no" src={url} />;
+      /* To workaround iOS Safari iframe behavior, overflow is set to hidden via CSS */
+      return <StyledIframe title="document" src={url} />;
     default:
       return (
         <DocumentMessage>Unknown displayMode {displayMode}</DocumentMessage>

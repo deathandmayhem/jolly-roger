@@ -926,7 +926,7 @@ const ChatSection = React.forwardRef(
     },
     forwardedRef: React.Ref<ChatSectionHandle>,
   ) => {
-    const historyRef = useRef<React.ElementRef<typeof ChatHistoryMemo>>(null);
+    const historyRef = useRef<React.ComponentRef<typeof ChatHistoryMemo>>(null);
     const scrollToTargetRequestRef = useRef<boolean>(false);
 
     const scrollHistoryToTarget = useCallback(() => {
@@ -1046,10 +1046,11 @@ const PuzzlePageMetadata = ({
     [huntId, puzzleId],
   );
 
-  const editModalRef = useRef<React.ElementRef<typeof PuzzleModalForm>>(null);
-  const guessModalRef = useRef<React.ElementRef<typeof PuzzleGuessModal>>(null);
+  const editModalRef = useRef<React.ComponentRef<typeof PuzzleModalForm>>(null);
+  const guessModalRef =
+    useRef<React.ComponentRef<typeof PuzzleGuessModal>>(null);
   const answerModalRef =
-    useRef<React.ElementRef<typeof PuzzleAnswerModal>>(null);
+    useRef<React.ComponentRef<typeof PuzzleAnswerModal>>(null);
   const onCreateTag = useCallback(
     (tagName: string) => {
       addPuzzleTag.call({ puzzleId, tagName });
@@ -1118,7 +1119,7 @@ const PuzzlePageMetadata = ({
                 variant="success"
                 onClick={() => onRemoveAnswer(guess._id)}
               >
-                <FontAwesomeIcon fixedWidth icon={faTimes} />
+                <FontAwesomeIcon icon={faTimes} />
               </AnswerRemoveButton>
             )}
           </PuzzleMetadataAnswer>
@@ -1132,7 +1133,7 @@ const PuzzlePageMetadata = ({
       target="_blank"
       rel="noreferrer noopener"
     >
-      <FontAwesomeIcon fixedWidth icon={faPuzzlePiece} /> <span>Puzzle</span>
+      <FontAwesomeIcon icon={faPuzzlePiece} /> <span>Puzzle</span>
     </PuzzleMetadataExternalLink>
   ) : null;
 
@@ -1443,7 +1444,7 @@ const PuzzleGuessModal = React.forwardRef(
       PuzzleGuessSubmitState.IDLE,
     );
     const [submitError, setSubmitError] = useState<string>("");
-    const formRef = useRef<React.ElementRef<typeof ModalForm>>(null);
+    const formRef = useRef<React.ComponentRef<typeof ModalForm>>(null);
 
     useImperativeHandle(forwardedRef, () => ({
       show: () => {
@@ -1595,7 +1596,7 @@ const PuzzleGuessModal = React.forwardRef(
               <OverlayTrigger placement="top" overlay={directionTooltip}>
                 <GuessSliderContainer>
                   <GuessSliderLeftLabel>
-                    <FontAwesomeIcon icon={faArrowLeft} fixedWidth />
+                    <FontAwesomeIcon icon={faArrowLeft} />
                   </GuessSliderLeftLabel>
                   <GuessSlider
                     id={`${idPrefix}-guess-direction`}
@@ -1613,14 +1614,13 @@ const PuzzleGuessModal = React.forwardRef(
                     <option value="10">10</option>
                   </datalist>
                   <GuessSliderRightLabel>
-                    <FontAwesomeIcon icon={faArrowRight} fixedWidth />
+                    <FontAwesomeIcon icon={faArrowRight} />
                   </GuessSliderRightLabel>
                 </GuessSliderContainer>
               </OverlayTrigger>
               <FontAwesomeIcon
                 icon={faCheck}
                 color={haveSetDirection ? "green" : "transparent"}
-                fixedWidth
               />
             </ValidatedSliderContainer>
             <FormText>
@@ -1667,7 +1667,6 @@ const PuzzleGuessModal = React.forwardRef(
               <FontAwesomeIcon
                 icon={faCheck}
                 color={haveSetConfidence ? "green" : "transparent"}
-                fixedWidth
               />
             </ValidatedSliderContainer>
             <FormText>
@@ -1698,7 +1697,7 @@ const PuzzleGuessModal = React.forwardRef(
                             aria-label="Copy"
                             text={guess.guess}
                           >
-                            <FontAwesomeIcon icon={faCopy} fixedWidth />
+                            <FontAwesomeIcon icon={faCopy} />
                           </StyledCopyToClipboardButton>
                           <PuzzleAnswer
                             answer={guess.guess}
@@ -2141,7 +2140,6 @@ const PuzzlePage = React.memo(() => {
     setIsChatMinimized(false);
   }, []);
 
-  // oxlint-disable-next-line react/exhaustive-deps -- We do want to trigger this effect on chatMessages length change
   useEffect(() => {
     // Any time a new chat message comes in, show the chat again.
     setIsChatMinimized(false);
@@ -2180,12 +2178,10 @@ const PuzzlePage = React.memo(() => {
   }, []);
 
   const answersCount = activePuzzle?.answers?.length ?? 0;
-  // oxlint-disable-next-line react/exhaustive-deps -- We want to force the metadata section to be visible when the answers change, so solvers will not miss the puzzle being solved.
   useEffect(() => {
     setIsMetadataMinimized(false);
   }, [answersCount]);
 
-  // oxlint-disable-next-line react/exhaustive-deps -- When the sidebar width changes, we want to scroll to the target.
   useLayoutEffect(() => {
     trace("PuzzlePage useLayoutEffect", { hasRef: !!chatSectionRef.current });
     if (chatSectionRef.current) {
