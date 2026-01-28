@@ -1,4 +1,5 @@
 import { Meteor } from "meteor/meteor";
+import i18n from "i18next";
 import Flags from "../../Flags";
 import Announcements from "../../lib/models/Announcements";
 import type { ChatMessageContentType } from "../../lib/models/ChatMessages";
@@ -99,7 +100,18 @@ const DiscordHooks: Hookset = {
     const puzzle = (await Puzzles.findOneAsync(puzzleId))!;
     const hunt = (await Hunts.findOneAsync(puzzle.hunt))!;
     if (hunt.puzzleHooksDiscordChannel) {
-      const title = `${puzzle.title} unlocked`;
+      const lngObj = await Settings.findOneAsync({
+        name: "language",
+      });
+      const lng = lngObj?.value.language ?? "en";
+      const ns = "DiscordHooks";
+
+      const title = i18n.t("unlocked", "{{puzzle}} unlocked", {
+        lng: lng,
+        ns: ns,
+        puzzle: puzzle.title,
+      });
+
       const url = Meteor.absoluteUrl(
         `hunts/${puzzle.hunt}/puzzles/${puzzle._id}`,
       );
@@ -136,9 +148,21 @@ const DiscordHooks: Hookset = {
       return;
     }
 
+    const lngObj = await Settings.findOneAsync({
+      name: "language",
+    });
+    const lng = lngObj?.value.language ?? "en";
+    const ns = "DiscordHooks";
+
     const hunt = (await Hunts.findOneAsync(puzzle.hunt))!;
     if (hunt.puzzleHooksDiscordChannel) {
-      const title = `${oldPuzzle.title} renamed to ${puzzle.title}`;
+      const title = i18n.t("renamed", "{{oldTitle}} renamed to {{newTitle}}", {
+        lng: lng,
+        ns: ns,
+        oldTitle: oldPuzzle.title,
+        newTitle: puzzle.title,
+      });
+
       const url = Meteor.absoluteUrl(
         `hunts/${puzzle.hunt}/puzzles/${puzzle._id}`,
       );
@@ -173,13 +197,24 @@ const DiscordHooks: Hookset = {
     const puzzle = (await Puzzles.findOneAsync(puzzleId))!;
     const hunt = (await Hunts.findOneAsync(puzzle.hunt))!;
     if (hunt.puzzleHooksDiscordChannel) {
+      const lngObj = await Settings.findOneAsync({
+        name: "language",
+      });
+      const lng = lngObj?.value.language ?? "en";
+      const ns = "DiscordHooks";
+
       const url = Meteor.absoluteUrl(
         `hunts/${puzzle.hunt}/puzzles/${puzzle._id}`,
       );
       const answers = puzzle.answers
         .map((answer) => `\`${answer}\``)
         .join(", ");
-      const answerLabel = `Answer${puzzle.expectedAnswerCount > 1 ? "s" : ""}`;
+      const answerLabel = i18n.t("Answer", {
+        lng: lng,
+        ns: ns,
+        count: puzzle.expectedAnswerCount,
+      });
+
       const solvedness = computeSolvedness(puzzle);
       const color = {
         solved: 0x00ff00,
@@ -187,8 +222,11 @@ const DiscordHooks: Hookset = {
         noAnswers: 0,
       }[solvedness];
       const solvedStr = {
-        solved: "solved",
-        unsolved: "partially solved",
+        solved: i18n.t("solved", "solved", { lng: lng, ns: ns }),
+        unsolved: i18n.t("partially solved", "partially solved", {
+          lng: lng,
+          ns: ns,
+        }),
         noAnswers: "",
       }[solvedness];
       const title = `${puzzle.title} ${solvedStr}`;

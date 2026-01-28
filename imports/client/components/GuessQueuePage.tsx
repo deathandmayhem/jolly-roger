@@ -13,6 +13,7 @@ import FormGroup from "react-bootstrap/FormGroup";
 import InputGroup from "react-bootstrap/InputGroup";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Tooltip from "react-bootstrap/Tooltip";
+import { useTranslation } from "react-i18next";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import styled, { css } from "styled-components";
 import { calendarTimeFormat } from "../../lib/calendarTimeFormat";
@@ -256,19 +257,24 @@ const GuessBlock = React.memo(
 
     const idPrefix = useId();
 
+    const { t: tDate, i18n } = useTranslation("DateAndTime");
+    const { t } = useTranslation("GuessQueuePage");
+
     const puzzleTooltip = (
-      <Tooltip id={`${idPrefix}-puzzle-tooltip`}>Open puzzle</Tooltip>
+      <Tooltip id={`${idPrefix}-puzzle-tooltip`}>
+        {t("openPuzzleTooltip", "Open puzzle")}
+      </Tooltip>
     );
     const discussionTooltip = (
       <Tooltip id={`${idPrefix}-discussion-tooltip`}>
-        Open Jolly Roger discussion
+        {t("openDiscussionTooltip", "Open Jolly Roger discussion")}
       </Tooltip>
     );
     return (
       <StyledRow $state={guess.state}>
         <StyledPuzzleTimestampAndSubmitter>
           <StyledPuzzleTimestamp>
-            {calendarTimeFormat(guess.createdAt)}
+            {calendarTimeFormat(guess.createdAt, tDate, i18n.language)}
           </StyledPuzzleTimestamp>
           <StyledCell>
             <Breakable>{createdByDisplayName}</Breakable>
@@ -331,7 +337,7 @@ const GuessBlock = React.memo(
                 size="sm"
                 onClick={markPending}
               >
-                Return to queue
+                {t("returnToQueue", "Return to queue")}
               </Button>
             )}
           </StyledCell>
@@ -354,15 +360,17 @@ const GuessQueuePage = () => {
 
   const hunt = useTracker(() => Hunts.findOne({ _id: huntId }), [huntId]);
 
+  const { t } = useTranslation("GuessQueuePage");
+
   const pageTitle = useTracker(() => {
     if (loading || !hunt) {
       return "Loading...";
     } else if (hunt.hasGuessQueue) {
-      return "Guess queue";
+      return t("title.guess", "Guess queue");
     } else {
-      return "Answer log";
+      return t("title.answer", "Answer log");
     }
-  }, [hunt, loading]);
+  }, [hunt, loading, t]);
 
   useBreadcrumb({ title: pageTitle, path: `/hunts/${huntId}/guesses` });
 
@@ -459,7 +467,10 @@ const GuessQueuePage = () => {
   );
   const confidenceTooltip = (
     <Tooltip id={`${idPrefix}-confidence-tooltip`}>
-      Submitter-estimated likelihood that this answer is correct
+      {t(
+        "tableHeader.confidenceTooltip",
+        "Submitter-estimated likelihood that this answer is correct",
+      )}
     </Tooltip>
   );
 
@@ -472,7 +483,10 @@ const GuessQueuePage = () => {
             as="input"
             type="text"
             ref={searchBarRef}
-            placeholder="Filter by title or answer"
+            placeholder={t(
+              "Filter by title or answer",
+              "Filter by title or answer",
+            )}
             value={searchString}
             onChange={onSearchStringChange}
           />
@@ -483,21 +497,25 @@ const GuessQueuePage = () => {
       </FormGroup>
       <StyledTable $hasGuessQueue={hunt.hasGuessQueue}>
         <StyledHeaderRow>
-          <StyledHeader>Time</StyledHeader>
-          <StyledHeader>Submitter</StyledHeader>
-          <StyledHeader>Puzzle</StyledHeader>
-          <StyledHeader>Answer</StyledHeader>
+          <StyledHeader>{t("tableHeader.time", "Time")}</StyledHeader>
+          <StyledHeader>{t("tableHeader.submitter", "Submitter")}</StyledHeader>
+          <StyledHeader>{t("tableHeader.puzzle", "Puzzle")}</StyledHeader>
+          <StyledHeader>{t("tableHeader.answer", "Answer")}</StyledHeader>
           {hunt.hasGuessQueue && (
             <>
               <OverlayTrigger placement="top" overlay={directionTooltip}>
-                <StyledHeader>Direction</StyledHeader>
+                <StyledHeader>
+                  {t("tableHeader.direction", "Direction")}
+                </StyledHeader>
               </OverlayTrigger>
               <OverlayTrigger placement="top" overlay={confidenceTooltip}>
-                <StyledHeader>Confidence</StyledHeader>
+                <StyledHeader>
+                  {t("tableHeader.confidence", "Confidence")}
+                </StyledHeader>
               </OverlayTrigger>
             </>
           )}
-          <StyledHeader>Status</StyledHeader>
+          <StyledHeader>{t("tableHeader.status", "Status")}</StyledHeader>
           {hunt.hasGuessQueue && <StyledHeader>&nbsp;</StyledHeader>}
         </StyledHeaderRow>
         {filteredGuesses(guesses, puzzles).map((guess) => {

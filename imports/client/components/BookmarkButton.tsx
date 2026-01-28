@@ -3,6 +3,7 @@ import { faStar as faStarSolid } from "@fortawesome/free-solid-svg-icons/faStar"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { useCallback, useState } from "react";
 import Button from "react-bootstrap/Button";
+import { useTranslation } from "react-i18next";
 import bookmarkPuzzle from "../../methods/bookmarkPuzzle";
 
 interface BookmarkButtonProps<As extends React.ElementType = React.ElementType>
@@ -22,7 +23,10 @@ const BookmarkButton: BookmarkButtonType = React.forwardRef<
   HTMLElement,
   BookmarkButtonProps
 >(({ puzzleId, bookmarked, as: Component = Button, ...props }, ref) => {
-  const bookmarkText = bookmarked ? "Unbookmark puzzle" : "Bookmark puzzle";
+  const { t } = useTranslation("BookmarkButton");
+  const bookmarkText = bookmarked
+    ? t("unbookmark", "Unbookmark puzzle")
+    : t("bookmark", "Bookmark puzzle");
 
   const [animateBookmark, setAnimateBookmark] = useState(false);
   const onAnimationEnd = useCallback(() => {

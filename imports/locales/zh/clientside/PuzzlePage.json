@@ -1,0 +1,54 @@
+{
+  "Chat": {
+    "noChatter": "尚无对话记录。",
+    "Chat": "输入聊天内容"
+  },
+  "deleted": "已删",
+  "no such puzzle": "查无此题",
+  "No puzzle found": "查无此题，请检查一下网址。",
+  "PuzzleDeletedModal": {
+    "title": "此 Jolly Roger 页面已被删除",
+    "body1": "管理员已从 Jolly Roger 中删除了此谜题。你仍然可以查看之前的信息，但今后将无法编辑共享文档或发送新的聊天消息。",
+    "body2": "我们希望确保此页面不会给大家造成干扰，因此题目列表里将不再链接到此页面。如果需要保存任何信息，请在完成前务必保留此 URL。",
+    "undeleteHelp": "作为管理员，你可以恢复已删除的谜题：",
+    "Undelete": "恢复谜题",
+    "Close": "关闭"
+  },
+  "EditButton": {
+    "title": "编辑谜题...",
+    "text": "编辑"
+  },
+  "Answer": {
+    "buttonText": "提交答案",
+    "title": "提交 {{puzzleTitle}} 的答案",
+    "answer": "答案",
+    "submit": "提交",
+    "confirmSubmit": "确认提交",
+    "repeatAnswer": "该答案已被提交过。",
+    "alreadySolved": "该谜题已被解出。",
+    "areYouSure": "你确定要提交这个答案吗？"
+  },
+  "Guess": {
+    "buttonText": "提交猜测",
+    "title": {
+      "history": "{{puzzle}} 的猜测记录",
+      "submitGuess": "提交 {{puzzle}} 答案猜测"
+    },
+    "guess": "答案猜测",
+    "noGuesses": "尚未提交过任何猜测。",
+    "previousSubmissions": "提交记录",
+    "direction": "解题方向",
+    "directionHelp": "选择一个介于 -10（未打开谜题即反向解出）到 10（未用到本题之外的信息即正向解出）之间的数字，以表明你是正向解出还是反向解出。",
+    "confidence": "信心指数",
+    "confidenceHelp": "选择一个介于 0 和 100 之间的数字，表示你认为这个答案正确的概率。",
+    "submit": "提交",
+    "confirmSubmit": "确认提交",
+    "repeatAnswer": "该答案已被提交过。",
+    "alreadySolved": "该谜题已被解出。",
+    "areYouSure": "你确定要提交这个猜测吗？"
+  },
+  "Show puzzle info": "显示谜题信息",
+  "Hide puzzle info": "隐藏谜题信息",
+  "Minimize chat": "最小化聊天框",
+  "No tags yet": "本题尚无标签"
+}

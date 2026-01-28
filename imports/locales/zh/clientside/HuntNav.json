@@ -1,0 +1,30 @@
+{
+  "hunt": {
+    "title": "解谜活动官方主页",
+    "link": "活动主页"
+  },
+  "announcements": {
+    "title": "公告",
+    "link": "公告"
+  },
+  "hunters": {
+    "title": "队员",
+    "link": "队员"
+  },
+  "firehose": {
+    "title": "聊天记录",
+    "link": "聊天记录"
+  },
+  "tags": {
+    "title": "标签",
+    "link": "标签"
+  },
+  "guess": {
+    "title": "猜测",
+    "link": "猜测"
+  },
+  "answer": {
+    "title": "答案",
+    "link": "答案"
+  }
+}

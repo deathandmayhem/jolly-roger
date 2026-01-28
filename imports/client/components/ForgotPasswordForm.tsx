@@ -3,6 +3,7 @@ import { Meteor } from "meteor/meteor";
 import type { FormEvent } from "react";
 import { useCallback, useState } from "react";
 import Button from "react-bootstrap/Button";
+import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "react-router-dom";
 import { styled } from "styled-components";
 import {
@@ -55,9 +56,12 @@ const ForgotPasswordForm = () => {
     },
     [email],
   );
+
+  const { t } = useTranslation("ForgotPasswordForm");
+
   return (
     <AccountFormFrame
-      title="Reset your password"
+      title={t("Reset your password", "Reset your password")}
       state={submitState}
       onSubmitForm={onSubmitForm}
       errorMessage={errorMessage}
@@ -71,14 +75,14 @@ const ForgotPasswordForm = () => {
           variant={submitDisabled ? "secondary" : "primary"}
           disabled={submitDisabled}
         >
-          Email Reset Link
+          {t("Email Reset Link", "Email Reset Link")}
         </Button>
       </div>
       <StyledModeSwitchLink>
         <p>
-          If you know your password,{" "}
+          {t("If you know your password,", "If you know your password,")}{" "}
           <Link to="/login" state={{ email }}>
-            sign in
+            {t("sign in", "sign in")}
           </Link>
           .
         </p>

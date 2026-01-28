@@ -1,0 +1,37 @@
+{
+  "title": "队员列表",
+  "breadcrumbTitle": "队员列表",
+  "InvitationLink": {
+    "link": "邀请链接",
+    "disable": "取消邀请链接",
+    "generate": "生成邀请链接",
+    "regenerate": "重新生成邀请链接",
+    "hint": "这是公开邀请链接：任何拥有该链接的人都可以加入本次解谜活动。",
+    "modal": {
+      "generateTitle": "生成链接",
+      "regenerateTitle": "重新生成链接",
+      "generateBody": "生成此次解谜活动的邀请链接？拥有邀请权限的用户将能看到此链接，任何拥有该链接的人都可以加入。",
+      "regenerateBody": "你确定要重新生成此次解谜活动的邀请链接？当前链接将失效。",
+      "generateButton": "生成链接",
+      "regenerateButton": "重新生成链接",
+
+      "disableTitle": "取消邀请链接",
+      "disableBody": "你确定要取消此次解谜活动的邀请链接？当前链接将失效。",
+      "disableButton": "取消链接"
+    }
+  },
+  "Cancel": "取消",
+  "Total hunters": "总人数",
+  "Search": "搜索",
+  "searchBy": "按名字、电子邮箱、电话号码、Discord 账号搜索队员...",
+  "Alert": "这里展示所有 Jolly Roger 注册的成员，不仅仅是今年 Mystery Hunt 的队伍成员。如果想看某一活动的成员，前往该活动页面再点击「队员」。",
+  "Invite someone": "邀请新人",
+  "Operator": "管理员",
+  "Make operator": "设为管理员",
+  "Promote operator": "设置管理员",
+  "ConfirmPromote": "你确定要将 <strong>{{name}}</strong> 设置为管理员吗？",
+  "Promote": "设置",
+  "Demote": "撤职",
+  "Demote Operator": "撤职管理员",
+  "ConfirmDemote": "你确定你要撤销 <strong>{{name}}</strong> 的管理员身份吗？"
+}

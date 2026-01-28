@@ -17,6 +17,7 @@ import FormControl from "react-bootstrap/FormControl";
 import FormGroup from "react-bootstrap/FormGroup";
 import FormLabel from "react-bootstrap/FormLabel";
 import Row from "react-bootstrap/Row";
+import { useTranslation } from "react-i18next";
 import type { ActionMeta } from "react-select";
 import { useTheme } from "styled-components";
 import type { GdriveMimeTypesType } from "../../lib/GdriveMimeTypes";
@@ -196,6 +197,8 @@ const PuzzleModalForm = React.forwardRef(
       [],
     );
 
+    const { t } = useTranslation("PuzzleModalForm");
+
     const onFormSubmit = useCallback(
       (callback: () => void) => {
         setSubmitState(PuzzleModalFormSubmitState.SUBMITTING);
@@ -346,7 +349,7 @@ const PuzzleModalForm = React.forwardRef(
       !puzzle && docType ? (
         <FormGroup as={Row} className="mb-3">
           <FormLabel column xs={3}>
-            Document type
+            {t("Document type", "Document type")}
           </FormLabel>
           <Col xs={9}>
             <LabelledRadioGroup
@@ -362,7 +365,10 @@ const PuzzleModalForm = React.forwardRef(
                 },
               ]}
               initialValue={docType}
-              help="This can't be changed once a puzzle has been created. Unless you're absolutely sure, use a spreadsheet. We only expect to use documents for administrivia."
+              help={t(
+                "Document type help",
+                "This can't be changed once a puzzle has been created. Unless you're absolutely sure, use a spreadsheet. We only expect to use documents for administrivia.",
+              )}
               onChange={onDocTypeChange}
             />
           </Col>
@@ -373,7 +379,7 @@ const PuzzleModalForm = React.forwardRef(
       !puzzle && allowDuplicateUrls !== undefined && confirmingDuplicateUrl ? (
         <FormCheck
           id={`${idPrefix}-allow-duplicate-urls`}
-          label="Allow puzzles with identical URLs"
+          label={t("allowDuplicateUrls", "Allow puzzles with identical URLs")}
           type="checkbox"
           disabled={disableForm}
           onChange={onAllowDuplicateUrlsChange}
@@ -393,7 +399,11 @@ const PuzzleModalForm = React.forwardRef(
       >
         <ModalForm
           ref={formRef}
-          title={puzzle ? "Edit puzzle" : "Add puzzle"}
+          title={
+            puzzle
+              ? t("Edit puzzle", "Edit puzzle")
+              : t("Add puzzle", "Add puzzle")
+          }
           onSubmit={onFormSubmit}
           submitDisabled={disableForm}
         >
@@ -403,7 +413,7 @@ const PuzzleModalForm = React.forwardRef(
             controlId={`${idPrefix}-new-puzzle-title`}
           >
             <FormLabel column xs={3}>
-              Title
+              {t("Title", "Title")}
             </FormLabel>
             <Col xs={9}>
               <FormControl
@@ -422,7 +432,7 @@ const PuzzleModalForm = React.forwardRef(
             controlId={`${idPrefix}-new-puzzle-url`}
           >
             <FormLabel column xs={3}>
-              URL
+              {t("URL", "URL")}
             </FormLabel>
             <Col xs={9}>
               <FormControl
@@ -441,7 +451,7 @@ const PuzzleModalForm = React.forwardRef(
             controlId={`${idPrefix}-new-puzzle-tags`}
           >
             <FormLabel column xs={3}>
-              Tags
+              {t("Tags", "Tags")}
             </FormLabel>
             <Col xs={9}>
               <Creatable
@@ -466,7 +476,7 @@ const PuzzleModalForm = React.forwardRef(
             controlId={`${idPrefix}-new-puzzle-expected-answer-count`}
           >
             <FormLabel column xs={3}>
-              Expected # of answers
+              {t("AnswerCount", "Expected # of answers")}
             </FormLabel>
             <Col xs={9}>
               <FormControl
@@ -483,7 +493,10 @@ const PuzzleModalForm = React.forwardRef(
           {currentExpectedAnswerCount === 0 ? (
             <FormCheck
               id={`${idPrefix}-solved-with-no-answers`}
-              label="Consider solved with no answers"
+              label={t(
+                "Consider solved with no answers",
+                "Consider solved with no answers",
+              )}
               type="checkbox"
               checked={currentConsiderCompletedWithNoAnswer}
               disabled={disableForm}

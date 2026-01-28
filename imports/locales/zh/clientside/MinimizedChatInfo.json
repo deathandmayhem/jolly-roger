@@ -1,0 +1,11 @@
+{
+  "Restore Chat": "展开聊天框",
+  "Join audio call": "加入语音",
+  "Start audio call": "开始语音",
+  "Leave call": "退出通话",
+  "Mute": "关麦",
+  "Unmute": "开麦",
+  "viewers": "{{count}}位观看者",
+  "callers": "{{count}}位通话者",
+  "and": "及"
+}

@@ -21,6 +21,7 @@ import Overlay from "react-bootstrap/Overlay";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Tooltip from "react-bootstrap/Tooltip";
 import { createPortal } from "react-dom";
+import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Flags from "../../Flags";
 import MeteorUsers from "../../lib/models/MeteorUsers";
@@ -145,6 +146,8 @@ const SelfBox = ({
 
   const tooltipId = useId();
 
+  const { t } = useTranslation("CallSection");
+
   return (
     <OverlayTrigger
       placement="bottom"
@@ -162,12 +165,22 @@ const SelfBox = ({
       }}
       overlay={
         <Tooltip id={tooltipId}>
-          <div>You are in the call.</div>
+          <div>{t("tooltip.inTheCall", "You are in the call.")}</div>
           {muted && (
-            <div>You are currently muted and will transmit no audio.</div>
+            <div>
+              {t(
+                "tooltip.muted",
+                "You are currently muted and will transmit no audio.",
+              )}
+            </div>
           )}
           {deafened && (
-            <div>You are currently deafened and will hear no audio.</div>
+            <div>
+              {t(
+                "tooltip.deafened",
+                "You are currently deafened and will hear no audio.",
+              )}
+            </div>
           )}
         </Tooltip>
       }
@@ -483,6 +496,8 @@ const Callers = ({
   const callerCount = otherPeers.length + 1; // +1 for self
   const chatterRef = useRef<HTMLDivElement>(null);
 
+  const { t } = useTranslation("CallSection");
+
   const peerBoxes = otherPeers.map((peer) => {
     const stream = peerStreams.get(peer._id);
     return (
@@ -501,7 +516,7 @@ const Callers = ({
     <ChatterSubsection ref={chatterRef}>
       <ChatterSubsectionHeader onClick={onToggleCallersExpanded}>
         <FontAwesomeIcon fixedWidth icon={callersHeaderIcon} />
-        {`${callerCount} caller${callerCount !== 1 ? "s" : ""}`}
+        {`${callerCount} ${t("caller", { count: callerCount })}`}
       </ChatterSubsectionHeader>
       <PeopleListDiv $collapsed={!callersExpanded}>
         <SelfBox
@@ -561,6 +576,8 @@ const CallSection = ({
     "hidden" | "show" | "dismissing"
   >("hidden");
 
+  const { t } = useTranslation("CallSection");
+
   useEffect(() => {
     if (mutedBy !== undefined && showMutedBy === "hidden") {
       setShowMutedBy("show");
@@ -610,7 +627,9 @@ const CallSection = ({
               size="sm"
               onClick={onToggleMute}
             >
-              {muted ? "Un\u00ADmute" : "Mute self"}
+              {muted
+                ? t("Unmute", "Un\u00ADmute")
+                : t("Mute self", "Mute self")}
             </AVButton>
             {Meteor.isDevelopment && (
               <AVButton
@@ -618,13 +637,15 @@ const CallSection = ({
                 size="sm"
                 onClick={onToggleDeafen}
               >
-                {deafened ? "Un\u00ADdeafen" : "Deafen self"}
+                {deafened
+                  ? t("Undeafen", "Un\u00ADdeafen")
+                  : t("Deafen self", "Deafen self")}
               </AVButton>
             )}
           </>
         )}
         <AVButton variant="danger" size="sm" onClick={onLeaveCall}>
-          Leave call
+          {t("Leave call", "Leave call")}
         </AVButton>
       </AVActions>
       {joiningCallAlert}
@@ -635,10 +656,14 @@ const CallSection = ({
       >
         <Tooltip id={`${idPrefix}-muted-on-join-notification`}>
           <div>
-            We&apos;ve left your mic muted for now given the number of people on
-            the call. You can unmute yourself at any time.
+            {t(
+              "MutedOnJoin",
+              "We've left your mic muted for now given the number of people on the call. You can unmute yourself at any time.",
+            )}
           </div>
-          <Button onClick={onDismissPeerStateNotification}>Got it</Button>
+          <Button onClick={onDismissPeerStateNotification}>
+            {t("Got it", "Got it")}
+          </Button>
         </Tooltip>
       </Overlay>
       <Overlay
@@ -649,12 +674,18 @@ const CallSection = ({
       >
         <Tooltip id={`${idPrefix}-remote-muted-notification`}>
           <div>
-            You were muted by {mutedBy ?? "someone else"}. This usually happens
+            {t(
+              "MutedBySomeone",
+              `You were muted by {{mutedBy}}. This usually happens
             when it seemed like you had stepped away from your computer without
             muting yourself, but your microphone was still on. You can unmute
-            yourself at any time.
+            yourself at any time.`,
+              { mutedBy: mutedBy ?? "someone else" },
+            )}
           </div>
-          <Button onClick={onDismissRemoteMuted}>Got it</Button>
+          <Button onClick={onDismissRemoteMuted}>
+            {t("Got it", "Got it")}
+          </Button>
         </Tooltip>
       </Overlay>
       {!joiningCallAlert && (

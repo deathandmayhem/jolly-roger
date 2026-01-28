@@ -1,0 +1,7 @@
+{
+  "unlocked": "解锁了新的题目 {{puzzle}}",
+  "renamed": "{{oldTitle}} 改名为 {{newTitle}}",
+  "Answer": "答案",
+  "solved": "被解出来了！",
+  "partially solved": "解出了答案之一"
+}

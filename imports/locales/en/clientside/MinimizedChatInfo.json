@@ -1,0 +1,8 @@
+{
+  "viewers_0": "No viewers",
+  "viewers": "{{count}} viewer",
+  "viewers_other": "{{count}} viewers",
+  "callers_0": "no callers",
+  "callers": "{{count}} caller",
+  "callers_other": "{{count}} callers"
+}

@@ -1,0 +1,6 @@
+{
+  "correctState": "正确答案",
+  "incorrectState": "错误答案",
+  "intermediateState": "正确的中间答案",
+  "guessStateChanged": "猜测 `{{guess}}` 被标记为{{state}}{{notes}}"
+}

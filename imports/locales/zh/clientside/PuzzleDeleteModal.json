@@ -1,0 +1,9 @@
+{
+  "title": "删除谜题",
+  "AreYouSure": "你确定要删除此谜题吗？任何人都将无法继续进行编辑或发表评论。",
+  "SpecifyReplacement": "你可以选择另一谜题来取代此谜题，并且将此题的表格复制过去。",
+  "CopyTheSheets": "将 {{title}} 的表格复制进上面的谜题",
+  "CurrentlyViewedBy": "现在有 {{count}} 人在这题频道里",
+  "Cancel": "取消",
+  "Delete": "删除"
+}
