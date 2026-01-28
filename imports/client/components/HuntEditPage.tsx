@@ -96,14 +96,13 @@ const DiscordSelector = ({
       name: "disabled",
     } as SavedDiscordObjectType;
 
-    if (value) {
-      if (
-        !options.some((opt) => {
-          return opt.id === value.id;
-        })
-      ) {
-        return [noneOption, value, ...options];
-      }
+    if (
+      value &&
+      !options.some((opt) => {
+        return opt.id === value.id;
+      })
+    ) {
+      return [noneOption, value, ...options];
     }
     return [noneOption, ...options];
   }, [value, options]);

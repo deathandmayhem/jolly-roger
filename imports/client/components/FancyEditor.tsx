@@ -282,10 +282,8 @@ const withSingleMessage = (editor: Editor) => {
   const { normalizeNode } = editor;
   editor.normalizeNode = (entry: NodeEntry) => {
     const [node, _path] = entry;
-    if (Editor.isEditor(node)) {
-      if (node.children.length > 1) {
-        Transforms.mergeNodes(editor, { at: [1] });
-      }
+    if (Editor.isEditor(node) && node.children.length > 1) {
+      Transforms.mergeNodes(editor, { at: [1] });
     }
 
     normalizeNode(entry);
@@ -754,7 +752,7 @@ const FancyEditor = React.forwardRef(
           }),
         );
 
-        const imageEntry = matches.length ? matches[0] : null;
+        const imageEntry = matches.length > 0 ? matches[0] : null;
 
         if (imageEntry) {
           const [, imagePath] = imageEntry;

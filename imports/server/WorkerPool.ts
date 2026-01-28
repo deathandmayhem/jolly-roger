@@ -33,16 +33,19 @@ if (process.env.CLUSTER_WORKER_ID) {
   });
 
   process.on("message", (message: unknown, socket) => {
-    if (typeof message === "object" && message !== null && "type" in message) {
-      if (message.type === "proxy-ws") {
-        const wsmessage = message as ProxyWsMessage;
-        WebApp.httpServer.emit(
-          "upgrade",
-          wsmessage.req,
-          socket,
-          Buffer.from(wsmessage.head, "utf8"),
-        );
-      }
+    if (
+      typeof message === "object" &&
+      message !== null &&
+      "type" in message &&
+      message.type === "proxy-ws"
+    ) {
+      const wsmessage = message as ProxyWsMessage;
+      WebApp.httpServer.emit(
+        "upgrade",
+        wsmessage.req,
+        socket,
+        Buffer.from(wsmessage.head, "utf8"),
+      );
     }
   });
 }

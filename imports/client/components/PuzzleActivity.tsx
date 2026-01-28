@@ -92,6 +92,10 @@ interface PuzzleActivityProps {
   unlockTime: Date;
 }
 
+const displayNumber = (buckets: number[]) => {
+  return buckets.at(-1) ?? 0;
+};
+
 const PuzzleActivity = ({
   huntId,
   puzzleId,
@@ -176,10 +180,6 @@ const PuzzleActivity = ({
       Puzzle unlocked: {calendarTimeFormat(unlockTime)}
     </Tooltip>
   );
-
-  const displayNumber = (buckets: number[]) => {
-    return buckets.at(-1) ?? 0;
-  };
 
   const sparklineTooltip = (
     <Tooltip id={`${idPrefix}-sparkline`}>

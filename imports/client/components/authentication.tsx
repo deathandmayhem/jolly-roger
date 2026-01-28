@@ -20,10 +20,8 @@ export const useAuthenticated = () => {
 
   useEffect(() => {
     // Check if we're done logging in
-    if (loading) {
-      if (!loggingIn) {
-        setLoading(false);
-      }
+    if (loading && !loggingIn) {
+      setLoading(false);
     }
   }, [loading, loggingIn]);
 
