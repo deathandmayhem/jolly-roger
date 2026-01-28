@@ -45,8 +45,7 @@ const ConnectionStatusContainer = styled.div`
   left: 0;
   right: 0;
   
-  /* This z-index is chosen to be higher than any z-index used by Bootstrap */
-  /* (which are all in the 1000-1100 range) */
+  /* This z-index is chosen to be higher than any z-index used by Bootstrap (which are all in the 1000-1100 range) */
   z-index: 10000;
 `;
 

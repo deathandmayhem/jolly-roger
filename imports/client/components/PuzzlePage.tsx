@@ -193,9 +193,7 @@ const ChatHistoryDiv = styled.div`
   flex: 1 1 auto;
   overflow-y: auto;
   
-  /* Nothing should overflow the box, but if you nest blockquotes super deep you */
-  /* can do horrible things.  We should still avoid horizontal scroll bars, */
-  /* since they make the log harder to read at the bottom. */
+  /* Nothing should overflow the box, but if you nest blockquotes super deep you can do horrible things.  We should still avoid horizontal scroll bars, since they make the log harder to read at the bottom. */
   overflow-x: hidden;
 `;
 
