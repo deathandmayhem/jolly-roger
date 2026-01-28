@@ -115,7 +115,7 @@ async function fetchDriveActivity() {
         const documentIds = [
           ...activity.targets.reduce<Set<string>>((acc, target) => {
             if (target.driveItem?.name?.startsWith("items/")) {
-              acc.add(target.driveItem.name.substring("items/".length));
+              acc.add(target.driveItem.name.slice("items/".length));
             }
 
             return acc;
@@ -125,7 +125,7 @@ async function fetchDriveActivity() {
         const actorIds = [
           ...activity.actors.reduce<Set<string>>((acc, actor) => {
             if (actor.user?.knownUser?.personName?.startsWith("people/")) {
-              const actorId = actor.user.knownUser.personName.substring(
+              const actorId = actor.user.knownUser.personName.slice(
                 "people/".length,
               );
               // Exclude edits made by the server drive user, since these aren't actual user edits.
