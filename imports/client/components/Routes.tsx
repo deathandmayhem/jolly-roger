@@ -128,9 +128,9 @@ const Routes = React.memo(() => {
 
   useEffect(() => {
     const body = document.body;
-    body.setAttribute("data-bs-theme", effectiveTheme ?? "light");
+    body.dataset.bsTheme = effectiveTheme ?? "light";
     return () => {
-      body.removeAttribute("data-bs-theme");
+      delete body.dataset.bsTheme;
     };
   }, [effectiveTheme]);
 
