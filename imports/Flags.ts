@@ -44,7 +44,7 @@ const Flags = {
     const checkUpdate = (_id: string, flag?: Partial<FeatureFlagType>) => {
       let newState;
       if (flag) {
-        newState = { ...(state ?? {}), ...flag } as FeatureFlagType;
+        newState = { ...state, ...flag } as FeatureFlagType;
       } else {
         newState = undefined;
       }

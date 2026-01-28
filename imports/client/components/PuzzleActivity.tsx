@@ -119,20 +119,18 @@ const PuzzleActivity = ({
       chats: [] as number[],
       calls: [] as number[],
       documents: [] as number[],
-      maxTotalCount: 0,
+      maxTotalCount: Math.max(
+        1,
+        ActivityBuckets.findOne(
+          {
+            hunt: huntId,
+          },
+          {
+            sort: { totalUsers: -1 },
+          },
+        )?.totalUsers ?? 0,
+      ),
     };
-
-    counts.maxTotalCount = Math.max(
-      1,
-      ActivityBuckets.findOne(
-        {
-          hunt: huntId,
-        },
-        {
-          sort: { totalUsers: -1 },
-        },
-      )?.totalUsers ?? 0,
-    );
 
     for (let i = 0; i < ACTIVITY_SEGMENTS; i++) {
       const bucket = ActivityBuckets.findOne({

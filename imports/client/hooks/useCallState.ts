@@ -325,8 +325,10 @@ function reducer(state: CallState, action: Action): CallState {
           newStream.addTrack(track);
         });
       newStream.addTrack(action.track);
-      const newPeerStreams = new Map(state.peerStreams);
-      newPeerStreams.set(action.peerId, newStream);
+      const newPeerStreams = new Map([
+        ...state.peerStreams,
+        [action.peerId, newStream],
+      ]);
       return {
         ...state,
         peerStreams: newPeerStreams,

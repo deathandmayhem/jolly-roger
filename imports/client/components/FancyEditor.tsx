@@ -838,7 +838,6 @@ const FancyEditor = React.forwardRef(
                 {...(props as ElementRendererProps<ImageElement>)}
               />
             );
-          case "message":
           default:
             return (
               <StyledMessage {...props.attributes}>

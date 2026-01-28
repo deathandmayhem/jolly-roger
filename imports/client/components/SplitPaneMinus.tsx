@@ -157,7 +157,7 @@ const Pane = ({
     style.flex = "none";
   }
 
-  const finalStyle = { ...style, ...(styleProps ?? {}) };
+  const finalStyle = { ...style, ...styleProps };
 
   return (
     <PaneDiv ref={eleRef} style={finalStyle}>
