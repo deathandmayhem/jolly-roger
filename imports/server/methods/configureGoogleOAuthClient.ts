@@ -1,9 +1,10 @@
 import { check, Match } from "meteor/check";
 import { Meteor } from "meteor/meteor";
 import { ServiceConfiguration } from "meteor/service-configuration";
-import Logger from "../../Logger";
+
 import MeteorUsers from "../../lib/models/MeteorUsers";
 import { userMayConfigureGoogleOAuth } from "../../lib/permission_stubs";
+import Logger from "../../Logger";
 import configureGoogleOAuthClient from "../../methods/configureGoogleOAuthClient";
 import defineMethod from "./defineMethod";
 

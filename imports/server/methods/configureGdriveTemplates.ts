@@ -1,5 +1,6 @@
 import { check, Match } from "meteor/check";
 import { Meteor } from "meteor/meteor";
+
 import MeteorUsers from "../../lib/models/MeteorUsers";
 import Settings from "../../lib/models/Settings";
 import { userMayConfigureGdrive } from "../../lib/permission_stubs";

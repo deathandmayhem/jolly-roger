@@ -1,13 +1,15 @@
 import type { Subscription } from "meteor/meteor";
 import { Meteor } from "meteor/meteor";
 import type { Mongo } from "meteor/mongo";
+
 import Bugsnag from "@bugsnag/js";
-import Logger from "../../Logger";
+
 import type TypedPublication from "../../lib/publications/TypedPublication";
 import type {
   DefaultTypedPublication,
   TypedPublicationArgs,
 } from "../../lib/publications/TypedPublication";
+import Logger from "../../Logger";
 
 type TypedPublicationReturn =
   | undefined

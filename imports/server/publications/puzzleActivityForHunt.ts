@@ -1,6 +1,7 @@
 import { check } from "meteor/check";
 import type { Subscription } from "meteor/meteor";
 import { Meteor } from "meteor/meteor";
+
 import type { PublishedBucket } from "../../lib/config/activityTracking";
 import {
   ACTIVITY_COLLECTION,

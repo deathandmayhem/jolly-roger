@@ -1,4 +1,5 @@
 import { Meteor } from "meteor/meteor";
+
 import Logger from "../Logger";
 import ignoringDuplicateKeyErrors from "./ignoringDuplicateKeyErrors";
 import type { LockType } from "./models/Locks";

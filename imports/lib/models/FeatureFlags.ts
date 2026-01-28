@@ -1,4 +1,5 @@
 import { z } from "zod";
+
 import type { ModelType } from "./Model";
 import SoftDeletedModel from "./SoftDeletedModel";
 import withCommon from "./withCommon";

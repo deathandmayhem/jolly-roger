@@ -1,5 +1,6 @@
 import type { Meteor } from "meteor/meteor";
 import { Mongo } from "meteor/mongo";
+
 import MeteorUsers from "../../lib/models/MeteorUsers";
 import Migrations from "./Migrations";
 

@@ -2,6 +2,7 @@ import { fetch } from "meteor/fetch";
 import { Meteor } from "meteor/meteor";
 import { OAuth } from "meteor/oauth";
 import { ServiceConfiguration } from "meteor/service-configuration";
+
 import { API_BASE, DiscordOAuthScopes } from "../lib/discord";
 
 class DiscordAPIClient {

@@ -1,4 +1,5 @@
 import { check, Match } from "meteor/check";
+
 import type { GdriveMimeTypesType } from "../../lib/GdriveMimeTypes";
 import GdriveMimeTypes from "../../lib/GdriveMimeTypes";
 import createPuzzle from "../../methods/createPuzzle";

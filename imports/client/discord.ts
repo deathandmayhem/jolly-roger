@@ -2,6 +2,7 @@ import { Meteor } from "meteor/meteor";
 import { OAuth } from "meteor/oauth";
 import { Random } from "meteor/random";
 import { ServiceConfiguration } from "meteor/service-configuration";
+
 import { API_BASE, DiscordOAuthScopes } from "../lib/discord";
 
 // Pseudo-type used for encapsulating guild data

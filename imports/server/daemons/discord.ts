@@ -1,13 +1,16 @@
 import { EventEmitter, once } from "node:events";
 import { setTimeout } from "node:timers/promises";
+
 import { Meteor } from "meteor/meteor";
+
 import * as Discord from "discord.js";
 import { Events, GatewayIntentBits } from "discord.js";
+
 import Flags from "../../Flags";
-import Logger from "../../Logger";
 import DiscordCache from "../../lib/models/DiscordCache";
 import MeteorUsers from "../../lib/models/MeteorUsers";
 import Settings from "../../lib/models/Settings";
+import Logger from "../../Logger";
 import onExit from "../onExit";
 import withLock, { PREEMPT_TIMEOUT } from "../withLock";
 

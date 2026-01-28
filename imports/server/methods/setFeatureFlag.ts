@@ -1,4 +1,5 @@
 import { check, Match } from "meteor/check";
+
 import FeatureFlags, { FlagNames } from "../../lib/models/FeatureFlags";
 import MeteorUsers from "../../lib/models/MeteorUsers";
 import { checkAdmin } from "../../lib/permission_stubs";

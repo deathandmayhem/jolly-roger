@@ -1,5 +1,6 @@
 import { Meteor } from "meteor/meteor";
 import { useTracker } from "meteor/react-meteor-data";
+
 import type { types } from "mediasoup-client";
 import type React from "react";
 import {
@@ -10,7 +11,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { logger as defaultLogger } from "../../Logger";
+
 import { groupedBy } from "../../lib/listUtils";
 import ConnectAcks from "../../lib/models/mediasoup/ConnectAcks";
 import Consumers from "../../lib/models/mediasoup/Consumers";
@@ -21,6 +22,7 @@ import type { RouterType } from "../../lib/models/mediasoup/Routers";
 import Routers from "../../lib/models/mediasoup/Routers";
 import type { TransportType } from "../../lib/models/mediasoup/Transports";
 import Transports from "../../lib/models/mediasoup/Transports";
+import { logger as defaultLogger } from "../../Logger";
 import mediasoupAckConsumer from "../../methods/mediasoupAckConsumer";
 import mediasoupAckPeerRemoteMute from "../../methods/mediasoupAckPeerRemoteMute";
 import mediasoupConnectTransport from "../../methods/mediasoupConnectTransport";

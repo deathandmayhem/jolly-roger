@@ -2,6 +2,7 @@ import { Meteor } from "meteor/meteor";
 import { OAuth } from "meteor/oauth";
 import { useSubscribe, useTracker } from "meteor/react-meteor-data";
 import { ServiceConfiguration } from "meteor/service-configuration";
+
 import { faCopy } from "@fortawesome/free-solid-svg-icons/faCopy";
 import { faPuzzlePiece } from "@fortawesome/free-solid-svg-icons/faPuzzlePiece";
 import { faSpinner } from "@fortawesome/free-solid-svg-icons/faSpinner";
@@ -16,6 +17,7 @@ import Tooltip from "react-bootstrap/Tooltip";
 import { Link } from "react-router-dom";
 import ReactTextareaAutosize from "react-textarea-autosize";
 import styled from "styled-components";
+
 import Flags from "../../Flags";
 import { calendarTimeFormat } from "../../lib/calendarTimeFormat";
 import isAdmin from "../../lib/isAdmin";
@@ -73,7 +75,7 @@ const StyledNotificationActionBar = styled.ul`
   padding: 0;
   flex-flow: wrap row;
   gap: 0.5rem;
-
+  
   &:not(:last-child) {
     margin-bottom: 0.5rem;
   }
@@ -708,7 +710,7 @@ const ReloadRequiredNotification = ({ reasons }: { reasons: string[] }) => {
 
 const StyledToastContainer = styled(ToastContainer)`
   z-index: 1050;
-
+  
   > *:not(:last-child) {
     /* I like these toasts packed a little more efficiently */
     margin-bottom: 0.5rem;

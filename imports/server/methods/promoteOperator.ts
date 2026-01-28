@@ -1,12 +1,13 @@
 import { check } from "meteor/check";
 import { Meteor } from "meteor/meteor";
-import Logger from "../../Logger";
+
 import Hunts from "../../lib/models/Hunts";
 import MeteorUsers from "../../lib/models/MeteorUsers";
 import {
   addUserToRole,
   userMayMakeOperatorForHunt,
 } from "../../lib/permission_stubs";
+import Logger from "../../Logger";
 import promoteOperator from "../../methods/promoteOperator";
 import defineMethod from "./defineMethod";
 

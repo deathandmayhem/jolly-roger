@@ -1,4 +1,5 @@
 import { z } from "zod";
+
 import { createdTimestamp, updatedTimestamp } from "./customTypes";
 import type { MongoRecordZodType } from "./generateJsonSchema";
 

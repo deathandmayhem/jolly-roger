@@ -1,6 +1,7 @@
 import { check, Match } from "meteor/check";
 import { fetch } from "meteor/fetch";
 import { Meteor } from "meteor/meteor";
+
 import Documents from "../../lib/models/Documents";
 import Settings from "../../lib/models/Settings";
 import insertDocumentImage from "../../methods/insertDocumentImage";

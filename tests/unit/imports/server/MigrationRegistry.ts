@@ -1,5 +1,7 @@
 import { Mongo } from "meteor/mongo";
+
 import { assert } from "chai";
+
 import type { MigrationControl } from "../../../../imports/server/MigrationRegistry";
 import MigrationRegistry from "../../../../imports/server/MigrationRegistry";
 

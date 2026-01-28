@@ -1,5 +1,6 @@
 import { format } from "winston";
 import Transport from "winston-transport";
+
 import { logger } from "../Logger";
 
 class BrowserConsole extends Transport {

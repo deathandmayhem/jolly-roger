@@ -1,4 +1,5 @@
 import { check } from "meteor/check";
+
 import Hunts from "../../lib/models/Hunts";
 import huntForHuntApp from "../../lib/publications/huntForHuntApp";
 import definePublication from "./definePublication";

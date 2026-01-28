@@ -1,4 +1,5 @@
 import { Meteor } from "meteor/meteor";
+
 import type TypedPublication from "../lib/publications/TypedPublication";
 import type { TypedPublicationArgs } from "../lib/publications/TypedPublication";
 import type ValidateShape from "../lib/ValidateShape";

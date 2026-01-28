@@ -3,10 +3,12 @@
 // themselves, but terminated ungracefully.
 
 import os from "node:os";
+
 import { Meteor } from "meteor/meteor";
 import { Random } from "meteor/random";
-import Logger from "../Logger";
+
 import Servers from "../lib/models/Servers";
+import Logger from "../Logger";
 import ignoringDuplicateKeyErrors from "./ignoringDuplicateKeyErrors";
 import onExit from "./onExit";
 

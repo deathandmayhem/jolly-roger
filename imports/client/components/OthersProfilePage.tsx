@@ -1,9 +1,11 @@
 import type { Meteor } from "meteor/meteor";
 import { useTracker } from "meteor/react-meteor-data";
+
 import { useId } from "react";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Tooltip from "react-bootstrap/Tooltip";
 import styled from "styled-components";
+
 import { formatDiscordName } from "../../lib/discord";
 import { indexedById } from "../../lib/listUtils";
 import type { HuntType } from "../../lib/models/Hunts";
@@ -14,7 +16,7 @@ import Avatar from "./Avatar";
 
 const AvatarTooltip = styled(Tooltip)`
   opacity: 1 !important;
-
+  
   .tooltip-inner {
     max-width: 300px;
   }

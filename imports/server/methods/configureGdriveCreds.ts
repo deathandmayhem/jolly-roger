@@ -1,10 +1,11 @@
 import { check } from "meteor/check";
 import { Google } from "meteor/google-oauth";
 import { Meteor } from "meteor/meteor";
-import Logger from "../../Logger";
+
 import MeteorUsers from "../../lib/models/MeteorUsers";
 import Settings from "../../lib/models/Settings";
 import { userMayConfigureGdrive } from "../../lib/permission_stubs";
+import Logger from "../../Logger";
 import configureGdriveCreds from "../../methods/configureGdriveCreds";
 import defineMethod from "./defineMethod";
 

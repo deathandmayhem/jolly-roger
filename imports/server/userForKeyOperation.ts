@@ -1,4 +1,5 @@
 import { Meteor } from "meteor/meteor";
+
 import isAdmin from "../lib/isAdmin";
 import MeteorUsers from "../lib/models/MeteorUsers";
 

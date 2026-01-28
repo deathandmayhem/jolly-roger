@@ -1,4 +1,5 @@
 import { Meteor } from "meteor/meteor";
+
 import Flags from "../../Flags";
 import Announcements from "../../lib/models/Announcements";
 import type { ChatMessageContentType } from "../../lib/models/ChatMessages";

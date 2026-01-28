@@ -1,9 +1,11 @@
 import { check } from "meteor/check";
 import { Meteor } from "meteor/meteor";
+
 import { ListBucketsCommand, S3Client } from "@aws-sdk/client-s3";
-import Logger from "../../Logger";
+
 import MeteorUsers from "../../lib/models/MeteorUsers";
 import { userMayConfigureAWS } from "../../lib/permission_stubs";
+import Logger from "../../Logger";
 import configureListS3Buckets from "../../methods/configureListS3Buckets";
 import defineMethod from "./defineMethod";
 

@@ -1,14 +1,11 @@
 // First thing's first: setup error reporting and logging
 import "../imports/client/bugsnag";
 import "../imports/client/configureLogger";
-
 // Polyfills
 import "disposablestack/auto";
-
 // explicitly import all the stuff from lib/ since mainModule skips autoloading
 // things
 import "../imports/lib/config/accounts";
-
 // explicitly import all the stuff from client/
 import "../imports/client/main";
 import "../imports/client/close";

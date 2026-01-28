@@ -1,6 +1,7 @@
 import { Meteor } from "meteor/meteor";
 import { Random } from "meteor/random";
 import { useSubscribe, useTracker } from "meteor/react-meteor-data";
+
 import { faAngleDoubleDown } from "@fortawesome/free-solid-svg-icons/faAngleDoubleDown";
 import { faAngleDoubleUp } from "@fortawesome/free-solid-svg-icons/faAngleDoubleUp";
 import { faArrowLeft } from "@fortawesome/free-solid-svg-icons/faArrowLeft";
@@ -44,6 +45,7 @@ import { createPortal } from "react-dom";
 import { Link, useParams } from "react-router-dom";
 import type { Descendant } from "slate";
 import styled, { css } from "styled-components";
+
 import {
   calendarTimeFormat,
   shortCalendarTimeFormat,
@@ -101,13 +103,13 @@ import CopyToClipboardButton from "./CopyToClipboardButton";
 import DocumentDisplay, { DocumentMessage } from "./DocumentDisplay";
 import type { FancyEditorHandle, MessageElement } from "./FancyEditor";
 import FancyEditor from "./FancyEditor";
-import GuessState from "./GuessState";
 import {
   formatConfidence,
   formatGuessDirection,
   GuessConfidence,
   GuessDirection,
 } from "./guessDetails";
+import GuessState from "./GuessState";
 import InsertImage from "./InsertImage";
 import Markdown from "./Markdown";
 import MinimizedChatInfo from "./MinimizedChatInfo";
@@ -190,10 +192,10 @@ const MinimumDesktopWidth = MinimumSidebarWidth + MinimumDocumentWidth;
 const ChatHistoryDiv = styled.div`
   flex: 1 1 auto;
   overflow-y: auto;
-
-  /* Nothing should overflow the box, but if you nest blockquotes super deep you
-     can do horrible things.  We should still avoid horizontal scroll bars,
-     since they make the log harder to read at the bottom. */
+  
+  /* Nothing should overflow the box, but if you nest blockquotes super deep you */
+  /* can do horrible things.  We should still avoid horizontal scroll bars, */
+  /* since they make the log harder to read at the bottom. */
   overflow-x: hidden;
 `;
 
@@ -242,14 +244,14 @@ const ChatSectionDiv = styled.div`
   display: flex;
   flex-flow: column;
   overflow: hidden;
-
+  
   p,
   ul,
   blockquote,
   pre {
     margin-bottom: 0;
   }
-
+  
   blockquote {
     font-size: 14px;
     margin-left: 10px;
@@ -312,7 +314,7 @@ const PuzzleMetadataRow = styled.div`
 const PuzzleMetadataActionRow = styled(PuzzleMetadataRow)`
   align-items: center;
   flex-wrap: nowrap;
-
+  
   a {
     margin-right: 8px;
   }
@@ -320,7 +322,7 @@ const PuzzleMetadataActionRow = styled(PuzzleMetadataRow)`
 
 const PuzzleMetadataButtons = styled.div`
   margin-left: auto;
-
+  
   button {
     margin: 2px 0 2px 8px;
   }

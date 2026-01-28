@@ -1,4 +1,5 @@
 import type { Meteor } from "meteor/meteor";
+
 import { faFileCircleExclamation } from "@fortawesome/free-solid-svg-icons/faFileCircleExclamation";
 import { faSpinner } from "@fortawesome/free-solid-svg-icons/faSpinner";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -37,6 +38,7 @@ import {
   withReact,
 } from "slate-react";
 import styled, { css } from "styled-components";
+
 import { formatDiscordName } from "../../lib/discord";
 import { indexedById, sortedBy } from "../../lib/listUtils";
 import Avatar from "./Avatar";
@@ -112,8 +114,9 @@ interface LeafProps {
   blockquote?: boolean;
 }
 
-interface MentionRendererProps
-  extends ElementRendererProps<MentionElement | RoleMentionElement> {
+interface MentionRendererProps extends ElementRendererProps<
+  MentionElement | RoleMentionElement
+> {
   users: Map<string, Meteor.User>;
 }
 

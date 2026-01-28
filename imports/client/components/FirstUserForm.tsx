@@ -1,4 +1,5 @@
 import { Meteor } from "meteor/meteor";
+
 import type React from "react";
 import { useCallback, useId, useState } from "react";
 import Alert from "react-bootstrap/Alert";
@@ -7,6 +8,7 @@ import type { FormControlProps } from "react-bootstrap/FormControl";
 import FormControl from "react-bootstrap/FormControl";
 import FormGroup from "react-bootstrap/FormGroup";
 import FormLabel from "react-bootstrap/FormLabel";
+
 import provisionFirstUser from "../../methods/provisionFirstUser";
 
 enum SubmitState {

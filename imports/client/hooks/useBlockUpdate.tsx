@@ -1,4 +1,5 @@
 import { Reload } from "meteor/reload";
+
 import React, { useContext, useEffect, useRef, useState } from "react";
 
 // BlockHandle is basically used as a sentinel object, generated for each

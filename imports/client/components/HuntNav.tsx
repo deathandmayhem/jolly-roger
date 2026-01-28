@@ -1,5 +1,6 @@
 import { Meteor } from "meteor/meteor";
 import { useTracker } from "meteor/react-meteor-data";
+
 import { faBullhorn } from "@fortawesome/free-solid-svg-icons/faBullhorn";
 import { faFaucet } from "@fortawesome/free-solid-svg-icons/faFaucet";
 import { faMap } from "@fortawesome/free-solid-svg-icons/faMap";
@@ -10,6 +11,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Nav from "react-bootstrap/Nav";
 import { NavLink, useParams } from "react-router-dom";
 import styled, { css } from "styled-components";
+
 import Hunts from "../../lib/models/Hunts";
 import { userMayWritePuzzlesForHunt } from "../../lib/permission_stubs";
 import { mediaBreakpointDown } from "./styling/responsive";
@@ -61,7 +63,7 @@ const StyledPuzzleListLinkAnchor = styled(NavLink)`
     css`
       flex: 1;
       font-size: 1rem;
-
+      
       &:hover {
         background: #f0f0f0;
       }
@@ -80,7 +82,7 @@ const HuntLinkAnchor = styled(StyledPuzzleListLinkAnchor)`
     css`
       color: white;
       background: #0d6efd;
-
+      
       &:hover {
         background: #0a58ca;
         color: white;
@@ -95,7 +97,7 @@ const HuntLinkAnchor = styled(StyledPuzzleListLinkAnchor)`
       flex: 1;
       height: 100%;
       padding: 6px 0;
-
+      
       a {
         border-radius: 0;
         flex: 1;

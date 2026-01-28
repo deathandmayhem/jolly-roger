@@ -1,9 +1,10 @@
 import { check } from "meteor/check";
 import { Google } from "meteor/google-oauth";
 import { Meteor } from "meteor/meteor";
+
 import Flags from "../../Flags";
-import Logger from "../../Logger";
 import MeteorUsers from "../../lib/models/MeteorUsers";
+import Logger from "../../Logger";
 import linkUserGoogleAccount from "../../methods/linkUserGoogleAccount";
 import { ensureHuntFolderPermission } from "../gdrive";
 import defineMethod from "./defineMethod";

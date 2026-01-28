@@ -1,5 +1,6 @@
 import { Meteor } from "meteor/meteor";
 import { useTracker } from "meteor/react-meteor-data";
+
 import { faCommentDots } from "@fortawesome/free-solid-svg-icons/faCommentDots";
 import { faDoorOpen } from "@fortawesome/free-solid-svg-icons/faDoorOpen";
 import { faFilePen } from "@fortawesome/free-solid-svg-icons/faFilePen";
@@ -11,6 +12,7 @@ import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Tooltip from "react-bootstrap/Tooltip";
 import { Sparklines, SparklinesLine, SparklinesSpots } from "react-sparklines";
 import styled, { css } from "styled-components";
+
 import { calendarTimeFormat } from "../../lib/calendarTimeFormat";
 import {
   ACTIVITY_GRANULARITY,
@@ -63,7 +65,7 @@ const PuzzleOpenTime = styled(PuzzleActivityItem)`
 const PuzzleActivitySparkline = styled(PuzzleActivityItem)`
   min-width: 6rem;
   max-width: 8rem;
-
+  
   span {
     margin-right: 0;
   }

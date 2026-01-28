@@ -1,15 +1,17 @@
 import { check, Match } from "meteor/check";
 import { Meteor } from "meteor/meteor";
 import { Random } from "meteor/random";
+
 import {
   GetBucketLocationCommand,
   PutObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
-import Logger from "../../Logger";
+
 import MeteorUsers from "../../lib/models/MeteorUsers";
 import Settings from "../../lib/models/Settings";
 import { userMayConfigureAWS } from "../../lib/permission_stubs";
+import Logger from "../../Logger";
 import configureS3ImageBucket from "../../methods/configureS3ImageBucket";
 import defineMethod from "./defineMethod";
 

@@ -1,9 +1,11 @@
 import type { Meteor } from "meteor/meteor";
+
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import { faFileAlt } from "@fortawesome/free-solid-svg-icons/faFileAlt";
 import { faTable } from "@fortawesome/free-solid-svg-icons/faTable";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import styled from "styled-components";
+
 import type { DocumentType } from "../../lib/models/Documents";
 
 interface DocumentDisplayProps {
@@ -19,8 +21,8 @@ const StyledDeepLink = styled.a`
 `;
 
 const StyledIframe = styled.iframe`
-  /* Workaround for unusual sizing behavior of iframes in iOS Safari:
-   * Width and height need to be specified in absolute values then adjusted by min and max */
+  /* Workaround for unusual sizing behavior of iframes in iOS Safari: */
+  /* Width and height need to be specified in absolute values then adjusted by min and max */
   width: 0;
   height: 0;
   min-width: 100%;

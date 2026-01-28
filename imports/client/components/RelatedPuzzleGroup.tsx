@@ -3,6 +3,7 @@ import { faCaretRight } from "@fortawesome/free-solid-svg-icons/faCaretRight";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useCallback, useEffect, useRef, useState } from "react";
 import styled from "styled-components";
+
 import type { TagType } from "../../lib/models/Tags";
 import type { PuzzleGroup } from "../../lib/puzzle-sort-and-group";
 import { useHuntPuzzleListCollapseGroup } from "../hooks/persisted-state";
@@ -17,11 +18,11 @@ export const PuzzleGroupDiv = styled.div`
 
 const PuzzleGroupHeader = styled.div`
   display: block;
-
+  
   &:hover {
     cursor: pointer;
   }
-
+  
   min-height: 32px;
 `;
 

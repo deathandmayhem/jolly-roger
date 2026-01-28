@@ -1,5 +1,6 @@
 import React from "react";
 import styled, { css } from "styled-components";
+
 import { MonospaceFontFamily } from "./styling/constants";
 
 const PuzzleAnswerSpan = styled.span<{
@@ -28,7 +29,7 @@ const PuzzleAnswerSpan = styled.span<{
 const PuzzleAnswerSegment = styled.span`
   overflow-wrap: normal;
   margin-right: 0.4em;
-
+  
   :last-child {
     margin-right: 0;
   }

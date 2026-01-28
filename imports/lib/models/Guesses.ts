@@ -1,4 +1,5 @@
 import { z } from "zod";
+
 import { answer, foreignKey, nonEmptyString } from "./customTypes";
 import type { ModelType } from "./Model";
 import SoftDeletedModel from "./SoftDeletedModel";

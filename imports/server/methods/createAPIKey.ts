@@ -1,5 +1,6 @@
 import { check } from "meteor/check";
 import { Random } from "meteor/random";
+
 import APIKeys from "../../lib/models/APIKeys";
 import createAPIKey from "../../methods/createAPIKey";
 import defineMethod from "./defineMethod";

@@ -1,4 +1,5 @@
 import type { Mongo } from "meteor/mongo";
+
 import { contentFromMessage } from "../lib/models/ChatMessages";
 import type { GuessType } from "../lib/models/Guesses";
 import Guesses from "../lib/models/Guesses";

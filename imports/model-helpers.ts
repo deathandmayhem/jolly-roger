@@ -1,4 +1,5 @@
 import Mustache from "mustache";
+
 import type { HuntType } from "./lib/models/Hunts";
 import type { PuzzleType } from "./lib/models/Puzzles";
 

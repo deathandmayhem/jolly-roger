@@ -114,7 +114,7 @@ doc but is primarily expected to take action when a new puzzle is created.
 Since the document is a core part of the Jolly Roger experience, clients can
 also call `ensureDocument` via the `ensurePuzzleDocument` Meteor method, which
 they call on loading a puzzle page. In order to prevent thundering herds of
-creation attempts, when creating a new puzzle, the document is created *before*
+creation attempts, when creating a new puzzle, the document is created _before_
 saving the puzzle to MongoDB, so that once clients discover the new puzzle, the
 document should already be present.
 

@@ -1,5 +1,6 @@
 import { Meteor } from "meteor/meteor";
 import { useTracker } from "meteor/react-meteor-data";
+
 import { faCaretDown } from "@fortawesome/free-solid-svg-icons/faCaretDown";
 import { faCaretRight } from "@fortawesome/free-solid-svg-icons/faCaretRight";
 import { faMicrophoneSlash } from "@fortawesome/free-solid-svg-icons/faMicrophoneSlash";
@@ -22,9 +23,10 @@ import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Tooltip from "react-bootstrap/Tooltip";
 import { createPortal } from "react-dom";
 import styled from "styled-components";
+
 import Flags from "../../Flags";
-import MeteorUsers from "../../lib/models/MeteorUsers";
 import type { PeerType } from "../../lib/models/mediasoup/Peers";
+import MeteorUsers from "../../lib/models/MeteorUsers";
 import mediasoupRemoteMutePeer from "../../methods/mediasoupRemoteMutePeer";
 import type { Action, CallState } from "../hooks/useCallState";
 import Avatar from "./Avatar";
@@ -206,10 +208,10 @@ const SelfBox = ({
 };
 
 const ChatterTooltip = styled(Tooltip)`
-  /* Force chatter tooltip overlay to get larger than the default
-     react-bootstrap stylesheet permits.  We can only apply classes to the root
-     tooltip <div>; the .tooltip-inner className is controlled by
-     react-bootstrap/popper. */
+  /* Force chatter tooltip overlay to get larger than the default */
+  /* react-bootstrap stylesheet permits.  We can only apply classes to the root */
+  /* tooltip <div>; the .tooltip-inner className is controlled by */
+  /* react-bootstrap/popper. */
   .tooltip-inner {
     max-width: 300px;
   }

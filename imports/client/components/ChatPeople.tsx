@@ -1,5 +1,6 @@
 import { Meteor } from "meteor/meteor";
 import { useSubscribe, useTracker } from "meteor/react-meteor-data";
+
 import { faCaretDown } from "@fortawesome/free-solid-svg-icons/faCaretDown";
 import { faCaretRight } from "@fortawesome/free-solid-svg-icons/faCaretRight";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -16,12 +17,13 @@ import {
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Tooltip from "react-bootstrap/Tooltip";
 import styled from "styled-components";
+
 import Flags from "../../Flags";
 import { RECENT_ACTIVITY_TIME_WINDOW_MS } from "../../lib/config/webrtc";
 import type { DiscordAccountType } from "../../lib/models/DiscordAccount";
-import MeteorUsers from "../../lib/models/MeteorUsers";
 import CallHistories from "../../lib/models/mediasoup/CallHistories";
 import Peers from "../../lib/models/mediasoup/Peers";
+import MeteorUsers from "../../lib/models/MeteorUsers";
 import relativeTimeFormat from "../../lib/relativeTimeFormat";
 import type { Action, CallState } from "../hooks/useCallState";
 import { CallJoinState } from "../hooks/useCallState";

@@ -1,7 +1,9 @@
 import { DDP } from "meteor/ddp";
+
 import type express from "express";
-import Logger from "../../Logger";
+
 import APIKeys from "../../lib/models/APIKeys";
+import Logger from "../../Logger";
 import expressAsyncWrapper from "../expressAsyncWrapper";
 
 // Update last used time only once every 60 seconds.

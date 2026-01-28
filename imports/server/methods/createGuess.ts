@@ -1,9 +1,10 @@
 import { check } from "meteor/check";
 import { Meteor } from "meteor/meteor";
-import Logger from "../../Logger";
+
 import Guesses from "../../lib/models/Guesses";
 import Hunts from "../../lib/models/Hunts";
 import Puzzles from "../../lib/models/Puzzles";
+import Logger from "../../Logger";
 import createGuess from "../../methods/createGuess";
 import sendChatMessageInternal from "../sendChatMessageInternal";
 import defineMethod from "./defineMethod";

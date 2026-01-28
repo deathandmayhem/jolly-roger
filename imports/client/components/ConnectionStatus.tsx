@@ -1,10 +1,12 @@
 import type { DDP } from "meteor/ddp";
 import { Meteor } from "meteor/meteor";
 import { useTracker } from "meteor/react-meteor-data";
+
 import { useEffect, useState } from "react";
 import Alert from "react-bootstrap/Alert";
 import Button from "react-bootstrap/Button";
 import styled from "styled-components";
+
 import Logger from "../../Logger";
 
 const WaitingAlert = ({
@@ -42,9 +44,9 @@ const ConnectionStatusContainer = styled.div`
   top: 50px;
   left: 0;
   right: 0;
-
-  /* This z-index is chosen to be higher than any z-index used by Bootstrap
-     (which are all in the 1000-1100 range) */
+  
+  /* This z-index is chosen to be higher than any z-index used by Bootstrap */
+  /* (which are all in the 1000-1100 range) */
   z-index: 10000;
 `;
 

@@ -1,8 +1,9 @@
 import { check } from "meteor/check";
 import { Meteor } from "meteor/meteor";
-import Logger from "../../Logger";
+
 import MeteorUsers from "../../lib/models/MeteorUsers";
 import { checkAdmin } from "../../lib/permission_stubs";
+import Logger from "../../Logger";
 import configureCollectGoogleAccountIds from "../../methods/configureCollectGoogleAccountIds";
 import GoogleClient from "../googleClientRefresher";
 import defineMethod from "./defineMethod";

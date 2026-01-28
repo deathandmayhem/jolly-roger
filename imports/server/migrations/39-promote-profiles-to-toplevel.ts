@@ -1,4 +1,5 @@
 import type { Meteor } from "meteor/meteor";
+
 import MeteorUsers from "../../lib/models/MeteorUsers";
 import dropIndex from "./dropIndex";
 import Migrations from "./Migrations";

@@ -1,4 +1,5 @@
 import { check } from "meteor/check";
+
 import MeteorUsers from "../../lib/models/MeteorUsers";
 import acceptUserHuntTerms from "../../methods/acceptUserHuntTerms";
 import defineMethod from "./defineMethod";

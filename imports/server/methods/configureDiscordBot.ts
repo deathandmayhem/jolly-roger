@@ -1,9 +1,10 @@
 import { check, Match } from "meteor/check";
 import { Meteor } from "meteor/meteor";
-import Logger from "../../Logger";
+
 import MeteorUsers from "../../lib/models/MeteorUsers";
 import Settings from "../../lib/models/Settings";
 import { userMayConfigureDiscordBot } from "../../lib/permission_stubs";
+import Logger from "../../Logger";
 import configureDiscordBot from "../../methods/configureDiscordBot";
 import defineMethod from "./defineMethod";
 

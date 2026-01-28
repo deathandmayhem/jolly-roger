@@ -2,6 +2,7 @@ import { Google } from "meteor/google-oauth";
 import { OAuth } from "meteor/oauth";
 import { useTracker } from "meteor/react-meteor-data";
 import { ServiceConfiguration } from "meteor/service-configuration";
+
 import type React from "react";
 import type { ChangeEvent, ComponentPropsWithRef, FC, FormEvent } from "react";
 import { useCallback, useId, useState } from "react";
@@ -9,6 +10,7 @@ import Alert from "react-bootstrap/Alert";
 import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import { styled } from "styled-components";
+
 import Flags from "../../Flags";
 
 export type GoogleSignInCredentials = {

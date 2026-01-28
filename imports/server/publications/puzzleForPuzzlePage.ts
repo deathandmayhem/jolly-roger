@@ -1,4 +1,5 @@
 import { check } from "meteor/check";
+
 import Bookmarks from "../../lib/models/Bookmarks";
 import Documents from "../../lib/models/Documents";
 import Guesses from "../../lib/models/Guesses";

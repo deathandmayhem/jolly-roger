@@ -1,4 +1,5 @@
 import { z } from "zod";
+
 import type { Solvedness } from "../solvedness";
 import { answer, foreignKey } from "./customTypes";
 import type { ModelType } from "./Model";

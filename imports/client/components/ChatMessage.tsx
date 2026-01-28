@@ -4,6 +4,7 @@ import { marked } from "marked";
 import { useCallback, useEffect, useRef, useState } from "react";
 import BSImage from "react-bootstrap/Image";
 import styled from "styled-components";
+
 import type { ChatMessageContentType } from "../../lib/models/ChatMessages";
 import nodeIsImage from "../../lib/nodeIsImage";
 import nodeIsMention from "../../lib/nodeIsMention";

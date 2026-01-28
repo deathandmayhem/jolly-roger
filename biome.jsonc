@@ -3,7 +3,7 @@
   "vcs": {
     "enabled": true,
     "clientKind": "git",
-    "useIgnoreFile": true
+    "useIgnoreFile": true,
   },
   "files": {
     "includes": [
@@ -12,8 +12,8 @@
       "!**/.git",
       "!**/.meteor",
       "!eslint",
-      "!eslint.config.mts"
-    ]
+      "!eslint.config.mts",
+    ],
   },
   "formatter": {
     "enabled": true,
@@ -25,24 +25,24 @@
     "attributePosition": "auto",
     "bracketSameLine": false,
     "bracketSpacing": true,
-    "expand": "auto"
+    "expand": "auto",
   },
   "linter": {
-    "enabled": false
+    "enabled": false,
   },
   "javascript": {
     "formatter": {
       "jsxQuoteStyle": "double",
       "quoteProperties": "asNeeded",
       "trailingCommas": "all",
-      "arrowParentheses": "always"
-    }
+      "arrowParentheses": "always",
+    },
   },
   "html": {
     "formatter": {
       "indentScriptAndStyle": true,
-      "selfCloseVoidElements": "always"
-    }
+      "selfCloseVoidElements": "always",
+    },
   },
   "assist": {
     "enabled": true,
@@ -51,11 +51,11 @@
         "organizeImports": {
           "level": "on",
           "options": {
-            "groups": [":NODE:", "meteor/**", ":PACKAGE:", ":PATH:"]
-          }
-        }
-      }
-    }
+            "groups": [":NODE:", "meteor/**", ":PACKAGE:", ":PATH:"],
+          },
+        },
+      },
+    },
   },
   "overrides": [
     {
@@ -64,10 +64,10 @@
         "rules": {
           "complexity": {
             // Arrow functions with mocha are discouraged
-            "useArrowFunction": "off"
-          }
-        }
-      }
+            "useArrowFunction": "off",
+          },
+        },
+      },
     },
     {
       "includes": ["types/**"],
@@ -75,14 +75,14 @@
         // Type declarations for other libraries have to conform to those libraries
         "rules": {
           "correctness": {
-            "noUnusedImports": "off"
+            "noUnusedImports": "off",
           },
           "suspicious": {
             "noVar": "off",
-            "useNamespaceKeyword": "off"
-          }
-        }
-      }
-    }
-  ]
+            "useNamespaceKeyword": "off",
+          },
+        },
+      },
+    },
+  ],
 }

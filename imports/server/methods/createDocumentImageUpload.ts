@@ -1,6 +1,7 @@
 import { check } from "meteor/check";
 import { Meteor } from "meteor/meteor";
 import { Random } from "meteor/random";
+
 import Documents from "../../lib/models/Documents";
 import MeteorUsers from "../../lib/models/MeteorUsers";
 import createDocumentImageUpload from "../../methods/createDocumentImageUpload";

@@ -3,6 +3,7 @@ import { Meteor } from "meteor/meteor";
 import { OAuth } from "meteor/oauth";
 import { useTracker } from "meteor/react-meteor-data";
 import { ServiceConfiguration } from "meteor/service-configuration";
+
 import type React from "react";
 import type { ReactNode } from "react";
 import { useCallback, useEffect, useId, useMemo, useState } from "react";
@@ -16,6 +17,7 @@ import FormLabel from "react-bootstrap/FormLabel";
 import FormText from "react-bootstrap/FormText";
 import Creatable from "react-select/creatable";
 import styled, { useTheme } from "styled-components";
+
 import Flags from "../../Flags";
 import isAdmin from "../../lib/isAdmin";
 import DiscordCache from "../../lib/models/DiscordCache";
@@ -80,7 +82,7 @@ const SectionHeaderLabel = styled.span`
 
 const SectionHeaderButtons = styled.span`
   flex: 0 0 auto;
-
+  
   button {
     margin-left: 8px;
   }
@@ -2358,7 +2360,7 @@ const CircuitBreakerLabel = styled.div`
 
 const CircuitBreakerButtons = styled.div`
   flex: 0 0 auto;
-
+  
   button {
     margin-left: 8px;
   }

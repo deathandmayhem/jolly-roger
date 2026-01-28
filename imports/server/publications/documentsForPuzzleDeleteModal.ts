@@ -1,4 +1,5 @@
 import { check } from "meteor/check";
+
 import Documents from "../../lib/models/Documents";
 import MeteorUsers from "../../lib/models/MeteorUsers";
 import documentsForPuzzleDeleteModal from "../../lib/publications/documentsForPuzzleDeleteModal";

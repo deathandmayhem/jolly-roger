@@ -1,5 +1,6 @@
 import { check } from "meteor/check";
 import { Meteor } from "meteor/meteor";
+
 import FixtureHunt from "../../FixtureHunt";
 import MeteorUsers from "../../lib/models/MeteorUsers";
 import { addUserToRole, userMayCreateHunt } from "../../lib/permission_stubs";

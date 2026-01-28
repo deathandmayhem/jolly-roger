@@ -1,4 +1,5 @@
 import { z } from "zod";
+
 import { Email, URL, UUID } from "./regexes";
 
 // This file is heavily inspired by zod-to-json-schema, but we use our own

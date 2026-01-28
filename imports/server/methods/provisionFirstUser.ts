@@ -1,6 +1,7 @@
 import { Accounts } from "meteor/accounts-base";
 import { check } from "meteor/check";
 import { Meteor } from "meteor/meteor";
+
 import { GLOBAL_SCOPE } from "../../lib/isAdmin";
 import MeteorUsers from "../../lib/models/MeteorUsers";
 import { addUserToRole } from "../../lib/permission_stubs";

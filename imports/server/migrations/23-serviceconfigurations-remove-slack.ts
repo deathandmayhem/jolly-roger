@@ -1,4 +1,5 @@
 import { ServiceConfiguration } from "meteor/service-configuration";
+
 import Migrations from "./Migrations";
 
 Migrations.add({

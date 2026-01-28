@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+
 import useImmediateEffect from "./useImmediateEffect";
 
 // Global state, but hey, document.title *is* a global

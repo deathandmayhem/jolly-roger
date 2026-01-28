@@ -1,11 +1,14 @@
 import { isDeepStrictEqual } from "node:util";
+
 import type { Subscription } from "meteor/meteor";
 import { Meteor } from "meteor/meteor";
 import { Mongo } from "meteor/mongo";
+
 import type { z } from "zod";
-import Logger from "../Logger";
+
 import type { MongoRecordZodType } from "../lib/models/generateJsonSchema";
 import type Model from "../lib/models/Model";
+import Logger from "../Logger";
 
 type Projection<T> = Partial<Record<keyof T, 0 | 1>>;
 

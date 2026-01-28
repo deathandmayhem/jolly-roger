@@ -1,5 +1,6 @@
 import { Meteor } from "meteor/meteor";
 import { useTracker } from "meteor/react-meteor-data";
+
 import type React from "react";
 import { useCallback, useId, useMemo, useState } from "react";
 import Alert from "react-bootstrap/Alert";
@@ -12,6 +13,7 @@ import FormLabel from "react-bootstrap/FormLabel";
 import Row from "react-bootstrap/Row";
 import { useNavigate, useParams } from "react-router-dom";
 import styled from "styled-components";
+
 import Hunts from "../../lib/models/Hunts";
 import { userMayBulkAddToHunt } from "../../lib/permission_stubs";
 import addHuntUser from "../../methods/addHuntUser";

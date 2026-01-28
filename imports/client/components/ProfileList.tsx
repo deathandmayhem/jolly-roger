@@ -1,5 +1,6 @@
 import { Meteor } from "meteor/meteor";
 import { useTracker } from "meteor/react-meteor-data";
+
 import { faCopy } from "@fortawesome/free-solid-svg-icons/faCopy";
 import { faEraser } from "@fortawesome/free-solid-svg-icons/faEraser";
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus";
@@ -28,6 +29,7 @@ import Modal from "react-bootstrap/Modal";
 import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
+
 import { formatDiscordName } from "../../lib/discord";
 import isAdmin from "../../lib/isAdmin";
 import type { HuntType } from "../../lib/models/Hunts";
@@ -67,7 +69,7 @@ const ImageBlock = styled.div`
 const OperatorBox = styled.div`
   margin-left: auto;
   padding-right: 0.5rem;
-
+  
   * {
     margin: 0 0.25rem;
   }

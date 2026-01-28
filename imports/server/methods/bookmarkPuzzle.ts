@@ -1,5 +1,6 @@
 import { check } from "meteor/check";
 import { Meteor } from "meteor/meteor";
+
 import Bookmarks from "../../lib/models/Bookmarks";
 import Puzzles from "../../lib/models/Puzzles";
 import bookmarkPuzzle from "../../methods/bookmarkPuzzle";

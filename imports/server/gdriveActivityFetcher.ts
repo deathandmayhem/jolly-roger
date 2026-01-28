@@ -1,7 +1,8 @@
 import { setTimeout } from "node:timers/promises";
+
 import { Meteor } from "meteor/meteor";
+
 import Flags from "../Flags";
-import Logger from "../Logger";
 import {
   ACTIVITY_GRANULARITY,
   ACTIVITY_SEGMENTS,
@@ -11,6 +12,7 @@ import Documents from "../lib/models/Documents";
 import MeteorUsers from "../lib/models/MeteorUsers";
 import Settings from "../lib/models/Settings";
 import roundedTime from "../lib/roundedTime";
+import Logger from "../Logger";
 import GoogleClient from "./googleClientRefresher";
 import ignoringDuplicateKeyErrors from "./ignoringDuplicateKeyErrors";
 import DriveActivityLatests from "./models/DriveActivityLatests";

@@ -17,6 +17,7 @@ import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Popover from "react-bootstrap/Popover";
 import { Link } from "react-router-dom";
 import styled, { css } from "styled-components";
+
 import { indexedById } from "../../lib/listUtils";
 import type { PuzzleType } from "../../lib/models/Puzzles";
 import type { TagType } from "../../lib/models/Tags";
@@ -48,7 +49,7 @@ const RelatedPuzzlePopoverControls = styled.div`
   align-self: start;
   margin-left: 8px;
   flex: 0 0 auto;
-
+  
   > * {
     margin-left: 8px;
   }
@@ -58,7 +59,7 @@ const StyledPopover = styled(Popover)`
   max-width: none;
   display: flex;
   flex-direction: column;
-
+  
   .popover-body {
     overflow: auto;
   }

@@ -3,12 +3,13 @@ import { check } from "meteor/check";
 import type { Subscription } from "meteor/meteor";
 import { Meteor } from "meteor/meteor";
 import type { Mongo } from "meteor/mongo";
-import Logger from "../Logger";
+
 import { GLOBAL_SCOPE } from "../lib/isAdmin";
 import Hunts from "../lib/models/Hunts";
 import MeteorUsers from "../lib/models/MeteorUsers";
 import type { ProfileFields } from "../lib/models/User";
 import { userMaySeeUserInfoForHunt } from "../lib/permission_stubs";
+import Logger from "../Logger";
 import type { SubSubscription } from "./PublicationMerger";
 import PublicationMerger from "./PublicationMerger";
 import publishCursor from "./publications/publishCursor";

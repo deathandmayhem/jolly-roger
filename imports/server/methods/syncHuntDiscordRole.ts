@@ -1,5 +1,6 @@
 import { check } from "meteor/check";
 import { Meteor } from "meteor/meteor";
+
 import MeteorUsers from "../../lib/models/MeteorUsers";
 import { userMayUseDiscordBotAPIs } from "../../lib/permission_stubs";
 import syncHuntDiscordRole from "../../methods/syncHuntDiscordRole";

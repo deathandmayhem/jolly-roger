@@ -1,6 +1,7 @@
 import { check } from "meteor/check";
 import { Meteor } from "meteor/meteor";
 import { Random } from "meteor/random";
+
 import MeteorUsers from "../../lib/models/MeteorUsers";
 import Puzzles from "../../lib/models/Puzzles";
 import createChatImageUpload from "../../methods/createChatImageUpload";

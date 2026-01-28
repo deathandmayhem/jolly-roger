@@ -1,4 +1,5 @@
 import { useTracker } from "meteor/react-meteor-data";
+
 import { faEraser } from "@fortawesome/free-solid-svg-icons/faEraser";
 import { faTags } from "@fortawesome/free-solid-svg-icons/faTags";
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes";
@@ -29,6 +30,7 @@ import { useParams } from "react-router-dom";
 import type { ActionMeta, SingleValue } from "react-select";
 import Select from "react-select";
 import styled, { css, useTheme } from "styled-components";
+
 import { indexedById } from "../../lib/listUtils";
 import type { PuzzleType } from "../../lib/models/Puzzles";
 import Puzzles from "../../lib/models/Puzzles";
@@ -282,29 +284,29 @@ const StyledTable = styled(Table)`
   thead tr th {
     position: sticky;
     top: 0;
-
+  
     &:nth-child(1) {
       width: 28px;
     }
-
+  
     &:nth-child(2) {
       text-align: left;
     }
-
+  
     &:nth-child(3) {
       text-align: right;
     }
   }
-
+  
   tbody tr td {
     &:nth-child(1) {
       width: 28px;
     }
-
+  
     &:nth-child(2) {
       text-align: left;
     }
-
+  
     &:nth-child(3) {
       text-align: right;
     }

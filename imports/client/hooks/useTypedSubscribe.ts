@@ -1,4 +1,5 @@
 import { useSubscribe } from "meteor/react-meteor-data";
+
 import type TypedPublication from "../../lib/publications/TypedPublication";
 import type { TypedPublicationArgs } from "../../lib/publications/TypedPublication";
 import type { TypedMethodSubscribeArgs } from "../typedSubscribe";

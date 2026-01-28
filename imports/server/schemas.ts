@@ -1,4 +1,5 @@
 import { Meteor } from "meteor/meteor";
+
 import { AllModels } from "../lib/models/Model";
 import { User } from "../lib/models/User";
 import attachSchema from "./attachSchema";

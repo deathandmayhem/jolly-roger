@@ -1,5 +1,6 @@
 import { check } from "meteor/check";
 import { Meteor } from "meteor/meteor";
+
 import Hunts from "../../lib/models/Hunts";
 import InvitationCodes from "../../lib/models/InvitationCodes";
 import MeteorUsers from "../../lib/models/MeteorUsers";

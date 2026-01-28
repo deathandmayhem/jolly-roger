@@ -1,6 +1,8 @@
 import type { Mongo } from "meteor/mongo";
 import { MongoInternals } from "meteor/mongo";
+
 import type { z } from "zod";
+
 import type { MongoRecordZodType } from "../lib/models/generateJsonSchema";
 import generateJsonSchema from "../lib/models/generateJsonSchema";
 
