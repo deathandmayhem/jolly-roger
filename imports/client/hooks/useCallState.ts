@@ -360,7 +360,7 @@ function reducer(state: CallState, action: Action): CallState {
     case "reset":
       return INITIAL_STATE;
     default:
-      throw new Error();
+      throw new Error("Unknown action type");
   }
 }
 
