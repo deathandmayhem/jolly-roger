@@ -8,6 +8,7 @@ import FormControl from "react-bootstrap/FormControl";
 import FormGroup from "react-bootstrap/FormGroup";
 import FormLabel from "react-bootstrap/FormLabel";
 import styled from "styled-components";
+
 import Spectrum from "./Spectrum";
 
 enum AudioConfigStatus {

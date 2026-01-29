@@ -1,4 +1,5 @@
 import { check } from "meteor/check";
+
 import ChatNotifications from "../../lib/models/ChatNotifications";
 import dismissChatNotification from "../../methods/dismissChatNotification";
 import defineMethod from "./defineMethod";

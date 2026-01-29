@@ -1,4 +1,5 @@
 import { useSubscribe, useTracker } from "meteor/react-meteor-data";
+
 import { faImage } from "@fortawesome/free-solid-svg-icons/faImage";
 import { faSpinner } from "@fortawesome/free-solid-svg-icons/faSpinner";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -22,6 +23,7 @@ import Modal from "react-bootstrap/Modal";
 import Tab from "react-bootstrap/Tab";
 import Tabs from "react-bootstrap/Tabs";
 import { createPortal } from "react-dom";
+
 import createDocumentImageUpload from "../../methods/createDocumentImageUpload";
 import type { ImageSource } from "../../methods/insertDocumentImage";
 import insertDocumentImage from "../../methods/insertDocumentImage";

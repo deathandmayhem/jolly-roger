@@ -18,7 +18,7 @@ const CopyToClipboardButton = (props: CopyToClipboardProps) => {
   );
   const onClick = useCallback(() => {
     const flatText: string = typeof text === "function" ? text() : text;
-    navigator.clipboard.writeText(flatText).then(
+    void navigator.clipboard.writeText(flatText).then(
       () => {
         if (timeoutRef.current !== undefined) {
           clearTimeout(timeoutRef.current);
@@ -30,7 +30,7 @@ const CopyToClipboardButton = (props: CopyToClipboardProps) => {
         }, 3000);
       },
       (error) => {
-        // biome-ignore lint/suspicious/noConsole: migration from eslint
+        // oxlint-disable-next-line no-console
         console.error("could not copy to clipboard:", error.message);
       },
     );

@@ -1,9 +1,10 @@
 import { check } from "meteor/check";
 import { Meteor } from "meteor/meteor";
 import { OAuth } from "meteor/oauth";
-import Logger from "../../Logger";
+
 import MeteorUsers from "../../lib/models/MeteorUsers";
 import Settings from "../../lib/models/Settings";
+import Logger from "../../Logger";
 import linkUserDiscordAccount from "../../methods/linkUserDiscordAccount";
 import addUsersToDiscordRole from "../addUsersToDiscordRole";
 import { DiscordAPIClient, DiscordBot } from "../discord";

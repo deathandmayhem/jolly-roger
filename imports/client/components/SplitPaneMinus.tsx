@@ -37,8 +37,7 @@ const SplitPaneMinusDiv = styled.div<{ $split: "horizontal" | "vertical" }>`
 
   &.dragging {
     &::after {
-      /* Throw an overlay over iFrames during drag to capture mouse events.
-         Works in Chrome and Safari but not Firefox for some reason */
+      /* Throw an overlay over iFrames during drag to capture mouse events. Works in Chrome and Safari but not Firefox for some reason */
       content: "";
       position: fixed;
       top: 0;
@@ -49,9 +48,7 @@ const SplitPaneMinusDiv = styled.div<{ $split: "horizontal" | "vertical" }>`
     }
 
     &::before {
-      /* Kludge that makes it work in Firefox.
-         Amazingly, the above part actually works for iframes outside of the SplitPane,
-         so we're covered everywhere. */
+      /* Kludge that makes it work in Firefox. Amazingly, the above part actually works for iframes outside of the SplitPane, so we're covered everywhere. */
       content: "";
       position: absolute;
       top: 0;
@@ -68,7 +65,7 @@ const PaneDiv = styled.div`
   position: relative;
   outline: none;
   inset: 0;
-
+  
   & > * {
     position: absolute;
     inset: 0;
@@ -100,13 +97,13 @@ const ResizerSpan = styled.span<{
       ${
         $allowResize &&
         css`
-        cursor: row-resize;
-
-        &:hover {
-          border-top: 5px solid rgb(0 0 0 / 10%);
-          border-bottom: 5px solid rgb(0 0 0 / 10%);
-        }
-      `
+          cursor: row-resize;
+          
+          &:hover {
+            border-top: 5px solid rgb(0 0 0 / 10%);
+            border-bottom: 5px solid rgb(0 0 0 / 10%);
+          }
+        `
       }
     `}
 
@@ -122,13 +119,13 @@ const ResizerSpan = styled.span<{
       ${
         $allowResize &&
         css`
-        cursor: col-resize;
-
-        &:hover {
-          border-left: 5px solid rgb(0 0 0 / 10%);
-          border-right: 5px solid rgb(0 0 0 / 10%);
-        }
-      `
+          cursor: col-resize;
+          
+          &:hover {
+            border-left: 5px solid rgb(0 0 0 / 10%);
+            border-right: 5px solid rgb(0 0 0 / 10%);
+          }
+        `
       }
     `}
 `;
@@ -144,7 +141,7 @@ const Pane = ({
   split: "vertical" | "horizontal";
   size?: number | undefined;
   style?: React.CSSProperties;
-  eleRef: React.MutableRefObject<HTMLDivElement | null>;
+  eleRef: React.RefObject<HTMLDivElement | null>;
 }) => {
   const style: React.CSSProperties = {};
   if (size !== undefined) {
@@ -157,7 +154,7 @@ const Pane = ({
     style.flex = "none";
   }
 
-  const finalStyle = { ...style, ...(styleProps ?? {}) };
+  const finalStyle = { ...style, ...styleProps };
 
   return (
     <PaneDiv ref={eleRef} style={finalStyle}>

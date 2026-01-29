@@ -1,17 +1,18 @@
 import { check, Match } from "meteor/check";
 import { Meteor } from "meteor/meteor";
 import { Random } from "meteor/random";
+
 import Flags from "../Flags";
-import Logger from "../Logger";
 import type { GdriveMimeTypesType } from "../lib/GdriveMimeTypes";
 import GdriveMimeTypes from "../lib/GdriveMimeTypes";
 import Hunts from "../lib/models/Hunts";
 import MeteorUsers from "../lib/models/MeteorUsers";
 import Puzzles from "../lib/models/Puzzles";
 import { userMayWritePuzzlesForHunt } from "../lib/permission_stubs";
-import GlobalHooks from "./GlobalHooks";
+import Logger from "../Logger";
 import { ensureDocument } from "./gdrive";
 import getOrCreateTagByName from "./getOrCreateTagByName";
+import GlobalHooks from "./GlobalHooks";
 import GoogleClient from "./googleClientRefresher";
 import withLock from "./withLock";
 
@@ -36,7 +37,7 @@ async function createDocumentAndInsertPuzzle(
 ): Promise<string> {
   // Look up each tag by name and map them to tag IDs.
   const tagIds = await Promise.all(
-    tags.map(async (tagName) => {
+    tags.map((tagName) => {
       return getOrCreateTagByName(huntId, tagName);
     }),
   );

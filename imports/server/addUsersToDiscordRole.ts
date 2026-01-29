@@ -1,10 +1,11 @@
 import { setTimeout } from "node:timers/promises";
+
 import Flags from "../Flags";
-import Logger from "../Logger";
 import DiscordRoleGrants from "../lib/models/DiscordRoleGrants";
 import Hunts from "../lib/models/Hunts";
 import MeteorUsers from "../lib/models/MeteorUsers";
 import Settings from "../lib/models/Settings";
+import Logger from "../Logger";
 import { DiscordBot } from "./discord";
 
 export default async (

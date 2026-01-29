@@ -1,3 +1,4 @@
+/* oxlint-disable unicorn/no-this-assignment -- throttle needs to capture `this` for deferred invocation */
 type AnyVoidFunc<T> = (this: T, ...args: any[]) => void;
 type ThrottledFunctionHandle<T> = {
   attempt: AnyVoidFunc<T>;

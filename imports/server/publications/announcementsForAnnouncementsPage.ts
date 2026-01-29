@@ -1,4 +1,5 @@
 import { check } from "meteor/check";
+
 import Announcements from "../../lib/models/Announcements";
 import MeteorUsers from "../../lib/models/MeteorUsers";
 import announcementsForAnnouncementsPage from "../../lib/publications/announcementsForAnnouncementsPage";

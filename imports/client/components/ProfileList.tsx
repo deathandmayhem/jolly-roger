@@ -1,5 +1,6 @@
 import { Meteor } from "meteor/meteor";
 import { useTracker } from "meteor/react-meteor-data";
+
 import { faCopy } from "@fortawesome/free-solid-svg-icons/faCopy";
 import { faEraser } from "@fortawesome/free-solid-svg-icons/faEraser";
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus";
@@ -28,6 +29,7 @@ import Modal from "react-bootstrap/Modal";
 import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
+
 import { formatDiscordName } from "../../lib/discord";
 import isAdmin from "../../lib/isAdmin";
 import type { HuntType } from "../../lib/models/Hunts";
@@ -67,7 +69,7 @@ const ImageBlock = styled.div`
 const OperatorBox = styled.div`
   margin-left: auto;
   padding-right: 0.5rem;
-
+  
   * {
     margin: 0 0.25rem;
   }
@@ -399,6 +401,7 @@ const ProfileList = ({
       // A user is interesting if for every search key, that search key matches
       // one of their fields.
       return toMatch.every((searchKey) => {
+        /* oxlint-disable typescript/prefer-nullish-coalescing -- boolean false should fall through */
         return (
           user.displayName?.toLowerCase().includes(searchKey) ||
           user.emails?.some((e) =>
@@ -410,6 +413,7 @@ const ProfileList = ({
             role.toLowerCase().includes(searchKey),
           )
         );
+        /* oxlint-enable typescript/prefer-nullish-coalescing */
       });
     };
 
@@ -503,7 +507,7 @@ const ProfileList = ({
           variant="link"
           aria-label="Copy"
         >
-          <FontAwesomeIcon icon={faCopy} fixedWidth />
+          <FontAwesomeIcon icon={faCopy} />
         </StyledCopyToClipboardButton>
         {invitationUrl}
       </p>
@@ -521,7 +525,7 @@ const ProfileList = ({
           <GenerateInvitationLinkModal
             forwardedRef={generateInvitationLinkModalRef}
             huntId={hunt._id}
-            isRegenerate={typeof invitationCode !== "undefined"}
+            isRegenerate={invitationCode !== undefined}
           />
         )}
         {renderDisableInvitationLinkModal && (

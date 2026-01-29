@@ -1,6 +1,6 @@
 import { check } from "meteor/check";
 import { Meteor } from "meteor/meteor";
-import Logger from "../../Logger";
+
 import { indexedById } from "../../lib/listUtils";
 import Documents from "../../lib/models/Documents";
 import Hunts from "../../lib/models/Hunts";
@@ -8,6 +8,7 @@ import MeteorUsers from "../../lib/models/MeteorUsers";
 import Puzzles from "../../lib/models/Puzzles";
 import Settings from "../../lib/models/Settings";
 import { userMayConfigureGdrive } from "../../lib/permission_stubs";
+import Logger from "../../Logger";
 import configureOrganizeGoogleDrive from "../../methods/configureOrganizeGoogleDrive";
 import { ensureDocument, ensureHuntFolder, moveDocument } from "../gdrive";
 import HuntFolders from "../models/HuntFolders";

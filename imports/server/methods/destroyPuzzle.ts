@@ -1,5 +1,6 @@
 import { check, Match } from "meteor/check";
 import { Meteor } from "meteor/meteor";
+
 import Flags from "../../Flags";
 import Documents from "../../lib/models/Documents";
 import Hunts from "../../lib/models/Hunts";

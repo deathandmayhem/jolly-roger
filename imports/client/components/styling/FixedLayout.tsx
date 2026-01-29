@@ -1,5 +1,6 @@
 import React from "react";
 import styled, { createGlobalStyle, css } from "styled-components";
+
 import { NavBarHeight } from "./constants";
 
 interface FixedLayoutProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -16,9 +17,9 @@ const FixedLayoutDiv = styled.div<FixedLayoutProps>`
   ${({ $narrow }) =>
     $narrow &&
     css`
-    display: flex;
-    flex-direction: column;
-  `}
+      display: flex;
+      flex-direction: column;
+    `}
 `;
 
 const FixedLayoutGlobal = createGlobalStyle`

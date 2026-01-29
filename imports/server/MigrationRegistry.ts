@@ -27,7 +27,9 @@
 //     is manually unlocked it'll get run again.
 
 import { Mongo } from "meteor/mongo";
+
 import type winston from "winston";
+
 import { logger } from "../Logger";
 import ignoringDuplicateKeyErrors from "./ignoringDuplicateKeyErrors";
 
@@ -86,7 +88,7 @@ class MigrationRegistry {
     this.migrations.push(migration);
   }
 
-  async migrateToLatest(): Promise<boolean> {
+  migrateToLatest(): Promise<boolean> {
     return this.migrateTo(this.migrations.length);
   }
 

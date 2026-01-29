@@ -1,5 +1,6 @@
 import { Meteor } from "meteor/meteor";
 import { useSubscribe, useTracker } from "meteor/react-meteor-data";
+
 import { faCaretDown } from "@fortawesome/free-solid-svg-icons/faCaretDown";
 import { faCaretRight } from "@fortawesome/free-solid-svg-icons/faCaretRight";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -16,12 +17,13 @@ import {
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Tooltip from "react-bootstrap/Tooltip";
 import styled from "styled-components";
+
 import Flags from "../../Flags";
 import { RECENT_ACTIVITY_TIME_WINDOW_MS } from "../../lib/config/webrtc";
 import type { DiscordAccountType } from "../../lib/models/DiscordAccount";
-import MeteorUsers from "../../lib/models/MeteorUsers";
 import CallHistories from "../../lib/models/mediasoup/CallHistories";
 import Peers from "../../lib/models/mediasoup/Peers";
+import MeteorUsers from "../../lib/models/MeteorUsers";
 import relativeTimeFormat from "../../lib/relativeTimeFormat";
 import type { Action, CallState } from "../hooks/useCallState";
 import { CallJoinState } from "../hooks/useCallState";
@@ -251,7 +253,6 @@ const ChatPeople = ({
 
   const { muted, deafened } = audioControls;
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies(disabled): We want the parent to re-render when anything might have changed our rendered size
   useLayoutEffect(() => {
     trace("ChatPeople useLayoutEffect", {
       loading,
@@ -302,7 +303,7 @@ const ChatPeople = ({
             </AVActions>
             <ChatterSubsection>
               <PeopleListHeader onClick={toggleCallersExpanded}>
-                <FontAwesomeIcon fixedWidth icon={callersHeaderIcon} />
+                <FontAwesomeIcon icon={callersHeaderIcon} />
                 {`${rtcViewers.length} caller${
                   rtcViewers.length !== 1 ? "s" : ""
                 }`}
@@ -354,7 +355,7 @@ const ChatPeople = ({
       {!rtcDisabled && !disabled && callersSubsection}
       <ChatterSubsection ref={chatterRef}>
         <PeopleListHeader onClick={toggleViewersExpanded}>
-          <FontAwesomeIcon fixedWidth icon={viewersHeaderIcon} />
+          <FontAwesomeIcon icon={viewersHeaderIcon} />
           {`${totalViewers} viewer${totalViewers !== 1 ? "s" : ""}`}
         </PeopleListHeader>
         <PeopleListDiv $collapsed={!viewersExpanded}>

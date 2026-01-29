@@ -1,4 +1,5 @@
 import { check, Match } from "meteor/check";
+
 import isAdmin from "../../lib/isAdmin";
 import MeteorUsers from "../../lib/models/MeteorUsers";
 import Settings, { SettingNames } from "../../lib/models/Settings";

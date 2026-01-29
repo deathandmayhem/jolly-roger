@@ -1,4 +1,3 @@
-import Logger from "../../Logger";
 import type { GuessType } from "../../lib/models/Guesses";
 import Guesses from "../../lib/models/Guesses";
 import Hunts from "../../lib/models/Hunts";
@@ -6,6 +5,7 @@ import MeteorUsers from "../../lib/models/MeteorUsers";
 import Puzzles from "../../lib/models/Puzzles";
 import { huntsUserIsOperatorFor } from "../../lib/permission_stubs";
 import pendingGuessesForSelf from "../../lib/publications/pendingGuessesForSelf";
+import Logger from "../../Logger";
 import type { SubSubscription } from "../PublicationMerger";
 import PublicationMerger from "../PublicationMerger";
 import type { PublishSpec } from "../publishJoinedQuery";

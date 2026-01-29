@@ -11,6 +11,7 @@ import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Table from "react-bootstrap/Table";
 import Tooltip from "react-bootstrap/Tooltip";
 import { styled } from "styled-components";
+
 import { calendarTimeFormat } from "../../lib/calendarTimeFormat";
 import type { APIKeyType } from "../../lib/models/APIKeys";
 import destroyAPIKey from "../../methods/destroyAPIKey";
@@ -84,7 +85,7 @@ const APIKeyRow = ({ apiKey }: { apiKey: APIKeyType }) => {
             aria-label="Copy to clipboard"
             text={apiKey.key}
           >
-            <FontAwesomeIcon icon={faCopy} fixedWidth />
+            <FontAwesomeIcon icon={faCopy} />
           </CopyToClipboardButton>
           <OverlayTrigger placement="top" overlay={showHideOverlay}>
             <Button
@@ -92,10 +93,7 @@ const APIKeyRow = ({ apiKey }: { apiKey: APIKeyType }) => {
               onClick={toggleShown}
               aria-label={showHideAction}
             >
-              <FontAwesomeIcon
-                icon={keyShown ? faEye : faEyeSlash}
-                fixedWidth
-              />
+              <FontAwesomeIcon icon={keyShown ? faEye : faEyeSlash} />
             </Button>
           </OverlayTrigger>
           <FormControl

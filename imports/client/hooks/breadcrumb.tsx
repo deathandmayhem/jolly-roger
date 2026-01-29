@@ -1,4 +1,5 @@
 import { Random } from "meteor/random";
+
 import React, {
   useCallback,
   useContext,
@@ -7,6 +8,7 @@ import React, {
   useRef,
   useState,
 } from "react";
+
 import Logger from "../../Logger";
 
 type Crumb = {
@@ -94,7 +96,7 @@ const BreadcrumbsProvider = ({ children }: { children: React.ReactNode }) => {
 
     const prevCrumbs = crumbsRef.current;
     const beforeRemoved = prevCrumbs.slice(0, crumbIndex);
-    const afterRemoved = prevCrumbs.slice(crumbIndex + 1, prevCrumbs.length);
+    const afterRemoved = prevCrumbs.slice(crumbIndex + 1);
     crumbsRef.current = beforeRemoved.concat(afterRemoved);
     crumbsRef.current.sort(byPathLength);
     listenersRef.current.forEach((listener) => listener(crumbsRef.current));
@@ -112,7 +114,7 @@ const BreadcrumbsProvider = ({ children }: { children: React.ReactNode }) => {
       };
 
       const beforeUpdated = prevCrumbs.slice(0, crumbIndex);
-      const afterUpdated = prevCrumbs.slice(crumbIndex + 1, prevCrumbs.length);
+      const afterUpdated = prevCrumbs.slice(crumbIndex + 1);
       crumbsRef.current = beforeUpdated
         .concat([newCrumbWithId])
         .concat(afterUpdated);

@@ -3,6 +3,7 @@ import { Meteor } from "meteor/meteor";
 import { OAuth } from "meteor/oauth";
 import { useTracker } from "meteor/react-meteor-data";
 import { ServiceConfiguration } from "meteor/service-configuration";
+
 import type React from "react";
 import type { ReactNode } from "react";
 import { useCallback, useEffect, useId, useMemo, useState } from "react";
@@ -16,6 +17,7 @@ import FormLabel from "react-bootstrap/FormLabel";
 import FormText from "react-bootstrap/FormText";
 import Creatable from "react-select/creatable";
 import styled, { useTheme } from "styled-components";
+
 import Flags from "../../Flags";
 import isAdmin from "../../lib/isAdmin";
 import DiscordCache from "../../lib/models/DiscordCache";
@@ -80,7 +82,7 @@ const SectionHeaderLabel = styled.span`
 
 const SectionHeaderButtons = styled.span`
   flex: 0 0 auto;
-
+  
   button {
     margin-left: 8px;
   }
@@ -879,7 +881,6 @@ const GoogleIntegrationSection = () => {
     : "warning";
 
   return (
-    // biome-ignore lint/correctness/useUniqueElementIds: id for linking
     <Section id="google">
       <SectionHeader>
         <SectionHeaderLabel>Google integration</SectionHeaderLabel>
@@ -1204,7 +1205,6 @@ const AWSIntegrationSection = () => {
   const badgeVariant = configured ? "success" : "warning";
 
   return (
-    // biome-ignore lint/correctness/useUniqueElementIds: id for linking
     <Section id="aws">
       <SectionHeader>
         <SectionHeaderLabel>AWS configuration</SectionHeaderLabel>
@@ -1539,7 +1539,6 @@ const EmailConfigSection = () => {
   const configured = !!config?.value.from;
   const badgeVariant = configured ? "success" : "warning";
   return (
-    // biome-ignore lint/correctness/useUniqueElementIds: id for linking
     <Section id="email">
       <SectionHeader>
         <SectionHeaderLabel>Email configuration</SectionHeaderLabel>
@@ -1916,7 +1915,6 @@ const DiscordIntegrationSection = () => {
   const guildBadgeLabel = guild ? "configured" : "unconfigured";
   const guildBadgeVariant = guild ? "success" : "warning";
   return (
-    // biome-ignore lint/correctness/useUniqueElementIds: id for linking
     <Section id="discord">
       <SectionHeader>
         <SectionHeaderLabel>Discord integration</SectionHeaderLabel>
@@ -2261,7 +2259,6 @@ const BrandingAssetRow = ({
 
 const BrandingSection = () => {
   return (
-    // biome-ignore lint/correctness/useUniqueElementIds: id for linking
     <Section id="branding">
       <SectionHeader>
         <SectionHeaderLabel>Branding</SectionHeaderLabel>
@@ -2363,7 +2360,7 @@ const CircuitBreakerLabel = styled.div`
 
 const CircuitBreakerButtons = styled.div`
   flex: 0 0 auto;
-
+  
   button {
     margin-left: 8px;
   }
@@ -2414,7 +2411,6 @@ const CircuitBreakerControl = ({
 
 const CircuitBreakerSection = () => {
   return (
-    //biome-ignore lint/correctness/useUniqueElementIds: id for linking
     <Section id="circuit-breakers">
       <SectionHeader>Circuit breakers</SectionHeader>
       <p>

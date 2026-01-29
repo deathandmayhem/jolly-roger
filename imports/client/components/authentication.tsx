@@ -1,8 +1,10 @@
 import { Meteor } from "meteor/meteor";
 import { useTracker } from "meteor/react-meteor-data";
+
 import type React from "react";
 import { useEffect, useState } from "react";
 import { Navigate, useLocation } from "react-router-dom";
+
 import App from "./App";
 import SplashPage from "./SplashPage";
 
@@ -18,10 +20,8 @@ export const useAuthenticated = () => {
 
   useEffect(() => {
     // Check if we're done logging in
-    if (loading) {
-      if (!loggingIn) {
-        setLoading(false);
-      }
+    if (loading && !loggingIn) {
+      setLoading(false);
     }
   }, [loading, loggingIn]);
 

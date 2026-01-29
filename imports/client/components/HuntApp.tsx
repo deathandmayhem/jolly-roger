@@ -1,5 +1,6 @@
 import { Meteor } from "meteor/meteor";
 import { useTracker } from "meteor/react-meteor-data";
+
 import React, { useCallback, useMemo } from "react";
 import Alert from "react-bootstrap/Alert";
 import Button from "react-bootstrap/Button";
@@ -7,6 +8,7 @@ import ButtonToolbar from "react-bootstrap/ButtonToolbar";
 import Modal from "react-bootstrap/Modal";
 import { createPortal } from "react-dom";
 import { Outlet, useNavigate, useParams } from "react-router-dom";
+
 import type { HuntType } from "../../lib/models/Hunts";
 import Hunts from "../../lib/models/Hunts";
 import {

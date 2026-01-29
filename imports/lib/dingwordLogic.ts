@@ -1,4 +1,5 @@
 import type { Meteor } from "meteor/meteor";
+
 import type { ChatMessageType } from "./models/ChatMessages";
 import nodeIsMention from "./nodeIsMention";
 import nodeIsRoleMention from "./nodeIsRoleMention";

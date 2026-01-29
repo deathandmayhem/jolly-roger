@@ -1,4 +1,5 @@
 import { useSubscribe, useTracker } from "meteor/react-meteor-data";
+
 import TeamName from "../TeamName";
 
 const useTeamName = () => {

@@ -5,13 +5,13 @@
     "client/**/*.scss",
     "private/google-script/main.js",
     // knip can't follow dynamic imports
-    "tests/**"
+    "tests/**",
   ],
   "project": ["**/*", "!.meteor/local/**", "!eslint/dist/**"],
   "rules": {
     // TODO: We may want to enable these later, as they're potentially indicative of dead code
     "exports": "off",
-    "types": "off"
+    "types": "off",
   },
   // We're using SWC, but we don't depend on it directly because it's provided by meteor
   "swc": {},
@@ -27,7 +27,7 @@
     // Detected and used by mongodb
     "aws4",
     // Used by test suite
-    "playwright"
+    "playwright",
   ],
-  "tags": ["-lintignore"]
+  "tags": ["-lintignore"],
 }

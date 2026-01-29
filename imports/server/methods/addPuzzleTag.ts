@@ -1,7 +1,8 @@
 import { check } from "meteor/check";
 import { Meteor } from "meteor/meteor";
-import Logger from "../../Logger";
+
 import Puzzles from "../../lib/models/Puzzles";
+import Logger from "../../Logger";
 import addPuzzleTag from "../../methods/addPuzzleTag";
 import getOrCreateTagByName from "../getOrCreateTagByName";
 import defineMethod from "./defineMethod";

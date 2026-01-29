@@ -1,7 +1,8 @@
 import { check, Match } from "meteor/check";
 import { Meteor } from "meteor/meteor";
-import Logger from "../../Logger";
+
 import MeteorUsers from "../../lib/models/MeteorUsers";
+import Logger from "../../Logger";
 import updateProfile from "../../methods/updateProfile";
 import defineMethod from "./defineMethod";
 

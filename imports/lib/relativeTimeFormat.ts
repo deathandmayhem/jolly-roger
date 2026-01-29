@@ -24,7 +24,7 @@ const timeUnits = [
     plural: "years",
     terse: "y",
   },
-].reverse();
+].toReversed();
 
 export type RelativeTimeFormatOpts = {
   minimumUnit?: (typeof timeUnits)[number]["singular"];

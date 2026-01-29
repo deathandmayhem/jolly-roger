@@ -10,6 +10,7 @@ import React, {
 import Button from "react-bootstrap/Button";
 import ButtonGroup from "react-bootstrap/ButtonGroup";
 import styled from "styled-components";
+
 import type { PuzzleType } from "../../lib/models/Puzzles";
 import type { TagType } from "../../lib/models/Tags";
 import Tag from "./Tag";
@@ -189,7 +190,7 @@ const TagList = React.memo((props: TagListProps) => {
             key="startEditing"
             onClick={startEditing}
           >
-            <FontAwesomeIcon fixedWidth icon={faPlus} />
+            <FontAwesomeIcon icon={faPlus} />
           </TagModifyButton>
         )}
         {onRemoveTag && tags.length > 0 && (
@@ -199,7 +200,7 @@ const TagList = React.memo((props: TagListProps) => {
             key="startRemoving"
             onClick={startRemoving}
           >
-            <FontAwesomeIcon fixedWidth icon={faMinus} />
+            <FontAwesomeIcon icon={faMinus} />
           </TagModifyButton>
         )}
       </ButtonGroup>,

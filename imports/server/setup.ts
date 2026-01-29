@@ -1,10 +1,11 @@
 import { Meteor } from "meteor/meteor";
 import { Random } from "meteor/random";
-import Logger from "../Logger";
+
 import isAdmin from "../lib/isAdmin";
 import MeteorUsers from "../lib/models/MeteorUsers";
 import type { SettingType } from "../lib/models/Settings";
 import Settings from "../lib/models/Settings";
+import Logger from "../Logger";
 import googleScriptContent from "./googleScriptContent";
 import UploadTokens from "./models/UploadTokens";
 

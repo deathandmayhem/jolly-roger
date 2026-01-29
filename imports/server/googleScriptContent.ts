@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
+
 import type { script_v1 } from "@googleapis/script";
 
 async function loadFile(
@@ -28,7 +29,7 @@ async function loadFile(
   )!;
   const source = (
     await fs.readFile(absolutePath, { encoding: "utf8" })
-  ).replace(/{{secret}}/g, secret);
+  ).replaceAll("{{secret}}", secret);
 
   return {
     name: path.basename(name, extension),

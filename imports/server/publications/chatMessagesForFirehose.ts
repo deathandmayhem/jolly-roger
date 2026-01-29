@@ -1,4 +1,5 @@
 import { check } from "meteor/check";
+
 import ChatMessages from "../../lib/models/ChatMessages";
 import MeteorUsers from "../../lib/models/MeteorUsers";
 import Puzzles from "../../lib/models/Puzzles";

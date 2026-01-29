@@ -1,4 +1,5 @@
 import { Reload } from "meteor/reload";
+
 import React, { useContext, useEffect, useRef, useState } from "react";
 
 // BlockHandle is basically used as a sentinel object, generated for each
@@ -17,7 +18,7 @@ class BlockManager {
   private unblock?: () => void;
 
   isBlocked() {
-    return [...this.blockers.values()].some((b) => b);
+    return [...this.blockers.values()].some(Boolean);
   }
 
   checkUnblocked() {

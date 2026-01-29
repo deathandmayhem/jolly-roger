@@ -1,6 +1,7 @@
 import { Accounts } from "meteor/accounts-base";
 import { Meteor } from "meteor/meteor";
 import { useTracker } from "meteor/react-meteor-data";
+
 import type { FormEvent } from "react";
 import { useCallback, useEffect, useState } from "react";
 import Button from "react-bootstrap/Button";
@@ -8,6 +9,7 @@ import Col from "react-bootstrap/Col";
 import Form from "react-bootstrap/Form";
 import Row from "react-bootstrap/Row";
 import { Link, useNavigate, useParams } from "react-router-dom";
+
 import type { LoginOptions } from "../../lib/loginOptions";
 import Hunts from "../../lib/models/Hunts";
 import InvitationCodes from "../../lib/models/InvitationCodes";
@@ -96,6 +98,7 @@ const JoinHunt = () => {
     LoginOptionsResult | undefined
   >(undefined);
 
+  // oxlint-disable-next-line typescript/prefer-nullish-coalescing -- boolean false should fall through
   const loading = authLoading || huntLoading;
 
   const onGoogleLoginCompleted = useCallback(

@@ -1,7 +1,10 @@
 import { setImmediate } from "node:timers/promises";
+
 import { Accounts } from "meteor/accounts-base";
 import { MongoInternals } from "meteor/mongo";
+
 import { assert } from "chai";
+
 import Flags from "../../../../imports/Flags";
 import FeatureFlags from "../../../../imports/lib/models/FeatureFlags";
 import { USER_EMAIL, USER_PASSWORD } from "../../../acceptance/lib";

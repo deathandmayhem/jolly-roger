@@ -1,4 +1,5 @@
 import { onPageLoad } from "meteor/server-render";
+
 import lookupUrl from "./lookupUrl";
 
 onPageLoad((sink) => {

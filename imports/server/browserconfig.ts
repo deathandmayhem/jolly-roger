@@ -1,6 +1,9 @@
 import type http from "node:http";
+
 import { WebApp } from "meteor/webapp";
+
 import type { NextFunction } from "express";
+
 import lookupUrl from "./lookupUrl";
 
 // Server-side dynamic rendering of /browserconfig.xml to ensure we use custom

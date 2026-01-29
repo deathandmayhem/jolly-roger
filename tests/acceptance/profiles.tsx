@@ -1,8 +1,11 @@
 import { promisify } from "node:util";
+
 import { Accounts } from "meteor/accounts-base";
 import { check } from "meteor/check";
 import { Meteor } from "meteor/meteor";
+
 import { assert } from "chai";
+
 import Hunts from "../../imports/lib/models/Hunts";
 import MeteorUsers from "../../imports/lib/models/MeteorUsers";
 import {

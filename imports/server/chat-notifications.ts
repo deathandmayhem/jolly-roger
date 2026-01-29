@@ -1,4 +1,5 @@
 import { Meteor } from "meteor/meteor";
+
 import Flags from "../Flags";
 import ChatNotifications from "../lib/models/ChatNotifications";
 import Hunts from "../lib/models/Hunts";

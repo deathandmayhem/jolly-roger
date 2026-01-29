@@ -1,8 +1,11 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type stream from "node:stream";
+
 import { WebApp } from "meteor/webapp";
+
 import type HttpProxy from "http-proxy-3";
 import type { ProxyTarget } from "http-proxy-3";
+
 import type WorkerPool from "./WorkerPool";
 import type { Worker } from "./WorkerPool";
 
@@ -154,7 +157,7 @@ export default class LoadBalancer {
 
     const httpHandler = this.httpHandler();
     const newListener = function (req: IncomingMessage, res: ServerResponse) {
-      if (httpHandler.apply(httpServer, [req, res]) !== true) {
+      if (!httpHandler.apply(httpServer, [req, res])) {
         oldHttpServerListeners.forEach((oldListener) => {
           oldListener.apply(httpServer, [req, res]);
         });
@@ -175,7 +178,7 @@ export default class LoadBalancer {
       socket: stream.Duplex,
       head: Buffer,
     ) {
-      if (wsHandler.apply(httpServer, [req, socket, head]) !== true) {
+      if (!wsHandler.apply(httpServer, [req, socket, head])) {
         oldHttpServerListeners.forEach((oldListener) => {
           oldListener.apply(httpServer, [req, socket, head]);
         });

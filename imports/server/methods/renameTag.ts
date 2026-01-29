@@ -1,6 +1,7 @@
 import { check } from "meteor/check";
-import Logger from "../../Logger";
+
 import Tags from "../../lib/models/Tags";
+import Logger from "../../Logger";
 import renameTag from "../../methods/renameTag";
 import defineMethod from "./defineMethod";
 

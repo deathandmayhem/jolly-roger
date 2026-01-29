@@ -1,4 +1,5 @@
 import { useTracker } from "meteor/react-meteor-data";
+
 import { faInfo } from "@fortawesome/free-solid-svg-icons/faInfo";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import type React from "react";
@@ -19,6 +20,7 @@ import Modal from "react-bootstrap/Modal";
 import Row from "react-bootstrap/Row";
 import { createPortal } from "react-dom";
 import { useNavigate, useParams } from "react-router-dom";
+
 import DiscordCache from "../../lib/models/DiscordCache";
 import type {
   EditableHuntType,
@@ -94,14 +96,13 @@ const DiscordSelector = ({
       name: "disabled",
     } as SavedDiscordObjectType;
 
-    if (value) {
-      if (
-        !options.find((opt) => {
-          return opt.id === value.id;
-        })
-      ) {
-        return [noneOption, value, ...options];
-      }
+    if (
+      value &&
+      !options.some((opt) => {
+        return opt.id === value.id;
+      })
+    ) {
+      return [noneOption, value, ...options];
     }
     return [noneOption, ...options];
   }, [value, options]);
@@ -737,7 +738,7 @@ const HuntEditPage = () => {
           </>
         ) : (
           <Alert variant="info">
-            <FontAwesomeIcon icon={faInfo} fixedWidth />
+            <FontAwesomeIcon icon={faInfo} />
             Discord has not been configured, so Discord settings are disabled.
           </Alert>
         )}

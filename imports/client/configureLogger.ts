@@ -1,5 +1,6 @@
 import { format } from "winston";
 import Transport from "winston-transport";
+
 import { logger } from "../Logger";
 
 class BrowserConsole extends Transport {
@@ -48,7 +49,6 @@ class BrowserConsole extends Transport {
     if (error) {
       args.push(error);
     }
-    // biome-ignore lint/suspicious/noConsole: migration from eslint
     console[selectedLevel](...args);
     next();
   }

@@ -1,4 +1,5 @@
 import { useTracker } from "meteor/react-meteor-data";
+
 import { faEraser } from "@fortawesome/free-solid-svg-icons/faEraser";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, {
@@ -17,6 +18,7 @@ import FormGroup from "react-bootstrap/FormGroup";
 import InputGroup from "react-bootstrap/InputGroup";
 import { useParams, useSearchParams } from "react-router-dom";
 import styled from "styled-components";
+
 import { shortCalendarTimeFormat } from "../../lib/calendarTimeFormat";
 import { indexedById } from "../../lib/listUtils";
 import type { ChatMessageType } from "../../lib/models/ChatMessages";
@@ -41,7 +43,7 @@ const FirehosePageLayout = styled.div`
   align-items: flex-start;
   justify-content: flex-start;
   height: 100%;
-
+  
   > * {
     width: 100%;
   }
@@ -91,7 +93,7 @@ const Message = React.memo(({ msg, displayNames, puzzle }: MessageProps) => {
         [{ts}] [
         {puzzle !== undefined ? (
           <>
-            <span>{`${puzzle.deleted ? "deleted: " : ""}`}</span>
+            <span>{puzzle.deleted ? "deleted: " : ""}</span>
             <a
               href={`/hunts/${msg.hunt}/puzzles/${msg.puzzle}`}
               target="_blank"
@@ -119,7 +121,7 @@ const Message = React.memo(({ msg, displayNames, puzzle }: MessageProps) => {
 const MessagesPane = styled.div`
   overflow-y: scroll;
   flex: 1;
-
+  
   &.live {
     border-bottom: 1px solid black;
   }
@@ -299,8 +301,6 @@ const FirehosePage = () => {
     };
   }, [onLayoutMaybeChanged]);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies(loading): We want to run this effect when loading or chats.length changes.
-  // biome-ignore lint/correctness/useExhaustiveDependencies(chats.length): We want to run this effect when loading or chats.length changes.
   useLayoutEffect(() => {
     onLayoutMaybeChanged();
   }, [loading, onLayoutMaybeChanged, chats.length]);

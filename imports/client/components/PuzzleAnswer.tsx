@@ -1,5 +1,6 @@
 import React from "react";
 import styled, { css } from "styled-components";
+
 import { MonospaceFontFamily } from "./styling/constants";
 
 const PuzzleAnswerSpan = styled.span<{
@@ -28,7 +29,7 @@ const PuzzleAnswerSpan = styled.span<{
 const PuzzleAnswerSegment = styled.span`
   overflow-wrap: normal;
   margin-right: 0.4em;
-
+  
   :last-child {
     margin-right: 0;
   }
@@ -40,7 +41,7 @@ const PuzzleAnswerSegment = styled.span`
 function removePunctuation(answer: string) {
   return answer
     .toUpperCase()
-    .replace(/[\s.?!,;:\-_()'\u2018\u2019"\u201C\u201D]+/gu, "");
+    .replaceAll(/[\s.?!,;:\-_()'\u2018\u2019"\u201C\u201D]+/gu, "");
 }
 
 const PuzzleAnswer = React.memo(
@@ -80,13 +81,12 @@ const PuzzleAnswer = React.memo(
         graphemes = Array.from(respacedAnswer);
       }
       const segments = Array.from(
-        new Array(Math.ceil(graphemes.length / segmentSize)),
+        { length: Math.ceil(graphemes.length / segmentSize) },
         (_x, i) => {
           return graphemes.slice(i * segmentSize, (i + 1) * segmentSize);
         },
       );
       formattedAnswer = segments.map((segment, i) => (
-        // biome-ignore lint/suspicious/noArrayIndexKey: migration from eslint
         <PuzzleAnswerSegment key={`segment-${i}`}>
           {segment}
           <wbr />

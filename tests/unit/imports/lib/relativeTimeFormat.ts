@@ -1,4 +1,5 @@
 import { assert } from "chai";
+
 import type { RelativeTimeFormatOpts } from "../../../../imports/lib/relativeTimeFormat";
 import { complete } from "../../../../imports/lib/relativeTimeFormat";
 
