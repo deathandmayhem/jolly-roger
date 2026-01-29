@@ -302,18 +302,6 @@
         "typescript/no-empty-interface": "off",
         "unicorn/require-module-specifiers": "off"
       }
-    },
-    {
-      "files": ["imports/client/components/Routes.tsx"],
-      "rules": {
-        "oxc/no-map-spread": "off"
-      }
-    },
-    {
-      "files": ["imports/lib/throttle.ts"],
-      "rules": {
-        "unicorn/no-this-assignment": "off"
-      }
     }
   ]
 }

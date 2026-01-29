@@ -80,6 +80,7 @@ export const AuthenticatedRouteList: RouteObject[] = [
   },
   { path: "/setup", element: <SetupPage /> },
   { path: "/rtcdebug", element: <RTCDebugPage /> },
+  // oxlint-disable-next-line oxc/no-map-spread -- wrapping route elements
 ].map((r) => {
   return {
     ...r,
@@ -94,6 +95,7 @@ export const UnauthenticatedRouteList: RouteObject[] = [
   { path: "/reset-password/:token", element: <PasswordResetForm /> },
   { path: "/enroll/:token", element: <EnrollForm /> },
   { path: "/create-first-user", element: <FirstUserForm /> },
+  // oxlint-disable-next-line oxc/no-map-spread -- wrapping route elements
 ].map((r) => {
   return {
     ...r,
