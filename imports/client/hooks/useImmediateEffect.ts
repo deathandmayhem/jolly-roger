@@ -1,7 +1,7 @@
 import type { EffectCallback } from "react";
 import { useEffect, useRef } from "react";
 
-function depsDiffer<T>(deps1?: Array<T>, deps2?: Array<T>) {
+function depsDiffer<T>(deps1?: T[], deps2?: T[]) {
   return !(
     Array.isArray(deps1) &&
     Array.isArray(deps2) &&
@@ -12,10 +12,10 @@ function depsDiffer<T>(deps1?: Array<T>, deps2?: Array<T>) {
 
 export default function useImmediateEffect<T>(
   effectBody: EffectCallback,
-  deps?: Array<T>,
+  deps?: T[],
 ) {
   const cleanupRef = useRef<ReturnType<EffectCallback>>(undefined);
-  const depsRef = useRef<Array<T> | undefined>(undefined);
+  const depsRef = useRef<T[] | undefined>(undefined);
 
   if (!depsRef.current || depsDiffer(depsRef.current, deps)) {
     depsRef.current = deps;

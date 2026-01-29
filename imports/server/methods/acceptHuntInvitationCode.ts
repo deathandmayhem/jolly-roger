@@ -48,8 +48,6 @@ defineMethod(acceptHuntInvitationCode, {
         email: emailForExistingUser,
         invitedBy: this.userId,
       });
-
-      return hunt._id;
     } else {
       // If user is specifying an email, they are trying to redeem the invitation code to create a user with that email.
       await addUserToHunt({
@@ -57,7 +55,8 @@ defineMethod(acceptHuntInvitationCode, {
         email,
         invitedBy: invitation.createdBy,
       });
-      return hunt._id;
     }
+
+    return hunt._id;
   },
 });

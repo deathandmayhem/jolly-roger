@@ -944,13 +944,12 @@ const FancyEditor = React.forwardRef(
         }
 
         if (event.key === "Enter") {
+          event.preventDefault();
           if (event.shiftKey) {
             // Insert soft break.  Avoid hard breaks entirely.
-            event.preventDefault();
             editor.insertText("\n");
           } else {
             // submit contents.  clear the editor.
-            event.preventDefault();
             if (onSubmit()) {
               clearInput();
             }

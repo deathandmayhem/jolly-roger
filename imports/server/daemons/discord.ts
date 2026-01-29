@@ -21,7 +21,7 @@ interface DiscordDaemonEvents {
 class DiscordDaemon extends EventEmitter<DiscordDaemonEvents> {
   private cleanup?: DisposableStack;
 
-  private disabled: boolean = false;
+  private disabled = false;
   private token?: string;
 
   private abort?: AbortController;
