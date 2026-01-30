@@ -1,62 +1,60 @@
 import { useEffect, useRef } from "react";
-import useImmediateEffect from "./useImmediateEffect";
 
-// Global state, but hey, document.title *is* a global
-const titles: string[] = [];
+// Each entry tracks a title and a render order assigned on first render.
+// React renders parents before children, so a higher order value means
+// the component is deeper in the tree.
+interface TitleEntry {
+  title: string;
+  order: number;
+}
+
+const entries = new Set<TitleEntry>();
+
+// Monotonically increasing counter. React renders parent components before
+// children, so a component that first renders later is deeper in the tree.
+let nextOrder = 0;
 
 function updateDocumentTitle() {
-  if (titles.length > 0) {
-    document.title = titles[titles.length - 1]!;
-  }
-}
-
-function addTitle(title: string) {
-  titles.push(title);
-  updateDocumentTitle();
-}
-
-function replaceTitle(prevTitle: string, title: string) {
-  // This assumes no one will place duplicate titles in the hierarchy, but
-  // that's probably fine
-  const idx = titles.lastIndexOf(prevTitle);
-  if (idx !== -1) {
-    titles[idx] = title;
-    updateDocumentTitle();
-  }
-}
-
-function removeTitle(title: string) {
-  const idx = titles.lastIndexOf(title);
-  if (idx !== -1) {
-    titles.splice(idx, 1);
-    updateDocumentTitle();
-  }
-}
-
-function useDocumentTitle(title: string) {
-  const lastTitle = useRef<string | undefined>(undefined);
-
-  // we use useImmediateEffect here to ensure we're adding these to the array
-  // in component hierarchy order rather than effect schedule order.
-  useImmediateEffect(() => {
-    if (lastTitle.current === undefined) {
-      addTitle(title);
-    } else {
-      replaceTitle(lastTitle.current, title);
+  let winner: TitleEntry | undefined;
+  for (const entry of entries) {
+    if (!winner || entry.order >= winner.order) {
+      winner = entry;
     }
+  }
+  if (winner) {
+    document.title = winner.title;
+  }
+}
 
-    lastTitle.current = title;
-  }, [title]);
+// Sets the document title, supporting nested usage where the innermost
+// component wins. When a component unmounts, the title reverts to the
+// next outermost component's title.
+function useDocumentTitle(title: string) {
+  // Assign order during render. React renders parents before children,
+  // so a child will always get a higher order than its parent within
+  // the same render pass.
+  const entryRef = useRef<TitleEntry>(null!);
+  if (entryRef.current === null) {
+    entryRef.current = { title, order: nextOrder++ };
+  }
 
-  // We use separate effect calls for add/update and remove, since we only want
-  // to remove on the final teardown
+  // Register on mount, unregister on unmount.
   useEffect(() => {
+    entries.add(entryRef.current);
+    updateDocumentTitle();
     return () => {
-      if (lastTitle.current !== undefined) {
-        removeTitle(lastTitle.current);
-      }
+      entries.delete(entryRef.current);
+      updateDocumentTitle();
     };
   }, []);
+
+  // Update title in place when it changes. Depth is intentionally only
+  // assigned once (on first render) — reassigning on re-render would break
+  // ordering if a parent re-renders while a memoized child doesn't.
+  useEffect(() => {
+    entryRef.current.title = title;
+    updateDocumentTitle();
+  }, [title]);
 }
 
 export default useDocumentTitle;
