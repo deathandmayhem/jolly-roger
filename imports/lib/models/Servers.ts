@@ -1,11 +1,11 @@
 import { z } from "zod";
-import { foreignKey, nonEmptyString } from "./customTypes";
-import type { ModelType } from "./Model";
-import Model from "./Model";
+import { foreignKey, nonEmptyString } from "../typedModel/customTypes";
+import type { ModelType } from "../typedModel/Model";
+import Model from "../typedModel/Model";
 
 const Server = z.object({
   hostname: nonEmptyString,
-  pid: z.number().int(),
+  pid: z.int32(),
   // updatedAt is *not* set automatically, because we don't want to update it
   // when other servers are performing garbage collection
   updatedAt: z.date(),

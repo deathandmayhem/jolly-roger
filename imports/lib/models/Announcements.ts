@@ -1,8 +1,8 @@
 import { z } from "zod";
-import { foreignKey, nonEmptyString } from "./customTypes";
-import type { ModelType } from "./Model";
-import SoftDeletedModel from "./SoftDeletedModel";
-import withCommon from "./withCommon";
+import { foreignKey, nonEmptyString } from "../typedModel/customTypes";
+import type { ModelType } from "../typedModel/Model";
+import SoftDeletedModel from "../typedModel/SoftDeletedModel";
+import withCommon from "../typedModel/withCommon";
 
 // A broadcast message from a hunt operator to be displayed
 // to all participants in the specified hunt.

@@ -1,8 +1,8 @@
 import { z } from "zod";
-import { foreignKey, nonEmptyString } from "../customTypes";
-import type { ModelType } from "../Model";
-import SoftDeletedModel from "../SoftDeletedModel";
-import withCommon from "../withCommon";
+import { foreignKey, nonEmptyString } from "../../typedModel/customTypes";
+import type { ModelType } from "../../typedModel/Model";
+import SoftDeletedModel from "../../typedModel/SoftDeletedModel";
+import withCommon from "../../typedModel/withCommon";
 
 // TransportState tracks the server-side state of a Transport object. None of
 // this data is needed for the actual WebRTC connection, but is collected purely
@@ -14,7 +14,7 @@ import withCommon from "../withCommon";
 const TransportState = withCommon(
   z.object({
     createdServer: foreignKey,
-    transportId: z.string().uuid(), // mediasoup identifier
+    transportId: z.uuid(), // mediasoup identifier
     iceState: nonEmptyString.optional(),
     iceSelectedTuple: nonEmptyString.optional(), // JSON-encoded
     dtlsState: nonEmptyString.optional(),

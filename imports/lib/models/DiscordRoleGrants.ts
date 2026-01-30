@@ -1,8 +1,8 @@
 import { z } from "zod";
-import { foreignKey, snowflake } from "./customTypes";
-import type { ModelType } from "./Model";
-import SoftDeletedModel from "./SoftDeletedModel";
-import withCommon from "./withCommon";
+import { foreignKey, snowflake } from "../typedModel/customTypes";
+import type { ModelType } from "../typedModel/Model";
+import SoftDeletedModel from "../typedModel/SoftDeletedModel";
+import withCommon from "../typedModel/withCommon";
 
 const DiscordRoleGrant = withCommon(
   z.object({
