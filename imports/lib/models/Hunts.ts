@@ -1,9 +1,9 @@
 import { Match } from "meteor/check";
 import { z } from "zod";
-import { nonEmptyString, snowflake } from "./customTypes";
-import type { ModelType } from "./Model";
-import SoftDeletedModel from "./SoftDeletedModel";
-import withCommon from "./withCommon";
+import { nonEmptyString, snowflake } from "../typedModel/customTypes";
+import type { ModelType } from "../typedModel/Model";
+import SoftDeletedModel from "../typedModel/SoftDeletedModel";
+import withCommon from "../typedModel/withCommon";
 
 export const SavedDiscordObjectFields = z.object({
   id: snowflake,
