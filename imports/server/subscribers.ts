@@ -8,6 +8,7 @@
 
 import { check, Match } from "meteor/check";
 import { Meteor } from "meteor/meteor";
+
 import { registerPeriodicCleanupHook, serverId } from "./garbage-collection";
 import Subscribers from "./models/Subscribers";
 
@@ -44,7 +45,7 @@ Meteor.publish("subscribers.inc", async function (name, context) {
     name,
     context,
   });
-  this.onStop(async () => Subscribers.removeAsync(doc));
+  this.onStop(() => Subscribers.removeAsync(doc));
 
   return [];
 });

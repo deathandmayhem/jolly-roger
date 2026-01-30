@@ -1,9 +1,9 @@
-import Logger from "../../Logger";
 import DiscordCache from "../../lib/models/DiscordCache";
 import MeteorUsers from "../../lib/models/MeteorUsers";
 import Settings from "../../lib/models/Settings";
 import { userMayUseDiscordBotAPIs } from "../../lib/permission_stubs";
 import discordChannelsForConfiguredGuild from "../../lib/publications/discordChannelsForConfiguredGuild";
+import Logger from "../../Logger";
 import definePublication from "./definePublication";
 
 definePublication(discordChannelsForConfiguredGuild, {

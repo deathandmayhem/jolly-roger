@@ -10,6 +10,7 @@ import { useId } from "react";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Tooltip from "react-bootstrap/Tooltip";
 import { useTheme } from "styled-components";
+
 import type { GuessType } from "../../lib/models/Guesses";
 
 const iconLookupTable: Record<GuessType["state"], IconProp> = {
@@ -48,7 +49,6 @@ const GuessState = ({
         <FontAwesomeIcon
           icon={iconLookupTable[state] ?? faQuestionCircle}
           color={iconColor(state)}
-          fixedWidth
         />{" "}
         {stateDescriptionTable[state] ?? "unknown"}
       </>
@@ -65,7 +65,6 @@ const GuessState = ({
       <FontAwesomeIcon
         icon={iconLookupTable[state] ?? faQuestionCircle}
         color={iconColor(state)}
-        fixedWidth
       />
     </OverlayTrigger>
   );

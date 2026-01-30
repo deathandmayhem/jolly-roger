@@ -1,5 +1,7 @@
 import { Meteor } from "meteor/meteor";
+
 import type z from "zod";
+
 import isAdmin, { GLOBAL_SCOPE } from "./isAdmin";
 import type { HuntType } from "./models/Hunts";
 import MeteorUsers from "./models/MeteorUsers";

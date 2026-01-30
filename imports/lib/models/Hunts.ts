@@ -1,5 +1,7 @@
 import { Match } from "meteor/check";
+
 import { z } from "zod";
+
 import { nonEmptyString, snowflake } from "./customTypes";
 import type { ModelType } from "./Model";
 import SoftDeletedModel from "./SoftDeletedModel";

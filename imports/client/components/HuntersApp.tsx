@@ -1,5 +1,6 @@
 import React from "react";
 import { Outlet, useParams } from "react-router-dom";
+
 import { useBreadcrumb } from "../hooks/breadcrumb";
 
 const HuntersApp = React.memo(() => {

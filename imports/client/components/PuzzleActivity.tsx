@@ -1,5 +1,6 @@
 import { Meteor } from "meteor/meteor";
 import { useTracker } from "meteor/react-meteor-data";
+
 import { faCommentDots } from "@fortawesome/free-solid-svg-icons/faCommentDots";
 import { faDoorOpen } from "@fortawesome/free-solid-svg-icons/faDoorOpen";
 import { faFilePen } from "@fortawesome/free-solid-svg-icons/faFilePen";
@@ -11,6 +12,7 @@ import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Tooltip from "react-bootstrap/Tooltip";
 import { Sparklines, SparklinesLine, SparklinesSpots } from "react-sparklines";
 import styled, { css } from "styled-components";
+
 import { calendarTimeFormat } from "../../lib/calendarTimeFormat";
 import {
   ACTIVITY_GRANULARITY,
@@ -63,7 +65,7 @@ const PuzzleOpenTime = styled(PuzzleActivityItem)`
 const PuzzleActivitySparkline = styled(PuzzleActivityItem)`
   min-width: 6rem;
   max-width: 8rem;
-
+  
   span {
     margin-right: 0;
   }
@@ -90,6 +92,10 @@ interface PuzzleActivityProps {
   unlockTime: Date;
 }
 
+const displayNumber = (buckets: number[]) => {
+  return buckets.at(-1) ?? 0;
+};
+
 const PuzzleActivity = ({
   huntId,
   puzzleId,
@@ -98,7 +104,6 @@ const PuzzleActivity = ({
   const [finalBucket, setFinalBucket] = useState(
     roundedTime(ACTIVITY_GRANULARITY),
   );
-  // biome-ignore lint/correctness/useExhaustiveDependencies(finalBucket): This does actually depend on finalBucket because we want to reset the timer whenever it changes.
   useEffect(() => {
     const nextBucket =
       roundedTime(ACTIVITY_GRANULARITY).getTime() + ACTIVITY_GRANULARITY;
@@ -117,20 +122,18 @@ const PuzzleActivity = ({
       chats: [] as number[],
       calls: [] as number[],
       documents: [] as number[],
-      maxTotalCount: 0,
+      maxTotalCount: Math.max(
+        1,
+        ActivityBuckets.findOne(
+          {
+            hunt: huntId,
+          },
+          {
+            sort: { totalUsers: -1 },
+          },
+        )?.totalUsers ?? 0,
+      ),
     };
-
-    counts.maxTotalCount = Math.max(
-      1,
-      ActivityBuckets.findOne(
-        {
-          hunt: huntId,
-        },
-        {
-          sort: { totalUsers: -1 },
-        },
-      )?.totalUsers ?? 0,
-    );
 
     for (let i = 0; i < ACTIVITY_SEGMENTS; i++) {
       const bucket = ActivityBuckets.findOne({
@@ -150,20 +153,20 @@ const PuzzleActivity = ({
     // immediately at the start of a new bucket, without having to wait for the
     // next bucket to fill in.
     counts.totals[counts.totals.length - 1] = Math.max(
-      counts.totals[counts.totals.length - 1] ?? 0,
-      counts.totals[counts.totals.length - 2] ?? 0,
+      counts.totals.at(-1) ?? 0,
+      counts.totals.at(-2) ?? 0,
     );
     counts.chats[counts.chats.length - 1] = Math.max(
-      counts.chats[counts.chats.length - 1] ?? 0,
-      counts.chats[counts.chats.length - 2] ?? 0,
+      counts.chats.at(-1) ?? 0,
+      counts.chats.at(-2) ?? 0,
     );
     counts.calls[counts.calls.length - 1] = Math.max(
-      counts.calls[counts.calls.length - 1] ?? 0,
-      counts.calls[counts.calls.length - 2] ?? 0,
+      counts.calls.at(-1) ?? 0,
+      counts.calls.at(-2) ?? 0,
     );
     counts.documents[counts.documents.length - 1] = Math.max(
-      counts.documents[counts.documents.length - 1] ?? 0,
-      counts.documents[counts.documents.length - 2] ?? 0,
+      counts.documents.at(-1) ?? 0,
+      counts.documents.at(-2) ?? 0,
     );
 
     return counts;
@@ -176,10 +179,6 @@ const PuzzleActivity = ({
       Puzzle unlocked: {calendarTimeFormat(unlockTime)}
     </Tooltip>
   );
-
-  const displayNumber = (buckets: number[]) => {
-    return buckets[buckets.length - 1] ?? 0;
-  };
 
   const sparklineTooltip = (
     <Tooltip id={`${idPrefix}-sparkline`}>
@@ -196,7 +195,7 @@ const PuzzleActivity = ({
       </PuzzleActivityDetailTimeRange>
       <PuzzleActivityDetail>
         <div>
-          <FontAwesomeIcon icon={faCommentDots} fixedWidth />
+          <FontAwesomeIcon icon={faCommentDots} />
         </div>
         <div>Chat</div>
         <div>
@@ -209,7 +208,7 @@ const PuzzleActivity = ({
         </div>
         <div>{displayNumber(chats)}</div>
         <div>
-          <FontAwesomeIcon icon={faPhoneVolume} fixedWidth />
+          <FontAwesomeIcon icon={faPhoneVolume} />
         </div>
         <div>Call</div>
         <div>
@@ -222,7 +221,7 @@ const PuzzleActivity = ({
         </div>
         <div>{displayNumber(calls)}</div>
         <div>
-          <FontAwesomeIcon icon={faFilePen} fixedWidth />
+          <FontAwesomeIcon icon={faFilePen} />
         </div>
         <div>Doc</div>
         <div>
@@ -253,7 +252,7 @@ const PuzzleActivity = ({
       </OverlayTrigger>
       <OverlayTrigger placement="top" overlay={sparklineTooltip}>
         <PuzzleActivitySparkline>
-          <FontAwesomeIcon icon={faPeopleGroup} fixedWidth />
+          <FontAwesomeIcon icon={faPeopleGroup} />
           {/* Sparklines doesn't accept a className argument, so we can't use styled-components */}
           <Sparklines
             data={totals}

@@ -1,4 +1,5 @@
 import { z } from "zod";
+
 import { createdUser, updatedUser } from "./customTypes";
 import type { MongoRecordZodType } from "./generateJsonSchema";
 

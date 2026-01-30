@@ -1,5 +1,7 @@
 import { promisify } from "node:util";
+
 import { Meteor } from "meteor/meteor";
+
 import { cleanup, render } from "@testing-library/react";
 import { assert } from "chai";
 import type React from "react";
@@ -12,6 +14,7 @@ import {
   useLocation,
   useNavigate,
 } from "react-router-dom";
+
 import provisionFirstUser from "../../imports/methods/provisionFirstUser";
 import resetDatabase from "../lib/resetDatabase";
 import { stabilize, USER_EMAIL, USER_PASSWORD } from "./lib";
@@ -20,8 +23,8 @@ if (Meteor.isClient) {
   const Routes: typeof import("../../imports/client/components/Routes").default =
     require("../../imports/client/components/Routes").default;
 
-  const location: React.MutableRefObject<Location | null> = { current: null };
-  const navigate: React.MutableRefObject<NavigateFunction | null> = {
+  const location: React.RefObject<Location | null> = { current: null };
+  const navigate: React.RefObject<NavigateFunction | null> = {
     current: null,
   };
 

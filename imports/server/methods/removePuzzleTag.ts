@@ -1,6 +1,7 @@
 import { check } from "meteor/check";
-import Logger from "../../Logger";
+
 import Puzzles from "../../lib/models/Puzzles";
+import Logger from "../../Logger";
 import removePuzzleTag from "../../methods/removePuzzleTag";
 import defineMethod from "./defineMethod";
 

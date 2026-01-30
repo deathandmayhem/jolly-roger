@@ -1,6 +1,7 @@
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Tooltip from "react-bootstrap/Tooltip";
 import styled from "styled-components";
+
 import type { GuessType } from "../../lib/models/Guesses";
 
 const GuessDetail = styled.div`
@@ -31,7 +32,7 @@ const GuessDirectionSvg = styled.svg`
   width: 1px;
   height: 1em;
   fill: grey;
-
+  
   line {
     stroke: black;
     stroke-width: 1;
@@ -60,8 +61,8 @@ const GuessDirection = ({
   className?: string;
 }) => {
   const arrowShaftWidth = 0.3;
-  const arrowHeadWidth = 1.0; // 0 < arrowHeadWidth <= 1
-  const arrowHeadBaseDepth = 1.0; // 0 < arrowHeadBaseDepth <= 1
+  const arrowHeadWidth = 1; // 0 < arrowHeadWidth <= 1
+  const arrowHeadBaseDepth = 1; // 0 < arrowHeadBaseDepth <= 1
   const arrowHeadFullDepth = 1.5; // arrowHeadBaseDepth <= arrowHeadFullDepth
 
   const tooltip = (

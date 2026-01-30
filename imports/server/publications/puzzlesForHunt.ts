@@ -1,4 +1,5 @@
 import { check, Match } from "meteor/check";
+
 import MeteorUsers from "../../lib/models/MeteorUsers";
 import Puzzles from "../../lib/models/Puzzles";
 import puzzlesForHunt from "../../lib/publications/puzzlesForHunt";

@@ -1,10 +1,12 @@
 import { useTracker } from "meteor/react-meteor-data";
+
 import type React from "react";
 import Col from "react-bootstrap/Col";
 import Container from "react-bootstrap/Container";
 import BSImage from "react-bootstrap/Image";
 import Row from "react-bootstrap/Row";
 import styled from "styled-components";
+
 import lookupUrl from "../lookupUrl";
 
 const Jumbotron = styled.div`

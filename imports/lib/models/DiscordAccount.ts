@@ -1,4 +1,5 @@
 import { z } from "zod";
+
 import { nonEmptyString } from "./customTypes";
 
 const DiscordAccount = z.object({

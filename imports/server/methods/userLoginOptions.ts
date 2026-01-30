@@ -1,6 +1,7 @@
 import { Accounts } from "meteor/accounts-base";
 import { check } from "meteor/check";
 import { Meteor } from "meteor/meteor";
+
 import InvitationCodes from "../../lib/models/InvitationCodes";
 import type { UserLoginOptionsResult } from "../../methods/userLoginOptions";
 import userLoginOptions from "../../methods/userLoginOptions";

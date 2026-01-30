@@ -1,5 +1,6 @@
 import { Meteor } from "meteor/meteor";
 import { useTracker } from "meteor/react-meteor-data";
+
 import Bugsnag from "@bugsnag/js";
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle";
 import { faMoon } from "@fortawesome/free-solid-svg-icons/faMoon";
@@ -28,6 +29,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import type { StackFrame } from "stacktrace-js";
 import StackTrace from "stacktrace-js";
 import styled, { css, useTheme } from "styled-components";
+
 import isAdmin from "../../lib/isAdmin";
 import { useBreadcrumbItems } from "../hooks/breadcrumb";
 import { type AppThemeState, useAppThemeState } from "../hooks/persisted-state";
@@ -137,8 +139,7 @@ const ErrorFallback = ({
     <Container>
       <Alert variant="danger">
         <Alert.Heading>
-          <FontAwesomeIcon icon={faExclamationTriangle} fixedWidth /> Something
-          went wrong
+          <FontAwesomeIcon icon={faExclamationTriangle} /> Something went wrong
         </Alert.Heading>
 
         <p>
@@ -315,13 +316,13 @@ const AppNavbar = ({
             <Dropdown.Divider />
             <DropdownHeader>Theme</DropdownHeader>
             <DropdownItem onClick={setAutoMode} active={appTheme === "auto"}>
-              <FontAwesomeIcon icon={faWandMagicSparkles} fixedWidth /> Auto
+              <FontAwesomeIcon icon={faWandMagicSparkles} /> Auto
             </DropdownItem>
             <DropdownItem onClick={setLightMode} active={appTheme === "light"}>
-              <FontAwesomeIcon icon={faSun} fixedWidth /> Light mode
+              <FontAwesomeIcon icon={faSun} /> Light mode
             </DropdownItem>
             <DropdownItem onClick={setDarkMode} active={appTheme === "dark"}>
-              <FontAwesomeIcon icon={faMoon} fixedWidth /> Dark mode
+              <FontAwesomeIcon icon={faMoon} /> Dark mode
             </DropdownItem>
           </DropdownMenu>
         </Dropdown>

@@ -1,5 +1,5 @@
-import Logger from "../../Logger";
 import type { PuzzleType } from "../../lib/models/Puzzles";
+import Logger from "../../Logger";
 import type HookSet from "./Hookset";
 
 // No deps, just defines what a set of hooks looks like and a place

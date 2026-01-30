@@ -1,4 +1,5 @@
 import express from "express";
+
 import authenticator from "./api/authenticator";
 import hunts from "./api/resources/hunts";
 import users from "./api/resources/users";

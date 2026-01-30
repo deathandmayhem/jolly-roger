@@ -1,4 +1,5 @@
 import { z } from "zod";
+
 import { foreignKey, nonEmptyString } from "./customTypes";
 import type { ModelType } from "./Model";
 import Model from "./Model";

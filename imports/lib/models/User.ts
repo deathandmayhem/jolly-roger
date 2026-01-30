@@ -1,4 +1,5 @@
 import { z } from "zod";
+
 import { foreignKey, nonEmptyString, stringId } from "./customTypes";
 import type { DiscordAccountType } from "./DiscordAccount";
 import DiscordAccount from "./DiscordAccount";

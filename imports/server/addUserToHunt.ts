@@ -1,12 +1,14 @@
 import { Accounts } from "meteor/accounts-base";
 import { Email } from "meteor/email";
 import { Meteor } from "meteor/meteor";
+
 import Mustache from "mustache";
+
 import Flags from "../Flags";
-import Logger from "../Logger";
 import type { HuntType } from "../lib/models/Hunts";
 import MeteorUsers from "../lib/models/MeteorUsers";
 import Settings from "../lib/models/Settings";
+import Logger from "../Logger";
 import addUsersToDiscordRole from "./addUsersToDiscordRole";
 import { ensureHuntFolderPermission } from "./gdrive";
 import List from "./List";

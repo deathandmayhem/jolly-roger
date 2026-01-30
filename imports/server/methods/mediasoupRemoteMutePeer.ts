@@ -1,5 +1,6 @@
 import { check } from "meteor/check";
 import { Meteor } from "meteor/meteor";
+
 import Flags from "../../Flags";
 import PeerRemoteMutes from "../../lib/models/mediasoup/PeerRemoteMutes";
 import Peers from "../../lib/models/mediasoup/Peers";

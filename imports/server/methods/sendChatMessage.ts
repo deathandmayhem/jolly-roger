@@ -1,4 +1,5 @@
 import { check, Match } from "meteor/check";
+
 import sendChatMessage from "../../methods/sendChatMessage";
 import sendChatMessageInternal from "../sendChatMessageInternal";
 import defineMethod from "./defineMethod";

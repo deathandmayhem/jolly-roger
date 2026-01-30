@@ -27,7 +27,7 @@ export default React.memo(({ inline = false }: { inline?: boolean }) => {
         icon={faSpinner}
         color="#aaa"
         size={inline ? undefined : "3x"}
-        pulse
+        spinPulse
       />
     </Component>
   );

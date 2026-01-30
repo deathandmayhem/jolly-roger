@@ -1,5 +1,6 @@
 import React from "react";
 import styled from "styled-components";
+
 import { getAvatarCdnUrl } from "../../lib/discord";
 import type { DiscordAccountType } from "../../lib/models/DiscordAccount";
 
@@ -18,7 +19,7 @@ const DiscordAvatarInner = ({
   displayName?: string;
   discordAccount: DiscordAccountType;
 }) => {
-  const urls = Array.from(Array(3), (_, i) =>
+  const urls = Array.from({ length: 3 }, (_, i) =>
     getAvatarCdnUrl(discordAccount, (i + 1) * size),
   );
   if (urls.some((url) => !url)) {

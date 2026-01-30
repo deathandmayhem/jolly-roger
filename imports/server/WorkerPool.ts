@@ -2,7 +2,9 @@ import child_process from "node:child_process";
 import { mkdtemp } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+
 import { WebApp } from "meteor/webapp";
+
 import Logger from "../Logger";
 
 type HandledSignal = "SIGINT" | "SIGHUP" | "SIGTERM";
@@ -31,16 +33,19 @@ if (process.env.CLUSTER_WORKER_ID) {
   });
 
   process.on("message", (message: unknown, socket) => {
-    if (typeof message === "object" && message !== null && "type" in message) {
-      if (message.type === "proxy-ws") {
-        const wsmessage = message as ProxyWsMessage;
-        WebApp.httpServer.emit(
-          "upgrade",
-          wsmessage.req,
-          socket,
-          Buffer.from(wsmessage.head, "utf8"),
-        );
-      }
+    if (
+      typeof message === "object" &&
+      message !== null &&
+      "type" in message &&
+      message.type === "proxy-ws"
+    ) {
+      const wsmessage = message as ProxyWsMessage;
+      WebApp.httpServer.emit(
+        "upgrade",
+        wsmessage.req,
+        socket,
+        Buffer.from(wsmessage.head, "utf8"),
+      );
     }
   });
 }
@@ -115,7 +120,7 @@ export default class WorkerPool {
         });
 
         const index = this.workers.indexOf(worker);
-        if (index >= 0) {
+        if (index !== -1) {
           this.workers.splice(index, 1);
           delete this.workersMap[worker.id];
         }

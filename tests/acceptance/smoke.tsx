@@ -1,5 +1,7 @@
 import { promisify } from "node:util";
+
 import { Meteor } from "meteor/meteor";
+
 import { render } from "@testing-library/react";
 import type React from "react";
 import { act } from "react";
@@ -11,6 +13,7 @@ import {
   useLocation,
   useNavigate,
 } from "react-router-dom";
+
 import FixtureHunt from "../../imports/FixtureHunt";
 import Logger from "../../imports/Logger";
 import addHuntUser from "../../imports/methods/addHuntUser";
@@ -42,8 +45,8 @@ if (Meteor.isClient) {
     UnauthenticatedRouteList,
   }: typeof import("../../imports/client/components/Routes") = require("../../imports/client/components/Routes");
 
-  const location: React.MutableRefObject<Location | null> = { current: null };
-  const navigate: React.MutableRefObject<NavigateFunction | null> = {
+  const location: React.RefObject<Location | null> = { current: null };
+  const navigate: React.RefObject<NavigateFunction | null> = {
     current: null,
   };
 

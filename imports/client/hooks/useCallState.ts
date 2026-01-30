@@ -1,5 +1,6 @@
 import { Meteor } from "meteor/meteor";
 import { useTracker } from "meteor/react-meteor-data";
+
 import type { types } from "mediasoup-client";
 import type React from "react";
 import {
@@ -10,7 +11,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { logger as defaultLogger } from "../../Logger";
+
 import { groupedBy } from "../../lib/listUtils";
 import ConnectAcks from "../../lib/models/mediasoup/ConnectAcks";
 import Consumers from "../../lib/models/mediasoup/Consumers";
@@ -21,6 +22,7 @@ import type { RouterType } from "../../lib/models/mediasoup/Routers";
 import Routers from "../../lib/models/mediasoup/Routers";
 import type { TransportType } from "../../lib/models/mediasoup/Transports";
 import Transports from "../../lib/models/mediasoup/Transports";
+import { logger as defaultLogger } from "../../Logger";
 import mediasoupAckConsumer from "../../methods/mediasoupAckConsumer";
 import mediasoupAckPeerRemoteMute from "../../methods/mediasoupAckPeerRemoteMute";
 import mediasoupConnectTransport from "../../methods/mediasoupConnectTransport";
@@ -323,8 +325,10 @@ function reducer(state: CallState, action: Action): CallState {
           newStream.addTrack(track);
         });
       newStream.addTrack(action.track);
-      const newPeerStreams = new Map(state.peerStreams);
-      newPeerStreams.set(action.peerId, newStream);
+      const newPeerStreams = new Map([
+        ...state.peerStreams,
+        [action.peerId, newStream],
+      ]);
       return {
         ...state,
         peerStreams: newPeerStreams,
@@ -356,7 +360,7 @@ function reducer(state: CallState, action: Action): CallState {
     case "reset":
       return INITIAL_STATE;
     default:
-      throw new Error();
+      throw new Error("Unknown action type");
   }
 }
 
@@ -515,9 +519,6 @@ const useCallState = ({
       : undefined,
   );
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies(huntId): We want to reset if the user navigates to a new puzzle
-  // biome-ignore lint/correctness/useExhaustiveDependencies(puzzleId): See above
-  // biome-ignore lint/correctness/useExhaustiveDependencies(tabId): See above
   useEffect(() => {
     return () => {
       logger.debug("huntId/puzzleId/tabId changed, resetting call state");
@@ -710,7 +711,7 @@ const useCallState = ({
         },
       });
       return () => {
-        observerPromise.then(
+        void observerPromise.then(
           (handle) => handle.stop(),
           (error) => {
             logger.error("ConnectAcks observeChangesAsync rejected:", error);
@@ -865,7 +866,7 @@ const useCallState = ({
       },
     });
     return () => {
-      observerPromise.then(
+      void observerPromise.then(
         (handle) => handle.stop(),
         (error) => {
           logger.error("ProducerServers observeChangesAsync rejected:", error);
@@ -876,7 +877,6 @@ const useCallState = ({
 
   const producerShouldBePaused =
     state.audioControls?.muted || state.audioControls?.deafened;
-  // biome-ignore lint/correctness/useExhaustiveDependencies(producerParamsGeneration): We want to force this effect to run when producerParams changes
   useEffect(() => {
     logger.debug("producerTracks", { tracks: producerTracks.map((t) => t.id) });
     const activeTrackIds = new Set();
@@ -961,7 +961,6 @@ const useCallState = ({
   ]);
 
   // Ensure mute state is respected by mediasoup.
-  // biome-ignore lint/correctness/useExhaustiveDependencies(producerGeneration): We want to force this effect to run when we create a new producer
   useEffect(() => {
     if (producerShouldBePaused !== undefined) {
       // Update producer pause state
@@ -1136,13 +1135,14 @@ const useCallState = ({
             }
 
             const consumerState = consumerMapRef.current.get(consumer._id);
-            if (consumerState?.consumer) {
-              if (consumerState.consumer.paused !== paused) {
-                if (paused) {
-                  consumerState.consumer.pause();
-                } else {
-                  consumerState.consumer.resume();
-                }
+            if (
+              consumerState?.consumer &&
+              consumerState.consumer.paused !== paused
+            ) {
+              if (paused) {
+                consumerState.consumer.pause();
+              } else {
+                consumerState.consumer.resume();
               }
             }
           }

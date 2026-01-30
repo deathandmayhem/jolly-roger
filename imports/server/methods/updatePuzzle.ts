@@ -1,17 +1,18 @@
 import { check, Match } from "meteor/check";
 import { Meteor } from "meteor/meteor";
 import type { Mongo } from "meteor/mongo";
-import Logger from "../../Logger";
+
 import Hunts from "../../lib/models/Hunts";
 import MeteorUsers from "../../lib/models/MeteorUsers";
 import type { PuzzleType } from "../../lib/models/Puzzles";
 import Puzzles from "../../lib/models/Puzzles";
 import { userMayWritePuzzlesForHunt } from "../../lib/permission_stubs";
+import Logger from "../../Logger";
 import updatePuzzle from "../../methods/updatePuzzle";
-import GlobalHooks from "../GlobalHooks";
 import { ensureDocument, renameDocument } from "../gdrive";
 import getOrCreateTagByName from "../getOrCreateTagByName";
 import getTeamName from "../getTeamName";
+import GlobalHooks from "../GlobalHooks";
 import defineMethod from "./defineMethod";
 
 defineMethod(updatePuzzle, {
@@ -60,7 +61,7 @@ defineMethod(updatePuzzle, {
 
     // Look up each tag by name and map them to tag IDs.
     const tagIds = await Promise.all(
-      tags.map(async (tagName) => {
+      tags.map((tagName) => {
         return getOrCreateTagByName(oldPuzzle.hunt, tagName);
       }),
     );

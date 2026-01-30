@@ -1,5 +1,6 @@
 import { Meteor } from "meteor/meteor";
 import { useTracker } from "meteor/react-meteor-data";
+
 import { faCopy } from "@fortawesome/free-solid-svg-icons/faCopy";
 import { faEraser } from "@fortawesome/free-solid-svg-icons/faEraser";
 import { faPuzzlePiece } from "@fortawesome/free-solid-svg-icons/faPuzzlePiece";
@@ -15,6 +16,7 @@ import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Tooltip from "react-bootstrap/Tooltip";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import styled, { css } from "styled-components";
+
 import { calendarTimeFormat } from "../../lib/calendarTimeFormat";
 import { indexedById } from "../../lib/listUtils";
 import type { GuessType } from "../../lib/models/Guesses";
@@ -33,12 +35,12 @@ import useTypedSubscribe from "../hooks/useTypedSubscribe";
 import indexedDisplayNames from "../indexedDisplayNames";
 import { compileGuessMatcher } from "../search";
 import CopyToClipboardButton from "./CopyToClipboardButton";
-import GuessState from "./GuessState";
 import {
   formatGuessDirection,
   GuessConfidence,
   GuessDirection,
 } from "./guessDetails";
+import GuessState from "./GuessState";
 import Markdown from "./Markdown";
 import PuzzleAnswer from "./PuzzleAnswer";
 import Breakable from "./styling/Breakable";
@@ -144,7 +146,7 @@ const StyledPuzzleTimestampAndSubmitter = styled.div`
     css`
       padding: 4px;
       display: flex;
-
+      
       & > * {
         padding: 0;
       }
@@ -230,7 +232,7 @@ const StyledGuessDetailLabel = styled.span`
 const StyledAdditionalNotes = styled(StyledCell)`
   grid-column: 1 / -1;
   overflow: hidden;
-
+  
   p {
     margin-bottom: 0;
   }
@@ -282,12 +284,12 @@ const GuessBlock = React.memo(
               rel="noopener noreferrer"
               aria-labelledby={`guess-${guess._id}-puzzle-tooltip`}
             >
-              <FontAwesomeIcon icon={faPuzzlePiece} fixedWidth />
+              <FontAwesomeIcon icon={faPuzzlePiece} />
             </a>
           </OverlayTrigger>{" "}
           <OverlayTrigger placement="top" overlay={discussionTooltip}>
             <Link to={`/hunts/${puzzle.hunt}/puzzles/${puzzle._id}`}>
-              <FontAwesomeIcon icon={faSkullCrossbones} fixedWidth />
+              <FontAwesomeIcon icon={faSkullCrossbones} />
             </Link>
           </OverlayTrigger>{" "}
           <Breakable>{puzzle.title}</Breakable>
@@ -298,7 +300,7 @@ const GuessBlock = React.memo(
             aria-label="Copy"
             text={guess.guess}
           >
-            <FontAwesomeIcon icon={faCopy} fixedWidth />
+            <FontAwesomeIcon icon={faCopy} />
           </StyledCopyToClipboardButton>
           <PuzzleAnswer answer={guess.guess} breakable indented />
         </StyledGuessCell>

@@ -14,6 +14,7 @@ import Button from "react-bootstrap/Button";
 import ButtonGroup from "react-bootstrap/ButtonGroup";
 import { Link } from "react-router-dom";
 import styled, { css, useTheme } from "styled-components";
+
 import { difference, indexedById } from "../../lib/listUtils";
 import type { PuzzleType } from "../../lib/models/Puzzles";
 import type { TagType } from "../../lib/models/Tags";
@@ -154,10 +155,11 @@ const Puzzle = React.memo(
     // variable, which causes us to mount a new modal, which is set to open on
     // mount. Subsequent times, we just open the existing modal.
     const [showEditModal, setShowEditModal] = useState<boolean>(false);
-    const editModalRef = useRef<React.ElementRef<typeof PuzzleModalForm>>(null);
+    const editModalRef =
+      useRef<React.ComponentRef<typeof PuzzleModalForm>>(null);
     const [renderDeleteModal, setRenderDeleteModal] = useState<boolean>(false);
     const deleteModalRef =
-      useRef<React.ElementRef<typeof PuzzleDeleteModal>>(null);
+      useRef<React.ComponentRef<typeof PuzzleDeleteModal>>(null);
 
     const onEdit = useCallback(
       (

@@ -1,10 +1,11 @@
 import { check, Match } from "meteor/check";
 import { Meteor } from "meteor/meteor";
 import { ServiceConfiguration } from "meteor/service-configuration";
-import Logger from "../../Logger";
+
 import { API_BASE } from "../../lib/discord";
 import MeteorUsers from "../../lib/models/MeteorUsers";
 import { userMayConfigureDiscordOAuth } from "../../lib/permission_stubs";
+import Logger from "../../Logger";
 import configureDiscordOAuthClient from "../../methods/configureDiscordOAuthClient";
 import defineMethod from "./defineMethod";
 

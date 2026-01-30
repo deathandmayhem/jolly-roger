@@ -1,6 +1,8 @@
 import { Meteor } from "meteor/meteor";
+
 import Bugsnag from "@bugsnag/js";
 import BugsnagPluginReact from "@bugsnag/plugin-react";
+
 import isAdmin from "../lib/isAdmin";
 import { huntsUserIsOperatorFor } from "../lib/permission_stubs";
 

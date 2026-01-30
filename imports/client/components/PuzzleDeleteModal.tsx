@@ -1,4 +1,5 @@
 import { useSubscribe, useTracker } from "meteor/react-meteor-data";
+
 import React, {
   Suspense,
   useCallback,
@@ -10,6 +11,7 @@ import Button from "react-bootstrap/Button";
 import FormCheck from "react-bootstrap/FormCheck";
 import Modal from "react-bootstrap/Modal";
 import { createPortal } from "react-dom";
+
 import Documents from "../../lib/models/Documents";
 import Peers from "../../lib/models/mediasoup/Peers";
 import type { PuzzleType } from "../../lib/models/Puzzles";
@@ -137,9 +139,10 @@ const PuzzleDeleteModal = React.forwardRef(
       [],
     );
 
-    const replacementOptions: PuzzleSelectOption[] = [
-      ...puzzles.map((p) => ({ label: p.title, value: p._id })),
-    ];
+    const replacementOptions: PuzzleSelectOption[] = puzzles.map((p) => ({
+      label: p.title,
+      value: p._id,
+    }));
 
     const deletePuzzle = useCallback(() => {
       destroyPuzzle.call({

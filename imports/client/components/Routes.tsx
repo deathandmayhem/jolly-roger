@@ -3,6 +3,7 @@ import type { RouteObject } from "react-router-dom";
 import { Navigate, useRoutes } from "react-router-dom";
 import { ThemeProvider } from "styled-components";
 import { useMediaQuery } from "usehooks-ts";
+
 import { BreadcrumbsProvider } from "../hooks/breadcrumb";
 import { useAppThemeState } from "../hooks/persisted-state";
 import useDocumentTitle from "../hooks/useDocumentTitle";
@@ -79,6 +80,7 @@ export const AuthenticatedRouteList: RouteObject[] = [
   },
   { path: "/setup", element: <SetupPage /> },
   { path: "/rtcdebug", element: <RTCDebugPage /> },
+  // oxlint-disable-next-line oxc/no-map-spread -- wrapping route elements
 ].map((r) => {
   return {
     ...r,
@@ -93,6 +95,7 @@ export const UnauthenticatedRouteList: RouteObject[] = [
   { path: "/reset-password/:token", element: <PasswordResetForm /> },
   { path: "/enroll/:token", element: <EnrollForm /> },
   { path: "/create-first-user", element: <FirstUserForm /> },
+  // oxlint-disable-next-line oxc/no-map-spread -- wrapping route elements
 ].map((r) => {
   return {
     ...r,
@@ -127,9 +130,9 @@ const Routes = React.memo(() => {
 
   useEffect(() => {
     const body = document.body;
-    body.setAttribute("data-bs-theme", effectiveTheme ?? "light");
+    body.dataset.bsTheme = effectiveTheme ?? "light";
     return () => {
-      body.removeAttribute("data-bs-theme");
+      delete body.dataset.bsTheme;
     };
   }, [effectiveTheme]);
 

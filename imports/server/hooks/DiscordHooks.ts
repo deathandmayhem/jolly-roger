@@ -1,4 +1,5 @@
 import { Meteor } from "meteor/meteor";
+
 import Flags from "../../Flags";
 import Announcements from "../../lib/models/Announcements";
 import type { ChatMessageContentType } from "../../lib/models/ChatMessages";
@@ -237,7 +238,7 @@ const DiscordHooks: Hookset = {
       );
       let title = puzzle.title;
       if (title.length > 25) {
-        title = `${title.substring(0, 24)}…`;
+        title = `${title.slice(0, 24)}…`;
       }
 
       const description = await renderChatMessageContent(chatMessage.content);

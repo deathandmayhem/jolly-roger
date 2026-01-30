@@ -1,5 +1,6 @@
 import { S3Client } from "@aws-sdk/client-s3";
 import { createPresignedPost } from "@aws-sdk/s3-presigned-post";
+
 import Settings from "../lib/models/Settings";
 
 export default async function getS3UploadParams(key: string, mimeType: string) {

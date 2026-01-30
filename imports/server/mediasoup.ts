@@ -2,12 +2,14 @@ import crypto from "node:crypto";
 import { promises as dns } from "node:dns";
 import EventEmitter from "node:events";
 import { networkInterfaces } from "node:os";
+
 import { Meteor } from "meteor/meteor";
 import { Random } from "meteor/random";
+
 import { Address6 } from "ip-address";
 import { createWorker, type types } from "mediasoup";
+
 import Flags from "../Flags";
-import Logger from "../Logger";
 import { ACTIVITY_GRANULARITY } from "../lib/config/activityTracking";
 import { RECENT_ACTIVITY_TIME_WINDOW_MS } from "../lib/config/webrtc";
 import CallHistories from "../lib/models/mediasoup/CallHistories";
@@ -30,12 +32,13 @@ import Rooms from "../lib/models/mediasoup/Rooms";
 import Routers from "../lib/models/mediasoup/Routers";
 import type { TransportRequestType } from "../lib/models/mediasoup/TransportRequests";
 import TransportRequests from "../lib/models/mediasoup/TransportRequests";
-import TransportStates from "../lib/models/mediasoup/TransportStates";
 import Transports from "../lib/models/mediasoup/Transports";
+import TransportStates from "../lib/models/mediasoup/TransportStates";
 import type { ServerType } from "../lib/models/Servers";
 import Servers from "../lib/models/Servers";
 import roundedTime from "../lib/roundedTime";
 import throttle from "../lib/throttle";
+import Logger from "../Logger";
 import {
   cleanupDeadServer,
   registerPeriodicCleanupHook,
@@ -1610,13 +1613,14 @@ const getLocalIPAddresses = (): ListenIp[] => {
       // particular, modern OS's generate new addresses periodically, which can
       // cause this list to otherwise get quite long.
       const ipv4 = [...filtered]
-        .reverse()
+        .toReversed()
         .find((address) => address.family === "IPv4");
       const ipv6 = [...filtered]
-        .reverse()
+        .toReversed()
         .find((address) => address.family === "IPv6");
-      return [ipv4?.address, ipv6?.address].filter<string>((v): v is string =>
-        Boolean(v),
+      return [ipv4?.address, ipv6?.address].filter<string>(
+        // oxlint-disable-next-line unicorn/prefer-native-coercion-functions -- type predicate
+        (v): v is string => Boolean(v),
       );
     })
     .map((ip) => {

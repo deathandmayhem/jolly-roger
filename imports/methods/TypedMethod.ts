@@ -2,9 +2,11 @@ import { check } from "meteor/check";
 import type { EJSONable, EJSONableProperty } from "meteor/ejson";
 import { EJSON } from "meteor/ejson";
 import { Meteor } from "meteor/meteor";
+
 import Bugsnag from "@bugsnag/js";
-import Logger from "../Logger";
+
 import type ValidateShape from "../lib/ValidateShape";
+import Logger from "../Logger";
 
 export type TypedMethodParam = EJSONable | EJSONableProperty;
 export type TypedMethodArgs = Record<string, TypedMethodParam> | void;
@@ -43,7 +45,7 @@ class TypedMethod<
 
   call<T>(...args: TypedMethodCallArgs<T, Args, Return>): void {
     let callback: TypedMethodCallback<Return> | undefined;
-    if (typeof args[args.length - 1] === "function") {
+    if (typeof args.at(-1) === "function") {
       callback = args.pop() as TypedMethodCallback<Return>;
     }
 

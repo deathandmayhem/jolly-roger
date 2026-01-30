@@ -1,10 +1,11 @@
 import { check } from "meteor/check";
 import { Meteor } from "meteor/meteor";
-import Logger from "../../Logger";
+
 import type { HuntType } from "../../lib/models/Hunts";
 import Hunts, { HuntPattern } from "../../lib/models/Hunts";
 import MeteorUsers from "../../lib/models/MeteorUsers";
 import { checkAdmin } from "../../lib/permission_stubs";
+import Logger from "../../Logger";
 import updateHunt from "../../methods/updateHunt";
 import addUsersToDiscordRole from "../addUsersToDiscordRole";
 import { ensureHuntFolder, huntFolderName, renameDocument } from "../gdrive";

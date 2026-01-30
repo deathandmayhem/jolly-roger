@@ -1,4 +1,5 @@
 import { z } from "zod";
+
 import type { ModelType } from "../../lib/models/Model";
 import Model from "../../lib/models/Model";
 

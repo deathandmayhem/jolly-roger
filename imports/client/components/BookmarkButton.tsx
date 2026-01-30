@@ -3,10 +3,12 @@ import { faStar as faStarSolid } from "@fortawesome/free-solid-svg-icons/faStar"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { useCallback, useState } from "react";
 import Button from "react-bootstrap/Button";
+
 import bookmarkPuzzle from "../../methods/bookmarkPuzzle";
 
-interface BookmarkButtonProps<As extends React.ElementType = React.ElementType>
-  extends React.HTMLAttributes<HTMLElement> {
+interface BookmarkButtonProps<
+  As extends React.ElementType = React.ElementType,
+> extends React.HTMLAttributes<HTMLElement> {
   puzzleId: string;
   bookmarked: boolean;
   as?: As;

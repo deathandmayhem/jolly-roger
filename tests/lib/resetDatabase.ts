@@ -1,7 +1,9 @@
 import { promisify } from "node:util";
+
 import { check } from "meteor/check";
 import { Meteor } from "meteor/meteor";
 import { MongoInternals } from "meteor/mongo";
+
 import TypedMethod from "../../imports/methods/TypedMethod";
 
 const resetDatabaseMethod = new TypedMethod<{ testName: string }, void>(

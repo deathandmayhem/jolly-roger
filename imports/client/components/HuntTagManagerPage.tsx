@@ -1,4 +1,5 @@
 import { useTracker } from "meteor/react-meteor-data";
+
 import { faEraser } from "@fortawesome/free-solid-svg-icons/faEraser";
 import { faTags } from "@fortawesome/free-solid-svg-icons/faTags";
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes";
@@ -29,6 +30,7 @@ import { useParams } from "react-router-dom";
 import type { ActionMeta, SingleValue } from "react-select";
 import Select from "react-select";
 import styled, { css, useTheme } from "styled-components";
+
 import { indexedById } from "../../lib/listUtils";
 import type { PuzzleType } from "../../lib/models/Puzzles";
 import Puzzles from "../../lib/models/Puzzles";
@@ -282,29 +284,29 @@ const StyledTable = styled(Table)`
   thead tr th {
     position: sticky;
     top: 0;
-
+  
     &:nth-child(1) {
       width: 28px;
     }
-
+  
     &:nth-child(2) {
       text-align: left;
     }
-
+  
     &:nth-child(3) {
       text-align: right;
     }
   }
-
+  
   tbody tr td {
     &:nth-child(1) {
       width: 28px;
     }
-
+  
     &:nth-child(2) {
       text-align: left;
     }
-
+  
     &:nth-child(3) {
       text-align: right;
     }
@@ -525,7 +527,7 @@ const BulkAddRemoveSection = ({
   const canAddTag = useMemo(() => {
     return bulkTags.length > 0
       ? selectedAndMatchingSearch.filter((puzzle) => {
-          return bulkTags.some((tagId) => puzzle.tags.indexOf(tagId) === -1);
+          return bulkTags.some((tagId) => !puzzle.tags.includes(tagId));
         })
       : [];
   }, [bulkTags, selectedAndMatchingSearch]);
@@ -534,7 +536,7 @@ const BulkAddRemoveSection = ({
   const canRemoveTag = useMemo(() => {
     return bulkTags.length > 0
       ? selectedAndMatchingSearch.filter((puzzle) => {
-          return bulkTags.every((tagId) => puzzle.tags.indexOf(tagId) !== -1);
+          return bulkTags.every((tagId) => puzzle.tags.includes(tagId));
         })
       : [];
   }, [bulkTags, selectedAndMatchingSearch]);
@@ -544,7 +546,7 @@ const BulkAddRemoveSection = ({
       const tagNames = tagNamesForIds(bulkTags);
       tagNames.forEach((tagName) => {
         const puzzleId = puzzle._id;
-        addPuzzleTag.call({ puzzleId, tagName }, () => {});
+        addPuzzleTag.call({ puzzleId, tagName });
       });
     });
   }, [canAddTag, bulkTags, tagNamesForIds]);
@@ -553,7 +555,7 @@ const BulkAddRemoveSection = ({
     canRemoveTag.forEach((puzzle) => {
       bulkTags.forEach((tagId) => {
         const puzzleId = puzzle._id;
-        removePuzzleTag.call({ puzzleId, tagId }, () => {});
+        removePuzzleTag.call({ puzzleId, tagId });
       });
     });
   }, [canRemoveTag, bulkTags]);
@@ -619,7 +621,7 @@ const BulkAddRemoveSection = ({
               disabled={canAddTag.length === 0}
               onClick={addTagsToSelectedAndVisible}
             >
-              <FontAwesomeIcon fixedWidth icon={faTags} />
+              <FontAwesomeIcon icon={faTags} />
               Add to {canAddTag.length} selected
             </Button>
             <Button
@@ -627,7 +629,7 @@ const BulkAddRemoveSection = ({
               disabled={canRemoveTag.length === 0}
               onClick={removeTagsFromSelectedAndVisible}
             >
-              <FontAwesomeIcon fixedWidth icon={faTimes} />
+              <FontAwesomeIcon icon={faTimes} />
               Remove from {canRemoveTag.length} selected
             </Button>
           </ButtonGroup>

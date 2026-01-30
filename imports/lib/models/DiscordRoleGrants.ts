@@ -1,4 +1,5 @@
 import { z } from "zod";
+
 import { foreignKey, snowflake } from "./customTypes";
 import type { ModelType } from "./Model";
 import SoftDeletedModel from "./SoftDeletedModel";

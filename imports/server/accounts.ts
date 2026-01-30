@@ -2,14 +2,16 @@ import { Accounts } from "meteor/accounts-base";
 import { check, Match } from "meteor/check";
 import { Google } from "meteor/google-oauth";
 import { Meteor } from "meteor/meteor";
+
 import Mustache from "mustache";
-import Logger from "../Logger";
+
 import type { LoginOptions } from "../lib/loginOptions";
 import Hunts from "../lib/models/Hunts";
 import InvitationCodes from "../lib/models/InvitationCodes";
 import MeteorUsers from "../lib/models/MeteorUsers";
 import type { SettingType } from "../lib/models/Settings";
 import Settings from "../lib/models/Settings";
+import Logger from "../Logger";
 
 type LoginInfo = {
   type: string;

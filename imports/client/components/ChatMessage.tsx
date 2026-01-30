@@ -1,10 +1,10 @@
-// biome-ignore-all lint/suspicious/noArrayIndexKey: migrated from eslint
 import { decodeHTML } from "entities";
 import type { Token, Tokens } from "marked";
 import { marked } from "marked";
 import { useCallback, useEffect, useRef, useState } from "react";
 import BSImage from "react-bootstrap/Image";
 import styled from "styled-components";
+
 import type { ChatMessageContentType } from "../../lib/models/ChatMessages";
 import nodeIsImage from "../../lib/nodeIsImage";
 import nodeIsMention from "../../lib/nodeIsMention";
@@ -133,7 +133,7 @@ const MarkdownToken = ({
     ));
     const decodedText = decodeHTML(token.text);
     if (token.raw.length > decodedText.length) {
-      const trail = token.raw.substring(decodedText.length);
+      const trail = token.raw.slice(decodedText.length);
       if (trail.trim() === "") {
         const syntheticSpace: Tokens.Space = {
           type: "space",
@@ -216,7 +216,7 @@ const ChatMessage = ({
       const displayName = displayNames.get(child.userId);
       return (
         <MentionSpan key={i} $isSelf={child.userId === selfUserId}>
-          @{`${displayName ?? child.userId}`}
+          @{displayName ?? child.userId}
         </MentionSpan>
       );
     } else if (nodeIsRoleMention(child)) {

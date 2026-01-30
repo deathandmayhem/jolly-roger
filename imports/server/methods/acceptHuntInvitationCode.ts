@@ -1,5 +1,6 @@
 import { check, Match } from "meteor/check";
 import { Meteor } from "meteor/meteor";
+
 import Hunts from "../../lib/models/Hunts";
 import InvitationCodes from "../../lib/models/InvitationCodes";
 import MeteorUsers from "../../lib/models/MeteorUsers";
@@ -47,8 +48,6 @@ defineMethod(acceptHuntInvitationCode, {
         email: emailForExistingUser,
         invitedBy: this.userId,
       });
-
-      return hunt._id;
     } else {
       // If user is specifying an email, they are trying to redeem the invitation code to create a user with that email.
       await addUserToHunt({
@@ -56,7 +55,8 @@ defineMethod(acceptHuntInvitationCode, {
         email,
         invitedBy: invitation.createdBy,
       });
-      return hunt._id;
     }
+
+    return hunt._id;
   },
 });

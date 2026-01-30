@@ -1,4 +1,5 @@
 import { useTracker } from "meteor/react-meteor-data";
+
 import { faChevronRight } from "@fortawesome/free-solid-svg-icons/faChevronRight";
 import { faMicrophone } from "@fortawesome/free-solid-svg-icons/faMicrophone";
 import { faMicrophoneSlash } from "@fortawesome/free-solid-svg-icons/faMicrophoneSlash";
@@ -11,6 +12,7 @@ import Button from "react-bootstrap/Button";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Tooltip from "react-bootstrap/Tooltip";
 import styled from "styled-components";
+
 import Flags from "../../Flags";
 import Peers from "../../lib/models/mediasoup/Peers";
 import type { Action, CallState } from "../hooks/useCallState";

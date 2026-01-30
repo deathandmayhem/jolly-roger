@@ -1,8 +1,10 @@
 import { Meteor } from "meteor/meteor";
+
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { createGlobalStyle } from "styled-components";
+
 import Routes from "./components/Routes";
 
 const Reset = createGlobalStyle`
@@ -26,7 +28,7 @@ const Reset = createGlobalStyle`
 
 Meteor.startup(() => {
   const container = document.createElement("div");
-  document.body.appendChild(container);
+  document.body.append(container);
   const root = createRoot(container);
   root.render(
     <>

@@ -99,7 +99,7 @@ function interestingnessOfGroup(
 
   // Look for a puzzle with meta-for:(this group's shared tag)
   let metaForTag: string | undefined;
-  if (sharedTag && sharedTag.name.lastIndexOf("group:", 0) === 0) {
+  if (sharedTag?.name.lastIndexOf("group:", 0) === 0) {
     metaForTag = `meta-for:${sharedTag.name.slice("group:".length)}`;
   }
 
@@ -399,7 +399,7 @@ function sortPuzzlesByRelevanceWithinPuzzleGroup(
   indexedTags: Map<string, TagType>,
 ) {
   let group: string;
-  if (sharedTag && sharedTag.name.lastIndexOf("group:", 0) === 0) {
+  if (sharedTag?.name.lastIndexOf("group:", 0) === 0) {
     group = sharedTag.name.slice("group:".length);
   }
   const sortedPuzzles = puzzles.slice(0);

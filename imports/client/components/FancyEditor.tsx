@@ -1,4 +1,5 @@
 import type { Meteor } from "meteor/meteor";
+
 import { faFileCircleExclamation } from "@fortawesome/free-solid-svg-icons/faFileCircleExclamation";
 import { faSpinner } from "@fortawesome/free-solid-svg-icons/faSpinner";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -37,6 +38,7 @@ import {
   withReact,
 } from "slate-react";
 import styled, { css } from "styled-components";
+
 import { formatDiscordName } from "../../lib/discord";
 import { indexedById, sortedBy } from "../../lib/listUtils";
 import Avatar from "./Avatar";
@@ -112,8 +114,9 @@ interface LeafProps {
   blockquote?: boolean;
 }
 
-interface MentionRendererProps
-  extends ElementRendererProps<MentionElement | RoleMentionElement> {
+interface MentionRendererProps extends ElementRendererProps<
+  MentionElement | RoleMentionElement
+> {
   users: Map<string, Meteor.User>;
 }
 
@@ -168,7 +171,6 @@ const EditableMentionRenderer = ({
       name = element.roleId;
       break;
     default:
-      // biome-ignore lint/nursery/noUnusedExpressions: exhaustive check
       element satisfies never;
   }
   const Elem = selected && focused ? SelectedMentionSpan : MentionSpan;
@@ -279,10 +281,8 @@ const withSingleMessage = (editor: Editor) => {
   const { normalizeNode } = editor;
   editor.normalizeNode = (entry: NodeEntry) => {
     const [node, _path] = entry;
-    if (Editor.isEditor(node)) {
-      if (node.children.length > 1) {
-        Transforms.mergeNodes(editor, { at: [1] });
-      }
+    if (Editor.isEditor(node) && node.children.length > 1) {
+      Transforms.mergeNodes(editor, { at: [1] });
     }
 
     normalizeNode(entry);
@@ -376,7 +376,6 @@ const MatchCandidate = ({
         </MatchCandidateRow>
       );
     default:
-      // biome-ignore lint/nursery/noUnusedExpressions: exhaustive check
       mention satisfies never;
       return null;
   }
@@ -649,7 +648,7 @@ const decorate = ([node, path]: [SlateNode, Path]) => {
   );
 
   if (DEBUG_EDITOR) {
-    // biome-ignore lint/suspicious/noConsole: migration from eslint
+    // oxlint-disable-next-line no-console
     console.log("decorated", ranges);
   }
   return ranges;
@@ -751,7 +750,7 @@ const FancyEditor = React.forwardRef(
           }),
         );
 
-        const imageEntry = matches.length ? matches[0] : null;
+        const imageEntry = matches.length > 0 ? matches[0] : null;
 
         if (imageEntry) {
           const [, imagePath] = imageEntry;
@@ -835,7 +834,6 @@ const FancyEditor = React.forwardRef(
                 {...(props as ElementRendererProps<ImageElement>)}
               />
             );
-          case "message":
           default:
             return (
               <StyledMessage {...props.attributes}>
@@ -930,7 +928,6 @@ const FancyEditor = React.forwardRef(
                   break;
                 }
                 default:
-                  // biome-ignore lint/nursery/noUnusedExpressions: exhaustive check
                   mention satisfies never;
               }
               setCompletionAnchorRange(undefined);
@@ -947,13 +944,12 @@ const FancyEditor = React.forwardRef(
         }
 
         if (event.key === "Enter") {
+          event.preventDefault();
           if (event.shiftKey) {
             // Insert soft break.  Avoid hard breaks entirely.
-            event.preventDefault();
             editor.insertText("\n");
           } else {
             // submit contents.  clear the editor.
-            event.preventDefault();
             if (onSubmit()) {
               clearInput();
             }
@@ -1021,7 +1017,6 @@ const FancyEditor = React.forwardRef(
             insertRoleMention(editor, m.roleId);
             break;
           default:
-            // biome-ignore lint/nursery/noUnusedExpressions: exhaustive check
             m satisfies never;
         }
         setCompletionAnchorRange(undefined);

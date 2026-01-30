@@ -1,8 +1,8 @@
-import Logger from "../../Logger";
 import DiscordCache from "../../lib/models/DiscordCache";
 import MeteorUsers from "../../lib/models/MeteorUsers";
 import { userMayConfigureDiscordBot } from "../../lib/permission_stubs";
 import discordGuildsAll from "../../lib/publications/discordGuildsAll";
+import Logger from "../../Logger";
 import definePublication from "./definePublication";
 
 definePublication(discordGuildsAll, {
