@@ -7,5 +7,7 @@ declare module "meteor/ddp" {
     }
 
     const _CurrentInvocation: Meteor.EnvironmentVariable<PartialMethodInvocationOptions>;
+    const _CurrentMethodInvocation: Meteor.EnvironmentVariable<PartialMethodInvocationOptions>;
+    const _CurrentPublicationInvocation: Meteor.EnvironmentVariable<PartialMethodInvocationOptions>;
   }
 }
