@@ -9,14 +9,14 @@ Migrations.add({
       firehoseSlackChannel: null,
       slackChannel: { $ne: null },
     })) {
-      await Hunts.updateAsync(
-        hunt._id,
+      await Hunts.collection.rawCollection().updateOne(
+        { _id: hunt._id },
         {
           $set: { firehoseSlackChannel: (<any>hunt).slackChannel },
           $unset: { slackChannel: 1 },
         },
         {
-          bypassSchema: true,
+          bypassDocumentValidation: true,
         },
       );
     }

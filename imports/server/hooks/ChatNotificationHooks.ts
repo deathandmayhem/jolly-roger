@@ -55,7 +55,7 @@ const ChatNotificationHooks: Hookset = {
             const subscribed = await Subscribers.find({
               name: "operators",
               [`context.${chatMessage.hunt}`]: true,
-            }).mapAsync((l) => l.user as string);
+            }).mapAsync((l) => l.user);
 
             const allOperators = await MeteorUsers.find(
               queryOperatorsForHunt({ _id: chatMessage.hunt }),

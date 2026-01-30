@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { nonEmptyString } from "./customTypes";
+import { nonEmptyString } from "../typedModel/customTypes";
 
 const DiscordAccount = z.object({
   id: nonEmptyString,

@@ -1,9 +1,9 @@
 import { z } from "zod";
+import { foreignKey } from "../typedModel/customTypes";
+import type { ModelType } from "../typedModel/Model";
+import SoftDeletedModel from "../typedModel/SoftDeletedModel";
+import withCommon from "../typedModel/withCommon";
 import { ChatMessageContent } from "./ChatMessages";
-import { foreignKey } from "./customTypes";
-import type { ModelType } from "./Model";
-import SoftDeletedModel from "./SoftDeletedModel";
-import withCommon from "./withCommon";
 
 // A notification triggered by a chat message sent by a user.
 const ChatNotification = withCommon(

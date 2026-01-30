@@ -1,8 +1,8 @@
 import { z } from "zod";
-import { foreignKey, nonEmptyString } from "../customTypes";
-import type { ModelType } from "../Model";
-import SoftDeletedModel from "../SoftDeletedModel";
-import withCommon from "../withCommon";
+import { foreignKey, nonEmptyString } from "../../typedModel/customTypes";
+import type { ModelType } from "../../typedModel/Model";
+import SoftDeletedModel from "../../typedModel/SoftDeletedModel";
+import withCommon from "../../typedModel/withCommon";
 
 const Consumer = withCommon(
   z.object({
@@ -10,10 +10,10 @@ const Consumer = withCommon(
     call: foreignKey,
     peer: foreignKey,
     transportRequest: foreignKey,
-    transportId: z.string().uuid(),
+    transportId: z.uuid(),
     producerPeer: foreignKey,
-    consumerId: z.string().uuid(),
-    producerId: z.string().uuid(),
+    consumerId: z.uuid(),
+    producerId: z.uuid(),
     kind: z.enum(["audio", "video"]),
     rtpParameters: nonEmptyString, // JSON-encoded
     paused: z.boolean(),

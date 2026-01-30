@@ -20,7 +20,6 @@ import InvitationCodes from "../../lib/models/InvitationCodes";
 import Jobs from "../../lib/models/Jobs";
 import MergeOperations from "../../lib/models/MergeOperations";
 import MeteorUsers from "../../lib/models/MeteorUsers";
-import { AllModels } from "../../lib/models/Model";
 import CallHistories from "../../lib/models/mediasoup/CallHistories";
 import ConnectAcks from "../../lib/models/mediasoup/ConnectAcks";
 import ConnectRequests from "../../lib/models/mediasoup/ConnectRequests";
@@ -42,6 +41,7 @@ import Puzzles from "../../lib/models/Puzzles";
 import Servers from "../../lib/models/Servers";
 import Settings from "../../lib/models/Settings";
 import Tags from "../../lib/models/Tags";
+import { AllModels } from "../../lib/typedModel/Model";
 import addUsersToDiscordRole from "../addUsersToDiscordRole";
 import { ensureHuntFolderPermission } from "../gdrive";
 import ignoringDuplicateKeyErrors, {
