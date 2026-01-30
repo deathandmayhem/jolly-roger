@@ -26,6 +26,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+      - name: Fetch PR merge base
+        if: github.event_name == 'pull_request'
+        run: git fetch --no-tags origin ${{ github.event.pull_request.base.sha }} --depth=1
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
         with:
