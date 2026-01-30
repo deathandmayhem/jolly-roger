@@ -4,9 +4,9 @@ import {
   foreignKey,
   nonEmptyString,
   portNumber,
-} from "../customTypes";
-import type { ModelType } from "../Model";
-import Model from "../Model";
+} from "../../typedModel/customTypes";
+import type { ModelType } from "../../typedModel/Model";
+import Model from "../../typedModel/Model";
 
 const MonitorConnectRequest = z.object({
   initiatingServer: foreignKey,

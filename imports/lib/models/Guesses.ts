@@ -1,8 +1,8 @@
 import { z } from "zod";
-import { answer, foreignKey, nonEmptyString } from "./customTypes";
-import type { ModelType } from "./Model";
-import SoftDeletedModel from "./SoftDeletedModel";
-import withCommon from "./withCommon";
+import { answer, foreignKey, nonEmptyString } from "../typedModel/customTypes";
+import type { ModelType } from "../typedModel/Model";
+import SoftDeletedModel from "../typedModel/SoftDeletedModel";
+import withCommon from "../typedModel/withCommon";
 
 // The state of this guess, as handled by the operators:
 // * 'pending' means "shows up in the operator queue"
