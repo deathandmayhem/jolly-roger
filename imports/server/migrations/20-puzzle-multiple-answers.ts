@@ -13,8 +13,8 @@ Migrations.add({
         answers.push(p.answer);
       }
 
-      await Puzzles.updateAsync(
-        p._id,
+      await Puzzles.collection.rawCollection().updateOne(
+        { _id: p._id },
         {
           $set: {
             expectedAnswerCount: 1,
@@ -22,7 +22,7 @@ Migrations.add({
           },
         },
         {
-          bypassSchema: true,
+          bypassDocumentValidation: true,
         },
       );
     }

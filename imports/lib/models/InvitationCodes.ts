@@ -1,8 +1,8 @@
 import { z } from "zod";
-import { foreignKey, nonEmptyString } from "./customTypes";
-import type { ModelType } from "./Model";
-import SoftDeletedModel from "./SoftDeletedModel";
-import withCommon from "./withCommon";
+import { foreignKey, nonEmptyString } from "../typedModel/customTypes";
+import type { ModelType } from "../typedModel/Model";
+import SoftDeletedModel from "../typedModel/SoftDeletedModel";
+import withCommon from "../typedModel/withCommon";
 
 // Invitation codes that can be used to join a hunt.
 // These take the place of direct (user-to-user) invitations.

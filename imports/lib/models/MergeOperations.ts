@@ -1,9 +1,9 @@
 import { z } from "zod";
-import { foreignKey, nonEmptyString } from "./customTypes";
+import { foreignKey, nonEmptyString } from "../typedModel/customTypes";
+import type { ModelType } from "../typedModel/Model";
+import Model from "../typedModel/Model";
+import withCommon from "../typedModel/withCommon";
 import DiscordAccount from "./DiscordAccount";
-import type { ModelType } from "./Model";
-import Model from "./Model";
-import withCommon from "./withCommon";
 
 // Audit trail for user merge operations. Each record tracks a merge of
 // participants[0] (source, going away) into participants[1] (target,
@@ -12,7 +12,9 @@ import withCommon from "./withCommon";
 const MergeOperation = withCommon(
   z.object({
     // [sourceUser, targetUser]
-    participants: z.tuple([foreignKey, foreignKey]),
+    participants: z
+      .tuple([foreignKey, foreignKey])
+      .meta({ minItems: 2, maxItems: 2 }),
     // The background job that owns this merge.
     job: foreignKey,
     // Set when the merge is fully complete (source deleted, FKs updated).

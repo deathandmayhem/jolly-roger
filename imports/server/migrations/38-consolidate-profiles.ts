@@ -42,7 +42,7 @@ Migrations.add({
             discordAccount,
             phoneNumber,
             dingwords,
-          },
+          } as any,
         },
       });
     }

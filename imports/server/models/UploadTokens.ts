@@ -1,8 +1,8 @@
 import { z } from "zod";
-import { nonEmptyString } from "../../lib/models/customTypes";
-import type { ModelType } from "../../lib/models/Model";
-import Model from "../../lib/models/Model";
-import withCommon from "../../lib/models/withCommon";
+import { nonEmptyString } from "../../lib/typedModel/customTypes";
+import type { ModelType } from "../../lib/typedModel/Model";
+import Model from "../../lib/typedModel/Model";
+import withCommon from "../../lib/typedModel/withCommon";
 
 // A way to authenticate uploads before accepting them.
 // The flow is:
