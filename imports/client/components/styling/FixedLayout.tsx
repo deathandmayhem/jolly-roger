@@ -1,12 +1,8 @@
-import React from "react";
+import type React from "react";
 import styled, { createGlobalStyle, css } from "styled-components";
 import { NavBarHeight } from "./constants";
 
-interface FixedLayoutProps extends React.HTMLAttributes<HTMLDivElement> {
-  $narrow?: boolean;
-}
-
-const FixedLayoutDiv = styled.div<FixedLayoutProps>`
+const FixedLayoutDiv = styled.div<{ $narrow?: boolean }>`
   position: fixed;
   inset: /* top right bottom left */ calc(
       env(safe-area-inset-top, 0) + ${NavBarHeight} + 1px
@@ -27,15 +23,18 @@ const FixedLayoutGlobal = createGlobalStyle`
   }
 `;
 
-const FixedLayout = React.forwardRef<HTMLDivElement, FixedLayoutProps>(
-  (props, ref) => {
-    return (
-      <>
-        <FixedLayoutGlobal />
-        <FixedLayoutDiv ref={ref} {...props} />
-      </>
-    );
-  },
-);
+const FixedLayout = ({
+  ref,
+  ...props
+}: {
+  ref?: React.Ref<HTMLDivElement>;
+} & React.ComponentProps<typeof FixedLayoutDiv>) => {
+  return (
+    <>
+      <FixedLayoutGlobal />
+      <FixedLayoutDiv ref={ref} {...props} />
+    </>
+  );
+};
 
 export default FixedLayout;

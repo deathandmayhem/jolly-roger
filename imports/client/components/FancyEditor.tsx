@@ -4,7 +4,8 @@ import { faSpinner } from "@fortawesome/free-solid-svg-icons/faSpinner";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import type { Token, Tokens } from "marked";
 import { marked } from "marked";
-import React, {
+import type React from "react";
+import {
   useCallback,
   useEffect,
   useImperativeHandle,
@@ -684,407 +685,399 @@ export interface FancyEditorHandle {
   replaceImage: (url: string, id: string, status: ImageStatus) => void;
 }
 
-const FancyEditor = React.forwardRef(
-  (
-    {
-      className,
-      initialContent,
-      placeholder,
-      users,
-      onContentChange,
-      onSubmit,
-      uploadImageFile,
-      disabled,
-    }: {
-      className?: string;
-      initialContent: Descendant[];
-      placeholder?: string;
-      users: Meteor.User[];
-      onContentChange: (content: Descendant[]) => void;
-      uploadImageFile: (file: File) => void;
-      onSubmit: () => boolean;
-      disabled?: boolean;
-    },
-    forwardedRef: React.Ref<FancyEditorHandle>,
-  ) => {
-    const [editor] = useState(() => {
-      const upstreamEditor = withReact(withHistory(createEditor()));
-      return withSingleMessage(
-        withMentionsAndImages(upstreamEditor, uploadImageFile),
-      );
-    });
-
-    // The floating autocomplete box for @-mentions
-    const ref = useRef<HTMLDivElement>(null);
-    // The range in the document which an autocompletion overlay should be positioned relative to
-    const [completionAnchorRange, setCompletionAnchorRange] = useState<
-      Range | undefined
-    >(undefined);
-    // Offset into the list of potentially-matching usernames
-    const [completionCursorIndex, setCompletionCursorIndex] =
-      useState<number>(0);
-    // The current needle to search for in user display names, emails, etc.
-    const [completionSearchString, setCompletionSearchString] = useState("");
-
-    const usersById = useMemo(() => indexedById(users), [users]);
-
-    const insertImage = useCallback(
-      (url: string, tempId: string, status: ImageStatus) => {
-        const image: ImageElement = {
-          type: "image",
-          url,
-          tempId,
-          status,
-          children: [{ text: "" }],
-        };
-        if (!editor.selection) {
-          Transforms.select(editor, Editor.end(editor, []));
-        }
-        Transforms.insertNodes(editor, image);
-
-        // find the image node we just inserted by matching tempId
-        const matches = Array.from(
-          Editor.nodes(editor, {
-            at: [],
-            match: (n) =>
-              "type" in n && n.type === "image" && n.tempId === tempId,
-          }),
-        );
-
-        const imageEntry = matches.length ? matches[0] : null;
-
-        if (imageEntry) {
-          const [, imagePath] = imageEntry;
-
-          // try to get a point *after* the image
-          const pointAfter = Editor.after(editor, imagePath);
-          if (pointAfter) {
-            // select that point (places caret after the image)
-            Transforms.select(editor, pointAfter);
-            ReactEditor.focus(editor);
-          }
-        }
-      },
-      [editor],
+const FancyEditor = ({
+  className,
+  initialContent,
+  placeholder,
+  users,
+  onContentChange,
+  onSubmit,
+  uploadImageFile,
+  disabled,
+  ref,
+}: {
+  className?: string;
+  initialContent: Descendant[];
+  placeholder?: string;
+  users: Meteor.User[];
+  onContentChange: (content: Descendant[]) => void;
+  uploadImageFile: (file: File) => void;
+  onSubmit: () => boolean;
+  disabled?: boolean;
+  ref: React.Ref<FancyEditorHandle>;
+}) => {
+  const [editor] = useState(() => {
+    const upstreamEditor = withReact(withHistory(createEditor()));
+    return withSingleMessage(
+      withMentionsAndImages(upstreamEditor, uploadImageFile),
     );
+  });
 
-    const replaceImage = useCallback(
-      (url: string, tempId: string, status: ImageStatus) => {
-        for (const [node, path] of Node.nodes(editor)) {
-          if (
-            "type" in node &&
-            node.type === "image" &&
-            node.tempId === tempId
-          ) {
-            Transforms.setNodes(editor, { url, status }, { at: path });
-            return;
-          }
-        }
-      },
-      [editor],
-    );
+  // The floating autocomplete box for @-mentions
+  const autocompleteRef = useRef<HTMLDivElement>(null);
+  // The range in the document which an autocompletion overlay should be positioned relative to
+  const [completionAnchorRange, setCompletionAnchorRange] = useState<
+    Range | undefined
+  >(undefined);
+  // Offset into the list of potentially-matching usernames
+  const [completionCursorIndex, setCompletionCursorIndex] = useState<number>(0);
+  // The current needle to search for in user display names, emails, etc.
+  const [completionSearchString, setCompletionSearchString] = useState("");
 
-    const clearInput = useCallback(() => {
-      // Reset the document by removing all nodes under the root editor node.
-      const children = [...editor.children];
-      children.forEach((node) => {
-        editor.apply({ type: "remove_node", path: [0], node });
-      });
+  const usersById = useMemo(() => indexedById(users), [users]);
 
-      // Insert an empty paragraph.
-      editor.apply({
-        type: "insert_node",
-        path: [0],
-        node: { type: "message", children: [{ text: "" }] },
-      });
-
-      // Make the selection be empty
-      Transforms.select(editor, {
-        anchor: { path: [0, 0], offset: 0 },
-        focus: { path: [0, 0], offset: 0 },
-      });
-
-      // editor.splitBlock();
-      editor.history = {
-        redos: [],
-        undos: [],
+  const insertImage = useCallback(
+    (url: string, tempId: string, status: ImageStatus) => {
+      const image: ImageElement = {
+        type: "image",
+        url,
+        tempId,
+        status,
+        children: [{ text: "" }],
       };
-    }, [editor]);
-    useImperativeHandle(forwardedRef, () => ({
-      clearInput,
-      insertImage,
-      replaceImage,
-    }));
+      if (!editor.selection) {
+        Transforms.select(editor, Editor.end(editor, []));
+      }
+      Transforms.insertNodes(editor, image);
 
-    const renderElement = useCallback(
-      (props: RenderElementProps) => {
-        switch (props.element.type) {
-          case "mention":
-          case "role-mention":
-            return (
-              <EditableMentionRenderer
-                users={usersById}
-                {...(props as ElementRendererProps<
-                  MentionElement | RoleMentionElement
-                >)}
-              />
-            );
-          case "image":
-            return (
-              <ChatImageRenderer
-                {...(props as ElementRendererProps<ImageElement>)}
-              />
-            );
-          case "message":
-          default:
-            return (
-              <StyledMessage {...props.attributes}>
-                {props.children}
-              </StyledMessage>
-            );
-        }
-      },
-      [usersById],
-    );
+      // find the image node we just inserted by matching tempId
+      const matches = Array.from(
+        Editor.nodes(editor, {
+          at: [],
+          match: (n) =>
+            "type" in n && n.type === "image" && n.tempId === tempId,
+        }),
+      );
 
-    const onChange = useCallback(
-      (value: Descendant[]) => {
-        const { selection } = editor;
-        if (selection && Range.isCollapsed(selection)) {
-          // Look backwards.  Does the word the cursor is in start with an `@`?
-          const [start] = Range.edges(selection);
-          const wordBefore = Editor.before(editor, start, { unit: "word" });
-          const before = wordBefore && Editor.before(editor, wordBefore);
-          const beforeRange = before && Editor.range(editor, before, start);
-          const beforeText = beforeRange && Editor.string(editor, beforeRange);
-          const beforeMatch = beforeText?.match(/^@(\w+)$/);
-          // Look forwards from the cursor to the end of the word.
-          // Is the cursor at the end of the word?
-          const after = Editor.after(editor, start);
-          const afterRange = Editor.range(editor, start, after);
-          const afterText = Editor.string(editor, afterRange);
-          const afterMatch = afterText.match(/^(\s|$)/);
+      const imageEntry = matches.length ? matches[0] : null;
 
-          if (beforeMatch && afterMatch) {
-            // Do @-completion. Anchor the popup to the start of the @.
-            // The user's search string to attempt to match on is the string that
-            // follows between the @ and the cursor.
-            // Start by highlighting the top entry in the autocomplete list.
-            setCompletionAnchorRange(beforeRange);
-            setCompletionSearchString(beforeMatch[1]!);
-            setCompletionCursorIndex(0);
-          } else {
-            setCompletionAnchorRange(undefined);
-          }
-        }
+      if (imageEntry) {
+        const [, imagePath] = imageEntry;
 
-        const isAstChange = editor.operations.some(
-          (op) => op.type !== "set_selection",
-        );
-        if (isAstChange) {
-          onContentChange(value);
-        }
-      },
-      [editor, onContentChange],
-    );
-
-    const matchingMentions: MentionMatch[] = useMemo(
-      () => matchMentions(users, completionSearchString),
-      [users, completionSearchString],
-    );
-
-    const onKeyDown: React.KeyboardEventHandler<HTMLDivElement> = useCallback(
-      (event) => {
-        if (completionAnchorRange && matchingMentions.length > 0) {
-          switch (event.key) {
-            case "ArrowDown": {
-              event.preventDefault();
-              const nextIndex =
-                completionCursorIndex >= matchingMentions.length - 1
-                  ? 0
-                  : completionCursorIndex + 1;
-              setCompletionCursorIndex(nextIndex);
-              return;
-            }
-            case "ArrowUp": {
-              event.preventDefault();
-              const prevIndex =
-                completionCursorIndex === 0
-                  ? matchingMentions.length - 1
-                  : completionCursorIndex - 1;
-              setCompletionCursorIndex(prevIndex);
-              return;
-            }
-            case "Tab":
-            case "Enter": {
-              event.preventDefault();
-              Transforms.select(editor, completionAnchorRange);
-              const mention = matchingMentions[completionCursorIndex]!;
-              switch (mention.type) {
-                case "mention": {
-                  insertMention(editor, mention.user._id);
-                  break;
-                }
-                case "role-mention": {
-                  insertRoleMention(editor, mention.roleId);
-                  break;
-                }
-                default:
-                  // biome-ignore lint/nursery/noUnusedExpressions: exhaustive check
-                  mention satisfies never;
-              }
-              setCompletionAnchorRange(undefined);
-              return;
-            }
-            case "Escape": {
-              event.preventDefault();
-              setCompletionAnchorRange(undefined);
-              return;
-            }
-            default:
-              break;
-          }
-        }
-
-        if (event.key === "Enter") {
-          if (event.shiftKey) {
-            // Insert soft break.  Avoid hard breaks entirely.
-            event.preventDefault();
-            editor.insertText("\n");
-          } else {
-            // submit contents.  clear the editor.
-            event.preventDefault();
-            if (onSubmit()) {
-              clearInput();
-            }
-          }
-        }
-      },
-      [
-        completionAnchorRange,
-        matchingMentions,
-        completionCursorIndex,
-        editor,
-        onSubmit,
-        clearInput,
-      ],
-    );
-
-    useEffect(() => {
-      if (completionAnchorRange && matchingMentions.length > 0) {
-        const el = ref.current;
-        const domRange = ReactEditor.toDOMRange(editor, completionAnchorRange);
-        const rect = domRange.getBoundingClientRect();
-        if (el) {
-          const elRect = el.getBoundingClientRect();
-          // We wish to place the list of completions immediately above the area
-          // from which the completion was initiated.
-          //                  _______________________
-          //                 | completion candidate 1| \
-          //                 | completion candidate 2|  |-- elRect.height
-          // +---------------|_______________________| /
-          // | input box here @search        |
-          // +-------------------------------+
-          // rect.top and rect.left are the top-left of the @
-          // We're using absolute positioning, so we need to add in the viewport
-          // offset (window.scrollX and window.scrollY).  Then, we need to subtract
-          // out the height of the completion box, so that we're not on top of the
-          // @-mention, but just above it.
-
-          // On mobile, our completion candidates may get stuffed against the
-          // right border of the viewport.  Allow it to start farther left if
-          // we're up against the edge of the viewport.
-          const idealLeft = rect.left + window.scrollX;
-          let left = idealLeft;
-          if (idealLeft + elRect.width > window.innerWidth) {
-            left = window.innerWidth - elRect.width;
-          }
-          // But if the completion is too wide, make sure we keep it at least on screen.
-          if (left < 0) left = 0;
-
-          const top = rect.top + window.scrollY - elRect.height;
-
-          el.style.top = `${top}px`;
-          el.style.left = `${left}px`;
+        // try to get a point *after* the image
+        const pointAfter = Editor.after(editor, imagePath);
+        if (pointAfter) {
+          // select that point (places caret after the image)
+          Transforms.select(editor, pointAfter);
+          ReactEditor.focus(editor);
         }
       }
-    }, [matchingMentions.length, editor, completionAnchorRange]);
+    },
+    [editor],
+  );
 
-    const onMentionSelected = useCallback(
-      (m: MentionMatch) => {
-        Transforms.select(editor, completionAnchorRange!);
-        switch (m.type) {
-          case "mention":
-            insertMention(editor, m.user._id);
-            break;
-          case "role-mention":
-            insertRoleMention(editor, m.roleId);
-            break;
-          default:
-            // biome-ignore lint/nursery/noUnusedExpressions: exhaustive check
-            m satisfies never;
+  const replaceImage = useCallback(
+    (url: string, tempId: string, status: ImageStatus) => {
+      for (const [node, path] of Node.nodes(editor)) {
+        if ("type" in node && node.type === "image" && node.tempId === tempId) {
+          Transforms.setNodes(editor, { url, status }, { at: path });
+          return;
         }
-        setCompletionAnchorRange(undefined);
-        ReactEditor.focus(editor);
-      },
-      [editor, completionAnchorRange],
-    );
+      }
+    },
+    [editor],
+  );
 
-    const debugPane = DEBUG_EDITOR ? (
-      <div style={{ position: "fixed", bottom: "0", right: "0" }}>
-        <div style={{ width: "800px", overflowX: "auto", overflowY: "auto" }}>
-          <pre>{JSON.stringify(editor.children, null, 2)}</pre>
-        </div>
-        <div>{`completionAnchorRange: ${JSON.stringify(
-          completionAnchorRange,
-        )}`}</div>
-        <div>{`completionSearchString: ${completionSearchString}`}</div>
-        <div>{`completionCursorIndex: ${completionCursorIndex}`}</div>
+  const clearInput = useCallback(() => {
+    // Reset the document by removing all nodes under the root editor node.
+    const children = [...editor.children];
+    children.forEach((node) => {
+      editor.apply({ type: "remove_node", path: [0], node });
+    });
+
+    // Insert an empty paragraph.
+    editor.apply({
+      type: "insert_node",
+      path: [0],
+      node: { type: "message", children: [{ text: "" }] },
+    });
+
+    // Make the selection be empty
+    Transforms.select(editor, {
+      anchor: { path: [0, 0], offset: 0 },
+      focus: { path: [0, 0], offset: 0 },
+    });
+
+    // editor.splitBlock();
+    editor.history = {
+      redos: [],
+      undos: [],
+    };
+  }, [editor]);
+  useImperativeHandle(ref, () => ({
+    clearInput,
+    insertImage,
+    replaceImage,
+  }));
+
+  const renderElement = useCallback(
+    (props: RenderElementProps) => {
+      switch (props.element.type) {
+        case "mention":
+        case "role-mention":
+          return (
+            <EditableMentionRenderer
+              users={usersById}
+              {...(props as ElementRendererProps<
+                MentionElement | RoleMentionElement
+              >)}
+            />
+          );
+        case "image":
+          return (
+            <ChatImageRenderer
+              {...(props as ElementRendererProps<ImageElement>)}
+            />
+          );
+        case "message":
+        default:
+          return (
+            <StyledMessage {...props.attributes}>
+              {props.children}
+            </StyledMessage>
+          );
+      }
+    },
+    [usersById],
+  );
+
+  const onChange = useCallback(
+    (value: Descendant[]) => {
+      const { selection } = editor;
+      if (selection && Range.isCollapsed(selection)) {
+        // Look backwards.  Does the word the cursor is in start with an `@`?
+        const [start] = Range.edges(selection);
+        const wordBefore = Editor.before(editor, start, { unit: "word" });
+        const before = wordBefore && Editor.before(editor, wordBefore);
+        const beforeRange = before && Editor.range(editor, before, start);
+        const beforeText = beforeRange && Editor.string(editor, beforeRange);
+        const beforeMatch = beforeText?.match(/^@(\w+)$/);
+        // Look forwards from the cursor to the end of the word.
+        // Is the cursor at the end of the word?
+        const after = Editor.after(editor, start);
+        const afterRange = Editor.range(editor, start, after);
+        const afterText = Editor.string(editor, afterRange);
+        const afterMatch = afterText.match(/^(\s|$)/);
+
+        if (beforeMatch && afterMatch) {
+          // Do @-completion. Anchor the popup to the start of the @.
+          // The user's search string to attempt to match on is the string that
+          // follows between the @ and the cursor.
+          // Start by highlighting the top entry in the autocomplete list.
+          setCompletionAnchorRange(beforeRange);
+          setCompletionSearchString(beforeMatch[1]!);
+          setCompletionCursorIndex(0);
+        } else {
+          setCompletionAnchorRange(undefined);
+        }
+      }
+
+      const isAstChange = editor.operations.some(
+        (op) => op.type !== "set_selection",
+      );
+      if (isAstChange) {
+        onContentChange(value);
+      }
+    },
+    [editor, onContentChange],
+  );
+
+  const matchingMentions: MentionMatch[] = useMemo(
+    () => matchMentions(users, completionSearchString),
+    [users, completionSearchString],
+  );
+
+  const onKeyDown: React.KeyboardEventHandler<HTMLDivElement> = useCallback(
+    (event) => {
+      if (completionAnchorRange && matchingMentions.length > 0) {
+        switch (event.key) {
+          case "ArrowDown": {
+            event.preventDefault();
+            const nextIndex =
+              completionCursorIndex >= matchingMentions.length - 1
+                ? 0
+                : completionCursorIndex + 1;
+            setCompletionCursorIndex(nextIndex);
+            return;
+          }
+          case "ArrowUp": {
+            event.preventDefault();
+            const prevIndex =
+              completionCursorIndex === 0
+                ? matchingMentions.length - 1
+                : completionCursorIndex - 1;
+            setCompletionCursorIndex(prevIndex);
+            return;
+          }
+          case "Tab":
+          case "Enter": {
+            event.preventDefault();
+            Transforms.select(editor, completionAnchorRange);
+            const mention = matchingMentions[completionCursorIndex]!;
+            switch (mention.type) {
+              case "mention": {
+                insertMention(editor, mention.user._id);
+                break;
+              }
+              case "role-mention": {
+                insertRoleMention(editor, mention.roleId);
+                break;
+              }
+              default:
+                // biome-ignore lint/nursery/noUnusedExpressions: exhaustive check
+                mention satisfies never;
+            }
+            setCompletionAnchorRange(undefined);
+            return;
+          }
+          case "Escape": {
+            event.preventDefault();
+            setCompletionAnchorRange(undefined);
+            return;
+          }
+          default:
+            break;
+        }
+      }
+
+      if (event.key === "Enter") {
+        if (event.shiftKey) {
+          // Insert soft break.  Avoid hard breaks entirely.
+          event.preventDefault();
+          editor.insertText("\n");
+        } else {
+          // submit contents.  clear the editor.
+          event.preventDefault();
+          if (onSubmit()) {
+            clearInput();
+          }
+        }
+      }
+    },
+    [
+      completionAnchorRange,
+      matchingMentions,
+      completionCursorIndex,
+      editor,
+      onSubmit,
+      clearInput,
+    ],
+  );
+
+  useEffect(() => {
+    if (completionAnchorRange && matchingMentions.length > 0) {
+      const el = autocompleteRef.current;
+      const domRange = ReactEditor.toDOMRange(editor, completionAnchorRange);
+      const rect = domRange.getBoundingClientRect();
+      if (el) {
+        const elRect = el.getBoundingClientRect();
+        // We wish to place the list of completions immediately above the area
+        // from which the completion was initiated.
+        //                  _______________________
+        //                 | completion candidate 1| \
+        //                 | completion candidate 2|  |-- elRect.height
+        // +---------------|_______________________| /
+        // | input box here @search        |
+        // +-------------------------------+
+        // rect.top and rect.left are the top-left of the @
+        // We're using absolute positioning, so we need to add in the viewport
+        // offset (window.scrollX and window.scrollY).  Then, we need to subtract
+        // out the height of the completion box, so that we're not on top of the
+        // @-mention, but just above it.
+
+        // On mobile, our completion candidates may get stuffed against the
+        // right border of the viewport.  Allow it to start farther left if
+        // we're up against the edge of the viewport.
+        const idealLeft = rect.left + window.scrollX;
+        let left = idealLeft;
+        if (idealLeft + elRect.width > window.innerWidth) {
+          left = window.innerWidth - elRect.width;
+        }
+        // But if the completion is too wide, make sure we keep it at least on screen.
+        if (left < 0) left = 0;
+
+        const top = rect.top + window.scrollY - elRect.height;
+
+        el.style.top = `${top}px`;
+        el.style.left = `${left}px`;
+      }
+    }
+  }, [matchingMentions.length, editor, completionAnchorRange]);
+
+  const onMentionSelected = useCallback(
+    (m: MentionMatch) => {
+      Transforms.select(editor, completionAnchorRange!);
+      switch (m.type) {
+        case "mention":
+          insertMention(editor, m.user._id);
+          break;
+        case "role-mention":
+          insertRoleMention(editor, m.roleId);
+          break;
+        default:
+          // biome-ignore lint/nursery/noUnusedExpressions: exhaustive check
+          m satisfies never;
+      }
+      setCompletionAnchorRange(undefined);
+      ReactEditor.focus(editor);
+    },
+    [editor, completionAnchorRange],
+  );
+
+  const debugPane = DEBUG_EDITOR ? (
+    <div style={{ position: "fixed", bottom: "0", right: "0" }}>
+      <div style={{ width: "800px", overflowX: "auto", overflowY: "auto" }}>
+        <pre>{JSON.stringify(editor.children, null, 2)}</pre>
       </div>
-    ) : undefined;
+      <div>{`completionAnchorRange: ${JSON.stringify(
+        completionAnchorRange,
+      )}`}</div>
+      <div>{`completionSearchString: ${completionSearchString}`}</div>
+      <div>{`completionCursorIndex: ${completionCursorIndex}`}</div>
+    </div>
+  ) : undefined;
 
-    return (
-      <Slate editor={editor} initialValue={initialContent} onChange={onChange}>
-        {debugPane}
-        {completionAnchorRange && matchingMentions.length > 0 && (
-          <Portal>
-            <AutocompleteContainer
-              ref={ref}
-              style={{
-                top: "-9999px",
-                left: "-9999px",
-              }}
-            >
-              {matchingMentions.map((mention, i) => {
-                return (
-                  <MatchCandidate
-                    key={
-                      mention.type === "mention"
-                        ? mention.user._id
-                        : mention.roleId
-                    }
-                    mention={mention}
-                    selected={i === completionCursorIndex}
-                    onSelected={onMentionSelected}
-                  />
-                );
-              })}
-            </AutocompleteContainer>
-          </Portal>
-        )}
-        <Editable
-          className={className}
-          placeholder={placeholder}
-          decorate={decorate}
-          renderElement={renderElement}
-          renderLeaf={renderLeaf}
-          renderPlaceholder={renderPlaceholder}
-          onKeyDown={onKeyDown}
-          readOnly={disabled}
-        />
-      </Slate>
-    );
-  },
-);
+  return (
+    <Slate editor={editor} initialValue={initialContent} onChange={onChange}>
+      {debugPane}
+      {completionAnchorRange && matchingMentions.length > 0 && (
+        <Portal>
+          <AutocompleteContainer
+            ref={autocompleteRef}
+            style={{
+              top: "-9999px",
+              left: "-9999px",
+            }}
+          >
+            {matchingMentions.map((mention, i) => {
+              return (
+                <MatchCandidate
+                  key={
+                    mention.type === "mention"
+                      ? mention.user._id
+                      : mention.roleId
+                  }
+                  mention={mention}
+                  selected={i === completionCursorIndex}
+                  onSelected={onMentionSelected}
+                />
+              );
+            })}
+          </AutocompleteContainer>
+        </Portal>
+      )}
+      <Editable
+        className={className}
+        placeholder={placeholder}
+        decorate={decorate}
+        renderElement={renderElement}
+        renderLeaf={renderLeaf}
+        renderPlaceholder={renderPlaceholder}
+        onKeyDown={onKeyDown}
+        readOnly={disabled}
+      />
+    </Slate>
+  );
+};
 
 export default FancyEditor;
