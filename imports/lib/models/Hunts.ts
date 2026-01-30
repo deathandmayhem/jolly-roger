@@ -1,9 +1,10 @@
 import { Match } from "meteor/check";
 import { z } from "zod";
-import { nonEmptyString, snowflake } from "./customTypes";
-import type { ModelType } from "./Model";
-import SoftDeletedModel from "./SoftDeletedModel";
-import withCommon from "./withCommon";
+import { nonEmptyString, snowflake } from "../typedModel/customTypes";
+import type { ModelType } from "../typedModel/Model";
+import { URL } from "../typedModel/regexes";
+import SoftDeletedModel from "../typedModel/SoftDeletedModel";
+import withCommon from "../typedModel/withCommon";
 
 export const SavedDiscordObjectFields = z.object({
   id: snowflake,
@@ -36,7 +37,7 @@ const EditableHunt = z.object({
   submitTemplate: nonEmptyString.optional(),
   // If provided, then this is a link to the overall root hunt homepage and will
   // be shown in the PuzzleListPage navbar.
-  homepageUrl: nonEmptyString.url().optional(),
+  homepageUrl: z.string().regex(URL).optional(),
   // If provided, then announcements will be synced to this Discord channel
   announcementDiscordChannel: SavedDiscordObjectFields.optional(),
   // If provided, this is an object containing a Discord channel id and cached

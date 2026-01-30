@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { nonEmptyString } from "../../lib/models/customTypes";
-import type { ModelType } from "../../lib/models/Model";
-import Model from "../../lib/models/Model";
+import { nonEmptyString } from "../../lib/typedModel/customTypes";
+import type { ModelType } from "../../lib/typedModel/Model";
+import Model from "../../lib/typedModel/Model";
 
 // _id is Hunt ID
 export const HuntFolder = z.object({

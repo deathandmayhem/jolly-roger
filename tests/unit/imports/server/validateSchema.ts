@@ -3,8 +3,8 @@ import { z } from "zod";
 import {
   allowedEmptyString,
   nonEmptyString,
-} from "../../../../imports/lib/models/customTypes";
-import validateSchema from "../../../../imports/lib/models/validateSchema";
+} from "../../../../imports/lib/typedModel/customTypes";
+import validateSchema from "../../../../imports/lib/typedModel/validateSchema";
 
 describe("validateSchema", function () {
   it("allows non-empty strings (explicit or using the nonEmptyString helper)", function () {

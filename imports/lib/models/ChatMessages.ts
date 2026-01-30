@@ -1,8 +1,9 @@
 import { z } from "zod";
-import { allowedEmptyString, foreignKey } from "./customTypes";
-import type { ModelType } from "./Model";
-import SoftDeletedModel from "./SoftDeletedModel";
-import withCommon from "./withCommon";
+import { allowedEmptyString, foreignKey } from "../typedModel/customTypes";
+import type { ModelType } from "../typedModel/Model";
+import { URL } from "../typedModel/regexes";
+import SoftDeletedModel from "../typedModel/SoftDeletedModel";
+import withCommon from "../typedModel/withCommon";
 
 const UserMentionBlock = z.object({
   type: z.literal("mention"),
@@ -18,7 +19,7 @@ export type ChatMessageRoleMentionNodeType = z.infer<typeof RoleMentionBlock>;
 
 const ImageBlock = z.object({
   type: z.literal("image"),
-  url: z.string().url(),
+  url: z.string().regex(URL),
 });
 export type ChatMessageImageNodeType = z.infer<typeof ImageBlock>;
 
