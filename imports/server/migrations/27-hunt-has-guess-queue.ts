@@ -6,13 +6,13 @@ Migrations.add({
   name: "Add hasGuessQueue to Hunt model for whether to have a guess queue or direct answers",
   async up() {
     for await (const hunt of Hunts.find({})) {
-      await Hunts.updateAsync(
-        hunt._id,
+      await Hunts.collection.rawCollection().updateOne(
+        { _id: hunt._id },
         {
           $set: { hasGuessQueue: true },
         },
         {
-          bypassSchema: true,
+          bypassDocumentValidation: true,
         },
       );
     }

@@ -1,8 +1,8 @@
 import { z } from "zod";
-import { foreignKey } from "../customTypes";
-import type { ModelType } from "../Model";
-import SoftDeletedModel from "../SoftDeletedModel";
-import withCommon from "../withCommon";
+import { foreignKey } from "../../typedModel/customTypes";
+import type { ModelType } from "../../typedModel/Model";
+import SoftDeletedModel from "../../typedModel/SoftDeletedModel";
+import withCommon from "../../typedModel/withCommon";
 
 const ConsumerAck = withCommon(
   z.object({
@@ -12,7 +12,7 @@ const ConsumerAck = withCommon(
     peer: foreignKey,
     transportRequest: foreignKey,
     consumer: foreignKey,
-    producerId: z.string().uuid(),
+    producerId: z.uuid(),
   }),
 );
 

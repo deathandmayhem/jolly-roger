@@ -1,7 +1,11 @@
 import { z } from "zod";
-import { createdTimestamp, foreignKey, nonEmptyString } from "./customTypes";
-import type { ModelType } from "./Model";
-import Model from "./Model";
+import {
+  createdTimestamp,
+  foreignKey,
+  nonEmptyString,
+} from "../typedModel/customTypes";
+import type { ModelType } from "../typedModel/Model";
+import Model from "../typedModel/Model";
 
 const Job = z.object({
   type: nonEmptyString,
@@ -12,8 +16,8 @@ const Job = z.object({
   completedAt: z.date().optional(),
   result: z.record(z.string(), z.unknown()).optional(),
   error: nonEmptyString.optional(),
-  attempts: z.number().int().nonnegative().default(0),
-  maxAttempts: z.number().int().positive(),
+  attempts: z.int32().nonnegative().default(0),
+  maxAttempts: z.int32().positive(),
   runAfter: z.date().optional(),
   deleteAfter: z.date().optional(),
   createdBy: foreignKey.optional(),

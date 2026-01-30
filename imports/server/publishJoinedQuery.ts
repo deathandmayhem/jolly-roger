@@ -2,10 +2,7 @@ import { isDeepStrictEqual } from "node:util";
 import type { Subscription } from "meteor/meteor";
 import { Meteor } from "meteor/meteor";
 import { Mongo } from "meteor/mongo";
-import type { z } from "zod";
 import Logger from "../Logger";
-import type { MongoRecordZodType } from "../lib/models/generateJsonSchema";
-import type Model from "../lib/models/Model";
 
 type Projection<T> = Partial<Record<keyof T, 0 | 1>>;
 
@@ -19,7 +16,12 @@ type Projection<T> = Partial<Record<keyof T, 0 | 1>>;
 export type PublishSpec<T extends { _id: string }> = {
   model:
     | Mongo.Collection<T>
-    | Model<z.ZodType<T, any, any> & MongoRecordZodType>;
+    | {
+        _docType: T;
+        name: string;
+        find: Mongo.Collection<T>["find"];
+        findAllowingDeleted?: Mongo.Collection<T>["find"];
+      };
   allowDeleted?: boolean;
   projection?: Projection<T>;
   foreignKeys?: {
@@ -29,7 +31,7 @@ export type PublishSpec<T extends { _id: string }> = {
   lingerTime?: number;
 };
 
-function modelName(model: Mongo.Collection<any> | Model<any>) {
+function modelName(model: Mongo.Collection<any> | { name: string }) {
   return model instanceof Mongo.Collection ? model._name : model.name;
 }
 
@@ -92,13 +94,13 @@ class RefCountedJoinedObjectObserverMap<T extends { _id: string }> {
 }
 
 const finder = (
-  model: Mongo.Collection<any> | Model<any>,
+  model: PublishSpec<any>["model"],
   allowDeleted: boolean | undefined,
 ) => {
   return allowDeleted &&
     "findAllowingDeleted" in model &&
     typeof model.findAllowingDeleted === "function"
-    ? (model.findAllowingDeleted.bind(model) as typeof model.find)
+    ? model.findAllowingDeleted.bind(model)
     : model.find.bind(model);
 };
 

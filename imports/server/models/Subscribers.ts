@@ -1,9 +1,9 @@
 import { z } from "zod";
-import { foreignKey, nonEmptyString } from "../../lib/models/customTypes";
-import type { ModelType } from "../../lib/models/Model";
-import Model from "../../lib/models/Model";
-import { Id } from "../../lib/models/regexes";
-import withTimestamps from "../../lib/models/withTimestamps";
+import { foreignKey, nonEmptyString } from "../../lib/typedModel/customTypes";
+import type { ModelType } from "../../lib/typedModel/Model";
+import Model from "../../lib/typedModel/Model";
+import { Id } from "../../lib/typedModel/regexes";
+import withTimestamps from "../../lib/typedModel/withTimestamps";
 
 export const Subscriber = withTimestamps(
   z.object({

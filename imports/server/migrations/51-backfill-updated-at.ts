@@ -3,10 +3,6 @@ import Announcements from "../../lib/models/Announcements";
 import APIKeys from "../../lib/models/APIKeys";
 import ChatMessages from "../../lib/models/ChatMessages";
 import ChatNotifications from "../../lib/models/ChatNotifications";
-import type {
-  createdTimestamp,
-  updatedTimestamp,
-} from "../../lib/models/customTypes";
 import DiscordCache from "../../lib/models/DiscordCache";
 import DiscordRoleGrants from "../../lib/models/DiscordRoleGrants";
 import Documents from "../../lib/models/Documents";
@@ -14,7 +10,6 @@ import FeatureFlags from "../../lib/models/FeatureFlags";
 import FolderPermissions from "../../lib/models/FolderPermissions";
 import Guesses from "../../lib/models/Guesses";
 import Hunts from "../../lib/models/Hunts";
-import type Model from "../../lib/models/Model";
 import ConnectAcks from "../../lib/models/mediasoup/ConnectAcks";
 import ConnectRequests from "../../lib/models/mediasoup/ConnectRequests";
 import ConsumerAcks from "../../lib/models/mediasoup/ConsumerAcks";
@@ -32,6 +27,11 @@ import PendingAnnouncements from "../../lib/models/PendingAnnouncements";
 import Puzzles from "../../lib/models/Puzzles";
 import Settings from "../../lib/models/Settings";
 import Tags from "../../lib/models/Tags";
+import type {
+  createdTimestamp,
+  updatedTimestamp,
+} from "../../lib/typedModel/customTypes";
+import type Model from "../../lib/typedModel/Model";
 import LatestDeploymentTimestamps from "../models/LatestDeploymentTimestamps";
 import Subscribers from "../models/Subscribers";
 import UploadTokens from "../models/UploadTokens";

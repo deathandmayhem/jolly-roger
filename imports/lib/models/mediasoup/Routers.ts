@@ -1,15 +1,15 @@
 import { z } from "zod";
-import { foreignKey, nonEmptyString } from "../customTypes";
-import type { ModelType } from "../Model";
-import SoftDeletedModel from "../SoftDeletedModel";
-import withCommon from "../withCommon";
+import { foreignKey, nonEmptyString } from "../../typedModel/customTypes";
+import type { ModelType } from "../../typedModel/Model";
+import SoftDeletedModel from "../../typedModel/SoftDeletedModel";
+import withCommon from "../../typedModel/withCommon";
 
 const Router = withCommon(
   z.object({
     hunt: foreignKey,
     call: foreignKey,
     createdServer: foreignKey,
-    routerId: z.string().uuid(), // mediasoup identifier
+    routerId: z.uuid(), // mediasoup identifier
     rtpCapabilities: nonEmptyString, // JSON-encoded
   }),
 );
