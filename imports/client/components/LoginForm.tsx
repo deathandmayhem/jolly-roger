@@ -1,6 +1,6 @@
 import { Accounts } from "meteor/accounts-base";
 import { Meteor } from "meteor/meteor";
-import type { FormEvent } from "react";
+import type { SubmitEvent } from "react";
 import { useCallback, useState } from "react";
 import Button from "react-bootstrap/Button";
 import { Link, useLocation } from "react-router-dom";
@@ -74,7 +74,7 @@ const LoginForm = () => {
   const formIsValid = email.length > 0 && password.length > 0;
 
   const onSubmitForm = useCallback(
-    (e: FormEvent<HTMLFormElement>) => {
+    (e: SubmitEvent<HTMLFormElement>) => {
       e.preventDefault();
       if (formIsValid && !submitting) {
         setSubmitState(AccountFormSubmitState.SUBMITTING);
