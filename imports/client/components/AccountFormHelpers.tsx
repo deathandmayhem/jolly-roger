@@ -3,7 +3,12 @@ import { OAuth } from "meteor/oauth";
 import { useTracker } from "meteor/react-meteor-data";
 import { ServiceConfiguration } from "meteor/service-configuration";
 import type React from "react";
-import type { ChangeEvent, ComponentPropsWithRef, FC, FormEvent } from "react";
+import type {
+  ChangeEvent,
+  ComponentPropsWithRef,
+  FC,
+  SubmitEvent,
+} from "react";
 import { useCallback, useId, useState } from "react";
 import Alert from "react-bootstrap/Alert";
 import Button from "react-bootstrap/Button";
@@ -244,7 +249,7 @@ export const AccountFormFrame = ({
   successMessage?: string;
   errorMessage?: string;
   infoMessage?: string;
-  onSubmitForm: (e: FormEvent<HTMLFormElement>) => void;
+  onSubmitForm: (e: SubmitEvent<HTMLFormElement>) => void;
 }) => {
   return (
     <StyledFormPage>

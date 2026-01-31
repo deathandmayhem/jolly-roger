@@ -148,7 +148,7 @@ const GoogleOAuthForm = ({
   }, []);
 
   const onSubmitOauthConfiguration = useCallback(
-    (e: React.FormEvent<any>) => {
+    (e: React.SubmitEvent<HTMLFormElement>) => {
       e.preventDefault();
 
       const trimmedClientId = clientId.trim();
@@ -242,12 +242,7 @@ const GoogleOAuthForm = ({
         />
       </FormGroup>
       <ActionButtonRow>
-        <Button
-          variant="primary"
-          type="submit"
-          disabled={shouldDisableForm}
-          onSubmit={onSubmitOauthConfiguration}
-        >
+        <Button variant="primary" type="submit" disabled={shouldDisableForm}>
           {t("common.save", "Save")}
         </Button>
       </ActionButtonRow>
@@ -1257,7 +1252,7 @@ const S3ImageBucketForm = ({
   const shouldDisableForm = submitState === SubmitState.SUBMITTING;
 
   const saveConfig = useCallback(
-    (e: React.FormEvent<HTMLFormElement>) => {
+    (e: React.SubmitEvent<HTMLFormElement>) => {
       e.preventDefault();
       setSubmitState(SubmitState.SUBMITTING);
       configureS3ImageBucket.call({ bucketName: selectedBucket }, (err) => {
@@ -1722,7 +1717,7 @@ const DiscordOAuthForm = ({ oauthSettings }: { oauthSettings: any }) => {
     }, []);
 
   const onSubmitOauthConfiguration = useCallback(
-    (e: React.FormEvent<any>) => {
+    (e: React.SubmitEvent<HTMLFormElement>) => {
       e.preventDefault();
 
       const trimmedClientId = clientId.trim();
@@ -1806,12 +1801,7 @@ const DiscordOAuthForm = ({ oauthSettings }: { oauthSettings: any }) => {
           />
         </FormGroup>
         <ActionButtonRow>
-          <Button
-            variant="primary"
-            type="submit"
-            onClick={onSubmitOauthConfiguration}
-            disabled={shouldDisableForm}
-          >
+          <Button variant="primary" type="submit" disabled={shouldDisableForm}>
             {t("common.save", "Save")}
           </Button>
         </ActionButtonRow>
@@ -1839,7 +1829,7 @@ const DiscordBotForm = ({
     }, []);
 
   const onSubmitBotToken = useCallback(
-    (e: React.FormEvent<any>) => {
+    (e: React.SubmitEvent<HTMLFormElement>) => {
       e.preventDefault();
       const trimmedBotToken = botToken.trim();
 
@@ -1894,12 +1884,7 @@ const DiscordBotForm = ({
           />
         </FormGroup>
         <ActionButtonRow>
-          <Button
-            variant="primary"
-            type="submit"
-            onClick={onSubmitBotToken}
-            disabled={shouldDisableForm}
-          >
+          <Button variant="primary" type="submit" disabled={shouldDisableForm}>
             {t("common.save", "Save")}
           </Button>
         </ActionButtonRow>
@@ -1937,7 +1922,7 @@ const DiscordGuildForm = ({
     }, []);
 
   const onSaveGuild = useCallback(
-    (e: React.FormEvent<any>) => {
+    (e: React.SubmitEvent<HTMLFormElement>) => {
       e.preventDefault();
 
       const guild = guilds.find((g) => g.id === guildId);
@@ -2000,12 +1985,7 @@ const DiscordGuildForm = ({
           </FormControl>
         </FormGroup>
         <ActionButtonRow>
-          <Button
-            variant="primary"
-            type="submit"
-            onClick={onSaveGuild}
-            disabled={shouldDisableForm}
-          >
+          <Button variant="primary" type="submit" disabled={shouldDisableForm}>
             {t("common.save", "Save")}
           </Button>
         </ActionButtonRow>
@@ -2195,7 +2175,7 @@ const BrandingTeamName = () => {
   }, []);
 
   const onSubmit = useCallback(
-    (e: React.FormEvent<any>) => {
+    (e: React.SubmitEvent<HTMLFormElement>) => {
       e.preventDefault();
       setSubmitState(SubmitState.SUBMITTING);
       configureTeamName.call(
@@ -2251,12 +2231,7 @@ const BrandingTeamName = () => {
           />
         </FormGroup>
         <ActionButtonRow>
-          <Button
-            variant="primary"
-            type="submit"
-            onClick={onSubmit}
-            disabled={shouldDisableForm}
-          >
+          <Button variant="primary" type="submit" disabled={shouldDisableForm}>
             {t("common.save", "Save")}
           </Button>
         </ActionButtonRow>
