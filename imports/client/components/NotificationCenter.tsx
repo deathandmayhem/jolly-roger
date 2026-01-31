@@ -172,8 +172,12 @@ const GuessMessage = React.memo(
 
     const idPrefix = useId();
 
+    const { t, i18n } = useTranslation();
+
     const extLinkTooltip = (
-      <Tooltip id={`${idPrefix}-ext-link-tooltip`}>Open puzzle</Tooltip>
+      <Tooltip id={`${idPrefix}-ext-link-tooltip`}>
+        {t("guessQueue.openPuzzleTooltip", "Open puzzle")}
+      </Tooltip>
     );
 
     const linkTarget = `/hunts/${puzzle.hunt}/puzzles/${puzzle._id}`;
@@ -188,8 +192,6 @@ const GuessMessage = React.memo(
       guess.state === "incorrect" ? "danger" : "outline-secondary";
     const rejectButtonVariant =
       guess.state === "rejected" ? "secondary" : "outline-secondary";
-
-    const { t, i18n } = useTranslation();
 
     const stageTwoLabels = {
       intermediate: t(

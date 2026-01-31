@@ -18,7 +18,7 @@ import FormText from "react-bootstrap/FormText";
 import Modal from "react-bootstrap/Modal";
 import Row from "react-bootstrap/Row";
 import { createPortal } from "react-dom";
-import { useTranslation } from "react-i18next";
+import { Trans, useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 import DiscordCache from "../../lib/models/DiscordCache";
 import type {
@@ -71,6 +71,8 @@ const DiscordSelector = ({
   loading,
   options,
 }: DiscordSelectorProps) => {
+  const { t } = useTranslation();
+
   const onValueChanged: NonNullable<FormControlProps["onChange"]> = useCallback(
     (e) => {
       if (e.currentTarget.value === "empty") {
@@ -108,7 +110,9 @@ const DiscordSelector = ({
   }, [value, options]);
 
   if (loading) {
-    return <div>Loading discord resources...</div>;
+    return (
+      <div>{t("huntEdit.loadingDiscord", "Loading discord resources")}...</div>
+    );
   } else {
     return (
       <FormControl
@@ -423,7 +427,7 @@ const HuntEditPage = () => {
       </Modal.Body>
       <Modal.Footer>
         <Button variant="primary" onClick={toggleShowTermsOfUsePreview}>
-          Close
+          {t("common.close", "Close")}
         </Button>
       </Modal.Footer>
     </Modal>,
@@ -607,7 +611,7 @@ const HuntEditPage = () => {
           controlId={`${idPrefix}-hunt-form-submit-template`}
         >
           <FormLabel column xs={3}>
-            Submit URL template
+            {t("huntEdit.submitUrlTemplate.field", "Submit URL template")}
           </FormLabel>
           <Col xs={9}>
             <FormControl
@@ -617,25 +621,30 @@ const HuntEditPage = () => {
               disabled={disableForm}
             />
             <FormText>
-              If provided, this{" "}
-              <a href="https://mustache.github.io/mustache.5.html">
-                Mustache template
-              </a>{" "}
-              is used to generate the link to the guess submission page. It gets
-              as context a{" "}
-              <a href="https://developer.mozilla.org/en-US/docs/Web/API/URL">
-                parsed URL
-              </a>
-              {", "}
-              providing variables like <code>hostname</code> or{" "}
-              <code>pathname</code>
-              {". "}
-              Because this will be used as a link directly, make sure to use
-              &quot;triple-mustaches&quot; so that the URL components
-              aren&apos;t escaped. As an example, setting this to{" "}
-              <code>{"{{{origin}}}/submit{{{pathname}}}"}</code> would work for
-              the 2018 Mystery Hunt. If not specified, the puzzle URL is used as
-              the link to the guess submission page.
+              <Trans
+                i18nKey="huntEdit.submitUrlTemplate.help"
+                t={t}
+                components={{
+                  MustacheLink: (
+                    // biome-ignore lint/a11y/useAnchorContent: this link won't really be empty
+                    <a href="https://mustache.github.io/mustache.5.html" />
+                  ),
+                  parsedUrlLink: (
+                    // biome-ignore lint/a11y/useAnchorContent: this link won't really be empty
+                    <a href="https://developer.mozilla.org/en-US/docs/Web/API/URL" />
+                  ),
+                  code: <code />,
+                }}
+                defaults={`If provided, this <MustacheLink>Mustache template</MustacheLink>
+                          is used to generate the link to the guess submission page. It gets
+                          as context a <parsedUrlLink>parsed URL</parsedUrlLink>, providing
+                          variables like <code>hostname</code> or <code>pathname</code>.
+                          Because this will be used as a link directly, make sure to use
+                          "triple-mustaches" so that the URL components aren't escaped. As an
+                          example, setting this to <code>{{{origin}}}/submit{{{pathname}}}</code>
+                          would work for the 2018 Mystery Hunt. If not specified, the puzzle
+                          URL is used as the link to the guess submission page.`}
+              />
             </FormText>
           </Col>
         </FormGroup>
@@ -759,7 +768,7 @@ const HuntEditPage = () => {
               controlId={`${idPrefix}-hunt-form-member-discord-role`}
             >
               <FormLabel column xs={3}>
-                Discord role for members
+                {t("huntEdit.discordRole.field", "Discord role for members")}
               </FormLabel>
               <Col xs={9}>
                 <DiscordRoleSelector
@@ -769,10 +778,13 @@ const HuntEditPage = () => {
                   onChange={onMemberDiscordRoleChanged}
                 />
                 <FormText>
-                  If set, then members of the hunt that have linked their
+                  {t(
+                    "huntEdit.discordRole.help",
+                    `If set, then members of the hunt that have linked their
                   Discord profile are added to the specified Discord role. Note
                   that for continuity, if this setting is changed, Jolly Roger
-                  will not touch the old role (e.g. to remove members)
+                  will not touch the old role (e.g. to remove members)`,
+                  )}
                 </FormText>
               </Col>
             </FormGroup>
@@ -780,7 +792,10 @@ const HuntEditPage = () => {
         ) : (
           <Alert variant="info">
             <FontAwesomeIcon icon={faInfo} fixedWidth />
-            Discord has not been configured, so Discord settings are disabled.
+            {t(
+              "huntEdit.discordNotConfigured",
+              "Discord has not been configured, so Discord settings are disabled.",
+            )}
           </Alert>
         )}
 

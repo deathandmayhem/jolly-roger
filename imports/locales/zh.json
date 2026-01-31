@@ -421,11 +421,17 @@
       "field": "网站 URL",
       "help": "如果提供，解谜活动官网的链接将会显示在首页上。"
     },
+    "submitUrlTemplate": {
+      "field": "提交 URL 模板",
+      "help": "如果提供，将使用此 <MustacheLink>Mustache</MustacheLink> 模板生成指向提交猜测页面的链接。模板的上下文是一个解析过的 <parsedUrlLink>URL</parsedUrlLink>，可提供诸如 <code>hostname</code> 或 <code>pathname</code> 等变量。由于此模板将直接用作链接，请务必使用“三重大括号”（triple-mustaches），以防 URL 组件被转义。例如，将其设置为 <code>{{{origin}}}/submit{{{pathname}}}</code> 就适用于 2018 年的 Mystery Hunt。如果未指定，则会使用谜题 URL 作为提交猜测页面的链接。"
+    },
     "externalIntegrations": "外部集成",
     "mailingLists": {
       "field": "邮件列表",
       "help": "加入活动的队员会自动被添加到以上的邮件列表里；多个邮件列表以半角逗号（,）分隔。"
     },
+    "loadingDiscord": "正在加载 Discord 资源",
+    "discordNotConfigured": "服务器尚未配置 Discord，因此无法编辑 Discord 设置。",
     "announcementChannel": {
       "field": "Discord 公告频道",
       "help": "Jolly Roger 上发布的公告会自动发送到该频道。"
@@ -437,6 +443,10 @@
     "firehoseChannel": {
       "field": "Discord 聊天频道",
       "help": "所有谜题内的聊天消息会自动发送到该频道。"
+    },
+    "discordRole": {
+      "field": "Discord 角色",
+      "help": "如果设置此项，则已关联 Discord 账号的队友会被添加到指定的 Discord 角色中。请注意，为了保持连续性，如果更改此设置，Jolly Roger 不会修改旧的角色（例如，不会移除已有成员）。"
     },
     "saveSuccess": "解谜活动信息已成功保存",
     "create": "创建"

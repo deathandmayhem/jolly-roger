@@ -1167,7 +1167,7 @@ const PuzzlePageMetadata = ({
       <>
         <Button variant="primary" size="sm" onClick={showGuessModal}>
           <FontAwesomeIcon icon={faKey} />
-          {` ${t("puzzle.answerOrGuess.guessButtonText", "Guess")}`}
+          {` ${t("puzzle.answerOrGuess.guessButtonText", "Guess")} `}
           <Badge bg="light" text="dark">
             {numGuesses}
           </Badge>
