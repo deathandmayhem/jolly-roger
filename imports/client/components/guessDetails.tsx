@@ -1,5 +1,6 @@
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Tooltip from "react-bootstrap/Tooltip";
+import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import type { GuessType } from "../../lib/models/Guesses";
 
@@ -64,9 +65,12 @@ const GuessDirection = ({
   const arrowHeadBaseDepth = 1.0; // 0 < arrowHeadBaseDepth <= 1
   const arrowHeadFullDepth = 1.5; // arrowHeadBaseDepth <= arrowHeadFullDepth
 
+  const { t } = useTranslation();
+
   const tooltip = (
     <Tooltip id={`${id}-tooltip`}>
-      <strong>Solve directon:</strong> {formatGuessDirection(value)}
+      <strong>{t("puzzle.answerOrGuess.direction", "Solve directon")}:</strong>{" "}
+      {formatGuessDirection(value)}
     </Tooltip>
   );
   const arrowHeadEnd = value ?? 0;
@@ -127,9 +131,11 @@ const GuessConfidence = ({
   value: GuessType["confidence"];
   className?: string;
 }) => {
+  const { t } = useTranslation();
   const tooltip = (
     <Tooltip id={`${id}-tooltip`}>
-      <strong>Confidence:</strong> {formatConfidence(value)}
+      <strong>{t("puzzle.answerOrGuess.confidence", "Confidence")}:</strong>{" "}
+      {formatConfidence(value)}
     </Tooltip>
   );
 

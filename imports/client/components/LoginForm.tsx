@@ -3,6 +3,7 @@ import { Meteor } from "meteor/meteor";
 import type { FormEvent } from "react";
 import { useCallback, useState } from "react";
 import Button from "react-bootstrap/Button";
+import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "react-router-dom";
 import type { LoginOptions } from "../../lib/loginOptions";
 import useTeamName from "../hooks/useTeamName";
@@ -93,6 +94,8 @@ const LoginForm = () => {
     [formIsValid, submitting, email, password],
   );
 
+  const { t } = useTranslation();
+
   if (teamNameLoading()) {
     return <div>loading...</div>;
   }
@@ -109,7 +112,7 @@ const LoginForm = () => {
       <div>
         <p>
           <Link to="/forgot-password" state={{ email }}>
-            Forgot your password?
+            {t("auth.forgotPasswordLink", "Forgot your password?")}
           </Link>
         </p>
       </div>
@@ -120,7 +123,7 @@ const LoginForm = () => {
           type="submit"
           disabled={submitting || !formIsValid}
         >
-          Log in
+          {t("auth.loginButtonText", "Log in")}
         </Button>
       </div>
       {googleAvailable ? (

@@ -23,6 +23,7 @@ import Modal from "react-bootstrap/Modal";
 import Tab from "react-bootstrap/Tab";
 import Tabs from "react-bootstrap/Tabs";
 import { createPortal } from "react-dom";
+import { useTranslation } from "react-i18next";
 import createDocumentImageUpload from "../../methods/createDocumentImageUpload";
 import type { ImageSource } from "../../methods/insertDocumentImage";
 import insertDocumentImage from "../../methods/insertDocumentImage";
@@ -236,13 +237,19 @@ const InsertImageModal = ({
 
   const idPrefix = useId();
 
+  const { t } = useTranslation();
+
   const modal = (
     <Modal show={visible} onHide={hide}>
-      <Modal.Header closeButton>Insert image</Modal.Header>
+      <Modal.Header closeButton>
+        {t("puzzle.insertImage.insertImage", "Insert image")}
+      </Modal.Header>
       <Form onSubmit={onSubmit}>
         <Modal.Body>
           <FormGroup className="mb-3" controlId={`${idPrefix}-sheet-select`}>
-            <FormLabel>Choose a sheet</FormLabel>
+            <FormLabel>
+              {t("puzzle.insertImage.chooseSheet", "Choose a sheet")}
+            </FormLabel>
             <FormSelect
               id={`${idPrefix}-sheet-select`}
               onChange={onChangeSheet}
@@ -252,7 +259,10 @@ const InsertImageModal = ({
             </FormSelect>
           </FormGroup>
           <Tabs activeKey={imageSource} onSelect={onSelectTab} className="mb-3">
-            <Tab eventKey="upload" title="Upload">
+            <Tab
+              eventKey="upload"
+              title={t("puzzle.insertImage.Upload", "Upload")}
+            >
               <FormControl
                 type="file"
                 onChange={onChangeFile}
@@ -262,9 +272,11 @@ const InsertImageModal = ({
                 accept=".png,.jpg,.jpeg,.gif"
               />
             </Tab>
-            <Tab eventKey="link" title="Link">
+            <Tab eventKey="link" title={t("puzzle.insertImage.link", "Link")}>
               <FormGroup className="mb-3" controlId={`${idPrefix}-image-link`}>
-                <FormLabel>Image URL</FormLabel>
+                <FormLabel>
+                  {t("puzzle.insertImage.imageUrl", "Image URL")}
+                </FormLabel>
                 <FormControl
                   type="url"
                   required={imageSource === "link"}
@@ -278,7 +290,7 @@ const InsertImageModal = ({
         <Modal.Footer>
           <div className="mb-3">
             <Button variant="primary" type="submit" disabled={submitDisabled}>
-              Insert
+              {t("puzzle.insertImage.insert", "Insert")}
             </Button>
           </div>
           {submitState === InsertImageSubmitState.ERROR ? (
@@ -309,6 +321,8 @@ const InsertImage = ({ documentId }: { documentId: string }) => {
     () => setListSheetsError(undefined),
     [],
   );
+
+  const { t } = useTranslation();
 
   const onStartInsert = useCallback(
     (e: MouseEvent) => {
@@ -368,7 +382,8 @@ const InsertImage = ({ documentId }: { documentId: string }) => {
         onClick={onStartInsert}
         disabled={loading}
       >
-        <FontAwesomeIcon icon={faImage} /> Insert image
+        <FontAwesomeIcon icon={faImage} />{" "}
+        {t("puzzle.insertImage.insertImage", "Insert image")}
         {loading && (
           <>
             {" "}

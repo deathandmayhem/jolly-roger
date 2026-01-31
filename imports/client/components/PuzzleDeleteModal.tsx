@@ -10,6 +10,7 @@ import Button from "react-bootstrap/Button";
 import FormCheck from "react-bootstrap/FormCheck";
 import Modal from "react-bootstrap/Modal";
 import { createPortal } from "react-dom";
+import { useTranslation } from "react-i18next";
 import Documents from "../../lib/models/Documents";
 import Peers from "../../lib/models/mediasoup/Peers";
 import type { PuzzleType } from "../../lib/models/Puzzles";
@@ -163,10 +164,14 @@ const PuzzleDeleteModal = ({
 
   const idPrefix = useId();
 
+  const { t } = useTranslation("PuzzleDeleteModal");
+
   const modal = (
     <Modal show={visible} onHide={hide}>
       <Modal.Header closeButton>
-        <Modal.Title>Delete Puzzle</Modal.Title>
+        <Modal.Title>
+          {t("puzzle.delete.modalTitle", "Delete Puzzle")}
+        </Modal.Title>
       </Modal.Header>
       <Modal.Body>
         <Suspense
@@ -177,13 +182,19 @@ const PuzzleDeleteModal = ({
           }
         >
           <p>
-            Are you sure you want to delete this puzzle? Anyone actively working
-            on this puzzle will lose the ability to make further edits or chat
-            comments.
+            {t(
+              "puzzle.delete.areYouSure",
+              `Are you sure you want to delete this puzzle? Anyone actively
+                working on this puzzle will lose the ability to make further
+                edits or chat comments.`,
+            )}
           </p>
           <p>
-            You can optionally specify a replacement to be used instead of this
-            puzzle and copy the sheets over (if applicable)
+            {t(
+              "puzzle.delete.specifyReplacement",
+              `You can optionally specify a replacement to be used instead of
+                this puzzle and copy the sheets over (if applicable)`,
+            )}
           </p>
           <Select
             isClearable
@@ -194,7 +205,11 @@ const PuzzleDeleteModal = ({
           {replacementId && thisPuzzleHasSheets && replacementHasSheets && (
             <FormCheck
               id={`${idPrefix}-copy-sheets-to-replacement`}
-              label="Copy the sheets to the replacement puzzle"
+              label={t(
+                "puzzle.delete.copyTheSheets",
+                "Copy the sheets to the replacement puzzle",
+                { title: puzzle.title },
+              )}
               type="checkbox"
               defaultChecked
               onChange={onCopySheetsToReplacementChange}
@@ -202,8 +217,9 @@ const PuzzleDeleteModal = ({
             />
           )}
           <p>
-            This puzzle is currently being viewed by {uniqueViewers.length}{" "}
-            {uniqueViewers.length === 1 ? "person" : "people"}
+            {t("puzzle.delete.currentlyViewedBy", {
+              count: uniqueViewers.length,
+            })}
             {uniqueViewers.length > 0 && ":"}
           </p>
           <ul>
@@ -215,10 +231,10 @@ const PuzzleDeleteModal = ({
       </Modal.Body>
       <Modal.Footer>
         <Button variant="secondary" onClick={hide}>
-          Cancel
+          {t("common.cancel", "Cancel")}
         </Button>
         <Button variant="danger" onClick={deletePuzzle}>
-          Delete
+          {t("puzzle.delete.delete", "Delete")}
         </Button>
       </Modal.Footer>
     </Modal>

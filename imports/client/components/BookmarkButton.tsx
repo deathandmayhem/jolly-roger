@@ -4,6 +4,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import type React from "react";
 import { useCallback, useState } from "react";
 import Button from "react-bootstrap/Button";
+import { useTranslation } from "react-i18next";
 import bookmarkPuzzle from "../../methods/bookmarkPuzzle";
 
 interface BookmarkButtonProps<As extends React.ElementType = React.ElementType>
@@ -27,7 +28,10 @@ const BookmarkButton: BookmarkButtonType = ({
   as: Component = Button,
   ...props
 }) => {
-  const bookmarkText = bookmarked ? "Unbookmark puzzle" : "Bookmark puzzle";
+  const { t } = useTranslation();
+  const bookmarkText = bookmarked
+    ? t("puzzle.unbookmark", "Unbookmark puzzle")
+    : t("puzzle.bookmark", "Bookmark puzzle");
 
   const [animateBookmark, setAnimateBookmark] = useState(false);
   const onAnimationEnd = useCallback(() => {

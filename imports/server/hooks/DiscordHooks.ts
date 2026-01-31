@@ -1,4 +1,5 @@
 import { Meteor } from "meteor/meteor";
+import i18n, { t } from "i18next";
 import Flags from "../../Flags";
 import Announcements from "../../lib/models/Announcements";
 import type { ChatMessageContentType } from "../../lib/models/ChatMessages";
@@ -14,6 +15,7 @@ import nodeIsRoleMention from "../../lib/nodeIsRoleMention";
 import nodeIsText from "../../lib/nodeIsText";
 import { computeSolvedness } from "../../lib/solvedness";
 import { DiscordBot } from "../discord";
+import { serverLanguage } from "../lang";
 import type Hookset from "./Hookset";
 
 async function makeDiscordBotFromSettings(): Promise<DiscordBot | undefined> {
@@ -99,7 +101,11 @@ const DiscordHooks: Hookset = {
     const puzzle = (await Puzzles.findOneAsync(puzzleId))!;
     const hunt = (await Hunts.findOneAsync(puzzle.hunt))!;
     if (hunt.puzzleHooksDiscordChannel) {
-      const title = `${puzzle.title} unlocked`;
+      const title = i18n.t("discord.hooks.unlocked", "{{puzzle}} unlocked", {
+        lng: serverLanguage,
+        puzzle: puzzle.title,
+      });
+
       const url = Meteor.absoluteUrl(
         `hunts/${puzzle.hunt}/puzzles/${puzzle._id}`,
       );
@@ -109,7 +115,13 @@ const DiscordHooks: Hookset = {
       const tags = tagNameList.map((tagName) => `\`${tagName}\``).join(", ");
       const fields =
         tags.length > 0
-          ? [{ name: "Tags", value: tags, inline: true }]
+          ? [
+              {
+                name: i18n.t("tags.tags", "Tags", { lng: serverLanguage }),
+                value: tags,
+                inline: true,
+              },
+            ]
           : undefined;
       const messageObj = {
         embed: {
@@ -138,7 +150,16 @@ const DiscordHooks: Hookset = {
 
     const hunt = (await Hunts.findOneAsync(puzzle.hunt))!;
     if (hunt.puzzleHooksDiscordChannel) {
-      const title = `${oldPuzzle.title} renamed to ${puzzle.title}`;
+      const title = i18n.t(
+        "discord.hooks.renamed",
+        "{{oldTitle}} renamed to {{newTitle}}",
+        {
+          lng: serverLanguage,
+          oldTitle: oldPuzzle.title,
+          newTitle: puzzle.title,
+        },
+      );
+
       const url = Meteor.absoluteUrl(
         `hunts/${puzzle.hunt}/puzzles/${puzzle._id}`,
       );
@@ -148,7 +169,13 @@ const DiscordHooks: Hookset = {
       const tags = tagNameList.map((tagName) => `\`${tagName}\``).join(", ");
       const fields =
         tags.length > 0
-          ? [{ name: "Tags", value: tags, inline: true }]
+          ? [
+              {
+                name: t("tags.tags", "Tags", { lng: serverLanguage }),
+                value: tags,
+                inline: true,
+              },
+            ]
           : undefined;
       const messageObj = {
         embed: {
@@ -179,7 +206,11 @@ const DiscordHooks: Hookset = {
       const answers = puzzle.answers
         .map((answer) => `\`${answer}\``)
         .join(", ");
-      const answerLabel = `Answer${puzzle.expectedAnswerCount > 1 ? "s" : ""}`;
+      const answerLabel = i18n.t("puzzle.answerOrGuess.Answer", {
+        lng: serverLanguage,
+        count: puzzle.expectedAnswerCount,
+      });
+
       const solvedness = computeSolvedness(puzzle);
       const color = {
         solved: 0x00ff00,
@@ -187,8 +218,12 @@ const DiscordHooks: Hookset = {
         noAnswers: 0,
       }[solvedness];
       const solvedStr = {
-        solved: "solved",
-        unsolved: "partially solved",
+        solved: i18n.t("discord.hooks.solved", "solved", {
+          lng: serverLanguage,
+        }),
+        unsolved: i18n.t("discord.hooks.partiallySolved", "partially solved", {
+          lng: serverLanguage,
+        }),
         noAnswers: "",
       }[solvedness];
       const title = `${puzzle.title} ${solvedStr}`;

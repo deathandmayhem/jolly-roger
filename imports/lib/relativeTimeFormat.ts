@@ -1,27 +1,25 @@
+import type { TFunction } from "i18next";
+
 const timeUnits = [
-  { millis: 1000, singular: "second" as const, plural: "seconds", terse: "s" },
+  { millis: 1000, singular: "second" as const, terse: "s" },
   {
     millis: 60 * 1000,
     singular: "minute" as const,
-    plural: "minutes",
     terse: "m",
   },
   {
     millis: 60 * 60 * 1000,
     singular: "hour" as const,
-    plural: "hours",
     terse: "h",
   },
   {
     millis: 24 * 60 * 60 * 1000,
     singular: "day" as const,
-    plural: "days",
     terse: "d",
   },
   {
     millis: 365 * 24 * 60 * 60 * 1000,
     singular: "year" as const,
-    plural: "years",
     terse: "y",
   },
 ].reverse();
@@ -33,21 +31,26 @@ export type RelativeTimeFormatOpts = {
   now?: Date;
 };
 
-export function complete(d: Date, opts: RelativeTimeFormatOpts = {}) {
+export function complete(
+  d: Date,
+  t: TFunction,
+  opts: RelativeTimeFormatOpts = {},
+) {
   const {
-    minimumUnit = "seconds",
+    minimumUnit = "second",
     terse = false,
     maxElements = terse ? -1 : 1,
     now = new Date(),
   } = opts;
   const diff = now.getTime() - d.getTime();
-  const relative = diff < 0 ? " from now" : " ago";
+  const relative =
+    diff < 0 ? t("datetime.fromNow", " from now") : t("datetime.ago", " ago");
 
   let remainder = Math.abs(diff);
   const terms = [] as string[];
   let stop = false;
   let lastUnit: (typeof timeUnits)[number] | undefined;
-  timeUnits.forEach(({ millis, singular, plural, terse: terseSuffix }) => {
+  timeUnits.forEach(({ millis, singular, terse: terseSuffix }) => {
     if (stop) {
       return;
     }
@@ -55,7 +58,6 @@ export function complete(d: Date, opts: RelativeTimeFormatOpts = {}) {
     lastUnit = {
       millis,
       singular,
-      plural,
       terse: terseSuffix,
     };
 
@@ -63,7 +65,7 @@ export function complete(d: Date, opts: RelativeTimeFormatOpts = {}) {
     if (count > 0) {
       const suffix = terse
         ? terseSuffix
-        : ` ${count === 1 ? singular : plural}`;
+        : `${t("datetime.suffixLeadingSpace", " ")}${t(`datetime.${singular}`, singular, { count: count })}`;
       terms.push(`${count}${suffix}`);
     }
     remainder %= millis;
@@ -80,11 +82,13 @@ export function complete(d: Date, opts: RelativeTimeFormatOpts = {}) {
 
   let formatted: string;
   if (terms.length === 0) {
-    formatted = terse ? "now" : "just now";
+    formatted = terse
+      ? t("datetime.now", "now")
+      : t("datetime.justNow", "just now");
   } else if (terse) {
     formatted = terms.join("");
   } else {
-    formatted = `${terms.join(", ")}${relative}`;
+    formatted = `${terms.join(t("datetime.termSeparator", ", "))}${relative}`;
   }
 
   return { formatted, millisUntilChange };
@@ -92,8 +96,9 @@ export function complete(d: Date, opts: RelativeTimeFormatOpts = {}) {
 
 export default function relativeTimeFormat(
   d: Date,
+  t: TFunction,
   opts: RelativeTimeFormatOpts = {},
 ) {
-  const { formatted } = complete(d, opts);
+  const { formatted } = complete(d, t, opts);
   return formatted;
 }

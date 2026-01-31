@@ -7,6 +7,7 @@ import type { FormControlProps } from "react-bootstrap/FormControl";
 import FormControl from "react-bootstrap/FormControl";
 import FormGroup from "react-bootstrap/FormGroup";
 import FormLabel from "react-bootstrap/FormLabel";
+import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Spectrum from "./Spectrum";
 
@@ -193,15 +194,22 @@ const AudioConfig = () => {
 
   const idPrefix = useId();
 
+  const { t } = useTranslation();
+
   return (
     <section>
-      <h2>Audio</h2>
+      <h2>{t("profile.audioConfig.audio", "Audio")}</h2>
 
       <FormGroup
         className="mb-3"
         controlId={`${idPrefix}-default-capture-device`}
       >
-        <FormLabel>Selected audio input device</FormLabel>
+        <FormLabel>
+          {t(
+            "profile.audioConfig.selectedInput",
+            "Selected audio input device",
+          )}
+        </FormLabel>
         <FormControl
           as="select"
           onChange={onDefaultDeviceChange}
@@ -216,46 +224,66 @@ const AudioConfig = () => {
       </FormGroup>
 
       {error ? <Alert variant="danger">{error}</Alert> : null}
-      <p>You can test your microphone levels here.</p>
+      <p>
+        {t(
+          "profile.audioConfig.testAudio.intro",
+          "You can test your microphone levels here.",
+        )}
+      </p>
 
       <p>
-        Click Start, then try speaking a few phrases, and typing for a bit to
-        see how loud your environment is. While we&apos;ve enabled automatic
-        gain control, some microphones are more sensitive than others. Some
-        rough guidance:
+        {t(
+          "profile.audioConfig.testAudio.instruction",
+          `Click Start, then try speaking a few phrases, and typing for a bit
+          to see how loud your environment is. While we've enabled automatic
+          gain control, some microphones are more sensitive than others. Some
+          rough guidance:`,
+        )}
       </p>
 
       <ul>
         <li>
-          When you aren&apos;t speaking, all bars should be below -70dBFS. If
-          they aren&apos;t, consider moving to a quieter location if available.
+          {t(
+            "profile.audioConfig.testAudio.guidance.tooNoisy",
+            `When you aren't speaking, all bars should be below -70dBFS. If
+            they aren't, consider moving to a quieter location if available.`,
+          )}
         </li>
         <li>
-          When you are speaking: bars on the left should peak over -60dBFS or
-          you&apos;ll probably be somewhat hard to hear, so you may need to
-          speak up.
+          {t(
+            "profile.audioConfig.testAudio.guidance.tooQuiet",
+            `When you are speaking: bars on the left should peak over -60dBFS
+            or you'll probably be somewhat hard to hear, so you may need to
+            speak up.`,
+          )}
         </li>
         <li>
-          If you get louder than -35dBFS or so, you will probably come across as
-          quite loud, and it might be polite to either speak in a softer tone or
-          reduce your microphone volume.
+          {t(
+            "profile.audioConfig.testAudio.guidance.tooLoud",
+            `If you get louder than -35dBFS or so, you will probably come
+            across as quite loud, and it might be polite to either speak in a
+            softer tone or reduce your microphone volume.`,
+          )}
         </li>
       </ul>
 
       {status !== AudioConfigStatus.STREAMING ? (
         <Button variant="secondary" onClick={onStartButtonClicked}>
-          Start
+          {t("profile.audioConfig.testAudio.start", "Start")}
         </Button>
       ) : (
         <Button variant="secondary" onClick={onStopButtonClicked}>
-          Stop
+          {t("profile.audioConfig.testAudio.stop", "Stop")}
         </Button>
       )}
 
       <p>
-        You can check this box to play your microphone output out through your
-        speakers, but if you&apos;re not wearing headphones, you&apos;ll likely
-        produce feedback. You have been warned!
+        {t(
+          "profile.audioConfig.testAudio.playBackHelp",
+          `You can check this box to play your microphone output out through
+          your speakers, but if you're not wearing headphones, you'll likely
+          produce feedback. You have been warned!`,
+        )}
       </p>
       <FormGroup
         className="mb-3"
@@ -263,7 +291,10 @@ const AudioConfig = () => {
       >
         <FormCheck
           type="checkbox"
-          label="Play captured audio"
+          label={t(
+            "profile.audioConfig.testAudio.playBack",
+            "Play captured audio",
+          )}
           checked={loopback}
           onChange={toggleLoopback}
         />

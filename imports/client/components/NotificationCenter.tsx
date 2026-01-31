@@ -13,6 +13,7 @@ import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Toast from "react-bootstrap/Toast";
 import ToastContainer from "react-bootstrap/ToastContainer";
 import Tooltip from "react-bootstrap/Tooltip";
+import { Trans, useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import ReactTextareaAutosize from "react-textarea-autosize";
 import styled from "styled-components";
@@ -188,11 +189,17 @@ const GuessMessage = React.memo(
     const rejectButtonVariant =
       guess.state === "rejected" ? "secondary" : "outline-secondary";
 
+    const { t, i18n } = useTranslation();
+
     const stageTwoLabels = {
-      intermediate:
+      intermediate: t(
+        "notification.guessMessage.intermediateInstruction",
         "Paste or write any additional instructions to pass on to the solver:",
-      rejected:
+      ),
+      rejected: t(
+        "notification.guessMessage.rejectInstruction",
         "Include any additional information on why this guess was rejected:",
+      ),
     };
 
     let stageTwoSection;
@@ -226,7 +233,7 @@ const GuessMessage = React.memo(
                   disabled={disableForms}
                   onClick={submitStageTwo}
                 >
-                  Save (or press Enter)
+                  {t("notification.guessMessage.save", "Save (or press Enter)")}
                 </Button>
               </StyledNotificationActionItem>
             </StyledNotificationActionBar>
@@ -242,21 +249,35 @@ const GuessMessage = React.memo(
       <Toast onClose={dismissGuess}>
         <Toast.Header>
           <StyledGuessHeader>
-            Guess for{" "}
-            <a href={linkTarget} target="_blank" rel="noopener noreferrer">
-              {puzzle.title}
-            </a>{" "}
-            from{" "}
-            <a
-              href={`/users/${guess.createdBy}`}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {guesser}
-            </a>
+            <Trans
+              i18nKey="notification.guessMessage.header"
+              t={t}
+              defaults="Guess for <puzzleLink /> from <guesser />"
+              values={{ puzzle: puzzle.title, puzzleTitle: puzzle.title }}
+              components={{
+                puzzleLink: (
+                  <a
+                    href={linkTarget}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {puzzle.title}
+                  </a>
+                ),
+                guesser: (
+                  <a
+                    href={`/users/${guess.createdBy}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {guesser}
+                  </a>
+                ),
+              }}
+            />
           </StyledGuessHeader>
           <StyledNotificationTimestamp>
-            {calendarTimeFormat(guess.createdAt)}
+            {calendarTimeFormat(guess.createdAt, t, i18n.language)}
           </StyledNotificationTimestamp>
           {guess.state !== "pending" && (
             <SpinnerTimer
@@ -317,7 +338,7 @@ const GuessMessage = React.memo(
                 disabled={disableForms}
                 onClick={markCorrect}
               >
-                Correct
+                {t("notification.guessMessage.correct", "Correct")}
               </Button>
             </StyledNotificationActionItem>
             <StyledNotificationActionItem $grow>
@@ -329,7 +350,7 @@ const GuessMessage = React.memo(
                 active={nextState === "intermediate"}
                 onClick={toggleStateIntermediate}
               >
-                Intermediate…
+                {t("notification.guessMessage.intermediate", "Intermediate")}…
               </Button>
             </StyledNotificationActionItem>
             <StyledNotificationActionItem $grow>
@@ -340,7 +361,7 @@ const GuessMessage = React.memo(
                 disabled={disableForms}
                 onClick={markIncorrect}
               >
-                Incorrect
+                {t("notification.guessMessage.incorrect", "Incorrect")}
               </Button>
             </StyledNotificationActionItem>
             <StyledNotificationActionItem $grow>
@@ -352,13 +373,19 @@ const GuessMessage = React.memo(
                 active={nextState === "rejected"}
                 onClick={toggleStateRejected}
               >
-                Reject…
+                {t("notification.guessMessage.reject", "Reject")}…
               </Button>
             </StyledNotificationActionItem>
           </StyledNotificationActionBar>
           {guess.state !== "pending" && guess.additionalNotes && (
             <>
-              <div>Additional notes:</div>
+              <div>
+                {t(
+                  "notification.guessMessage.additionalNotes",
+                  "Additional notes",
+                )}
+                :
+              </div>
               <Markdown text={guess.additionalNotes} />
             </>
           )}
@@ -411,8 +438,12 @@ const DiscordMessage = React.memo(
       requestDiscordCredential(requestComplete);
     }, [requestComplete]);
 
-    const msg =
-      "It looks like you're not in our Discord server, which Jolly Roger manages access to.  Get added:";
+    const { t } = useTranslation();
+
+    const msg = t(
+      "notification.discord.message",
+      "It looks like you're not in our Discord server, which Jolly Roger manages access to.  Get added:",
+    );
     const actions = [
       <StyledNotificationActionItem key="invite">
         <Button
@@ -425,7 +456,7 @@ const DiscordMessage = React.memo(
           }
           onClick={initiateOauthFlow}
         >
-          Add me
+          {t("notification.discord.addMe", "Add me")}
         </Button>
       </StyledNotificationActionItem>,
     ];
@@ -433,7 +464,9 @@ const DiscordMessage = React.memo(
     return (
       <Toast onClose={onDismiss}>
         <Toast.Header>
-          <strong className="me-auto">Discord account not linked</strong>
+          <strong className="me-auto">
+            {t("notification.discord.header", "Discord account not linked")}
+          </strong>
         </Toast.Header>
         <Toast.Body>
           <StyledNotificationRow>{msg}</StyledNotificationRow>
@@ -589,21 +622,29 @@ const ChatNotificationMessage = ({
 
   const senderDisplayName = displayNames.get(cn.sender) ?? "???";
 
+  const { t, i18n } = useTranslation();
+
   return (
     <Toast onClose={dismiss}>
       <Toast.Header>
         <strong className="me-auto">
-          {senderDisplayName}
-          {" on "}
-          <Link
-            to={`/hunts/${hunt._id}/puzzles/${puzzle._id}`}
-            onClick={dismiss}
-          >
-            {puzzle.title}
-          </Link>
+          <Trans
+            i18nKey="notification.chatMessage"
+            t={t}
+            defaults="{{name}} on <puzzleLink>{{puzzleTitle}}</puzzleLink>"
+            values={{ name: senderDisplayName, puzzleTitle: puzzle.title }}
+            components={{
+              puzzleLink: (
+                <Link
+                  to={`/hunts/${hunt._id}/puzzles/${puzzle._id}`}
+                  onClick={dismiss}
+                />
+              ),
+            }}
+          />
         </strong>
         <StyledNotificationTimestamp>
-          {calendarTimeFormat(cn.createdAt)}
+          {calendarTimeFormat(cn.createdAt, t, i18n.language)}
         </StyledNotificationTimestamp>
       </Toast.Header>
       <Toast.Body>
@@ -635,13 +676,18 @@ const BookmarkNotificationMessage = ({
     [id],
   );
 
+  const { t } = useTranslation();
+
   let describeState;
   switch (bn.solvedness) {
     case "solved":
-      describeState = "has been solved";
+      describeState = t("notification.bookmark.solved", "has been solved");
       break;
     case "unsolved":
-      describeState = "has been partially solved";
+      describeState = t(
+        "notification.bookmark.partiallySolved",
+        "has been partially solved",
+      );
       break;
     default:
       describeState = "has changed state";
@@ -663,9 +709,18 @@ const BookmarkNotificationMessage = ({
       </Toast.Header>
       <Toast.Body>
         <div>
-          A puzzle you have bookmarked {describeState}. The{" "}
-          {puzzle.answers.length > 1 && "new "}
-          answer is: <PuzzleAnswer answer={bn.answer} breakable />
+          <Trans
+            i18nKey="notification.bookmark.message"
+            t={t}
+            // using context instead of count here because Chinese doesn't
+            // have _one variants, but we still want it to print a slightly
+            // different message
+            context={`${puzzle.answers.length}`}
+            values={{ describeState: describeState }}
+            components={{
+              puzzleAnswer: <PuzzleAnswer answer={bn.answer} breakable />,
+            }}
+          />
         </div>
       </Toast.Body>
     </Toast>

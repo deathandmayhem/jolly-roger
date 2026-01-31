@@ -28,5 +28,7 @@
   },
   "[javascript]": {
     "editor.defaultFormatter": "biomejs.biome"
-  }
+  },
+  "i18n-ally.localesPaths": ["imports/locales"],
+  "i18n-ally.pathMatcher": "{locale}.json"
 }

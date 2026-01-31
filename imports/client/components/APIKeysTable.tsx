@@ -10,6 +10,7 @@ import InputGroup from "react-bootstrap/InputGroup";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Table from "react-bootstrap/Table";
 import Tooltip from "react-bootstrap/Tooltip";
+import { useTranslation } from "react-i18next";
 import { styled } from "styled-components";
 import { calendarTimeFormat } from "../../lib/calendarTimeFormat";
 import type { APIKeyType } from "../../lib/models/APIKeys";
@@ -53,9 +54,11 @@ const APIKeyRow = ({ apiKey }: { apiKey: APIKeyType }) => {
 
   const idPrefix = useId();
 
+  const { t, i18n } = useTranslation();
+
   const lastUsedTooltip = apiKey.lastUsedAt ? (
     <Tooltip id={`${idPrefix}-last-used-tooltip`}>
-      {calendarTimeFormat(apiKey.lastUsedAt)}
+      {calendarTimeFormat(apiKey.lastUsedAt, t, i18n.language)}
     </Tooltip>
   ) : (
     <span />

@@ -1,0 +1,46 @@
+{
+  "datetime": {
+    "year_one": "year",
+    "year_other": "years",
+    "day_one": "day",
+    "day_other": "days",
+    "hour_one": "hour",
+    "hour_other": "hours",
+    "minute_one": "minute",
+    "minute_other": "minutes",
+    "second_one": "second",
+    "second_other": "seconds"
+  },
+  "audio": {
+    "callersContext_0": "no callers",
+    "callersContext": "{{count}} caller",
+    "callersContext_other": "{{count}} callers",
+
+    "caller_one": "caller",
+    "caller_other": "callers"
+  },
+  "chat": {
+    "viewersContext_0": "No viewers",
+    "viewersContext": "{{count}} viewer",
+    "viewersContext_other": "{{count}} viewers",
+
+    "viewer_one": "viewer",
+    "viewer_other": "viewers"
+  },
+  "notification": {
+    "bookmark": {
+      "message_1": "A puzzle you have bookmarked {{describeState}}. The answer is: <puzzleAnswer />",
+      "message": "A puzzle you have bookmarked {{describeState}}. The new answer is: <puzzleAnswer />"
+    }
+  },
+  "puzzle": {
+    "delete": {
+      "currentlyViewedBy_one": "This puzzle is currently being viewed by {{count}} person",
+      "currentlyViewedBy_other": "This puzzle is currently being viewed by {{count}} people"
+    },
+    "answerOrGuess": {
+      "Answer_one": "Answer",
+      "Answer_other": "Answers"
+    }
+  }
+}

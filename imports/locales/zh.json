@@ -1,0 +1,495 @@
+{
+  "common": {
+    "gotIt": "知道了",
+    "cancel": "取消",
+    "and": "及",
+    "off": "关",
+    "on": "开",
+    "hidden": "隐藏",
+    "shown": "显示",
+    "expandAll": "全部展开",
+    "close": "关闭",
+    "confirmSubmit": "确认提交",
+    "submit": "提交",
+    "save": "保存",
+    "saving": "保存中",
+    "saveSuccess": "已保存更改。",
+    "saveFailed": "保存失败",
+    "search": "搜索",
+    "copy": "复制",
+    "copyToClipboard": "复制到剪贴板",
+    "copied": "复制成功！",
+    "email": "电子邮箱",
+    "phone": "电话号码",
+    "loading": "加载中",
+    "puzzle": "谜题",
+    "notAuthorized": "未授权"
+  },
+  "auth": {
+    "loginButtonText": "登录",
+    "password": "密码",
+    "forgotPasswordLink": "忘了密码？",
+    "resetPassword": "重设密码",
+    "emailResetLink": "发送重置链接",
+    "ifYouKnowYourPassword": "如果你记得密码，",
+    "signInHere": "点此登录"
+  },
+  "datetime": {
+    "todayAt": "今天",
+    "ago": "前",
+    "fromNow": "后",
+    "now": "现在",
+    "justNow": "刚刚",
+    "year": "年",
+    "day": "天",
+    "hour": "小时",
+    "minute": "分钟",
+    "second": "秒",
+    "termSeparator": "",
+    "suffixLeadingSpace": ""
+  },
+  "audio": {
+    "caller": "位语音通话中",
+    "callersContext": "{{count}}位通话者",
+    "lastVoiceActivity": "上次通话时间",
+    "joinCall": "加入语音",
+    "startCall": "开始语音",
+    "leave": "退出通话",
+    "muteSelf": "关麦",
+    "unmute": "开麦",
+    "deafenSelf": "静音",
+    "undeafen": "取消静音",
+    "mutedOnJoin": "鉴于通话人数较多，我们暂时帮你静音了。你可以随时取消静音。",
+    "mutedBySomeone": "你被 {{mutedBy}} 静音了。这通常发生在你离开电脑但麦克风仍然开启的时候。你可以随时取消静音。",
+    "tooltip": {
+      "inTheCall": "你加入了通话。",
+      "selfMuted": "你现在是关麦模式。",
+      "selfDeafened": "你现在是静音模式。",
+      "otherMuted": "处于关麦模式（别人听不到ta）",
+      "otherDeafened": "处于静音模式（ta听不到别人）",
+      "localMuted": "对你关麦（但是别人能听到ta）"
+    },
+    "peerMuteModal": {
+      "title": "管理 {{name}} 的音频",
+      "muteForMe": "仅对我关麦",
+      "unmuteForMe": "取消对我关麦",
+      "muteForMeHelp": "切换是否接收来自 {{name}} 的音频。此设置不会影响其他人听到的内容，你可以随时在这里进行切换。每次加入通话时都需要重新设置该选项。",
+      "muteForEveryone": "对所有人关麦",
+      "muteForEveryoneHelp": "这将使通话中的<strong>所有人</strong>都听不到 {{name}} 的声音。仅在他们造成干扰且无法自行关麦时，才作为最后手段使用。只有他们本人可以开麦。",
+      "areYouSure": "你确定要将 {{name}} 关麦吗？"
+    }
+  },
+  "chat": {
+    "hooks": {
+      "feederSolved": "本 meta 下面的小题 {{puzzle}} 被解出来了： `{{answer}}`",
+      "metaSolved": "本题所属的 meta 题目 {{puzzle}} 被解出来了： `{{answer}}`",
+      "feederWrong": "本 meta 下面的小题 {{puzzle}} 之前答案 `{{answer}}` 作废",
+      "metaWrong": "本题所属的 meta 题目 {{puzzle}} 之前答案 `{{answer}}` 作废"
+    },
+    "noChatter": "尚无对话记录。",
+    "chatPrompt": "输入聊天内容",
+    "viewer": "人在此频道中",
+    "viewersContext": "{{count}}位观看者",
+    "minimizeChat": "最小化聊天框",
+    "restoreChat": "展开聊天框",
+    "firehose": {
+      "title": "聊天记录",
+      "breadcrumbTitle": "聊天记录",
+      "loading": "正在加载所有聊天消息，请耐心等待。这可能需要一些时间。",
+      "description": "此日志包含整个活动的所有聊天消息，可能会有一些延迟。",
+      "filterBy": "搜索消息内容或发送者",
+      "messageCount": "正在显示 {{filteredCount}}/{{totalCount}} 条消息"
+    }
+  },
+  "navigation": {
+    "huntLinkTitle": "解谜活动官方主页",
+    "huntLinkText": "活动主页",
+    "myProfile": "个人信息",
+    "reportAnIssue": "报告问题",
+    "serverSetup": "服务器设置",
+    "signOut": "退出登录",
+    "theme": {
+      "header": "主题",
+      "auto": "跟随系统",
+      "light": "浅色",
+      "dark": "深色"
+    },
+    "language": "语言"
+  },
+  "announcements": {
+    "title": "公告",
+    "navTitle": "公告",
+    "breadcrumbTitle": "公告",
+    "writeAnAnnouncement": "撰写公告（请保持简洁明了）",
+    "send": "发布",
+    "heading": "来自 {{name}} 的公告"
+  },
+  "notification": {
+    "bookmark": {
+      "solved": "被解开了",
+      "partiallySolved": "解出了答案之一",
+      "message_1": "你关注的谜题{{describeState}}。答案是: <puzzleAnswer />",
+      "message": "你关注的谜题{{describeState}}。新添的答案是: <puzzleAnswer />"
+    },
+    "chatMessage": "{{name}} 在 <puzzleLink>{{puzzleTitle}}</puzzleLink> 召唤你",
+    "discord": {
+      "header": "尚未绑定 Discord",
+      "addMe": "绑定账号",
+      "message": "绑定 Discord 账号会将你加入队伍的 Discord 服务器，在谜题页面语音聊天时也会显示你的 Discord 头像。"
+    },
+    "guessMessage": {
+      "header": "<guesser /> 在 <puzzleLink /> 提交了猜测",
+      "correct": "正确",
+      "intermediate": "中间答案",
+      "intermediateInstruction": "粘贴或填写任何需要传达给解谜者的额外说明：",
+      "incorrect": "错误",
+      "reject": "退回",
+      "rejectInstruction": "填写该猜测被退回的理由：",
+      "save": "保存（或按回车键）",
+      "additionalNotes": "附加信息"
+    }
+  },
+  "puzzle": {
+    "activity": {
+      "unlocked": "解锁时间",
+      "activeSolverCount": "在解这题的人数",
+      "chat": "聊天",
+      "call": "语音",
+      "doc": "文档"
+    },
+    "errorStatus": {
+      "deleted": "已删",
+      "noSuchPuzzle": "查无此题",
+      "noSuchPuzzleBody": "查无此题，请检查一下网址。"
+    },
+    "edit": {
+      "addPuzzle": "添加谜题",
+      "editPuzzle": "编辑谜题",
+      "title": "标题",
+      "url": "URL",
+      "tags": "标签",
+      "documentType": "文档类型",
+      "documentTypeHelp": "此项在谜题创建后无法更改。一般情况下请使用 Spreadsheet。我们只打算将 Document 用于管理类文档。",
+      "answerCount": "预期答案个数",
+      "duplicateUrlWarning": "已经有这个网址的谜题记录了。如果确认要加一个谜题指向相同的网址，在“允许多个谜题有相同网址”里打勾后再试一次。",
+      "allowDuplicateUrls": "允许多个谜题有相同网址",
+      "considerSolvedWithNoAnswer": "视为已解决（无答案）",
+      "editButtonTitle": "编辑谜题...",
+      "editButtonText": "编辑"
+    },
+    "delete": {
+      "modalTitle": "删除谜题",
+      "areYouSure": "你确定要删除此谜题吗？任何人都将无法继续进行编辑或发表评论。",
+      "specifyReplacement": "你可以选择另一谜题来取代此谜题，并且将此题的表格复制过去。",
+      "copyTheSheets": "将 {{title}} 的表格复制进上面的谜题",
+      "currentlyViewedBy": "现在有 {{count}} 人在这题频道里",
+      "delete": "删除",
+      "deletePuzzle": "删除谜题"
+    },
+    "deleted": {
+      "modalTitle": "此 Jolly Roger 页面已被删除",
+      "body1": "管理员已从 Jolly Roger 中删除了此谜题。你仍然可以查看之前的信息，但今后将无法编辑共享文档或发送新的聊天消息。",
+      "body2": "我们希望确保此页面不会给大家造成干扰，因此题目列表里将不再链接到此页面。如果需要保存任何信息，请在完成前务必保留此 URL。",
+      "undeleteHelp": "作为管理员，你可以恢复已删除的谜题：",
+      "undelete": "恢复谜题"
+    },
+    "answerOrGuess": {
+      "answerButtonText": "提交答案",
+      "answerTitle": "提交 {{puzzleTitle}} 的答案",
+      "answer": "答案",
+      "Answer": "答案",
+      "guessButtonText": "提交猜测",
+      "guessTitle": {
+        "history": "{{puzzle}} 的猜测记录",
+        "submitGuess": "提交 {{puzzle}} 答案猜测"
+      },
+      "guess": "答案猜测",
+      "noGuesses": "尚未提交过任何猜测。",
+      "previousSubmissions": "提交记录",
+      "direction": "解题方向",
+      "directionHelp": "选择一个介于 -10（未打开谜题即反向解出）到 10（未用到本题之外的信息即正向解出）之间的数字，以表明你是正向解出还是反向解出。",
+      "confidence": "信心指数",
+      "confidenceHelp": "选择一个介于 0 和 100 之间的数字，表示你认为这个答案正确的概率。",
+      "needDirectionAndConfidence": "请选择解题方向和信心指数。",
+      "repeatAnswer": "该答案已被提交过。",
+      "alreadySolved": "该谜题已被解出。",
+      "expectNoAnswer": "该谜题预期答案个数为0。",
+      "areYouSure": "你确定要提交这个答案吗？",
+      "guessStateChanged": "猜测 `{{guess}}` 被标记为{{state}}{{notes}}",
+      "acceptedAnswer": "`{{guess}}` 被记录为正确答案！",
+      "guessState": {
+        "correct": "正确",
+        "incorrect": "错误",
+        "pending": "待定",
+        "rejected": "退回",
+        "intermediate": "中间答案",
+        "unknown": "未知"
+      }
+    },
+    "insertImage": {
+      "insertImage": "插入图片",
+      "chooseSheet": "选择工作表",
+      "Upload": "上传",
+      "link": "链接",
+      "imageUrl": "图片链接",
+      "insert": "插入图片"
+    },
+    "pageView": {
+      "showInfo": "显示谜题信息",
+      "hideInfo": "隐藏谜题信息"
+    },
+    "bookmark": "关注",
+    "unbookmark": "取消关注"
+  },
+  "puzzleList": {
+    "maybeMatchWarning": "没有未解谜题符合搜索条件，下面显示符合条件的已解谜题",
+    "solvedPuzzles": "已解谜题",
+    "operatorInterface": "管理员界面",
+    "organizeBy": "排序方式",
+    "byGroup": "按分区",
+    "byUnlock": "按解锁",
+    "filteredPuzzleCountMessage": "共有 {{allPuzzlesCount}} 道谜题，显示 {{retainedCount}} 道",
+    "bookmarked": "已关注",
+    "noGroupSpecified": "未指定分区",
+    "deletedPuzzlesGroup": "已删除的谜题（仅管理员可见）",
+    "filterByPlaceholder": "按标题、答案、或标签筛选",
+    "openPuzzle": "打开谜题网页"
+  },
+  "tags": {
+    "tags": "标签",
+    "navTitle": "标签",
+    "puzzleNoTagsYet": "本题尚无标签",
+    "title": "标签管理",
+    "breadcrumbTitle": "标签",
+    "renameTagSection": {
+      "title": "重命名标签",
+      "description": "从下拉菜单中选择一个标签，输入新名称，然后点击“重命名”。",
+      "selectLabel": "选择标签",
+      "newNameLabel": "新名称",
+      "renameButton": "重命名"
+    },
+    "filterBy": "按标题、答案、或标签筛选",
+    "bulkAddRemoveSection": {
+      "title": "批量添加/移除标签",
+      "description": "选择要修改的谜题，然后选择要添加或移除的标签",
+      "showCount": "显示 {{matchCount}} / {{totalCount}} 道谜题",
+      "selected": "已选 {{count}} 道谜题",
+      "add": "添加到已选的 {{count}} 道谜题",
+      "remove": "从已选的 {{count}} 道谜题中移除",
+      "tagsToApply": "选择进行操作的标签"
+    },
+    "send": "发布"
+  },
+  "discord": {
+    "hooks": {
+      "unlocked": "解锁了新的题目 {{puzzle}}",
+      "renamed": "{{oldTitle}} 改名为 {{newTitle}}",
+      "solved": "被解出来了！",
+      "partiallySolved": "解出了答案之一"
+    }
+  },
+  "hunterList": {
+    "title": "队员列表",
+    "navTitle": "队员",
+    "breadcrumbTitle": "队员列表",
+    "invitationLink": {
+      "link": "邀请链接",
+      "disable": "取消邀请链接",
+      "generate": "生成邀请链接",
+      "regenerate": "重新生成邀请链接",
+      "hint": "这是公开邀请链接：任何拥有该链接的人都可以加入本次解谜活动。",
+      "modal": {
+        "generateTitle": "生成链接",
+        "regenerateTitle": "重新生成链接",
+        "generateBody": "生成此次解谜活动的邀请链接？拥有邀请权限的用户将能看到此链接，任何拥有该链接的人都可以加入。",
+        "regenerateBody": "你确定要重新生成此次解谜活动的邀请链接？当前链接将失效。",
+        "generateButton": "生成链接",
+        "regenerateButton": "重新生成链接",
+
+        "disableTitle": "取消邀请链接",
+        "disableBody": "你确定要取消此次解谜活动的邀请链接？当前链接将失效。",
+        "disableButton": "取消链接"
+      }
+    },
+    "totalHunters": "总人数",
+    "searchBy": "按名字、电子邮箱、电话号码、Discord 账号搜索队员...",
+    "alert": "这里展示所有 Jolly Roger 注册的成员，不仅仅是今年 Mystery Hunt 的队伍成员。如果想看某一活动的成员，前往该活动页面再点击「队员」。",
+    "inviteSomeone": "邀请新人",
+    "operator": "管理员",
+    "makeOperator": "设为管理员",
+    "promoteOperator": "设置管理员",
+    "confirmPromote": "你确定要将 <strong>{{name}}</strong> 设置为管理员吗？",
+    "promoteButton": "设置",
+    "demoteButton": "撤职",
+    "demoteOperator": "撤职管理员",
+    "confirmDemote": "你确定你要撤销 <strong>{{name}}</strong> 的管理员身份吗？"
+  },
+  "invite": {
+    "title": "邀请队友",
+    "breadcrumbTitle": "邀请队友",
+    "instruction": "邀请某人加入此解谜活动。他们会收到一封包含操作说明的电子邮件（即使他们已经有 Jolly Roger 账户）。",
+    "sendInvite": "发出邀请邮件",
+    "bulkInvite": "批量邀请",
+    "bulkInstruction": "电子邮箱地址（每行一个）",
+    "sendBulkInvites": "批量发送邀请"
+  },
+  "profile": {
+    "users": "用户",
+    "discordHandle": "Discord 账号",
+    "huntsInCommon": "共同参与的解谜活动",
+    "ownProfileTitle": "个人信息",
+    "displayName": {
+      "label": "显示名称",
+      "help": "为了以防跟其他人混淆，请尽量使用有辨识性的名字。"
+    },
+    "phoneNumber": {
+      "label": "电话号码（可选）",
+      "help": "在我们需要通过电话联系你时使用。"
+    },
+    "dingwords": {
+      "label": "关键词（测试性功能）",
+      "help": "当有人在谜题聊天中提到这些词时，你会收到通知。（用逗号分隔多个关键词）"
+    },
+    "discord": {
+      "account": "Discord 账号",
+      "help": "绑定 Discord 账号会将你加入 {{teamName}} 的 Discord 服务器，在谜题页面语音聊天时也会显示你的 Discord 头像。",
+      "link": "绑定 Discord 账号",
+      "unlink": "解除绑定",
+      "linkDifferent": "绑定其它 Discord 账号"
+    },
+    "google": {
+      "account": "Google 账号",
+      "help": "绑定 Google 账号并非必需，但这样可以让其他人在谜题的 Google 表格文档中看到你的身份（而不是<anonymousLink>匿名的小动物</anonymousLink>），同时我们也会用它来为你提供练习谜题的访问权限。（你只能关联一个 Google 账号，因此关联新的账号会取代原先关联的账号。）",
+      "link": "绑定 Google 账号",
+      "unlink": "解除绑定",
+      "linkDifferent": "绑定其它 Google 账号"
+    },
+    "audioConfig": {
+      "audio": "语音",
+      "selectedInput": "已选择的音频输入设备",
+      "testAudio": {
+        "intro": "你可以在此测试你的语音设备。",
+        "instruction": "点击「开始」，然后尝试说几句话、打几行字，观察一下你当前环境的音量情况。虽然我们已经启用了自动增益控制，但不同的麦克风灵敏度不同。以下是一些粗略的参考：",
+        "start": "开始",
+        "stop": "结束",
+        "guidance": {
+          "tooNoisy": "当你不说话时，所有音量条应低于 -70 dBFS。如果不是这样，若条件允许，建议移动到更安静的环境。",
+          "tooQuiet": "当你在说话时：左侧的音量条应该能峰值超过 -60 dBFS，否则你的声音可能会偏小，你可能需要提高音量。",
+          "tooLoud": "如果音量超过大约 -35 dBFS，你听起来可能会过于响亮，这时礼貌的做法是放轻声音或调低麦克风音量。"
+        },
+        "playBackHelp": "你可以勾选此选项，将麦克风的输出通过扬声器播放。但如果你没有戴耳机，很可能会产生反馈。谨慎使用！",
+        "playBack": "播放麦克风输入"
+      }
+    },
+    "advanced": "高级设置",
+    "apiKeys": {
+      "label": "API 密钥",
+      "create": "创建 API 密钥",
+      "help": "用于进行 API 调用的授权凭证，请务必保密！"
+    }
+  },
+  "huntEdit": {
+    "title": {
+      "edit": "编辑解谜活动",
+      "new": "新建解谜活动"
+    },
+    "breadcrumbTitle": {
+      "edit": "编辑活动",
+      "new": "新建活动"
+    },
+    "name": "活动名称",
+    "usersAndPermissions": "用户与权限",
+    "signupMessage": {
+      "field": "注册提示信息",
+      "help": "这条消息（以 Markdown 形式渲染）将显示给尚未参与本次解谜活动的用户，适合放置注册说明和指引。"
+    },
+    "openInvites": {
+      "field": "公开邀请链接",
+      "help": "已勾选时，任何队员都可以邀请新人加入活动；否则，只有管理员可以邀请新人加入活动。"
+    },
+    "guessQueue": {
+      "field": "猜测队列",
+      "help": "已勾选时，队员提交猜测后需要由管理员标为正确答案；否则任何人都可以在本网站上提交正确答案。"
+    },
+    "termsOfUse": {
+      "field": "使用条款",
+      "help": "如果指定，此文本（以 Markdown 格式渲染）将在用户首次访问本网站时显示，且用户必须先接受该内容才能继续。",
+      "preview": "预览"
+    },
+    "huntWebsite": "解谜活动官网",
+    "url": {
+      "field": "网站 URL",
+      "help": "如果提供，解谜活动官网的链接将会显示在首页上。"
+    },
+    "externalIntegrations": "外部集成",
+    "mailingLists": {
+      "field": "邮件列表",
+      "help": "加入活动的队员会自动被添加到以上的邮件列表里；多个邮件列表以半角逗号（,）分隔。"
+    },
+    "announcementChannel": {
+      "field": "Discord 公告频道",
+      "help": "Jolly Roger 上发布的公告会自动发送到该频道。"
+    },
+    "puzzleChannel": {
+      "field": "Discord 谜题频道",
+      "help": "新加谜题和解开谜题时，会自动发送消息到该频道。"
+    },
+    "firehoseChannel": {
+      "field": "Discord 聊天频道",
+      "help": "所有谜题内的聊天消息会自动发送到该频道。"
+    },
+    "saveSuccess": "解谜活动信息已成功保存",
+    "create": "创建"
+  },
+  "huntList": {
+    "title": "解谜活动",
+    "breadcrumbTitle": "解谜活动",
+    "yourHunts": "你加入了以下解谜活动",
+    "newHunt": "新建解谜活动",
+    "notInAnyHunt": "你尚未加入任何解谜活动。",
+    "otherHunts": "其它解谜活动",
+    "noOtherHunts": "没有你尚未加入的解谜活动。",
+    "delete": {
+      "title": "删除活动",
+      "confirm": {
+        "title": "删除解谜活动",
+        "submit": "删除",
+        "text": "确定要删除解谜活动 {{huntName}} 吗？这将同时删除所有谜题及相关状态。"
+      }
+    },
+    "edit": {
+      "title": "编辑活动"
+    }
+  },
+  "guessQueue": {
+    "title": {
+      "answer": "答案记录",
+      "guess": "猜测记录"
+    },
+    "tableHeader": {
+      "puzzle": "谜题",
+      "answer": "答案",
+      "status": "状态",
+      "submitter": "提交者",
+      "time": "提交时间",
+      "direction": "解题方向",
+      "confidence": "信心指数",
+      "confidenceTooltip": "提交者估计该答案正确的可能性"
+    },
+    "filterBy": "按标题或答案筛选",
+    "openDiscussionTooltip": "打开 Jolly Roger 讨论区",
+    "openPuzzleTooltip": "打开谜题页面",
+    "returnToQueue": "返回队列"
+  },
+  "serverSetup": {
+    "title": "服务器设置",
+    "notAuthorizedMessage": "此页面仅供服务器管理员重新配置服务器使用，你没有权限访问。",
+    "language": "语言",
+    "languageHelp": "客户端的显示语言取决于用户选择，但是服务端生成的文字（例如 jolly-roger 在聊天频道发的系统信息）的语言取决于这里的选项。",
+    "teamName": "队伍名称",
+    "teamNameHelp": "队伍名称将显示在以下位置：",
+    "teamNameHelp1": "登录页面",
+    "teamNameHelp2": "由 Jolly Roger 创建的任何 Google 文档或表格的文件名中",
+    "teamNameHelp3": "以及任何其它可能提到本网站所属队伍的地方"
+  }
+}

@@ -3,6 +3,7 @@ import { useTracker } from "meteor/react-meteor-data";
 import { useId } from "react";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Tooltip from "react-bootstrap/Tooltip";
+import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { formatDiscordName } from "../../lib/discord";
 import { indexedById } from "../../lib/listUtils";
@@ -44,6 +45,8 @@ const OthersProfilePage = ({ user }: { user: Meteor.User }) => {
 
   const tooltipId = useId();
 
+  const { t } = useTranslation();
+
   return (
     <div>
       <h1>
@@ -63,7 +66,7 @@ const OthersProfilePage = ({ user }: { user: Meteor.User }) => {
       <ProfileTable>
         <tbody>
           <tr>
-            <th>Email</th>
+            <th>{t("common.email", "Email")}</th>
             <td>
               {user.emails?.[0]?.address ? (
                 <a
@@ -79,7 +82,7 @@ const OthersProfilePage = ({ user }: { user: Meteor.User }) => {
             </td>
           </tr>
           <tr>
-            <th>Phone</th>
+            <th>{t("common.phone", "Phone")}</th>
             <td>
               {user.phoneNumber ? (
                 <a href={`tel:${user.phoneNumber}`}>{user.phoneNumber}</a>
@@ -89,7 +92,7 @@ const OthersProfilePage = ({ user }: { user: Meteor.User }) => {
             </td>
           </tr>
           <tr>
-            <th>Discord handle</th>
+            <th>{t("profile.discordHandle", "Discord handle")}</th>
             <td>
               {user.discordAccount ? (
                 <a
@@ -106,7 +109,7 @@ const OthersProfilePage = ({ user }: { user: Meteor.User }) => {
           </tr>
           {showHuntList && (
             <tr>
-              <th>Hunts in common</th>
+              <th>{t("profile.huntsInCommon", "Hunts in common")}</th>
               <td>
                 {loading
                   ? "loading..."

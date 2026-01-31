@@ -10,6 +10,7 @@ import Button from "react-bootstrap/Button";
 import type { ModalProps } from "react-bootstrap/Modal";
 import Modal from "react-bootstrap/Modal";
 import { createPortal } from "react-dom";
+import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 
 const StyledModalTitle = styled(Modal.Title)`
@@ -71,7 +72,9 @@ const ModalForm = (props: {
     [onSubmit, hide],
   );
 
-  const submitLabel = props.submitLabel ?? "Save";
+  const { t } = useTranslation();
+
+  const submitLabel = props.submitLabel ?? t("common.save", "Save");
   const submitStyle = props.submitStyle ?? "primary";
 
   const modal = (
@@ -87,7 +90,7 @@ const ModalForm = (props: {
             onClick={hide}
             disabled={props.submitDisabled}
           >
-            Close
+            {t("common.close", "Close")}
           </Button>
           <Button
             variant={submitStyle}

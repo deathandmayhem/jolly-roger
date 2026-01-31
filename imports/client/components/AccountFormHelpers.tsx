@@ -8,6 +8,7 @@ import { useCallback, useId, useState } from "react";
 import Alert from "react-bootstrap/Alert";
 import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
+import { useTranslation } from "react-i18next";
 import { styled } from "styled-components";
 import Flags from "../../Flags";
 
@@ -54,16 +55,17 @@ export const useEmailField = ({
   const onEmailChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     setEmail(e.target.value);
   }, []);
+  const { t } = useTranslation();
   const controlId = useId();
   return {
     email,
     emailField: (
       <Form.Group className="mb-3" controlId={controlId}>
-        <Form.Label>Email</Form.Label>
+        <Form.Label>{t("common.email", "Email")}</Form.Label>
         <Form.Control
           type="email"
           value={email}
-          placeholder="Email"
+          placeholder={t("common.email", "Email")}
           autoCapitalize="none"
           autoCorrect="off"
           onChange={onEmailChange}
@@ -80,16 +82,17 @@ export const usePasswordField = ({ disabled }: { disabled: boolean }) => {
   const onPasswordChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     setPassword(e.target.value);
   }, []);
+  const { t } = useTranslation();
   const controlId = useId();
   return {
     password,
     passwordField: (
       <Form.Group className="mb-3" controlId={controlId}>
-        <Form.Label>Password</Form.Label>
+        <Form.Label>{t("auth.password", "Password")}</Form.Label>
         <Form.Control
           type="password"
           value={password}
-          placeholder="Password"
+          placeholder={t("auth.password", "Password")}
           autoCapitalize="none"
           autoCorrect="off"
           onChange={onPasswordChange}

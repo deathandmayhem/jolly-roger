@@ -11,6 +11,7 @@ import FormControl from "react-bootstrap/FormControl";
 import FormGroup from "react-bootstrap/FormGroup";
 import FormLabel from "react-bootstrap/FormLabel";
 import FormText from "react-bootstrap/FormText";
+import { useTranslation } from "react-i18next";
 import Flags from "../../Flags";
 import { formatDiscordName } from "../../lib/discord";
 import type { APIKeyType } from "../../lib/models/APIKeys";
@@ -82,6 +83,8 @@ const DiscordLinkBlock = ({ user }: { user: Meteor.User }) => {
     setState({ state: DiscordLinkBlockLinkState.IDLE });
   }, []);
 
+  const { t } = useTranslation();
+
   const linkButton = useMemo(() => {
     if (state.state === DiscordLinkBlockLinkState.LINKING) {
       return (
@@ -100,27 +103,27 @@ const DiscordLinkBlock = ({ user }: { user: Meteor.User }) => {
     }
 
     const text = user.discordAccount
-      ? "Link a different Discord account"
-      : "Link your Discord account";
+      ? t("profile.discord.linkDifferent", "Link a different Discord account")
+      : t("profile.discord.link", "Link your Discord account");
 
     return (
       <Button variant="primary" onClick={onLink}>
         {text}
       </Button>
     );
-  }, [state.state, discordDisabled, user.discordAccount, onLink]);
+  }, [state.state, discordDisabled, user.discordAccount, onLink, t]);
 
   const unlinkButton = useMemo(() => {
     if (user.discordAccount) {
       return (
         <Button variant="danger" onClick={onUnlink}>
-          Unlink
+          {t("profile.discord.unlink", "Unlink")}
         </Button>
       );
     }
 
     return null;
-  }, [user.discordAccount, onUnlink]);
+  }, [user.discordAccount, onUnlink, t]);
 
   const currentAccount = useMemo(() => {
     if (user.discordAccount) {
@@ -137,7 +140,7 @@ const DiscordLinkBlock = ({ user }: { user: Meteor.User }) => {
 
   return (
     <FormGroup className="mb-3">
-      <FormLabel>Discord account</FormLabel>
+      <FormLabel>{t("profile.discord.account", "Discord account")}</FormLabel>
       {state.state === DiscordLinkBlockLinkState.ERROR ? (
         <Alert variant="danger" dismissible onClose={dismissAlert}>
           Linking Discord account failed: {state.error.message}
@@ -148,9 +151,13 @@ const DiscordLinkBlock = ({ user }: { user: Meteor.User }) => {
         {linkButton} {unlinkButton}
       </div>
       <FormText>
-        Linking your Discord account will add you to the {teamName} Discord
-        server. Additionally, we&apos;ll be able to link up your identity there
-        and in jolly-roger chat.
+        {t(
+          "profile.discord.help",
+          `Linking your Discord account will add you to the {{teamName}}
+          Discord server. Additionally, we'll be able to link up your identity
+          there and in jolly-roger chat.`,
+          { teamName: teamName },
+        )}
       </FormText>
     </FormGroup>
   );
@@ -180,6 +187,7 @@ const APIKeysSection = ({ apiKeys }: { apiKeys?: APIKeyType[] }) => {
     });
   }, []);
   const disabled = createState === "requesting";
+  const { t } = useTranslation();
   return (
     <>
       <div
@@ -190,9 +198,9 @@ const APIKeysSection = ({ apiKeys }: { apiKeys?: APIKeyType[] }) => {
           justifyContent: "space-between",
         }}
       >
-        <h3>API Keys</h3>
+        <h3>{t("profile.apiKeys.label", "API Keys")}</h3>
         <Button disabled={disabled} onClick={createKey}>
-          + Create API key
+          + {t("profile.apiKeys.create", "Create API key")}
         </Button>
       </div>
       {createState === "error" ? (
@@ -204,7 +212,12 @@ const APIKeysSection = ({ apiKeys }: { apiKeys?: APIKeyType[] }) => {
           Creating API key failed: {createError}
         </Alert>
       ) : undefined}
-      <p>Authorization credentials used to make API calls. Keep them secret!</p>
+      <p>
+        {t(
+          "profile.apiKeys.help",
+          "Authorization credentials used to make API calls. Keep them secret!",
+        )}
+      </p>
       <APIKeysTable apiKeys={apiKeys} />
     </>
   );
@@ -287,12 +300,14 @@ const OwnProfilePage = ({
 
   const idPrefix = useId();
 
+  const { t } = useTranslation();
+
   return (
     <Container>
-      <h1>Account information</h1>
+      <h1>{t("profile.ownProfileTitle", "Account information")}</h1>
       <Avatar {...initialUser} size={64} />
       <FormGroup className="mb-3" controlId={`${idPrefix}-email`}>
-        <FormLabel>Email address</FormLabel>
+        <FormLabel>{t("common.email", "Email address")}</FormLabel>
         <FormControl
           type="text"
           value={initialUser.emails![0]!.address}
@@ -300,16 +315,16 @@ const OwnProfilePage = ({
         />
       </FormGroup>
       {submitState === OwnProfilePageSubmitState.SUBMITTING ? (
-        <Alert variant="info">Saving...</Alert>
+        <Alert variant="info">{t("common.saving", "Saving")}...</Alert>
       ) : null}
       {submitState === OwnProfilePageSubmitState.SUCCESS ? (
         <Alert variant="success" dismissible onClose={dismissAlert}>
-          Saved changes.
+          {t("common.saveSuccess", "Saved changes.")}
         </Alert>
       ) : null}
       {submitState === OwnProfilePageSubmitState.ERROR ? (
         <Alert variant="danger" dismissible onClose={dismissAlert}>
-          Saving failed: {submitError}
+          {t("common.saveFailed", "Saving failed")}: {submitError}
         </Alert>
       ) : null}
 
@@ -318,29 +333,43 @@ const OwnProfilePage = ({
       <DiscordLinkBlock user={initialUser} />
 
       <FormGroup className="mb-3" controlId={`${idPrefix}-display-name`}>
-        <FormLabel>Display name</FormLabel>
+        <FormLabel>{t("profile.displayName.label", "Display name")}</FormLabel>
         <FormControl
           type="text"
           value={displayName}
           disabled={shouldDisableForm}
           onChange={handleDisplayNameFieldChange}
         />
-        <FormText>We suggest your full name, to avoid ambiguity.</FormText>
+        <FormText>
+          {t(
+            "profile.displayName.help",
+            "We suggest your full name, to avoid ambiguity.",
+          )}
+        </FormText>
       </FormGroup>
 
       <FormGroup className="mb-3" controlId={`${idPrefix}-phone`}>
-        <FormLabel>Phone number (optional)</FormLabel>
+        <FormLabel>
+          {t("profile.phoneNumber.label", "Phone number (optional)")}
+        </FormLabel>
         <FormControl
           type="text"
           value={phoneNumber}
           disabled={shouldDisableForm}
           onChange={handlePhoneNumberFieldChange}
         />
-        <FormText>In case we need to reach you via phone.</FormText>
+        <FormText>
+          {t(
+            "profile.phoneNumber.help",
+            "In case we need to reach you via phone.",
+          )}
+        </FormText>
       </FormGroup>
 
       <FormGroup className="mb-3" controlId={`${idPrefix}-dingwords`}>
-        <FormLabel>Dingwords (experimental)</FormLabel>
+        <FormLabel>
+          {t("profile.dingwords.label", "Dingwords (experimental)")}
+        </FormLabel>
         <FormControl
           type="text"
           value={dingwordsFlat}
@@ -349,10 +378,13 @@ const OwnProfilePage = ({
           placeholder="cryptic,biology,chemistry"
         />
         <FormText>
-          Get an in-app notification if anyone sends a chat message containing
-          one of your comma-separated, case-insensitive dingwords as a
-          substring. This feature is experimental and may be disabled without
-          notice.
+          {t(
+            "profile.dingwords.help",
+            `Get an in-app notification if anyone sends a chat message
+            containing one of your comma-separated, case-insensitive dingwords
+            as a substring. This feature is experimental and may be disabled
+            without notice.`,
+          )}
         </FormText>
       </FormGroup>
 
@@ -364,7 +396,7 @@ const OwnProfilePage = ({
             disabled={shouldDisableForm}
             onClick={handleSaveForm}
           >
-            Save
+            {t("common.save", "Save")}
           </Button>
         </FormGroup>
       </ActionButtonRow>
@@ -372,7 +404,7 @@ const OwnProfilePage = ({
       <AudioConfig />
 
       <section className="mt-3">
-        <h2>Advanced</h2>
+        <h2>{t("profile.advanced", "Advanced")}</h2>
         <APIKeysSection apiKeys={apiKeys} />
       </section>
     </Container>

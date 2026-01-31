@@ -15,6 +15,7 @@ import {
 } from "react";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Tooltip from "react-bootstrap/Tooltip";
+import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Flags from "../../Flags";
 import { RECENT_ACTIVITY_TIME_WINDOW_MS } from "../../lib/config/webrtc";
@@ -153,11 +154,14 @@ const ChatPeople = ({
     [puzzleId],
   );
   const [voiceActivityRelative, setVoiceActivityRelative] = useState<string>();
+
+  const { t } = useTranslation();
+
   useEffect(() => {
     let interval: number | undefined;
     if (recentVoiceActivity) {
       const formatter = () =>
-        relativeTimeFormat(recentVoiceActivity, {
+        relativeTimeFormat(recentVoiceActivity, t, {
           minimumUnit: Meteor.isDevelopment ? "second" : "minute",
         });
       setVoiceActivityRelative(formatter());
@@ -170,7 +174,7 @@ const ChatPeople = ({
         Meteor.clearInterval(interval);
       }
     };
-  }, [recentVoiceActivity]);
+  }, [recentVoiceActivity, t]);
 
   const { unknown, viewers, rtcViewers } = useTracker(() => {
     if (loading) {
@@ -292,7 +296,9 @@ const ChatPeople = ({
       case CallJoinState.CHAT_ONLY:
       case CallJoinState.REQUESTING_STREAM: {
         const joinLabel =
-          rtcViewers.length > 0 ? "Join audio call" : "Start audio call";
+          rtcViewers.length > 0
+            ? t("audio.joinCall", "Join audio call")
+            : t("audio.startCall", "Start audio call");
         return (
           <>
             <AVActions>
@@ -303,12 +309,10 @@ const ChatPeople = ({
             <ChatterSubsection>
               <PeopleListHeader onClick={toggleCallersExpanded}>
                 <FontAwesomeIcon fixedWidth icon={callersHeaderIcon} />
-                {`${rtcViewers.length} caller${
-                  rtcViewers.length !== 1 ? "s" : ""
-                }`}
+                {`${rtcViewers.length} ${t("audio.caller", { count: rtcViewers.length })}`}
                 {voiceActivityRelative && (
                   <>
-                    {" (last voice activity: "}
+                    {` (${t("audio.lastVoiceActivity", "last voice activity")}: `}
                     {voiceActivityRelative})
                   </>
                 )}
@@ -355,7 +359,7 @@ const ChatPeople = ({
       <ChatterSubsection ref={chatterRef}>
         <PeopleListHeader onClick={toggleViewersExpanded}>
           <FontAwesomeIcon fixedWidth icon={viewersHeaderIcon} />
-          {`${totalViewers} viewer${totalViewers !== 1 ? "s" : ""}`}
+          {`${totalViewers} ${t("chat.viewer", { count: totalViewers })}`}
         </PeopleListHeader>
         <PeopleListDiv $collapsed={!viewersExpanded}>
           {viewers.map((viewer) => (

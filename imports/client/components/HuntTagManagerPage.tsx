@@ -24,6 +24,7 @@ import FormLabel from "react-bootstrap/FormLabel";
 import InputGroup from "react-bootstrap/InputGroup";
 import Row from "react-bootstrap/Row";
 import Table from "react-bootstrap/Table";
+import { useTranslation } from "react-i18next";
 import type { FormProps } from "react-router-dom";
 import { useParams } from "react-router-dom";
 import type { ActionMeta, SingleValue } from "react-select";
@@ -166,12 +167,16 @@ const RenameTagSection = ({ huntId }: { huntId: string }) => {
   const idPrefix = useId();
   const theme = useTheme();
 
+  const { t } = useTranslation();
+
   return (
     <section>
-      <h2>Rename tag</h2>
+      <h2>{t("tags.renameTagSection.title", "Rename tag")}</h2>
       <p>
-        Select a tag from the drop-down, then type its new name, and choose
-        &quot;Rename&quot;.
+        {t(
+          "tags.renameTagSection.description",
+          'Select a tag from the drop-down, then type its new name, and choose "Rename".',
+        )}
       </p>
       <Form onSubmit={onFormSubmit}>
         {submitState === SubmitState.FAILED ? (
@@ -182,7 +187,9 @@ const RenameTagSection = ({ huntId }: { huntId: string }) => {
         <Row className="mb-3 align-items-end">
           <Col xs={5}>
             <FormGroup className="mb-3" controlId={`${idPrefix}-rename-source`}>
-              <FormLabel>Tag to rename</FormLabel>
+              <FormLabel>
+                {t("tags.renameTagSection.selectLabel", "Tag to rename")}
+              </FormLabel>
               <Select
                 inputId={`${idPrefix}-rename-source`}
                 options={selectOptions}
@@ -197,7 +204,9 @@ const RenameTagSection = ({ huntId }: { huntId: string }) => {
               className="mb-3"
               controlId={`${idPrefix}-rename-destination`}
             >
-              <FormLabel>New name</FormLabel>
+              <FormLabel>
+                {t("tags.renameTagSection.newNameLabel", "New name")}
+              </FormLabel>
               <FormControl
                 type="text"
                 onChange={onNameChanged}
@@ -209,7 +218,7 @@ const RenameTagSection = ({ huntId }: { huntId: string }) => {
           <Col xs={2}>
             <FormGroup className="mb-3">
               <Button variant="primary" type="submit" disabled={disableRename}>
-                Rename
+                {t("tags.renameTagSection.renameButton", "Rename")}
               </Button>
             </FormGroup>
           </Col>
@@ -350,6 +359,8 @@ const SelectablePuzzleList = ({
     );
   });
 
+  const { t } = useTranslation();
+
   return (
     <TableContainer className="mb-3">
       <StyledTable>
@@ -363,8 +374,8 @@ const SelectablePuzzleList = ({
                 onChange={onHeaderCheckClicked}
               />
             </th>
-            <th>Puzzle</th>
-            <th>Tags</th>
+            <th>{t("common.puzzle", "Puzzle")}</th>
+            <th>{t("tags.tags", "Tags")}</th>
           </tr>
         </thead>
         <tbody>{selectablePuzzles}</tbody>
@@ -561,17 +572,24 @@ const BulkAddRemoveSection = ({
   const idPrefix = useId();
   const theme = useTheme();
 
+  const { t } = useTranslation();
+
   return (
     <section>
-      <h2>Bulk add/remove tags</h2>
-      <p>Select puzzles to modify, then select tag to add or remove</p>
+      <h2>{t("tags.bulkAddRemoveSection.title", "Bulk add/remove tags")}</h2>
+      <p>
+        {t(
+          "tags.bulkAddRemoveSection.description",
+          "Select puzzles to modify, then select tag to add or remove",
+        )}
+      </p>
       <SearchFormGroup controlId={`${idPrefix}-puzzle-search`}>
         <InputGroup>
           <FormControl
             as="input"
             type="text"
             ref={searchBarRef}
-            placeholder="Filter by title, answer, or tag"
+            placeholder={t("tags.filterBy", "Filter by title, answer, or tag")}
             value={searchString}
             onChange={onSearchStringChange}
           />
@@ -582,9 +600,20 @@ const BulkAddRemoveSection = ({
       </SearchFormGroup>
       <PuzzleListToolbar>
         <span>
-          Showing {matchingSearch.length} of {allPuzzles.length} items
+          {t(
+            "tags.bulkAddRemoveSection.showCount",
+            "Showing {{matchCount}} of {{totalCount}} items",
+            {
+              matchCount: matchingSearch.length,
+              totalCount: allPuzzles.length,
+            },
+          )}
         </span>
-        <span>{selectedAndMatchingSearch.length} selected</span>
+        <span>
+          {t("tags.bulkAddRemoveSection.selected", "{{count}} selected", {
+            count: selectedAndMatchingSearch.length,
+          })}
+        </span>
       </PuzzleListToolbar>
       {!loading && (
         <SelectablePuzzleList
@@ -602,7 +631,7 @@ const BulkAddRemoveSection = ({
             className="form-label"
             htmlFor={`${idPrefix}-bulk-selected-tags`}
           >
-            Tag to apply:
+            {t("tags.bulkAddRemoveSection.tagsToApply", "Tag to apply")}:
           </label>
           <Select
             inputId={`${idPrefix}-bulk-selected-tags`}
@@ -620,7 +649,9 @@ const BulkAddRemoveSection = ({
               onClick={addTagsToSelectedAndVisible}
             >
               <FontAwesomeIcon fixedWidth icon={faTags} />
-              Add to {canAddTag.length} selected
+              {t("tags.bulkAddRemoveSection.add", "Add to {{count}} selected", {
+                count: canAddTag.length,
+              })}
             </Button>
             <Button
               variant="danger"
@@ -628,7 +659,11 @@ const BulkAddRemoveSection = ({
               onClick={removeTagsFromSelectedAndVisible}
             >
               <FontAwesomeIcon fixedWidth icon={faTimes} />
-              Remove from {canRemoveTag.length} selected
+              {t(
+                "tags.bulkAddRemoveSection.remove",
+                "Remove from {{count}} selected",
+                { count: canRemoveTag.length },
+              )}
             </Button>
           </ButtonGroup>
         </FormGroup>
@@ -639,7 +674,11 @@ const BulkAddRemoveSection = ({
 
 const HuntTagManagerPage = React.memo(() => {
   const huntId = useParams<{ huntId: string }>().huntId!;
-  useBreadcrumb({ title: "Tags", path: `/hunts/${huntId}/tags` });
+  const { t } = useTranslation();
+  useBreadcrumb({
+    title: t("tags.breadcrumbTitle", "Tags"),
+    path: `/hunts/${huntId}/tags`,
+  });
 
   const puzzlesLoading = useTypedSubscribe(puzzlesForPuzzleList, {
     huntId,
@@ -649,7 +688,7 @@ const HuntTagManagerPage = React.memo(() => {
 
   return (
     <Container>
-      <h1>Tag Manager</h1>
+      <h1>{t("tags.title", "Tag Manager")}</h1>
       <RenameTagSection huntId={huntId} />
       <hr />
       <BulkAddRemoveSection loading={loading} huntId={huntId} />
