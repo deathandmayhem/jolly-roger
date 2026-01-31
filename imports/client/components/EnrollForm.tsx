@@ -1,6 +1,6 @@
 import { Accounts } from "meteor/accounts-base";
 import { Meteor } from "meteor/meteor";
-import type { FormEvent } from "react";
+import type { SubmitEvent } from "react";
 import { useCallback, useState } from "react";
 import Button from "react-bootstrap/Button";
 import { useParams } from "react-router-dom";
@@ -53,7 +53,7 @@ const EnrollForm = () => {
   const formIsValid = password.length > 0 && trimmedDisplayName.length > 0;
 
   const onSubmit = useCallback(
-    (e: FormEvent<HTMLFormElement>) => {
+    (e: SubmitEvent<HTMLFormElement>) => {
       e.preventDefault();
       if (
         submitState !== AccountFormSubmitState.SUBMITTING &&

@@ -38,7 +38,7 @@ const FirstUserForm = () => {
   }, []);
 
   const onSubmit = useCallback(
-    (e: React.FormEvent<any>) => {
+    (e: React.SubmitEvent<HTMLFormElement>) => {
       e.preventDefault();
 
       const trimmedEmail = email.trim();
@@ -108,12 +108,7 @@ const FirstUserForm = () => {
           onChange={onPasswordChange}
         />
       </FormGroup>
-      <Button
-        variant="primary"
-        type="submit"
-        disabled={shouldDisableForm}
-        onSubmit={onSubmit}
-      >
+      <Button variant="primary" type="submit" disabled={shouldDisableForm}>
         Create first user
       </Button>
     </form>
