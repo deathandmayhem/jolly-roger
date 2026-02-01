@@ -1130,8 +1130,7 @@ const PuzzlePageMetadata = ({
       target="_blank"
       rel="noreferrer noopener"
     >
-      <FontAwesomeIcon fixedWidth icon={faPuzzlePiece} />{" "}
-      <span>{puzzle.title}</span>
+      <FontAwesomeIcon fixedWidth icon={faPuzzlePiece} /> <span>Puzzle</span>
     </PuzzleMetadataExternalLink>
   ) : null;
 
