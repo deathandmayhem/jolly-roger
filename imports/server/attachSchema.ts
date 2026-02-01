@@ -13,19 +13,21 @@ export default async function attachSchema<T extends MongoRecordZodType>(
   const validator = { $jsonSchema: generateJsonSchema(schema) };
   const db = collection.rawDatabase();
 
+  // Ensure the collection exists (ignore if it was already created)
   try {
-    await db.command({
-      collMod: collection._name,
-      validator,
-    });
+    await db.createCollection(collection._name);
   } catch (error) {
     if (
       !(error instanceof MongoError) ||
-      error.code !== 26 /* NamespaceNotFound */
+      error.code !== 48 /* NamespaceExists */
     ) {
       throw error;
     }
-
-    await db.createCollection(collection._name, { validator });
   }
+
+  // Attach the schema validator
+  await db.command({
+    collMod: collection._name,
+    validator,
+  });
 }
