@@ -1,9 +1,11 @@
 import type { Mongo } from "meteor/mongo";
+import i18n from "i18next";
 import { contentFromMessage } from "../lib/models/ChatMessages";
 import type { GuessType } from "../lib/models/Guesses";
 import Guesses from "../lib/models/Guesses";
 import Puzzles from "../lib/models/Puzzles";
 import GlobalHooks from "./GlobalHooks";
+import { serverLanguage } from "./lang";
 import sendChatMessageInternal from "./sendChatMessageInternal";
 
 export default async function transitionGuess(
@@ -29,15 +31,41 @@ export default async function transitionGuess(
   let stateDescription;
   switch (newState) {
     case "intermediate":
-      stateDescription = "as a correct intermediate answer";
+      stateDescription = i18n.t(
+        "puzzle.answerOrGuess.guessState.intermediate",
+        "as a correct intermediate answer",
+        { lng: serverLanguage },
+      );
+      break;
+    case "correct":
+      stateDescription = i18n.t(
+        "puzzle.answerOrGuess.guessState.correct",
+        "as correct",
+        { lng: serverLanguage },
+      );
+      break;
+    case "incorrect":
+      stateDescription = i18n.t(
+        "puzzle.answerOrGuess.guessState.incorrect",
+        "as incorrect",
+        { lng: serverLanguage },
+      );
       break;
     default:
       stateDescription = `as ${newState}`;
       break;
   }
-  const message = `Guess \`${guess.guess}\` was marked ${stateDescription}${
-    additionalNotes ? `: ${additionalNotes}` : ""
-  }`;
+
+  const message = i18n.t(
+    "puzzle.answerOrGuess.guessStateChanged",
+    `Guess \`{{guess}}\` was marked {{state}}{{notes}}`,
+    {
+      lng: serverLanguage,
+      guess: guess.guess,
+      state: stateDescription,
+      notes: additionalNotes ? `: ${additionalNotes}` : "",
+    },
+  );
   const content = contentFromMessage(message);
   await sendChatMessageInternal({
     puzzleId: guess.puzzle,

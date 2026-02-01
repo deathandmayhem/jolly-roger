@@ -21,6 +21,7 @@ import Overlay from "react-bootstrap/Overlay";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Tooltip from "react-bootstrap/Tooltip";
 import { createPortal } from "react-dom";
+import { Trans, useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Flags from "../../Flags";
 import MeteorUsers from "../../lib/models/MeteorUsers";
@@ -145,6 +146,8 @@ const SelfBox = ({
 
   const tooltipId = useId();
 
+  const { t } = useTranslation();
+
   return (
     <OverlayTrigger
       placement="bottom"
@@ -162,12 +165,22 @@ const SelfBox = ({
       }}
       overlay={
         <Tooltip id={tooltipId}>
-          <div>You are in the call.</div>
+          <div>{t("audio.tooltip.inTheCall", "You are in the call.")}</div>
           {muted && (
-            <div>You are currently muted and will transmit no audio.</div>
+            <div>
+              {t(
+                "audio.tooltip.selfMuted",
+                "You are currently muted and will transmit no audio.",
+              )}
+            </div>
           )}
           {deafened && (
-            <div>You are currently deafened and will hear no audio.</div>
+            <div>
+              {t(
+                "audio.tooltip.selfDeafened",
+                "You are currently deafened and will hear no audio.",
+              )}
+            </div>
           )}
         </Tooltip>
       }
@@ -258,37 +271,66 @@ const PeerMuteConfirmModal = ({
     hide();
   }, [onLocalMuteToggle, hide]);
 
+  const { t } = useTranslation();
+
   const modal = (
     <Modal show={visible} onHide={hide}>
       <Modal.Header closeButton>
-        <Modal.Title>Manage audio for {name}</Modal.Title>
+        <Modal.Title>
+          {t("audio.peerMuteModal.title", "Manage audio for {{name}}", {
+            name,
+          })}
+        </Modal.Title>
       </Modal.Header>
       <Modal.Body>
         <div>
-          <h4>Mute for me</h4>
+          <h4>{t("audio.peerMuteModal.muteForMe", "Mute for me")}</h4>
           <p>
-            Toggle hearing audio from {name}. This will not affect what others
-            hear and you can (un)mute them here anytime. You will need to set
-            this each time you connect to a call.
+            {t(
+              "audio.peerMuteModal.muteForMeHelp",
+              `Toggle hearing audio from {{name}}. This will not affect what others
+              hear and you can (un)mute them here anytime. You will need to set
+              this each time you connect to a call.`,
+              { name },
+            )}
           </p>
           <Button
             variant={isLocallyMuted ? "primary" : "outline-primary"}
             onClick={handleLocalMuteToggle}
             className="mb-2"
           >
-            {isLocallyMuted ? <>Unmute for me</> : <>Mute for me</>}
+            {isLocallyMuted
+              ? t("audio.peerMuteModal.unmuteForMe", "Unmute for me")
+              : t("audio.peerMuteModal.muteForMe", "Mute for me")}
           </Button>
         </div>
         <hr className="my-3" />
         <div>
-          <h4>Mute for everyone</h4>
+          <h4>
+            {t("audio.peerMuteModal.muteForEveryone", "Mute for everyone")}
+          </h4>
           <p>
-            This will mute {name} for <strong>everyone</strong> on the call. Use
-            this only as a last resort if they are disruptive and cannot mute
-            themselves. Only they will be able to unmute themselves.
+            <Trans
+              i18nKey="audio.peerMuteModal.muteForEveryoneHelp"
+              t={t}
+              defaults={`This will mute {{name}} for <strong>everyone</strong>
+                  on the call. Use this only as a last resort if they are
+                  disruptive and cannot mute themselves. Only they will be able
+                  to unmute themselves.`}
+              values={{ name }}
+              components={{
+                strong: <strong />,
+              }}
+            />
           </p>
 
-          <p>Are you sure you want to mute {name}?</p>
+          <p>
+            {t(
+              "audio.peerMuteModal.areYouSure",
+              "Are you sure you want to mute {{name}}?",
+              { name },
+            )}
+          </p>
 
           {error && (
             <Alert variant="danger" dismissible onClose={clearError}>
@@ -299,10 +341,10 @@ const PeerMuteConfirmModal = ({
       </Modal.Body>
       <Modal.Footer>
         <Button variant="secondary" onClick={hide} disabled={disabled}>
-          Cancel
+          {t("common.cancel", "Cancel")}
         </Button>
         <Button variant="danger" onClick={mute} disabled={disabled}>
-          Mute for everyone
+          {t("audio.peerMuteModal.muteForEveryone", "Mute for everyone")}
         </Button>
       </Modal.Footer>
     </Modal>
@@ -374,6 +416,8 @@ const PeerBox = ({
     }
   }, [isLocalMuted, audioRef, stream]);
 
+  const { t } = useTranslation();
+
   return (
     <>
       {renderMuteModal && (
@@ -402,10 +446,26 @@ const PeerBox = ({
         overlay={
           <ChatterTooltip id={tooltipId}>
             <div>{name}</div>
-            {muted && <div>Muted (no one can hear them)</div>}
-            {deafened && <div>Deafened (they can&apos;t hear anyone)</div>}
+            {muted && (
+              <div>
+                {t("audio.tooltip.otherMuted", "Muted (no one can hear them)")}
+              </div>
+            )}
+            {deafened && (
+              <div>
+                {t(
+                  "audio.tooltip.otherDeafened",
+                  "Deafened (they can't hear anyone)",
+                )}
+              </div>
+            )}
             {isLocalMuted && !muted && (
-              <div>Muted by you (others can hear them)</div>
+              <div>
+                {t(
+                  "audio.tooltip.localMuted",
+                  "Muted by you (others can hear them)",
+                )}
+              </div>
             )}
           </ChatterTooltip>
         }
@@ -480,6 +540,8 @@ const Callers = ({
   const callerCount = otherPeers.length + 1; // +1 for self
   const chatterRef = useRef<HTMLDivElement>(null);
 
+  const { t } = useTranslation();
+
   const peerBoxes = otherPeers.map((peer) => {
     const stream = peerStreams.get(peer._id);
     return (
@@ -498,7 +560,7 @@ const Callers = ({
     <ChatterSubsection ref={chatterRef}>
       <ChatterSubsectionHeader onClick={onToggleCallersExpanded}>
         <FontAwesomeIcon fixedWidth icon={callersHeaderIcon} />
-        {`${callerCount} caller${callerCount !== 1 ? "s" : ""}`}
+        {`${callerCount} ${t("audio.caller", { count: callerCount })}`}
       </ChatterSubsectionHeader>
       <PeopleListDiv $collapsed={!callersExpanded}>
         <SelfBox
@@ -558,6 +620,8 @@ const CallSection = ({
     "hidden" | "show" | "dismissing"
   >("hidden");
 
+  const { t } = useTranslation();
+
   useEffect(() => {
     if (mutedBy !== undefined && showMutedBy === "hidden") {
       setShowMutedBy("show");
@@ -607,7 +671,9 @@ const CallSection = ({
               size="sm"
               onClick={onToggleMute}
             >
-              {muted ? "Un\u00ADmute" : "Mute self"}
+              {muted
+                ? t("audio.unmute", "Un\u00ADmute")
+                : t("audio.muteSelf", "Mute self")}
             </AVButton>
             {Meteor.isDevelopment && (
               <AVButton
@@ -615,13 +681,15 @@ const CallSection = ({
                 size="sm"
                 onClick={onToggleDeafen}
               >
-                {deafened ? "Un\u00ADdeafen" : "Deafen self"}
+                {deafened
+                  ? t("audio.undeafen", "Un\u00ADdeafen")
+                  : t("audio.deafenSelf", "Deafen self")}
               </AVButton>
             )}
           </>
         )}
         <AVButton variant="danger" size="sm" onClick={onLeaveCall}>
-          Leave call
+          {t("audio.leave", "Leave call")}
         </AVButton>
       </AVActions>
       {joiningCallAlert}
@@ -632,10 +700,14 @@ const CallSection = ({
       >
         <Tooltip id={`${idPrefix}-muted-on-join-notification`}>
           <div>
-            We&apos;ve left your mic muted for now given the number of people on
-            the call. You can unmute yourself at any time.
+            {t(
+              "audio.mutedOnJoin",
+              "We've left your mic muted for now given the number of people on the call. You can unmute yourself at any time.",
+            )}
           </div>
-          <Button onClick={onDismissPeerStateNotification}>Got it</Button>
+          <Button onClick={onDismissPeerStateNotification}>
+            {t("common.gotIt", "Got it")}
+          </Button>
         </Tooltip>
       </Overlay>
       <Overlay
@@ -646,12 +718,18 @@ const CallSection = ({
       >
         <Tooltip id={`${idPrefix}-remote-muted-notification`}>
           <div>
-            You were muted by {mutedBy ?? "someone else"}. This usually happens
+            {t(
+              "audio.mutedBySomeone",
+              `You were muted by {{mutedBy}}. This usually happens
             when it seemed like you had stepped away from your computer without
             muting yourself, but your microphone was still on. You can unmute
-            yourself at any time.
+            yourself at any time.`,
+              { mutedBy: mutedBy ?? "someone else" },
+            )}
           </div>
-          <Button onClick={onDismissRemoteMuted}>Got it</Button>
+          <Button onClick={onDismissRemoteMuted}>
+            {t("common.gotIt", "Got it")}
+          </Button>
         </Tooltip>
       </Overlay>
       {!joiningCallAlert && (

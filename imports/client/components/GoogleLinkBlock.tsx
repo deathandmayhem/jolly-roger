@@ -9,6 +9,7 @@ import Button from "react-bootstrap/Button";
 import FormGroup from "react-bootstrap/FormGroup";
 import FormLabel from "react-bootstrap/FormLabel";
 import FormText from "react-bootstrap/FormText";
+import { Trans, useTranslation } from "react-i18next";
 import Flags from "../../Flags";
 import linkUserGoogleAccount from "../../methods/linkUserGoogleAccount";
 import unlinkUserGoogleAccount from "../../methods/unlinkUserGoogleAccount";
@@ -86,8 +87,8 @@ const GoogleLinkBlock = ({ user }: { user: Meteor.User }) => {
     }
 
     const text = user.googleAccount
-      ? "Link a different Google account"
-      : "Link your Google account";
+      ? t("profile.google.linkDifferent", "Link a different Google account")
+      : t("profile.google.link", "Link your Google account");
 
     return (
       <Button variant="primary" onClick={onLink}>
@@ -96,13 +97,15 @@ const GoogleLinkBlock = ({ user }: { user: Meteor.User }) => {
     );
   };
 
+  const { t } = useTranslation();
+
   if (!config) {
     return <div />;
   }
 
   return (
     <FormGroup className="mb-3">
-      <FormLabel>Google Account</FormLabel>
+      <FormLabel>{t("profile.google.account", "Google Account")}</FormLabel>
       {state.state === GoogleLinkBlockLinkState.ERROR ? (
         <Alert variant="danger" dismissible onClose={dismissAlert}>
           Linking Google account failed: {state.error.message}
@@ -115,24 +118,32 @@ const GoogleLinkBlock = ({ user }: { user: Meteor.User }) => {
         {linkButton()}{" "}
         {user.googleAccount ? (
           <Button variant="danger" onClick={onUnlink}>
-            Unlink
+            {t("profile.google.unlink")}
           </Button>
         ) : undefined}
       </div>
       <FormText>
-        Linking your Google account isn&apos;t required, but this will let other
-        people see who you are on puzzles&apos; Google Spreadsheet docs (instead
-        of being an{" "}
-        <a
-          href="https://support.google.com/docs/answer/2494888?visit_id=1-636184745566842981-35709989&hl=en&rd=1"
-          rel="noopener noreferrer"
-          target="_blank"
-        >
-          anonymous animal
-        </a>
-        ), and we&apos;ll use it to give you access to our practice puzzles.
-        (You can only have one Google account linked, so linking a new one will
-        cause us to forget the old one).
+        <Trans
+          i18nKey="profile.google.help"
+          t={t}
+          defaults={`Linking your Google account isn't required, but this will
+                    let other  people see who you are on puzzles' Google
+                    Spreadsheet docs (instead of being an
+                    <anonymousLink>anonymous animal</anonymousLink>), and we'll
+                    use it to give you access to our practice puzzles. (You can
+                    only have one Google account linked, so linking a new one
+                    will cause us to forget the old one).`}
+          components={{
+            anonymousLink: (
+              // biome-ignore lint/a11y/useAnchorContent: this link won't really be empty
+              <a
+                href="https://support.google.com/docs/answer/2494888?visit_id=1-636184745566842981-35709989&hl=en&rd=1"
+                rel="noopener noreferrer"
+                target="_blank"
+              />
+            ),
+          }}
+        />
       </FormText>
     </FormGroup>
   );

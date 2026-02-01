@@ -17,6 +17,7 @@ import FormControl from "react-bootstrap/FormControl";
 import FormGroup from "react-bootstrap/FormGroup";
 import FormLabel from "react-bootstrap/FormLabel";
 import Row from "react-bootstrap/Row";
+import { useTranslation } from "react-i18next";
 import type { ActionMeta } from "react-select";
 import { useTheme } from "styled-components";
 import type { GdriveMimeTypesType } from "../../lib/GdriveMimeTypes";
@@ -195,6 +196,8 @@ const PuzzleModalForm = ({
     [],
   );
 
+  const { t } = useTranslation();
+
   const onFormSubmit = useCallback(
     (callback: () => void) => {
       setSubmitState(PuzzleModalFormSubmitState.SUBMITTING);
@@ -220,9 +223,13 @@ const PuzzleModalForm = ({
             error.error === 409
           ) {
             setErrorMessage(
-              "A puzzle already exists with this URL - did someone else already add this" +
-                ' puzzle? To force creation anyway, check the "Allow puzzles with identical' +
-                ' URLs" box above and try again.',
+              t(
+                "puzzle.edit.duplicateUrlWarning",
+                `A puzzle already exists with this URL - did someone else
+                    already add this puzzle? To force creation anyway, check
+                  the "Allow puzzles with identical URLs" box above and try
+                  again.`,
+              ),
             );
             setConfirmingDuplicateUrl(true);
           } else {
@@ -253,6 +260,7 @@ const PuzzleModalForm = ({
       docType,
       allowDuplicateUrls,
       considerCompletedWithNoAnswer,
+      t,
     ],
   );
 
@@ -345,7 +353,7 @@ const PuzzleModalForm = ({
     !puzzle && docType ? (
       <FormGroup as={Row} className="mb-3">
         <FormLabel column xs={3}>
-          Document type
+          {t("puzzle.edit.documentType", "Document type")}
         </FormLabel>
         <Col xs={9}>
           <LabelledRadioGroup
@@ -361,7 +369,12 @@ const PuzzleModalForm = ({
               },
             ]}
             initialValue={docType}
-            help="This can't be changed once a puzzle has been created. Unless you're absolutely sure, use a spreadsheet. We only expect to use documents for administrivia."
+            help={t(
+              "puzzle.edit.documentTypeHelp",
+              `This can't be changed once a puzzle has been created. Unless
+                you're absolutely sure, use a spreadsheet. We only expect to
+                use documents for administrivia.`,
+            )}
             onChange={onDocTypeChange}
           />
         </Col>
@@ -372,7 +385,10 @@ const PuzzleModalForm = ({
     !puzzle && allowDuplicateUrls !== undefined && confirmingDuplicateUrl ? (
       <FormCheck
         id={`${idPrefix}-allow-duplicate-urls`}
-        label="Allow puzzles with identical URLs"
+        label={t(
+          "puzzle.edit.allowDuplicateUrls",
+          "Allow puzzles with identical URLs",
+        )}
         type="checkbox"
         disabled={disableForm}
         onChange={onAllowDuplicateUrlsChange}
@@ -392,7 +408,11 @@ const PuzzleModalForm = ({
     >
       <ModalForm
         ref={formRef}
-        title={puzzle ? "Edit puzzle" : "Add puzzle"}
+        title={
+          puzzle
+            ? t("puzzle.edit.editPuzzle", "Edit puzzle")
+            : t("puzzle.edit.addPuzzle", "Add puzzle")
+        }
         onSubmit={onFormSubmit}
         submitDisabled={disableForm}
       >
@@ -402,7 +422,7 @@ const PuzzleModalForm = ({
           controlId={`${idPrefix}-new-puzzle-title`}
         >
           <FormLabel column xs={3}>
-            Title
+            {t("puzzle.edit.title", "Title")}
           </FormLabel>
           <Col xs={9}>
             <FormControl
@@ -421,7 +441,7 @@ const PuzzleModalForm = ({
           controlId={`${idPrefix}-new-puzzle-url`}
         >
           <FormLabel column xs={3}>
-            URL
+            {t("puzzle.edit.url", "URL")}
           </FormLabel>
           <Col xs={9}>
             <FormControl
@@ -440,7 +460,7 @@ const PuzzleModalForm = ({
           controlId={`${idPrefix}-new-puzzle-tags`}
         >
           <FormLabel column xs={3}>
-            Tags
+            {t("puzzle.edit.tags", "Tags")}
           </FormLabel>
           <Col xs={9}>
             <Creatable
@@ -465,7 +485,7 @@ const PuzzleModalForm = ({
           controlId={`${idPrefix}-new-puzzle-expected-answer-count`}
         >
           <FormLabel column xs={3}>
-            Expected # of answers
+            {t("puzzle.edit.answerCount", "Expected # of answers")}
           </FormLabel>
           <Col xs={9}>
             <FormControl
@@ -482,7 +502,10 @@ const PuzzleModalForm = ({
         {currentExpectedAnswerCount === 0 ? (
           <FormCheck
             id={`${idPrefix}-solved-with-no-answers`}
-            label="Consider solved with no answers"
+            label={t(
+              "puzzle.edit.considerSolvedWithNoAnswer",
+              "Consider solved with no answers",
+            )}
             type="checkbox"
             checked={currentConsiderCompletedWithNoAnswer}
             disabled={disableForm}

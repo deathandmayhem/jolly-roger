@@ -21,6 +21,7 @@ import FormLabel from "react-bootstrap/FormLabel";
 import InputGroup from "react-bootstrap/InputGroup";
 import ToggleButton from "react-bootstrap/ToggleButton";
 import ToggleButtonGroup from "react-bootstrap/ToggleButtonGroup";
+import { useTranslation } from "react-i18next";
 import { useParams, useSearchParams } from "react-router-dom";
 import styled, { css } from "styled-components";
 import { sortedBy } from "../../lib/listUtils";
@@ -318,6 +319,8 @@ const PuzzleListView = ({
     }
   }, []);
 
+  const { t } = useTranslation();
+
   const renderList = useCallback(
     (
       retainedPuzzles: PuzzleType[],
@@ -327,12 +330,21 @@ const PuzzleListView = ({
     ) => {
       const maybeMatchWarning = solvedOverConstrains && (
         <Alert variant="info">
-          No matches found in unsolved puzzles; showing matches from solved
-          puzzles
+          {t(
+            "puzzleList.maybeMatchWarning",
+            "No matches found in unsolved puzzles; showing matches from solved puzzles",
+          )}
         </Alert>
       );
       const retainedIds = new Set(retainedPuzzles.map((puzzle) => puzzle._id));
-      const filterMessage = `Showing ${retainedPuzzles.length} of ${allPuzzlesCount} items`;
+      const filterMessage = t(
+        "puzzleList.filteredPuzzleCountMessage",
+        "Showing {{retainedCount}} of {{allPuzzlesCount}} items",
+        {
+          retainedCount: retainedPuzzles.length,
+          allPuzzlesCount: allPuzzlesCount,
+        },
+      );
 
       const bookmarkedPuzzles = retainedPuzzles.filter((puzzle) =>
         bookmarked.has(puzzle._id),
@@ -361,7 +373,7 @@ const PuzzleListView = ({
                 key={g.sharedTag ? g.sharedTag._id : "ungrouped"}
                 huntId={huntId}
                 group={g}
-                noSharedTagLabel="(no group specified)"
+                noSharedTagLabel={`(${t("puzzleList.noGroupSpecified", "no group specified")})`}
                 bookmarked={bookmarked}
                 allTags={allTags}
                 includeCount={false}
@@ -378,7 +390,8 @@ const PuzzleListView = ({
               disabled={!canExpandAllGroups}
               onClick={expandAllGroups}
             >
-              <FontAwesomeIcon icon={faCaretDown} /> Expand all
+              <FontAwesomeIcon icon={faCaretDown} />{" "}
+              {t("common.expandAll", "Expand all")}
             </Button>
           );
           break;
@@ -411,7 +424,7 @@ const PuzzleListView = ({
           </PuzzleListToolbar>
           {bookmarkedPuzzles.length > 0 && (
             <PuzzleGroupDiv>
-              <div>Bookmarked</div>
+              <div>{t("puzzleList.bookmarked", "Bookmarked")}</div>
               <RelatedPuzzleList
                 key="bookmarked"
                 relatedPuzzles={bookmarkedPuzzles}
@@ -429,7 +442,10 @@ const PuzzleListView = ({
               key="deleted"
               huntId={huntId}
               group={{ puzzles: retainedDeletedPuzzles, subgroups: [] }}
-              noSharedTagLabel="Deleted puzzles (operator only)"
+              noSharedTagLabel={t(
+                "puzzleList.deletedPuzzlesGroup",
+                "Deleted puzzles (operator only)",
+              )}
               bookmarked={bookmarked}
               allTags={allTags}
               includeCount={false}
@@ -451,6 +467,7 @@ const PuzzleListView = ({
       canExpandAllGroups,
       expandAllGroups,
       bookmarked,
+      t,
     ],
   );
 
@@ -465,7 +482,9 @@ const PuzzleListView = ({
         onSubmit={onAdd}
       />
       <OperatorActionsFormGroup>
-        <FormLabel>Operator Interface</FormLabel>
+        <FormLabel>
+          {t("puzzleList.operatorInterface", "Operator Interface")}
+        </FormLabel>
         <ButtonToolbar>
           <StyledToggleButtonGroup
             type="radio"
@@ -479,21 +498,22 @@ const PuzzleListView = ({
               variant="outline-info"
               value="hide"
             >
-              Off
+              {t("common.off", "Off")}
             </ToggleButton>
             <ToggleButton
               id={`${idPrefix}-operator-actions-show-button`}
               variant="outline-info"
               value="show"
             >
-              On
+              {t("common.on", "On")}
             </ToggleButton>
           </StyledToggleButtonGroup>
         </ButtonToolbar>
       </OperatorActionsFormGroup>
       <AddPuzzleFormGroup>
         <StyledButton variant="primary" onClick={showAddModal}>
-          <FontAwesomeIcon icon={faPlus} /> Add a puzzle
+          <FontAwesomeIcon icon={faPlus} />{" "}
+          {t("puzzle.edit.addPuzzle", "Add a puzzle")}
         </StyledButton>
       </AddPuzzleFormGroup>
     </>
@@ -517,7 +537,7 @@ const PuzzleListView = ({
     <div>
       <ViewControls $canAdd={canAdd}>
         <FormGroup>
-          <FormLabel>Organize by</FormLabel>
+          <FormLabel>{t("puzzleList.organizeBy", "Organize by")}</FormLabel>
           <ButtonToolbar>
             <StyledToggleButtonGroup
               type="radio"
@@ -531,20 +551,22 @@ const PuzzleListView = ({
                 variant="outline-info"
                 value="group"
               >
-                Group
+                {t("puzzleList.byGroup", "Group")}
               </ToggleButton>
               <ToggleButton
                 id={`${idPrefix}-view-unlock-button`}
                 variant="outline-info"
                 value="unlock"
               >
-                Unlock
+                {t("puzzleList.byUnlock", "Unlock")}
               </ToggleButton>
             </StyledToggleButtonGroup>
           </ButtonToolbar>
         </FormGroup>
         <FormGroup>
-          <FormLabel>Solved puzzles</FormLabel>
+          <FormLabel>
+            {t("puzzleList.solvedPuzzles", "Solved puzzles")}
+          </FormLabel>
           <ButtonToolbar>
             <StyledToggleButtonGroup
               type="radio"
@@ -558,14 +580,14 @@ const PuzzleListView = ({
                 variant="outline-info"
                 value="hide"
               >
-                Hidden
+                {t("common.hidden", "Hidden")}
               </ToggleButton>
               <ToggleButton
                 id={`${idPrefix}-solved-show-button`}
                 variant="outline-info"
                 value="show"
               >
-                Shown
+                {t("common.shown", "Shown")}
               </ToggleButton>
             </StyledToggleButtonGroup>
           </ButtonToolbar>
@@ -575,13 +597,18 @@ const PuzzleListView = ({
           $canAdd={canAdd}
           controlId={`${idPrefix}-puzzle-search`}
         >
-          <SearchFormLabel $canAdd={canAdd}>Search</SearchFormLabel>
+          <SearchFormLabel $canAdd={canAdd}>
+            {t("common.search", "Search")}
+          </SearchFormLabel>
           <InputGroup>
             <FormControl
               as="input"
               type="text"
               ref={searchBarRef}
-              placeholder="Filter by title, answer, or tag"
+              placeholder={t(
+                "puzzleList.filterByPlaceholder",
+                "Filter by title, answer, or tag",
+              )}
               value={searchString}
               onChange={onSearchStringChange}
             />
@@ -622,8 +649,10 @@ const PuzzleListPage = () => {
   // Don't bother including this in loading - it's ok if they trickle in
   useTypedSubscribe(puzzleActivityForHunt, { huntId });
 
+  const { t } = useTranslation();
+
   return loading ? (
-    <span>loading...</span>
+    <span>{t("common.loading", "loading")}...</span>
   ) : (
     <div>
       <HuntNavWrapper>

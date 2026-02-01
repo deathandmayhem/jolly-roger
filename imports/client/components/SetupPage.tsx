@@ -14,6 +14,7 @@ import FormControl from "react-bootstrap/FormControl";
 import FormGroup from "react-bootstrap/FormGroup";
 import FormLabel from "react-bootstrap/FormLabel";
 import FormText from "react-bootstrap/FormText";
+import { useTranslation } from "react-i18next";
 import Creatable from "react-select/creatable";
 import styled, { useTheme } from "styled-components";
 import Flags from "../../Flags";
@@ -39,6 +40,7 @@ import configureGoogleScriptUrl from "../../methods/configureGoogleScriptUrl";
 import configureListS3Buckets from "../../methods/configureListS3Buckets";
 import configureOrganizeGoogleDrive from "../../methods/configureOrganizeGoogleDrive";
 import configureS3ImageBucket from "../../methods/configureS3ImageBucket";
+import configureServerLanguage from "../../methods/configureServerLanguage";
 import configureTeamName from "../../methods/configureTeamName";
 import generateUploadToken from "../../methods/generateUploadToken";
 import setFeatureFlag from "../../methods/setFeatureFlag";
@@ -203,19 +205,21 @@ const GoogleOAuthForm = ({
 
   const idPrefix = useId();
 
+  const { t } = useTranslation();
+
   return (
     <form onSubmit={onSubmitOauthConfiguration}>
       {state.submitState === SubmitState.SUBMITTING ? (
-        <Alert variant="info">Saving...</Alert>
+        <Alert variant="info">{t("common.saving", "Saving")}...</Alert>
       ) : null}
       {state.submitState === SubmitState.ERROR ? (
         <Alert variant="success" dismissible onClose={dismissAlert}>
-          Saved changes.
+          {t("common.saveSuccess", "Saved changes.")}
         </Alert>
       ) : null}
       {state.submitState === SubmitState.ERROR ? (
         <Alert variant="danger" dismissible onClose={dismissAlert}>
-          Saving failed: {state.submitError}
+          {t("common.saveFailed", "Saving failed")}: {state.submitError}
         </Alert>
       ) : null}
       <FormGroup className="mb-3" controlId={`${idPrefix}-client-id`}>
@@ -244,7 +248,7 @@ const GoogleOAuthForm = ({
           disabled={shouldDisableForm}
           onSubmit={onSubmitOauthConfiguration}
         >
-          Save
+          {t("common.save", "Save")}
         </Button>
       </ActionButtonRow>
     </form>
@@ -304,19 +308,21 @@ const GoogleAuthorizeDriveClientForm = () => {
     return false;
   }, [requestComplete]);
 
+  const { t } = useTranslation();
+
   return (
     <div>
       {state.submitState === SubmitState.SUBMITTING ? (
-        <Alert variant="info">Saving...</Alert>
+        <Alert variant="info">{t("common.saving", "Saving")}...</Alert>
       ) : null}
       {state.submitState === SubmitState.SUCCESS ? (
         <Alert variant="success" onClose={dismissAlert}>
-          Saved changes.
+          {t("common.saveSuccess", "Saved changes.")}
         </Alert>
       ) : null}
       {state.submitState === SubmitState.ERROR ? (
         <Alert variant="danger" dismissible onClose={dismissAlert}>
-          Saving failed: {state.error.message}
+          {t("common.saveFailed", "Saving failed")}: {state.error.message}
         </Alert>
       ) : null}
       <Button variant="primary" onClick={showPopup}>
@@ -391,20 +397,22 @@ const GoogleDriveRootForm = ({ initialRootId }: { initialRootId?: string }) => {
 
   const idPrefix = useId();
 
+  const { t } = useTranslation();
+
   const shouldDisableForm = state.submitState === SubmitState.SUBMITTING;
   return (
     <div>
       {state.submitState === SubmitState.SUBMITTING ? (
-        <Alert variant="info">Saving...</Alert>
+        <Alert variant="info">{t("common.saving", "Saving")}...</Alert>
       ) : null}
       {state.submitState === SubmitState.SUCCESS ? (
         <Alert variant="success" dismissible onClose={dismissAlert}>
-          Saved changes.
+          {t("common.saveSuccess", "Saved changes.")}
         </Alert>
       ) : null}
       {state.submitState === SubmitState.ERROR ? (
         <Alert variant="danger" dismissible onClose={dismissAlert}>
-          Saving failed: {state.error.message}
+          {t("common.saveFailed", "Saving failed")}: {state.error.message}
         </Alert>
       ) : null}
       <FormGroup className="mb-3" controlId={`${idPrefix}-google-drive-root`}>
@@ -422,7 +430,7 @@ const GoogleDriveRootForm = ({ initialRootId }: { initialRootId?: string }) => {
           onClick={saveRootId}
           disabled={shouldDisableForm}
         >
-          Save
+          {t("common.save", "Save")}
         </Button>
       </ActionButtonRow>
       <FormGroup
@@ -521,20 +529,22 @@ const GoogleDriveTemplateForm = ({
 
   const idPrefix = useId();
 
+  const { t } = useTranslation();
+
   const shouldDisableForm = state.submitState === SubmitState.SUBMITTING;
   return (
     <div>
       {state.submitState === SubmitState.SUBMITTING ? (
-        <Alert variant="info">Saving...</Alert>
+        <Alert variant="info">{t("common.saving", "Saving")}...</Alert>
       ) : null}
       {state.submitState === SubmitState.SUCCESS ? (
         <Alert variant="success" dismissible onClose={dismissAlert}>
-          Saved changes.
+          {t("common.saveSuccess", "Saved changes.")}
         </Alert>
       ) : null}
       {state.submitState === SubmitState.ERROR ? (
         <Alert variant="danger" dismissible onClose={dismissAlert}>
-          Saving failed: {state.error.message}
+          {t("common.saveFailed", "Saving failed")}: {state.error.message}
         </Alert>
       ) : null}
       <FormGroup
@@ -564,7 +574,7 @@ const GoogleDriveTemplateForm = ({
           onClick={saveTemplates}
           disabled={shouldDisableForm}
         >
-          Save
+          {t("common.save", "Save")}
         </Button>
       </ActionButtonRow>
     </div>
@@ -637,20 +647,22 @@ const GoogleScriptForm = ({
 
   const idPrefix = useId();
 
+  const { t } = useTranslation();
+
   const shouldDisable = state.submitState === SubmitState.SUBMITTING;
   return (
     <>
       {state.submitState === SubmitState.SUBMITTING ? (
-        <Alert variant="info">Saving...</Alert>
+        <Alert variant="info">{t("common.saving", "Saving")}...</Alert>
       ) : null}
       {state.submitState === SubmitState.SUCCESS ? (
         <Alert variant="success" dismissible onClose={dismissAlert}>
-          Saved changes.
+          {t("common.saveSuccess", "Saved changes.")}
         </Alert>
       ) : null}
       {state.submitState === SubmitState.ERROR ? (
         <Alert variant="danger" dismissible onClose={dismissAlert}>
-          Saving failed: {state.error.message}
+          {t("common.saveFailed", "Saving failed")}: {state.error.message}
         </Alert>
       ) : null}
       <p>
@@ -760,7 +772,7 @@ const GoogleScriptForm = ({
               onClick={saveEndpointUrl}
               disabled={shouldDisable}
             >
-              Save
+              {t("common.save", "Save")}
             </Button>
           </ActionButtonRow>
         </>
@@ -797,6 +809,113 @@ const FeatureToggle = ({
         {secondButtonLabel}
       </Button>
     </>
+  );
+};
+
+const LanguageSection = () => {
+  const { t } = useTranslation();
+
+  const initialLanguage = useTracker(() => {
+    const languageSetting = Settings.findOne({ name: "language" });
+    return languageSetting?.value.language ?? "en";
+  }, []);
+  const [language, setLanguage] = useState<string>(initialLanguage);
+  const [submitState, setSubmitState] = useState<SubmitState>(SubmitState.IDLE);
+  const [submitError, setSubmitError] = useState<string>("");
+  const dismissAlert = useCallback(() => {
+    setSubmitState(SubmitState.IDLE);
+  }, []);
+
+  const onLanguageChange: NonNullable<FormControlProps["onChange"]> =
+    useCallback((e) => {
+      const newValue = e.currentTarget.value;
+      setLanguage(newValue);
+    }, []);
+
+  const shouldDisableForm = submitState === SubmitState.SUBMITTING;
+
+  const onSaveLanguage = useCallback(
+    (e: React.FormEvent<any>) => {
+      e.preventDefault();
+
+      setSubmitState(SubmitState.SUBMITTING);
+      configureServerLanguage.call({ language }, (err) => {
+        if (err) {
+          setSubmitError(err.message);
+          setSubmitState(SubmitState.ERROR);
+        } else {
+          setSubmitState(SubmitState.SUCCESS);
+        }
+      });
+    },
+    [language],
+  );
+
+  const idPrefix = useId();
+
+  const formOptions = [
+    {
+      id: "en",
+      name: "English",
+    },
+    {
+      id: "zh",
+      name: "中文",
+    },
+  ];
+  return (
+    // biome-ignore lint/correctness/useUniqueElementIds: id for linking
+    <Section id="language">
+      <SectionHeader>
+        <SectionHeaderLabel>
+          {t("serverSetup.language", "Language")}
+        </SectionHeaderLabel>
+      </SectionHeader>
+      {submitState === SubmitState.SUCCESS ? (
+        <Alert variant="success" dismissible onClose={dismissAlert}>
+          {t("common.saveSuccess", "Saved changes.")}
+        </Alert>
+      ) : null}
+      {submitState === SubmitState.ERROR ? (
+        <Alert variant="danger" dismissible onClose={dismissAlert}>
+          {`${t("common.saveFailed", "Saving failed")}: ${submitError}`}
+        </Alert>
+      ) : null}
+      <form onSubmit={onSaveLanguage}>
+        <FormGroup className="mb-3" controlId={`${idPrefix}-language`}>
+          <FormLabel>
+            {t(
+              "serverSetup.languageHelp",
+              "While clientside text uses i18n as chosen by the user, this is the language that serverside-generated text (e.g. system messages sent by jolly-roger in chat) will be rendered in.",
+            )}
+          </FormLabel>
+          <FormControl
+            as="select"
+            type="text"
+            value={language}
+            onChange={onLanguageChange}
+          >
+            {formOptions.map(({ id, name }) => {
+              return (
+                <option key={id} value={id}>
+                  {name}
+                </option>
+              );
+            })}
+          </FormControl>
+        </FormGroup>
+        <ActionButtonRow>
+          <Button
+            variant="primary"
+            type="submit"
+            onClick={onSaveLanguage}
+            disabled={shouldDisableForm}
+          >
+            {t("common.save", "Save")}
+          </Button>
+        </ActionButtonRow>
+      </form>
+    </Section>
   );
 };
 
@@ -1155,19 +1274,21 @@ const S3ImageBucketForm = ({
 
   const theme = useTheme();
 
+  const { t } = useTranslation();
+
   return (
     <form onSubmit={saveConfig}>
       {submitState === SubmitState.SUBMITTING ? (
-        <Alert variant="info">Saving...</Alert>
+        <Alert variant="info">{t("common.saving", "Saving")}...</Alert>
       ) : null}
       {submitState === SubmitState.SUCCESS ? (
         <Alert variant="success" dismissible onClose={dismissAlert}>
-          Saved changes.
+          {t("common.saveSuccess", "Saved changes.")}
         </Alert>
       ) : null}
       {submitState === SubmitState.ERROR ? (
         <Alert variant="danger" dismissible onClose={dismissAlert}>
-          Saving failed: {submitError}
+          {`${t("common.saveFailed", "Saving failed")}: ${submitError}`}
         </Alert>
       ) : null}
       <FormGroup className="mb-3">
@@ -1187,7 +1308,7 @@ const S3ImageBucketForm = ({
       </FormGroup>
       <ActionButtonRow>
         <Button type="submit" variant="primary" disabled={shouldDisableForm}>
-          Save
+          {t("common.save", "Save")}
         </Button>
       </ActionButtonRow>
     </form>
@@ -1343,19 +1464,22 @@ const EmailConfigForm = ({
   const idPrefix = useId();
 
   const shouldDisableForm = submitState === SubmitState.SUBMITTING;
+
+  const { t } = useTranslation();
+
   return (
     <div>
       {submitState === SubmitState.SUBMITTING ? (
-        <Alert variant="info">Saving...</Alert>
+        <Alert variant="info">{t("common.saving", "Saving")}...</Alert>
       ) : null}
       {submitState === SubmitState.SUCCESS ? (
         <Alert variant="success" dismissible onClose={dismissAlert}>
-          Saved changes.
+          {t("common.saveSuccess", "Saved changes.")}
         </Alert>
       ) : null}
       {submitState === SubmitState.ERROR ? (
         <Alert variant="danger" dismissible onClose={dismissAlert}>
-          Saving failed: {submitError}
+          {`${t("common.saveFailed", "Saving failed")}: ${submitError}`}
         </Alert>
       ) : null}
       <FormGroup className="mb-3" controlId={`${idPrefix}-email-from`}>
@@ -1525,7 +1649,7 @@ const EmailConfigForm = ({
           onClick={saveConfig}
           disabled={shouldDisableForm}
         >
-          Save
+          {t("common.save", "Save")}
         </Button>
       </ActionButtonRow>
     </div>
@@ -1633,6 +1757,8 @@ const DiscordOAuthForm = ({ oauthSettings }: { oauthSettings: any }) => {
 
   const idPrefix = useId();
 
+  const { t } = useTranslation();
+
   const shouldDisableForm = submitState === SubmitState.SUBMITTING;
   const configured = !!oauthSettings;
   const secretPlaceholder = configured
@@ -1641,16 +1767,16 @@ const DiscordOAuthForm = ({ oauthSettings }: { oauthSettings: any }) => {
   return (
     <div>
       {submitState === SubmitState.SUBMITTING ? (
-        <Alert variant="info">Saving...</Alert>
+        <Alert variant="info">{t("common.saving", "Saving")}...</Alert>
       ) : null}
       {submitState === SubmitState.SUCCESS ? (
         <Alert variant="success" dismissible onClose={dismissAlert}>
-          Saved changes.
+          {t("common.saveSuccess", "Saved changes.")}
         </Alert>
       ) : null}
       {submitState === SubmitState.ERROR ? (
         <Alert variant="danger" dismissible onClose={dismissAlert}>
-          Saving failed: {submitError}
+          {`${t("common.saveFailed", "Saving failed")}: ${submitError}`}
         </Alert>
       ) : null}
 
@@ -1686,7 +1812,7 @@ const DiscordOAuthForm = ({ oauthSettings }: { oauthSettings: any }) => {
             onClick={onSubmitOauthConfiguration}
             disabled={shouldDisableForm}
           >
-            Save
+            {t("common.save", "Save")}
           </Button>
         </ActionButtonRow>
       </form>
@@ -1737,20 +1863,22 @@ const DiscordBotForm = ({
 
   const idPrefix = useId();
 
+  const { t } = useTranslation();
+
   const shouldDisableForm = submitState === SubmitState.SUBMITTING;
   return (
     <div>
       {submitState === SubmitState.SUBMITTING ? (
-        <Alert variant="info">Saving...</Alert>
+        <Alert variant="info">{t("common.saving", "Saving")}...</Alert>
       ) : null}
       {submitState === SubmitState.SUCCESS ? (
         <Alert variant="success" dismissible onClose={dismissAlert}>
-          Saved changes.
+          {t("common.saveSuccess", "Saved changes.")}
         </Alert>
       ) : null}
       {submitState === SubmitState.ERROR ? (
         <Alert variant="danger" dismissible onClose={dismissAlert}>
-          Saving failed: {submitError}
+          {`${t("common.saveFailed", "Saving failed")}: ${submitError}`}
         </Alert>
       ) : null}
 
@@ -1772,7 +1900,7 @@ const DiscordBotForm = ({
             onClick={onSubmitBotToken}
             disabled={shouldDisableForm}
           >
-            Save
+            {t("common.save", "Save")}
           </Button>
         </ActionButtonRow>
       </form>
@@ -1828,6 +1956,8 @@ const DiscordGuildForm = ({
 
   const idPrefix = useId();
 
+  const { t } = useTranslation();
+
   const shouldDisableForm = submitState === SubmitState.SUBMITTING;
   const noneOption = {
     id: "empty",
@@ -1837,16 +1967,16 @@ const DiscordGuildForm = ({
   return (
     <div>
       {submitState === SubmitState.SUBMITTING ? (
-        <Alert variant="info">Saving...</Alert>
+        <Alert variant="info">{t("common.saving", "Saving")}...</Alert>
       ) : null}
       {submitState === SubmitState.SUCCESS ? (
         <Alert variant="success" dismissible onClose={dismissAlert}>
-          Saved changes.
+          {t("common.saveSuccess", "Saved changes.")}
         </Alert>
       ) : null}
       {submitState === SubmitState.ERROR ? (
         <Alert variant="danger" dismissible onClose={dismissAlert}>
-          Saving failed: {submitError}
+          {`${t("common.saveFailed", "Saving failed")}: ${submitError}`}
         </Alert>
       ) : null}
 
@@ -1876,7 +2006,7 @@ const DiscordGuildForm = ({
             onClick={onSaveGuild}
             disabled={shouldDisableForm}
           >
-            Save
+            {t("common.save", "Save")}
           </Button>
         </ActionButtonRow>
       </form>
@@ -2087,20 +2217,22 @@ const BrandingTeamName = () => {
 
   const idPrefix = useId();
 
+  const { t } = useTranslation();
+
   const shouldDisableForm = submitState === SubmitState.SUBMITTING;
   return (
     <div>
       {submitState === SubmitState.SUBMITTING ? (
-        <Alert variant="info">Saving...</Alert>
+        <Alert variant="info">{t("common.saving", "Saving")}...</Alert>
       ) : null}
       {submitState === SubmitState.SUCCESS ? (
         <Alert variant="success" dismissible onClose={dismissAlert}>
-          Saved changes.
+          {t("common.saveSuccess", "Saved changes.")}
         </Alert>
       ) : null}
       {submitState === SubmitState.ERROR ? (
         <Alert variant="danger" dismissible onClose={dismissAlert}>
-          Saving failed: {submitError}
+          {`${t("common.saveFailed", "Saving failed")}: ${submitError}`}
         </Alert>
       ) : null}
 
@@ -2109,7 +2241,7 @@ const BrandingTeamName = () => {
           className="mb-3"
           controlId={`${idPrefix}-jr-setup-edit-team-name`}
         >
-          <FormLabel>Team name</FormLabel>
+          <FormLabel>{t("serverSetup.teamName", "Team name")}</FormLabel>
           <FormControl
             type="text"
             placeholder=""
@@ -2125,7 +2257,7 @@ const BrandingTeamName = () => {
             onClick={onSubmit}
             disabled={shouldDisableForm}
           >
-            Save
+            {t("common.save", "Save")}
           </Button>
         </ActionButtonRow>
       </form>
@@ -2223,21 +2355,23 @@ const BrandingAssetRow = ({
     [asset],
   );
 
+  const { t } = useTranslation();
+
   // If no BlobMapping is present for this asset, fall back to the default one from the public/images folder
   const blobUrl = useTracker(() => lookupUrl(asset), [asset]);
   return (
     <BrandingRow>
       {submitState === SubmitState.SUBMITTING ? (
-        <Alert variant="info">Saving...</Alert>
+        <Alert variant="info">{t("common.saving", "Saving")}...</Alert>
       ) : null}
       {submitState === SubmitState.SUCCESS ? (
         <Alert variant="success" dismissible onClose={dismissAlert}>
-          Saved changes.
+          {t("common.saveSuccess", "Saved changes.")}
         </Alert>
       ) : null}
       {submitState === SubmitState.ERROR ? (
         <Alert variant="danger" dismissible onClose={dismissAlert}>
-          Saving failed: {submitError}
+          {`${t("common.saveFailed", "Saving failed")}: ${submitError}`}
         </Alert>
       ) : null}
       <BrandingRowContent>
@@ -2260,6 +2394,7 @@ const BrandingAssetRow = ({
 };
 
 const BrandingSection = () => {
+  const { t } = useTranslation();
   return (
     // biome-ignore lint/correctness/useUniqueElementIds: id for linking
     <Section id="branding">
@@ -2268,17 +2403,22 @@ const BrandingSection = () => {
       </SectionHeader>
       <Subsection>
         <SubsectionHeader>
-          <span>Team name</span>
+          <span>{t("serverSetup.teamName", "Team name")}</span>
         </SubsectionHeader>
-        <p>The team name is displayed:</p>
+        <p>{t("serverSetup.teamNameHelp", "The team name is displayed:")}</p>
         <ul>
-          <li>on the login page</li>
+          <li>{t("serverSetup.teamNameHelp1", "on the login page")}</li>
           <li>
-            in the filenames of any Google Docs/Sheets created by Jolly Roger
+            {t(
+              "serverSetup.teamNameHelp2",
+              "in the filenames of any Google Docs/Sheets created by Jolly Roger",
+            )}
           </li>
           <li>
-            and anywhere else we may refer to the team that owns this Jolly
-            Roger instance.
+            {t(
+              "serverSetup.teamNameHelp3",
+              "and anywhere else we may refer to the team that owns this Jolly Roger instance.",
+            )}
           </li>
         </ul>
         <BrandingTeamName />
@@ -2525,7 +2665,11 @@ const CircuitBreakerSection = () => {
 };
 
 const SetupPage = () => {
-  useBreadcrumb({ title: "Server setup", path: "/setup" });
+  const { t } = useTranslation();
+  useBreadcrumb({
+    title: t("serverSetup.title", "Server setup"),
+    path: "/setup",
+  });
 
   const loading = useTypedSubscribe(settingsAll);
   const canConfigure = useTracker(() => isAdmin(Meteor.user()), []);
@@ -2537,10 +2681,13 @@ const SetupPage = () => {
   if (!canConfigure) {
     return (
       <div>
-        <h1>Not authorized</h1>
+        <h1>{t("common.notAuthorized", "Not authorized")}</h1>
         <p>
-          This page allows server admins to reconfigure the server, but
-          you&apos;re not an admin.
+          {t(
+            "serverSetup.notAuthorizedMessage",
+            `This page allows server admins to reconfigure the server, but
+             you're not an admin.`,
+          )}
         </p>
       </div>
     );
@@ -2553,6 +2700,7 @@ const SetupPage = () => {
       <EmailConfigSection />
       <DiscordIntegrationSection />
       <BrandingSection />
+      <LanguageSection />
       <CircuitBreakerSection />
     </PageContainer>
   );

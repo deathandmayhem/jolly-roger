@@ -4,6 +4,7 @@ import OverlayTrigger, {
   type OverlayTriggerProps,
 } from "react-bootstrap/OverlayTrigger";
 import Tooltip from "react-bootstrap/Tooltip";
+import { useTranslation } from "react-i18next";
 
 interface CopyToClipboardProps extends ButtonProps {
   tooltipPlacement?: OverlayTriggerProps["placement"];
@@ -16,6 +17,7 @@ const CopyToClipboardButton = (props: CopyToClipboardProps) => {
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(
     undefined,
   );
+  const { t } = useTranslation();
   const onClick = useCallback(() => {
     const flatText: string = typeof text === "function" ? text() : text;
     navigator.clipboard.writeText(flatText).then(
@@ -38,7 +40,11 @@ const CopyToClipboardButton = (props: CopyToClipboardProps) => {
   const tooltipId = useId();
 
   const copyTooltip = (
-    <Tooltip id={tooltipId}>{copied ? "Copied!" : "Copy to clipboard"}</Tooltip>
+    <Tooltip id={tooltipId}>
+      {copied
+        ? t("common.copied", "Copied!")
+        : t("common.copyToClipboard", "Copy to clipboard")}
+    </Tooltip>
   );
 
   return (

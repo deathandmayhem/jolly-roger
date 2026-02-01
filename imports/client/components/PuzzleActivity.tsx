@@ -9,6 +9,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useEffect, useId, useState } from "react";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Tooltip from "react-bootstrap/Tooltip";
+import { useTranslation } from "react-i18next";
 import { Sparklines, SparklinesLine, SparklinesSpots } from "react-sparklines";
 import styled, { css } from "styled-components";
 import { calendarTimeFormat } from "../../lib/calendarTimeFormat";
@@ -171,9 +172,12 @@ const PuzzleActivity = ({
 
   const idPrefix = useId();
 
+  const { t, i18n } = useTranslation();
+
   const unlockTooltip = (
     <Tooltip id={`${idPrefix}-unlock`}>
-      Puzzle unlocked: {calendarTimeFormat(unlockTime)}
+      {t("puzzle.activity.unlocked", "Puzzle unlocked")}:{" "}
+      {calendarTimeFormat(unlockTime, t, i18n.language)}
     </Tooltip>
   );
 
@@ -183,22 +187,29 @@ const PuzzleActivity = ({
 
   const sparklineTooltip = (
     <Tooltip id={`${idPrefix}-sparkline`}>
-      <div>People working on this puzzle:</div>
+      <div>
+        {t(
+          "puzzle.activity.activeSolverCount",
+          "People working on this puzzle",
+        )}
+        :
+      </div>
       <PuzzleActivityDetailTimeRange>
         <div>
           {/* Don't need to use RelativeTime here because this duration doesn't change, even as now
             does */}
           {relativeTimeFormat(
             new Date(Date.now() - ACTIVITY_GRANULARITY * ACTIVITY_SEGMENTS),
+            t,
           )}
         </div>
-        <div>now</div>
+        <div>{t("datetime.now", "now")}</div>
       </PuzzleActivityDetailTimeRange>
       <PuzzleActivityDetail>
         <div>
           <FontAwesomeIcon icon={faCommentDots} fixedWidth />
         </div>
-        <div>Chat</div>
+        <div>{t("puzzle.activity.chat", "Chat")}</div>
         <div>
           <Sparklines data={chats} min={0} max={Math.max(1, ...chats)}>
             <SparklinesLine color="white" />
@@ -211,7 +222,7 @@ const PuzzleActivity = ({
         <div>
           <FontAwesomeIcon icon={faPhoneVolume} fixedWidth />
         </div>
-        <div>Call</div>
+        <div>{t("puzzle.activity.call", "Call")}</div>
         <div>
           <Sparklines data={calls} min={0} max={Math.max(1, ...calls)}>
             <SparklinesLine color="white" />
@@ -224,7 +235,7 @@ const PuzzleActivity = ({
         <div>
           <FontAwesomeIcon icon={faFilePen} fixedWidth />
         </div>
-        <div>Doc</div>
+        <div>{t("puzzle.activity.doc", "Doc")}</div>
         <div>
           <Sparklines data={documents} min={0} max={Math.max(1, ...documents)}>
             <SparklinesLine color="white" />

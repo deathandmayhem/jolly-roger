@@ -1,4 +1,5 @@
 import Toast from "react-bootstrap/Toast";
+import { useTranslation } from "react-i18next";
 import styled, { css } from "styled-components";
 import { calendarTimeFormat } from "../../lib/calendarTimeFormat";
 import Markdown from "./Markdown";
@@ -28,12 +29,18 @@ const AnnouncementToast = ({
   onClose?: () => void;
   className?: string;
 }) => {
+  const { t, i18n } = useTranslation();
+
   return (
     <StyledToast className={className} onClose={onClose}>
       <Toast.Header closeButton={!!onClose}>
-        <strong className="me-auto">Announcement from {displayName}</strong>
+        <strong className="me-auto">
+          {t("announcements.heading", "Announcement from {{name}}", {
+            name: displayName,
+          })}
+        </strong>
         <StyledNotificationTimestamp>
-          {calendarTimeFormat(createdAt)}
+          {calendarTimeFormat(createdAt, t, i18n.language)}
         </StyledNotificationTimestamp>
       </Toast.Header>
       <Toast.Body>

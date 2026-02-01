@@ -15,6 +15,7 @@ import React, {
 import Button from "react-bootstrap/Button";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Popover from "react-bootstrap/Popover";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled, { css } from "styled-components";
 import { indexedById } from "../../lib/listUtils";
@@ -365,6 +366,7 @@ const Tag = (props: TagProps) => {
     </TagDiv>
   );
 
+  const { t } = useTranslation();
   const popoverId = useId();
   if (props.popoverRelated) {
     const sharedTagName = getRelatedPuzzlesSharedTagName(props.tag.name);
@@ -398,7 +400,7 @@ const Tag = (props: TagProps) => {
               >
                 <FontAwesomeIcon icon={faCopy} />
                 {"    "}
-                Copy
+                {t("common.copy", "Copy")}
               </CopyToClipboardButton>
             </RelatedPuzzlePopoverControls>
           </RelatedPuzzlePopoverHeaderInner>

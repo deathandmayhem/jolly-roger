@@ -18,6 +18,7 @@ import FormText from "react-bootstrap/FormText";
 import Modal from "react-bootstrap/Modal";
 import Row from "react-bootstrap/Row";
 import { createPortal } from "react-dom";
+import { Trans, useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 import DiscordCache from "../../lib/models/DiscordCache";
 import type {
@@ -70,6 +71,8 @@ const DiscordSelector = ({
   loading,
   options,
 }: DiscordSelectorProps) => {
+  const { t } = useTranslation();
+
   const onValueChanged: NonNullable<FormControlProps["onChange"]> = useCallback(
     (e) => {
       if (e.currentTarget.value === "empty") {
@@ -107,7 +110,9 @@ const DiscordSelector = ({
   }, [value, options]);
 
   if (loading) {
-    return <div>Loading discord resources...</div>;
+    return (
+      <div>{t("huntEdit.loadingDiscord", "Loading discord resources")}...</div>
+    );
   } else {
     return (
       <FormControl
@@ -197,8 +202,12 @@ const HuntEditPage = () => {
     [huntId],
   );
 
+  const { t } = useTranslation();
+
   useBreadcrumb({
-    title: huntId ? "Edit Hunt" : "Create Hunt",
+    title: huntId
+      ? t("huntEdit.title.edit", "Edit Hunt")
+      : t("huntEdit.title.new", "Create Hunt"),
     path: `/hunts/${huntId ? `${huntId}/edit` : "new"}`,
   });
 
@@ -418,7 +427,7 @@ const HuntEditPage = () => {
       </Modal.Body>
       <Modal.Footer>
         <Button variant="primary" onClick={toggleShowTermsOfUsePreview}>
-          Close
+          {t("common.close", "Close")}
         </Button>
       </Modal.Footer>
     </Modal>,
@@ -429,7 +438,11 @@ const HuntEditPage = () => {
 
   return (
     <Container>
-      <h1>{huntId ? "Edit Hunt" : "New Hunt"}</h1>
+      <h1>
+        {huntId
+          ? t("huntEdit.title.edit", "Edit Hunt")
+          : t("huntEdit.title.new", "New Hunt")}
+      </h1>
 
       <Form onSubmit={onFormSubmit}>
         <FormGroup
@@ -438,7 +451,7 @@ const HuntEditPage = () => {
           controlId={`${idPrefix}-hunt-form-name`}
         >
           <FormLabel column xs={3}>
-            Name
+            {t("huntEdit.name", "Name")}
           </FormLabel>
           <Col xs={9}>
             <FormControl
@@ -450,7 +463,7 @@ const HuntEditPage = () => {
           </Col>
         </FormGroup>
 
-        <h3>Users and permissions</h3>
+        <h3>{t("huntEdit.usersAndPermissions", "Users and permissions")}</h3>
 
         <FormGroup
           as={Row}
@@ -458,7 +471,7 @@ const HuntEditPage = () => {
           controlId={`${idPrefix}-hunt-form-signup-message`}
         >
           <FormLabel column xs={3}>
-            Signup message
+            {t("huntEdit.signupMessage.field", "Signup message")}
           </FormLabel>
           <Col xs={9}>
             <FormControl
@@ -468,9 +481,12 @@ const HuntEditPage = () => {
               disabled={disableForm}
             />
             <FormText>
-              This message (rendered as markdown) will be shown to users who
-              aren&apos;t part of the hunt. This is a good place to put
-              directions for how to sign up.
+              {t(
+                "huntEdit.signupMessage.help",
+                `This message (rendered as markdown) will be shown to users who
+                aren't part of the hunt. This is a good place to put directions
+                for how to sign up.`,
+              )}
             </FormText>
           </Col>
         </FormGroup>
@@ -481,7 +497,7 @@ const HuntEditPage = () => {
           controlId={`${idPrefix}-hunt-form-open-signups`}
         >
           <FormLabel column xs={3}>
-            Open invites
+            {t("huntEdit.openInvites.field", "Open invites")}
           </FormLabel>
           <Col xs={9}>
             <FormCheck
@@ -491,9 +507,12 @@ const HuntEditPage = () => {
               disabled={disableForm}
             />
             <FormText>
-              If open invites are enabled, then any current member of the hunt
-              can add a new member to the hunt. Otherwise, only operators can
-              add new members.
+              {t(
+                "huntEdit.openInvites.help",
+                `If open invites are enabled, then any current member of the
+                hunt can add a new member to the hunt. Otherwise, only
+                operators can add new members.`,
+              )}
             </FormText>
           </Col>
         </FormGroup>
@@ -504,7 +523,7 @@ const HuntEditPage = () => {
           controlId={`${idPrefix}-hunt-form-has-guess-queue`}
         >
           <FormLabel column xs={3}>
-            Guess queue
+            {t("huntEdit.guessQueue.field", "Guess queue")}
           </FormLabel>
           <Col xs={9}>
             <FormCheck
@@ -514,9 +533,12 @@ const HuntEditPage = () => {
               disabled={disableForm}
             />
             <FormText>
-              If enabled, users can submit guesses for puzzles but operators
-              must mark them as correct. If disabled, any user can enter the
-              puzzle answer.
+              {t(
+                "huntEdit.guessQueue.help",
+                `If enabled, users can submit guesses for puzzles but
+                operators must mark them as correct. If disabled, any user can
+                enter the puzzle answer.`,
+              )}
             </FormText>
           </Col>
         </FormGroup>
@@ -527,7 +549,7 @@ const HuntEditPage = () => {
           controlId={`${idPrefix}-hunt-form-terms-of-use`}
         >
           <FormLabel column xs={3}>
-            Terms of use
+            {t("huntEdit.termsOfUse.field", "Terms of use")}
           </FormLabel>
           <Col xs={9}>
             <FormControl
@@ -537,15 +559,18 @@ const HuntEditPage = () => {
               disabled={disableForm}
             />
             <FormText>
-              If specified, this text (rendered as Markdown) will be shown to
-              users when the first visit the hunt website, and they will be
-              required to accept it before they can proceed.
+              {t(
+                "huntEdit.termsOfUse.help",
+                `If specified, this text (rendered as Markdown) will be shown
+                to users when the first visit the hunt website, and they will
+                be required to accept it before they can proceed.`,
+              )}
               <ActionButtonRow>
                 <Button
                   variant="secondary"
                   onClick={toggleShowTermsOfUsePreview}
                 >
-                  Preview
+                  {t("huntEdit.termsOfUse.preview", "Preview")}
                 </Button>
               </ActionButtonRow>
             </FormText>
@@ -554,7 +579,7 @@ const HuntEditPage = () => {
 
         {termsOfUsePreview}
 
-        <h3>Hunt website</h3>
+        <h3>{t("huntEdit.huntWebsite", "Hunt website")}</h3>
 
         <FormGroup
           as={Row}
@@ -562,7 +587,7 @@ const HuntEditPage = () => {
           controlId={`${idPrefix}-hunt-form-homepage-url`}
         >
           <FormLabel column xs={3}>
-            Homepage URL
+            {t("huntEdit.url.field", "Homepage URL")}
           </FormLabel>
           <Col xs={9}>
             <FormControl
@@ -572,8 +597,10 @@ const HuntEditPage = () => {
               disabled={disableForm}
             />
             <FormText>
-              If provided, a link to the hunt homepage will be placed on the
-              landing page.
+              {t(
+                "huntEdit.url.help",
+                "If provided, a link to the hunt homepage will be placed on the landing page.",
+              )}
             </FormText>
           </Col>
         </FormGroup>
@@ -584,7 +611,7 @@ const HuntEditPage = () => {
           controlId={`${idPrefix}-hunt-form-submit-template`}
         >
           <FormLabel column xs={3}>
-            Submit URL template
+            {t("huntEdit.submitUrlTemplate.field", "Submit URL template")}
           </FormLabel>
           <Col xs={9}>
             <FormControl
@@ -594,30 +621,35 @@ const HuntEditPage = () => {
               disabled={disableForm}
             />
             <FormText>
-              If provided, this{" "}
-              <a href="https://mustache.github.io/mustache.5.html">
-                Mustache template
-              </a>{" "}
-              is used to generate the link to the guess submission page. It gets
-              as context a{" "}
-              <a href="https://developer.mozilla.org/en-US/docs/Web/API/URL">
-                parsed URL
-              </a>
-              {", "}
-              providing variables like <code>hostname</code> or{" "}
-              <code>pathname</code>
-              {". "}
-              Because this will be used as a link directly, make sure to use
-              &quot;triple-mustaches&quot; so that the URL components
-              aren&apos;t escaped. As an example, setting this to{" "}
-              <code>{"{{{origin}}}/submit{{{pathname}}}"}</code> would work for
-              the 2018 Mystery Hunt. If not specified, the puzzle URL is used as
-              the link to the guess submission page.
+              <Trans
+                i18nKey="huntEdit.submitUrlTemplate.help"
+                t={t}
+                components={{
+                  MustacheLink: (
+                    // biome-ignore lint/a11y/useAnchorContent: this link won't really be empty
+                    <a href="https://mustache.github.io/mustache.5.html" />
+                  ),
+                  parsedUrlLink: (
+                    // biome-ignore lint/a11y/useAnchorContent: this link won't really be empty
+                    <a href="https://developer.mozilla.org/en-US/docs/Web/API/URL" />
+                  ),
+                  code: <code />,
+                }}
+                defaults={`If provided, this <MustacheLink>Mustache template</MustacheLink>
+                          is used to generate the link to the guess submission page. It gets
+                          as context a <parsedUrlLink>parsed URL</parsedUrlLink>, providing
+                          variables like <code>hostname</code> or <code>pathname</code>.
+                          Because this will be used as a link directly, make sure to use
+                          "triple-mustaches" so that the URL components aren't escaped. As an
+                          example, setting this to <code>{{{origin}}}/submit{{{pathname}}}</code>
+                          would work for the 2018 Mystery Hunt. If not specified, the puzzle
+                          URL is used as the link to the guess submission page.`}
+              />
             </FormText>
           </Col>
         </FormGroup>
 
-        <h3>External integrations</h3>
+        <h3>{t("huntEdit.externalIntegrations", "External integrations")}</h3>
 
         <FormGroup
           as={Row}
@@ -625,7 +657,7 @@ const HuntEditPage = () => {
           controlId={`${idPrefix}-hunt-form-mailing-lists`}
         >
           <FormLabel column xs={3}>
-            Mailing lists
+            {t("huntEdit.mailingLists.field", "Mailing lists")}
           </FormLabel>
           <Col xs={9}>
             <FormControl
@@ -635,8 +667,10 @@ const HuntEditPage = () => {
               disabled={disableForm}
             />
             <FormText>
-              Users joining this hunt will be automatically added to all of
-              these (comma-separated) lists
+              {t(
+                "huntEdit.mailingLists.help",
+                "Users joining this hunt will be automatically added to all of these (comma-separated) lists",
+              )}
             </FormText>
           </Col>
         </FormGroup>
@@ -649,7 +683,10 @@ const HuntEditPage = () => {
               controlId={`${idPrefix}-hunt-form-announcement-discord-channel`}
             >
               <FormLabel column xs={3}>
-                Hunt announcements Discord channel
+                {t(
+                  "huntEdit.announcementChannel.field",
+                  "Hunt announcements Discord channel",
+                )}
               </FormLabel>
               <Col xs={9}>
                 <DiscordChannelSelector
@@ -659,8 +696,10 @@ const HuntEditPage = () => {
                   onChange={onAnnnouncementDiscordChannelChanged}
                 />
                 <FormText>
-                  If this field is specified, announcements made on Jolly Roger
-                  will be mirrored to this channel.
+                  {t(
+                    "huntEdit.announcementChannel.help",
+                    "If this field is specified, announcements made on Jolly Roger will be mirrored to this channel.",
+                  )}
                 </FormText>
               </Col>
             </FormGroup>
@@ -671,7 +710,10 @@ const HuntEditPage = () => {
               controlId={`${idPrefix}-hunt-form-puzzle-hooks-discord-channel`}
             >
               <FormLabel column xs={3}>
-                Puzzle notifications Discord channel
+                {t(
+                  "huntEdit.puzzleChannel.field",
+                  "Puzzle notifications Discord channel",
+                )}
               </FormLabel>
               <Col xs={9}>
                 <DiscordChannelSelector
@@ -681,9 +723,12 @@ const HuntEditPage = () => {
                   onChange={onPuzzleHooksDiscordChannelChanged}
                 />
                 <FormText>
-                  If this field is specified, when a puzzle in this hunt is
-                  added or solved, a message will be sent to the specified
-                  channel.
+                  {t(
+                    "huntEdit.puzzleChannel.help",
+                    `If this field is specified, when a puzzle in this hunt is
+                    added or solved, a message will be sent to the specified
+                    channel.`,
+                  )}
                 </FormText>
               </Col>
             </FormGroup>
@@ -694,7 +739,10 @@ const HuntEditPage = () => {
               controlId={`${idPrefix}-hunt-form-firehose-discord-channel`}
             >
               <FormLabel column xs={3}>
-                Firehose Discord channel
+                {t(
+                  "huntEdit.firehoseChannel.field",
+                  "Firehose Discord channel",
+                )}
               </FormLabel>
               <Col xs={9}>
                 <DiscordChannelSelector
@@ -704,9 +752,12 @@ const HuntEditPage = () => {
                   onChange={onFirehoseDiscordChannelChanged}
                 />
                 <FormText>
-                  If this field is specified, all chat messages written in
-                  puzzles associated with this hunt will be mirrored to the
-                  specified Discord channel.
+                  {t(
+                    "huntEdit.firehoseChannel.help",
+                    `If this field is specified, all chat messages written in
+                    puzzles associated with this hunt will be mirrored to the
+                    specified Discord channel.`,
+                  )}
                 </FormText>
               </Col>
             </FormGroup>
@@ -717,7 +768,7 @@ const HuntEditPage = () => {
               controlId={`${idPrefix}-hunt-form-member-discord-role`}
             >
               <FormLabel column xs={3}>
-                Discord role for members
+                {t("huntEdit.discordRole.field", "Discord role for members")}
               </FormLabel>
               <Col xs={9}>
                 <DiscordRoleSelector
@@ -727,10 +778,13 @@ const HuntEditPage = () => {
                   onChange={onMemberDiscordRoleChanged}
                 />
                 <FormText>
-                  If set, then members of the hunt that have linked their
+                  {t(
+                    "huntEdit.discordRole.help",
+                    `If set, then members of the hunt that have linked their
                   Discord profile are added to the specified Discord role. Note
                   that for continuity, if this setting is changed, Jolly Roger
-                  will not touch the old role (e.g. to remove members)
+                  will not touch the old role (e.g. to remove members)`,
+                  )}
                 </FormText>
               </Col>
             </FormGroup>
@@ -738,7 +792,10 @@ const HuntEditPage = () => {
         ) : (
           <Alert variant="info">
             <FontAwesomeIcon icon={faInfo} fixedWidth />
-            Discord has not been configured, so Discord settings are disabled.
+            {t(
+              "huntEdit.discordNotConfigured",
+              "Discord has not been configured, so Discord settings are disabled.",
+            )}
           </Alert>
         )}
 
@@ -748,14 +805,19 @@ const HuntEditPage = () => {
           )}
           {submitState === SubmitState.SUCCESS && (
             <Alert variant="success" dismissible onClose={onSuccessDismiss}>
-              Hunt information successfully updated
+              {t(
+                "huntEdit.saveSuccess",
+                "Hunt information successfully updated",
+              )}
             </Alert>
           )}
 
           <ActionButtonRow>
             <FormGroup className="mb-3">
               <Button variant="primary" type="submit" disabled={disableForm}>
-                {huntId ? "Save" : "Create"}
+                {huntId
+                  ? t("common.save", "Save")
+                  : t("huntEdit.create", "Create")}
               </Button>
             </FormGroup>
           </ActionButtonRow>

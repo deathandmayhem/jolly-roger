@@ -5,6 +5,7 @@ import { useCallback, useId, useState } from "react";
 import Alert from "react-bootstrap/Alert";
 import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
+import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
 import ReactTextareaAutosize from "react-textarea-autosize";
 import styled from "styled-components";
@@ -72,6 +73,7 @@ const AnnouncementFormInput = ({
 
   const disabled = submitState === AnnouncementFormSubmitState.SUBMITTING;
   const id = useId();
+  const { t } = useTranslation();
 
   return (
     <BoundedForm>
@@ -88,7 +90,10 @@ const AnnouncementFormInput = ({
       )}
       <Form.Group className="mb-2" controlId={id}>
         <Form.Label>
-          Write an announcement: (try to keep it brief and on-point)
+          {t(
+            "announcements.writeAnAnnouncement",
+            "Write an announcement: (try to keep it brief and on-point)",
+          )}
         </Form.Label>
         <ReactTextareaAutosize
           id={id}
@@ -107,7 +112,7 @@ const AnnouncementFormInput = ({
           disabled={disabled}
           onClick={postAnnouncementCb}
         >
-          Send
+          {t("announcements.send", "Send")}
         </Button>
       </ActionButtonRow>
     </BoundedForm>
@@ -116,8 +121,10 @@ const AnnouncementFormInput = ({
 
 const AnnouncementsPage = () => {
   const huntId = useParams<"huntId">().huntId!;
+  const { t } = useTranslation();
+
   useBreadcrumb({
-    title: "Announcements",
+    title: t("announcements.breadcrumbTitle", "Announcements"),
     path: `/hunts/${huntId}/announcements`,
   });
 
@@ -150,12 +157,12 @@ const AnnouncementsPage = () => {
   );
 
   if (loading) {
-    return <div>loading...</div>;
+    return <div>{t("common.loading", "loading")}...</div>;
   }
 
   return (
     <div>
-      <h1>Announcements</h1>
+      <h1>{t("announcements.title", "Announcements")}</h1>
       {canCreateAnnouncements && (
         <AnnouncementFormInput
           huntId={huntId}

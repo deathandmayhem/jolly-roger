@@ -23,6 +23,7 @@ import NavItem from "react-bootstrap/NavItem";
 import NavLink from "react-bootstrap/NavLink";
 import type { FallbackProps } from "react-error-boundary";
 import { ErrorBoundary as ReactErrorBoundary } from "react-error-boundary";
+import { useTranslation } from "react-i18next";
 import * as RRBS from "react-router-bootstrap";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import type { StackFrame } from "stacktrace-js";
@@ -260,6 +261,10 @@ const AppNavbar = ({
   const setDarkMode = useCallback(() => {
     setAppTheme("dark");
   }, [setAppTheme]);
+  const { t, i18n } = useTranslation();
+  const changeLanguage = (lng: string) => {
+    i18n.changeLanguage(lng);
+  };
 
   const theme = useTheme();
   return (
@@ -294,7 +299,9 @@ const AppNavbar = ({
           </DropdownToggle>
           <DropdownMenu align="end">
             <RRBS.LinkContainer to={`/users/${userId}`}>
-              <DropdownItem eventKey="1">My profile</DropdownItem>
+              <DropdownItem eventKey="1">
+                {t("navigation.myProfile", "My profile")}
+              </DropdownItem>
             </RRBS.LinkContainer>
             <DropdownItem
               eventKey="2"
@@ -302,26 +309,49 @@ const AppNavbar = ({
               target="_blank"
               rel="noopener noreferrer"
             >
-              Report an issue
+              {t("navigation.reportAnIssue", "Report an issue")}
             </DropdownItem>
             {userIsAdmin ? (
               <RRBS.LinkContainer to="/setup">
-                <DropdownItem eventKey="4">Server setup</DropdownItem>
+                <DropdownItem eventKey="4">
+                  {t("navigation.serverSetup", "Server setup")}
+                </DropdownItem>
               </RRBS.LinkContainer>
             ) : undefined}
             <DropdownItem eventKey="3" onClick={logout}>
-              Sign out
+              {t("navigation.signOut", "Sign out")}
             </DropdownItem>
             <Dropdown.Divider />
-            <DropdownHeader>Theme</DropdownHeader>
+            <DropdownHeader>
+              {t("navigation.theme.header", "Theme")}
+            </DropdownHeader>
             <DropdownItem onClick={setAutoMode} active={appTheme === "auto"}>
-              <FontAwesomeIcon icon={faWandMagicSparkles} fixedWidth /> Auto
+              <FontAwesomeIcon icon={faWandMagicSparkles} fixedWidth />{" "}
+              {t("navigation.theme.auto", "Auto")}
             </DropdownItem>
             <DropdownItem onClick={setLightMode} active={appTheme === "light"}>
-              <FontAwesomeIcon icon={faSun} fixedWidth /> Light mode
+              <FontAwesomeIcon icon={faSun} fixedWidth />{" "}
+              {t("navigation.theme.light", "Light mode")}
             </DropdownItem>
             <DropdownItem onClick={setDarkMode} active={appTheme === "dark"}>
-              <FontAwesomeIcon icon={faMoon} fixedWidth /> Dark mode
+              <FontAwesomeIcon icon={faMoon} fixedWidth />{" "}
+              {t("navigation.theme.dark", "Dark mode")}
+            </DropdownItem>
+            <Dropdown.Divider />
+            <DropdownHeader>
+              {t("navigation.language", "Language")}
+            </DropdownHeader>
+            <DropdownItem
+              onClick={() => changeLanguage("en")}
+              active={i18n.language === "en"}
+            >
+              English
+            </DropdownItem>
+            <DropdownItem
+              onClick={() => changeLanguage("zh")}
+              active={i18n.language === "zh"}
+            >
+              中文
             </DropdownItem>
           </DropdownMenu>
         </Dropdown>

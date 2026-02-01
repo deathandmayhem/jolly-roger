@@ -12,6 +12,7 @@ import React, {
 } from "react";
 import Button from "react-bootstrap/Button";
 import ButtonGroup from "react-bootstrap/ButtonGroup";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled, { css, useTheme } from "styled-components";
 import { difference, indexedById } from "../../lib/listUtils";
@@ -188,6 +189,8 @@ const Puzzle = React.memo(
 
     const theme = useTheme();
 
+    const { t } = useTranslation();
+
     const editButtons = useMemo(() => {
       if (showEdit) {
         return (
@@ -195,7 +198,7 @@ const Puzzle = React.memo(
             <StyledButton
               onClick={onShowEditModal}
               variant={theme.basicMode}
-              title="Edit puzzle..."
+              title={`${t("puzzle.edit.editPuzzle", "Edit puzzle")}...`}
             >
               <FontAwesomeIcon icon={faEdit} />
             </StyledButton>
@@ -203,7 +206,7 @@ const Puzzle = React.memo(
               <StyledButton
                 onClick={onShowDeleteModal}
                 variant={theme.basicMode}
-                title="Delete puzzle..."
+                title={`${t("puzzle.delete.deletePuzzle", "Delete puzzle")}...`}
               >
                 <FontAwesomeIcon icon={faMinus} />
               </StyledButton>
@@ -218,6 +221,7 @@ const Puzzle = React.memo(
       onShowEditModal,
       onShowDeleteModal,
       theme.basicMode,
+      t,
     ]);
 
     // id, title, answer, tags
@@ -289,8 +293,8 @@ const Puzzle = React.memo(
                 href={puzzle.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                title="Open the puzzle"
-                aria-label="Open the puzzle"
+                title={t("puzzleList.openPuzzle", "Open the puzzle")}
+                aria-label={t("puzzleList.openPuzzle", "Open the puzzle")}
               >
                 <FontAwesomeIcon icon={faPuzzlePiece} />
               </a>

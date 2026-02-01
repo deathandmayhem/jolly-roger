@@ -41,6 +41,7 @@ import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Row from "react-bootstrap/Row";
 import Tooltip from "react-bootstrap/Tooltip";
 import { createPortal } from "react-dom";
+import { useTranslation } from "react-i18next";
 import { Link, useParams } from "react-router-dom";
 import type { Descendant } from "slate";
 import styled, { css } from "styled-components";
@@ -372,7 +373,8 @@ const ChatHistoryMessage = React.memo(
     roles: string[];
     imageOnLoad: () => void;
   }) => {
-    const ts = shortCalendarTimeFormat(message.timestamp);
+    const { t, i18n } = useTranslation();
+    const ts = shortCalendarTimeFormat(message.timestamp, t, i18n.language);
 
     const senderDisplayName =
       message.sender !== undefined
@@ -548,6 +550,8 @@ const ChatHistory = React.memo(
       [selfUser, huntId],
     );
 
+    const { t } = useTranslation();
+
     trace("ChatHistory render", { messageCount: chatMessages.length });
     return (
       <ChatHistoryDiv ref={historyRef} onScroll={onScrollObserved}>
@@ -557,7 +561,7 @@ const ChatHistory = React.memo(
             $isSystemMessage={false}
             $isHighlighted={false}
           >
-            <span>No chatter yet. Say something?</span>
+            <span>{t("chat.noChatter", "No chatter yet. Say something?")}</span>
           </ChatMessageDiv>
         ) : undefined}
         {chatMessages.map((msg, index, messages) => {
@@ -847,6 +851,8 @@ const ChatInput = React.memo(
       </Modal>
     );
 
+    const { t } = useTranslation();
+
     return (
       <ChatInputRow>
         {uploadImageError && createPortal(errorModal, document.body)}
@@ -855,7 +861,7 @@ const ChatInput = React.memo(
             ref={fancyEditorRef}
             className="form-control"
             initialContent={content}
-            placeholder="Chat"
+            placeholder={t("chat.chatPrompt", "Chat")}
             users={users}
             onContentChange={onContentChange}
             onSubmit={sendContentMessage}
@@ -1124,7 +1130,8 @@ const PuzzlePageMetadata = ({
       target="_blank"
       rel="noreferrer noopener"
     >
-      <FontAwesomeIcon fixedWidth icon={faPuzzlePiece} /> <span>Puzzle</span>
+      <FontAwesomeIcon fixedWidth icon={faPuzzlePiece} />{" "}
+      <span>{puzzle.title}</span>
     </PuzzleMetadataExternalLink>
   ) : null;
 
@@ -1140,14 +1147,17 @@ const PuzzlePageMetadata = ({
       <DocumentDisplay document={document} displayMode="link" user={selfUser} />
     ) : null;
 
+  const { t } = useTranslation();
+
   const editButton = canUpdate ? (
     <Button
       onClick={showEditModal}
       variant="secondary"
       size="sm"
-      title="Edit puzzle..."
+      title={`${t("puzzle.edit.editPuzzle", "Edit puzzle")}...`}
     >
-      <FontAwesomeIcon icon={faEdit} /> Edit
+      <FontAwesomeIcon icon={faEdit} />{" "}
+      {t("puzzle.edit.editButtonText", "Edit")}
     </Button>
   ) : null;
 
@@ -1157,7 +1167,7 @@ const PuzzlePageMetadata = ({
       <>
         <Button variant="primary" size="sm" onClick={showGuessModal}>
           <FontAwesomeIcon icon={faKey} />
-          {" Guess "}
+          {` ${t("puzzle.answerOrGuess.guessButtonText", "Guess")} `}
           <Badge bg="light" text="dark">
             {numGuesses}
           </Badge>
@@ -1173,7 +1183,7 @@ const PuzzlePageMetadata = ({
       <>
         <Button variant="primary" size="sm" onClick={showAnswerModal}>
           <FontAwesomeIcon icon={faKey} />
-          {" Answer"}
+          {` ${t("puzzle.answerOrGuess.answerButtonText", "Answer")}`}
         </Button>
         <PuzzleAnswerModal
           ref={answerModalRef}
@@ -1188,7 +1198,9 @@ const PuzzlePageMetadata = ({
     <OverlayTrigger
       placement="bottom"
       overlay={
-        <Tooltip id={`${idPrefix}-hide-puzzle-info`}>Hide puzzle info</Tooltip>
+        <Tooltip id={`${idPrefix}-hide-puzzle-info`}>
+          {t("puzzle.pageView.hideInfo", "Hide puzzle info")}
+        </Tooltip>
       }
     >
       <Button onClick={onMinimizeMetadata} size="sm">
@@ -1235,7 +1247,7 @@ const PuzzlePageMetadata = ({
           popoverRelated
           allPuzzles={allPuzzles}
           allTags={allTags}
-          emptyMessage="No tags yet"
+          emptyMessage={t("tags.puzzleNoTagsYet", "No tags yet")}
         />
       </PuzzleMetadataRow>
     </PuzzleMetadata>
@@ -1436,6 +1448,8 @@ const PuzzleGuessModal = ({
   const [submitError, setSubmitError] = useState<string>("");
   const formRef = useRef<React.ComponentRef<typeof ModalForm>>(null);
 
+  const { t, i18n } = useTranslation();
+
   useImperativeHandle(ref, () => ({
     show: () => {
       if (formRef.current) {
@@ -1473,18 +1487,32 @@ const PuzzleGuessModal = ({
     });
     if ((repeatGuess || solvedness !== "unsolved") && !confirmingSubmit) {
       const repeatGuessStr = repeatGuess
-        ? "This answer has already been submitted. "
+        ? t(
+            "puzzle.answerOrGuess.repeatAnswer",
+            "This answer has already been submitted. ",
+          )
         : "";
       const solvednessStr = {
-        solved: "This puzzle has already been solved. ",
-        noAnswers: "This puzzle does not expect any answers to be submitted. ",
+        solved: t(
+          "puzzle.answerOrGuess.alreadySolved",
+          "This puzzle has already been solved. ",
+        ),
+        noAnswers: t(
+          "puzzle.answerOrGuess.expectNoAnswer",
+          "This puzzle does not expect any answers to be submitted. ",
+        ),
         unsolved: "",
       }[solvedness];
-      const msg = `${solvednessStr} ${repeatGuessStr} Are you sure you want to submit this guess?`;
+      const msg = `${solvednessStr} ${repeatGuessStr} ${t("puzzle.answerOrGuess.areYouSure", "Are you sure you want to submit this guess?")}`;
       setConfirmationMessage(msg);
       setConfirmingSubmit(true);
     } else if (!haveSetDirection || !haveSetConfidence) {
-      setSubmitError("Please set a direction and confidence for your guess.");
+      setSubmitError(
+        t(
+          "puzzle.answerOrGuess.needDirectionAndConfidence",
+          "Please set a direction and confidence for your guess.",
+        ),
+      );
       setSubmitState(PuzzleGuessSubmitState.FAILED);
     } else {
       createGuess.call(
@@ -1522,18 +1550,21 @@ const PuzzleGuessModal = ({
     confirmingSubmit,
     haveSetDirection,
     haveSetConfidence,
+    t,
   ]);
 
   const idPrefix = useId();
 
   const directionTooltip = (
     <Tooltip id={`${idPrefix}-direction-tooltip`}>
-      <strong>Solve direction:</strong> {formatGuessDirection(directionInput)}
+      <strong>{t("puzzle.answerOrGuess.direction", "Solve direction")}:</strong>{" "}
+      {formatGuessDirection(directionInput)}
     </Tooltip>
   );
   const confidenceTooltip = (
     <Tooltip id={`${idPrefix}-confidence-tooltip`}>
-      <strong>Confidence:</strong> {formatConfidence(confidenceInput)}
+      <strong>{t("puzzle.answerOrGuess.confidence", "Confidence")}:</strong>{" "}
+      {formatConfidence(confidenceInput)}
     </Tooltip>
   );
 
@@ -1542,9 +1573,27 @@ const PuzzleGuessModal = ({
   }, []);
 
   const title = {
-    unsolved: `Submit answer to ${puzzle.title}`,
-    solved: `Guess history for ${puzzle.title}`,
-    noAnswers: `Guess history for ${puzzle.title}`,
+    unsolved: t(
+      "puzzle.answerOrGuess.guessTitle.submitGuess",
+      `Submit answer to {{puzzle}}`,
+      {
+        puzzle: puzzle.title,
+      },
+    ),
+    solved: t(
+      "puzzle.answerOrGuess.guessTitle.history",
+      `Guess history for {{puzzle}}`,
+      {
+        puzzle: puzzle.title,
+      },
+    ),
+    noAnswers: t(
+      "puzzle.answerOrGuess.guessTitle.history",
+      `Guess history for {{puzzle}}`,
+      {
+        puzzle: puzzle.title,
+      },
+    ),
   }[solvedness];
 
   return (
@@ -1552,12 +1601,16 @@ const PuzzleGuessModal = ({
       ref={formRef}
       title={title}
       onSubmit={onSubmitGuess}
-      submitLabel={confirmingSubmit ? "Confirm Submit" : "Submit"}
+      submitLabel={
+        confirmingSubmit
+          ? t("common.confirmSubmit", "Confirm Submit")
+          : t("common.submit", "Submit")
+      }
       size="lg"
     >
       <FormGroup as={Row} className="mb-3" controlId={`${idPrefix}-guess`}>
         <FormLabel column xs={3}>
-          Guess
+          {t("puzzle.answerOrGuess.guess", "Guess")}
         </FormLabel>
         <Col xs={9}>
           <AnswerFormControl
@@ -1578,7 +1631,7 @@ const PuzzleGuessModal = ({
         controlId={`${idPrefix}-guess-direction`}
       >
         <FormLabel column xs={3}>
-          Solve direction
+          {t("puzzle.answerOrGuess.direction", "Solve direction")}:
         </FormLabel>
         <Col xs={9}>
           <ValidatedSliderContainer>
@@ -1614,9 +1667,12 @@ const PuzzleGuessModal = ({
             />
           </ValidatedSliderContainer>
           <FormText>
-            Pick a number between -10 (backsolved without opening the puzzle) to
-            10 (forward-solved without seeing the round) to indicate if you
-            forward- or back-solved.
+            {t(
+              "puzzle.answerOrGuess.directionHelp",
+              `Pick a number between -10 (backsolved without opening the puzzle)
+              to 10 (forward-solved without seeing the round) to indicate if you
+              forward- or back-solved.`,
+            )}
           </FormText>
         </Col>
       </FormGroup>
@@ -1627,7 +1683,7 @@ const PuzzleGuessModal = ({
         controlId={`${idPrefix}-guess-confidence`}
       >
         <FormLabel column xs={3}>
-          Confidence
+          {t("puzzle.answerOrGuess.confidence", "Confidence")}
         </FormLabel>
         <Col xs={9}>
           <ValidatedSliderContainer>
@@ -1661,17 +1717,27 @@ const PuzzleGuessModal = ({
             />
           </ValidatedSliderContainer>
           <FormText>
-            Pick a number between 0 and 100 for the probability that you think
-            this answer is right.
+            {t(
+              "puzzle.answerOrGuess.confidenceHelp",
+              "Pick a number between 0 and 100 for the probability that you think this answer is right.",
+            )}
           </FormText>
         </Col>
       </FormGroup>
 
       {guesses.length === 0 ? (
-        <div>No previous submissions.</div>
+        <div>
+          {t("puzzle.answerOrGuess.noGuesses", "No previous submissions.")}{" "}
+        </div>
       ) : (
         [
-          <div key="label">Previous submissions:</div>,
+          <div key="label">
+            {t(
+              "puzzle.answerOrGuess.previousSubmissions",
+              "Previous submissions",
+            )}
+            :
+          </div>,
           <GuessTable key="table">
             {sortedBy(guesses, (g) => g.createdAt)
               .reverse()
@@ -1694,7 +1760,7 @@ const PuzzleGuessModal = ({
                       </GuessAnswerCell>
                     </GuessTableSmallRow>
                     <GuessTimestampCell>
-                      {calendarTimeFormat(guess.createdAt)}
+                      {calendarTimeFormat(guess.createdAt, t, i18n.language)}
                     </GuessTimestampCell>
                     <GuessSubmitterCell>
                       <Breakable>
@@ -1802,6 +1868,8 @@ const PuzzleAnswerModal = ({
     return computeSolvedness(puzzle);
   }, [puzzle]);
 
+  const { t } = useTranslation("PuzzlePage");
+
   const onSubmit = useCallback(() => {
     const strippedAnswer = answer.replaceAll(/\s/g, "");
     const repeatAnswer = guesses.find((g) => {
@@ -1812,14 +1880,23 @@ const PuzzleAnswerModal = ({
     });
     if ((repeatAnswer || solvedness !== "unsolved") && !confirmingSubmit) {
       const repeatAnswerStr = repeatAnswer
-        ? "This answer has already been submitted. "
+        ? t(
+            "puzzle.answerOrGuess.repeatAnswer",
+            "This answer has already been submitted. ",
+          )
         : "";
       const solvednessStr = {
-        solved: "This puzzle has already been solved. ",
-        noAnswers: "This puzzle does not expect any answers to be submitted. ",
+        solved: t(
+          "puzzle.answerOrGuess.alreadySolved",
+          "This puzzle has already been solved. ",
+        ),
+        noAnswers: t(
+          "puzzle.answerOrGuess.expectNoAnswer",
+          "This puzzle does not expect any answers to be submitted. ",
+        ),
         unsolved: "",
       }[solvedness];
-      const msg = `${solvednessStr} ${repeatAnswerStr} Are you sure you want to submit this answer?`;
+      const msg = `${solvednessStr} ${repeatAnswerStr} ${t("puzzle.answerOrGuess.areYouSure", "Are you sure you want to submit this answer?")}`;
       setConfirmationMessage(msg);
       setConfirmingSubmit(true);
       return;
@@ -1843,20 +1920,28 @@ const PuzzleAnswerModal = ({
         setConfirmingSubmit(false);
       },
     );
-  }, [puzzle._id, confirmingSubmit, guesses, solvedness, answer, hide]);
+  }, [puzzle._id, confirmingSubmit, guesses, solvedness, answer, hide, t]);
 
   const idPrefix = useId();
 
   return (
     <ModalForm
       ref={formRef}
-      title={`Submit answer to ${puzzle.title}`}
+      title={t(
+        "puzzle.answerOrGuess.answerTitle",
+        "Submit answer to {{puzzleTitle}}",
+        { puzzleTitle: puzzle.title },
+      )}
       onSubmit={onSubmit}
-      submitLabel={confirmingSubmit ? "Confirm Submit" : "Submit"}
+      submitLabel={
+        confirmingSubmit
+          ? t("common.confirmSubmit", "Confirm Submit")
+          : t("common.submit", "Submit")
+      }
     >
       <FormGroup as={Row} className="mb-3" controlId={`${idPrefix}-answer`}>
         <FormLabel column xs={3}>
-          Answer
+          {t("puzzle.answerOrGuess.answer", "Answer")}
         </FormLabel>
         <Col xs={9}>
           <AnswerFormControl
@@ -1944,22 +2029,35 @@ const PuzzleDeletedModal = ({
     hide();
   }, [puzzleId, hide]);
 
+  const { t } = useTranslation();
+
   const modal = (
     <Modal show={show} onHide={hide} backdrop="static">
       <Modal.Header closeButton>
-        <Modal.Title>This Jolly Roger entry has been removed</Modal.Title>
+        <Modal.Title>
+          {t(
+            "puzzle.deleted.modalTitle",
+            "This Jolly Roger entry has been removed",
+          )}
+        </Modal.Title>
       </Modal.Header>
       <Modal.Body>
         <p>
-          An operator has deleted this puzzle from Jolly Roger. You can still
-          view it to extract information, but you won&apos;t be able to edit the
-          shared document or send new chat messages going forward.
+          {t(
+            "puzzle.deleted.body1",
+            `An operator has deleted this puzzle from Jolly Roger. You can
+            still view it to extract information, but you won't be able to
+            edit the shared document or send new chat messages going forward.`,
+          )}
         </p>
         <p>
-          We want to make sure this page doesn&apos;t distract folks on the team
-          going forward, so there are no links back to this page. If you need to
-          save any information, make sure to hold onto the URL until you&apos;re
-          done.
+          {t(
+            "puzzle.deleted.body2",
+            `We want to make sure this page doesn&apos;t distract folks on the
+            team going forward, so there are no links back to this page. If you
+            need to save any information, make sure to hold onto the URL until
+            you're done.`,
+          )}
         </p>
         {replacedBy && (
           <p>
@@ -1972,16 +2070,21 @@ const PuzzleDeletedModal = ({
         )}
         {canUpdate && (
           <>
-            <p>As an operator, you can un-delete this puzzle:</p>
+            <p>
+              {t(
+                "puzzle.deleted.undeleteHelp",
+                "As an operator, you can un-delete this puzzle:",
+              )}
+            </p>
             <Button variant="primary" onClick={undelete}>
-              Undelete
+              {t("puzzle.deleted.undelete", "Undelete")}
             </Button>
           </>
         )}
       </Modal.Body>
       <Modal.Footer>
         <Button variant="secondary" onClick={hide}>
-          Close
+          {t("common.close", "Close")}
         </Button>
       </Modal.Footer>
     </Modal>
@@ -2090,9 +2193,11 @@ const PuzzlePage = React.memo(() => {
 
   const selfUser = useTracker(() => Meteor.user()!, []);
 
+  const { t } = useTranslation();
+
   const puzzleTitle = activePuzzle
-    ? `${activePuzzle.title}${activePuzzle.deleted ? " (deleted)" : ""}`
-    : "(no such puzzle)";
+    ? `${activePuzzle.title}${activePuzzle.deleted ? ` (${t("puzzle.errorStatus.deleted", "deleted")})` : ""}`
+    : `(${t("puzzle.errorStatus.noSuchPuzzle", "no such puzzle")})`;
   const title = puzzleDataLoading ? "loading..." : puzzleTitle;
   useBreadcrumb({
     title,
@@ -2212,7 +2317,12 @@ const PuzzlePage = React.memo(() => {
   if (!activePuzzle) {
     return (
       <FixedLayout ref={puzzlePageDivRef}>
-        <span>No puzzle found :( Did you get that URL right?</span>
+        <span>
+          {t(
+            "puzzle.errorStatus.noSuchPuzzleBody",
+            "No puzzle found :( Did you get that URL right?",
+          )}
+        </span>
       </FixedLayout>
     );
   }
@@ -2295,7 +2405,9 @@ const PuzzlePage = React.memo(() => {
     <OverlayTrigger
       placement="bottom-end"
       overlay={
-        <Tooltip id={`${idPrefix}-show-puzzle-info`}>Show puzzle info</Tooltip>
+        <Tooltip id={`${idPrefix}-show-puzzle-info`}>
+          {t("puzzle.pageView.showInfo", "Show puzzle info")}
+        </Tooltip>
       }
     >
       <PuzzleMetadataFloatingButton
@@ -2325,7 +2437,9 @@ const PuzzlePage = React.memo(() => {
             <OverlayTrigger
               placement="right"
               overlay={
-                <Tooltip id={`${idPrefix}-hide-chat`}>Minimize chat</Tooltip>
+                <Tooltip id={`${idPrefix}-hide-chat`}>
+                  {t("chat.minimizeChat", "Minimize chat")}
+                </Tooltip>
               }
             >
               <MinimizeChatButton

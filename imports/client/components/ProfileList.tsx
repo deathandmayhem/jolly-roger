@@ -27,6 +27,7 @@ import ListGroup from "react-bootstrap/ListGroup";
 import ListGroupItem from "react-bootstrap/ListGroupItem";
 import Modal from "react-bootstrap/Modal";
 import { createPortal } from "react-dom";
+import { Trans, useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { formatDiscordName } from "../../lib/discord";
@@ -120,6 +121,8 @@ const ConfirmationModal = ({
     setDisabled(true);
   }, [performAction, hide]);
 
+  const { t } = useTranslation();
+
   const modal = (
     <Modal show={visible} onHide={hide}>
       <Modal.Header closeButton>
@@ -135,7 +138,7 @@ const ConfirmationModal = ({
       </Modal.Body>
       <Modal.Footer>
         <Button variant="secondary" onClick={hide} disabled={disabled}>
-          Cancel
+          {t("common.cancel", "Cancel")}
         </Button>
         <Button variant="danger" onClick={onActionClicked} disabled={disabled}>
           {action}
@@ -163,18 +166,25 @@ const PromoteOperatorModal = ({
     [huntId, user._id],
   );
 
+  const { t } = useTranslation();
+
   const body = (
-    <>
-      Are you sure you want to make <strong>{user.displayName}</strong> an
-      operator?
-    </>
+    <Trans
+      i18nKey="hunterList.confirmPromote"
+      t={t}
+      defaults="Are you sure you want to make <strong>{{name}}</strong> an operator?"
+      values={{ name: user.displayName }}
+      components={{
+        strong: <strong />,
+      }}
+    />
   );
 
   return (
     <ConfirmationModal
-      title="Promote Operator"
+      title={t("hunterList.promoteOperator", "Promote Operator")}
       body={body}
-      action="Promote"
+      action={t("hunterList.promoteButton", "Promote")}
       performAction={performAction}
       ref={forwardedRef}
     />
@@ -197,17 +207,25 @@ const DemoteOperatorModal = ({
     [huntId, user._id],
   );
 
+  const { t } = useTranslation();
+
   const body = (
-    <>
-      Are you sure you want to demote <strong>{user.displayName}</strong>?
-    </>
+    <Trans
+      i18nKey="hunterList.confirmDemote"
+      t={t}
+      defaults="Are you sure you want to demote <strong>{{name}}</strong>?"
+      values={{ name: user.displayName }}
+      components={{
+        strong: <strong />,
+      }}
+    />
   );
 
   return (
     <ConfirmationModal
-      title="Demote Operator"
+      title={t("hunterList.demoteOperator", "Demote Operator")}
       body={body}
-      action="Demote"
+      action={t("hunterList.demoteButton", "Demote")}
       performAction={performAction}
       ref={forwardedRef}
     />
@@ -261,6 +279,8 @@ const OperatorControls = ({
     e.preventDefault();
   }, []);
 
+  const { t } = useTranslation();
+
   return (
     <OperatorBox onClick={preventPropagation}>
       {renderPromoteModal && (
@@ -282,14 +302,14 @@ const OperatorControls = ({
         <>
           {!self && (
             <Button size="sm" variant="warning" onClick={showDemoteModal}>
-              Demote
+              {t("hunterList.demoteButton", "Demote")}
             </Button>
           )}
-          <Badge bg="info">Operator</Badge>
+          <Badge bg="info">{t("hunterList.operator", "Operator")}</Badge>
         </>
       ) : (
         <Button size="sm" variant="warning" onClick={showPromoteModal}>
-          Make operator
+          {t("hunterList.makeOperator", "Make operator")}
         </Button>
       )}
     </OperatorBox>
@@ -312,17 +332,40 @@ const GenerateInvitationLinkModal = ({
     [huntId],
   );
 
+  const { t } = useTranslation();
+
   return (
     <ConfirmationModal
       title={
-        isRegenerate ? "Regenerate Invitation Link" : "Generate Invitation Link"
+        isRegenerate
+          ? t(
+              "hunterList.invitationLink.modal.regenerateTitle",
+              "Regenerate Invitation Link",
+            )
+          : t(
+              "hunterList.invitationLink.modal.generateTitle",
+              "Generate Invitation Link",
+            )
       }
       body={
         isRegenerate
-          ? "Are you sure you want to regenerate the invitation link to this hunt? The current link will no longer be valid."
-          : "Generate an invitation link to this hunt? Anyone with access to invite users will see this link, and anyone with the link will be able to join."
+          ? t(
+              "hunterList.invitationLink.modal.regenerateBody",
+              "Are you sure you want to regenerate the invitation link to this hunt? The current link will no longer be valid.",
+            )
+          : t(
+              "hunterList.invitationLink.modal.generateBody",
+              "Generate an invitation link to this hunt? Anyone with access to invite users will see this link, and anyone with the link will be able to join.",
+            )
       }
-      action={isRegenerate ? "Regenerate link" : "Generate link"}
+      action={
+        isRegenerate
+          ? t(
+              "hunterList.invitationLink.modal.regenerateButton",
+              "Regenerate link",
+            )
+          : t("hunterList.invitationLink.modal.generateButton", "Generate link")
+      }
       performAction={performAction}
       ref={forwardedRef}
     />
@@ -343,11 +386,22 @@ const DisableInvitationLinkModal = ({
     [huntId],
   );
 
+  const { t } = useTranslation();
+
   return (
     <ConfirmationModal
-      title="Disable Invitation Link"
-      body="Are you sure you want to disable the invitation link to this hunt? The current link will no longer be valid."
-      action="Disable link"
+      title={t(
+        "hunterList.invitationLink.modal.disableTitle",
+        "Disable Invitation Link",
+      )}
+      body={t(
+        "hunterList.invitationLink.modal.disableBody",
+        "Are you sure you want to disable the invitation link to this hunt? The current link will no longer be valid.",
+      )}
+      action={t(
+        "hunterList.invitationLink.modal.disableButton",
+        "Disable link",
+      )}
       performAction={performAction}
       ref={forwardedRef}
     />
@@ -482,6 +536,8 @@ const ProfileList = ({
     [renderDisableInvitationLinkModal],
   );
 
+  const { t } = useTranslation();
+
   const invitationLink = useMemo(() => {
     if (!hunt || !canInvite || !invitationCode) {
       return null;
@@ -491,7 +547,7 @@ const ProfileList = ({
 
     return (
       <p>
-        Invitation link:{" "}
+        {t("hunterList.invitationLink.link", "Invitation link")}:{" "}
         <StyledCopyToClipboardButton
           text={invitationUrl}
           variant="link"
@@ -502,7 +558,7 @@ const ProfileList = ({
         {invitationUrl}
       </p>
     );
-  }, [hunt, canInvite, invitationCode]);
+  }, [hunt, canInvite, invitationCode, t]);
 
   const invitationLinkManagementButtons = useMemo(() => {
     if (!hunt || !canUpdateHuntInvitationCode) {
@@ -526,8 +582,14 @@ const ProfileList = ({
         )}
         <Button variant="info" onClick={showGenerateInvitationLinkModal}>
           {invitationCode
-            ? "Regenerate invitation link"
-            : "Generate invitation link"}
+            ? t(
+                "hunterList.invitationLink.regenerate",
+                "Regenerate invitation link",
+              )
+            : t(
+                "hunterList.invitationLink.generate",
+                "Generate invitation link",
+              )}
         </Button>
         {invitationCode && (
           <Button
@@ -535,12 +597,14 @@ const ProfileList = ({
             className="ms-1"
             onClick={showDisableInvitationLinkModal}
           >
-            Disable invitation link
+            {t("hunterList.invitationLink.disable", "Disable invitation link")}
           </Button>
         )}
         <FormText>
-          Manage the public invitation link that can be used by anyone to join
-          this hunt
+          {t(
+            "hunterList.invitationLink.hint",
+            "Manage the public invitation link that can be used by anyone to join this hunt",
+          )}
         </FormText>
       </FormGroup>
     );
@@ -552,6 +616,7 @@ const ProfileList = ({
     showGenerateInvitationLinkModal,
     renderDisableInvitationLinkModal,
     showDisableInvitationLinkModal,
+    t,
   ]);
 
   const inviteToHuntItem = useMemo(() => {
@@ -570,11 +635,11 @@ const ProfileList = ({
           <ImageBlock>
             <FontAwesomeIcon icon={faPlus} />
           </ImageBlock>
-          <strong>Invite someone...</strong>
+          <strong>{t("hunterList.inviteSomeone", "Invite someone")}...</strong>
         </ListItemContainer>
       </ListGroupItem>
     );
-  }, [hunt, canInvite]);
+  }, [hunt, canInvite, t]);
 
   const globalInfo = useMemo(() => {
     if (hunt) {
@@ -583,20 +648,24 @@ const ProfileList = ({
 
     return (
       <Alert variant="info">
-        This shows everyone registered on Jolly Roger, not just those hunting in
-        this year&apos;s Mystery Hunt. For that, go to the hunt page and click
-        on &quot;Hunters&quot;.
+        {t(
+          "hunterList.alert",
+          'This shows everyone registered on Jolly Roger, not just those hunting in this year‘s Mystery Hunt. For that, go to the hunt page and click on "Hunters".',
+        )}
       </Alert>
     );
-  }, [hunt]);
+  }, [hunt, t]);
 
   const searchId = useId();
 
   const matching = users.filter(matcher);
+
   return (
     <div>
-      <h1>List of hunters</h1>
-      <ProfilesSummary>Total hunters: {users.length}</ProfilesSummary>
+      <h1>{t("hunterList.title", "List of hunters")}</h1>
+      <ProfilesSummary>
+        {t("hunterList.totalHunters", "Total hunters")}: {users.length}
+      </ProfilesSummary>
 
       {syncDiscordButton}
 
@@ -604,12 +673,15 @@ const ProfileList = ({
       {invitationLinkManagementButtons}
 
       <FormGroup className="mb-3" controlId={searchId}>
-        <FormLabel>Search</FormLabel>
+        <FormLabel>{t("common.search", "Search")}</FormLabel>
         <InputGroup>
           <FormControl
             type="text"
             ref={searchBarRef}
-            placeholder="search by name, email, phone, Discord..."
+            placeholder={t(
+              "hunterList.searchBy",
+              "search by name, email, phone, Discord...",
+            )}
             value={searchString}
             onChange={onSearchStringChange}
           />

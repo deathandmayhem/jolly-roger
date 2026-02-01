@@ -10,6 +10,7 @@ import FormControl from "react-bootstrap/FormControl";
 import FormGroup from "react-bootstrap/FormGroup";
 import FormLabel from "react-bootstrap/FormLabel";
 import Row from "react-bootstrap/Row";
+import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 import styled from "styled-components";
 import Hunts from "../../lib/models/Hunts";
@@ -23,9 +24,14 @@ const BulkError = styled.p`
 `;
 
 const UserInvitePage = () => {
+  const { t } = useTranslation();
+
   const huntId = useParams<"huntId">().huntId!;
   const navigate = useNavigate();
-  useBreadcrumb({ title: "Invite", path: `/hunts/${huntId}/hunters/invite` });
+  useBreadcrumb({
+    title: t("invite.breadcrumbTitle", "Invite"),
+    path: `/hunts/${huntId}/hunters/invite`,
+  });
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<Meteor.Error | undefined>(undefined);
   const [email, setEmail] = useState<string>("");
@@ -92,7 +98,7 @@ const UserInvitePage = () => {
   const bulkInvite = useMemo(() => {
     return canBulkInvite ? (
       <div>
-        <h2>Bulk invite</h2>
+        <h2>{t("invite.bulkInvite", "Bulk invite")}</h2>
 
         {bulkError ? (
           <Alert variant="danger">
@@ -102,7 +108,9 @@ const UserInvitePage = () => {
 
         <form onSubmit={onBulkSubmit} className="form-horizontal">
           <FormGroup className="mb-3" controlId={`${idPrefix}-invite-bulk`}>
-            <FormLabel>Email addresses (one per line)</FormLabel>
+            <FormLabel>
+              {t("invite.bulkInstruction", "Email addresses (one per line)")}
+            </FormLabel>
             <FormControl
               as="textarea"
               rows={10}
@@ -113,7 +121,7 @@ const UserInvitePage = () => {
 
           <FormGroup className="mb-3">
             <Button type="submit" variant="primary" disabled={submitting}>
-              Send bulk invites
+              {t("invite.sendBulkInvites", "Send bulk invites")}
             </Button>
           </FormGroup>
         </form>
@@ -127,15 +135,19 @@ const UserInvitePage = () => {
     bulkError,
     onBulkSubmit,
     onBulkEmailsChanged,
+    t,
   ]);
 
   return (
     <div>
-      <h1>Send an invite</h1>
+      <h1>{t("invite.title", "Send an invite")}</h1>
 
       <p>
-        Invite someone to join this hunt. They&apos;ll get an email with
-        instructions (even if they already have a Jolly Roger account)
+        {t(
+          "invite.instruction",
+          `Invite someone to join this hunt. They'll get an email with
+          instructions (even if they already have a Jolly Roger account)`,
+        )}
       </p>
 
       <Row>
@@ -153,7 +165,7 @@ const UserInvitePage = () => {
               controlId={`${idPrefix}-email`}
             >
               <FormLabel column md={3}>
-                E-mail address
+                {t("common.email", "Email address")}
               </FormLabel>
               <Col md={9}>
                 <FormControl
@@ -168,7 +180,7 @@ const UserInvitePage = () => {
             <FormGroup className="mb-3">
               <Col md={{ offset: 3, span: 9 }}>
                 <Button type="submit" variant="primary" disabled={submitting}>
-                  Send invite
+                  {t("invite.sendInvite", "Send invite")}
                 </Button>
               </Col>
             </FormGroup>
