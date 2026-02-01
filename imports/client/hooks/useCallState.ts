@@ -27,6 +27,7 @@ import mediasoupConnectTransport from "../../methods/mediasoupConnectTransport";
 import mediasoupSetPeerState from "../../methods/mediasoupSetPeerState";
 import mediasoupSetProducerPaused from "../../methods/mediasoupSetProducerPaused";
 import { PREFERRED_AUDIO_DEVICE_STORAGE_KEY } from "../components/AudioConfig";
+import getAudioStream from "../getAudioStream";
 import { trace } from "../tracing";
 import useBlockUpdate from "./useBlockUpdate";
 
@@ -1181,22 +1182,10 @@ const useCallState = ({
         dispatch({ type: "request-capture" });
         const preferredAudioDeviceId =
           localStorage.getItem(PREFERRED_AUDIO_DEVICE_STORAGE_KEY) ?? undefined;
-        // Get the user media stream.
-        const mediaStreamConstraints = {
-          audio: {
-            echoCancellation: { ideal: true },
-            autoGainControl: { ideal: true },
-            noiseSuppression: { ideal: true },
-            deviceId: preferredAudioDeviceId,
-          },
-          // TODO: conditionally allow video if enabled by feature flag?
-        };
 
         let mediaSource: MediaStream;
         try {
-          mediaSource = await navigator.mediaDevices.getUserMedia(
-            mediaStreamConstraints,
-          );
+          mediaSource = await getAudioStream(preferredAudioDeviceId);
         } catch (e) {
           dispatch({ type: "capture-error", error: e as Error });
           return;

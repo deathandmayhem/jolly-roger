@@ -9,6 +9,7 @@ import FormGroup from "react-bootstrap/FormGroup";
 import FormLabel from "react-bootstrap/FormLabel";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
+import getAudioStream from "../getAudioStream";
 import Spectrum from "./Spectrum";
 
 enum AudioConfigStatus {
@@ -67,7 +68,16 @@ const AudioConfig = () => {
     void (async () => {
       if (navigator.mediaDevices) {
         const devices = await navigator.mediaDevices.enumerateDevices();
-        const inputs = devices.filter((dev) => dev.kind === "audioinput");
+        const inputs = devices.filter(
+          (dev) => dev.kind === "audioinput" && dev.label !== "",
+        );
+        // Sort "default" to the top if present (Chrome provides this
+        // pseudo-device but doesn't guarantee its position in the list).
+        inputs.sort((a, b) => {
+          if (a.deviceId === "default") return -1;
+          if (b.deviceId === "default") return 1;
+          return 0;
+        });
         setKnownDevices(inputs);
       }
     })();
@@ -105,13 +115,19 @@ const AudioConfig = () => {
   const onDefaultDeviceChange: NonNullable<FormControlProps["onChange"]> =
     useCallback((e) => {
       const newPreferredDeviceId = e.target.value;
-      // Save preferred input device id to local storage.
-      localStorage.setItem(
-        PREFERRED_AUDIO_DEVICE_STORAGE_KEY,
-        newPreferredDeviceId,
-      );
-      // Also update the UI.
-      setPreferredDeviceId(newPreferredDeviceId);
+      if (newPreferredDeviceId === "") {
+        // Clear the stored preference so we fall back to the system default.
+        localStorage.removeItem(PREFERRED_AUDIO_DEVICE_STORAGE_KEY);
+        setPreferredDeviceId(undefined);
+      } else {
+        // Save preferred input device id to local storage.
+        localStorage.setItem(
+          PREFERRED_AUDIO_DEVICE_STORAGE_KEY,
+          newPreferredDeviceId,
+        );
+        // Also update the UI.
+        setPreferredDeviceId(newPreferredDeviceId);
+      }
     }, []);
 
   const onStartButtonClicked = useCallback(
@@ -122,20 +138,10 @@ const AudioConfig = () => {
           const freshPreferredAudioDeviceId =
             localStorage.getItem(PREFERRED_AUDIO_DEVICE_STORAGE_KEY) ??
             undefined;
-          const mediaStreamConstraints = {
-            audio: {
-              echoCancellation: { ideal: true },
-              autoGainControl: { ideal: true },
-              noiseSuppression: { ideal: true },
-              deviceId: freshPreferredAudioDeviceId,
-            },
-          };
 
-          let mediaStream: MediaStream | undefined;
+          let mediaStream: MediaStream;
           try {
-            mediaStream = await navigator.mediaDevices.getUserMedia(
-              mediaStreamConstraints,
-            );
+            mediaStream = await getAudioStream(freshPreferredAudioDeviceId);
           } catch (e) {
             setStatus(AudioConfigStatus.STREAM_ERROR);
             setError(`Couldn't get local microphone: ${(e as Error).message}`);
@@ -213,13 +219,32 @@ const AudioConfig = () => {
         <FormControl
           as="select"
           onChange={onDefaultDeviceChange}
-          value={preferredDeviceId}
+          value={
+            preferredDeviceId ??
+            (knownDevices.some((dev) => dev.deviceId === "default")
+              ? "default"
+              : "")
+          }
         >
+          {!knownDevices.some((dev) => dev.deviceId === "default") && (
+            <option value="">
+              {t("profile.audioConfig.systemDefault", "System default")}
+            </option>
+          )}
           {knownDevices.map((dev) => (
             <option value={dev.deviceId} key={dev.deviceId}>
               {dev.label}
             </option>
           ))}
+          {preferredDeviceId !== undefined &&
+            !knownDevices.some((dev) => dev.deviceId === preferredDeviceId) && (
+              <option value={preferredDeviceId}>
+                {t(
+                  "profile.audioConfig.previouslySelectedDevice",
+                  "Previously selected device (fallback to system default)",
+                )}
+              </option>
+            )}
         </FormControl>
       </FormGroup>
 
