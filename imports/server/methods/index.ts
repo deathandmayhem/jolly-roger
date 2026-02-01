@@ -53,6 +53,7 @@ import "./mediasoupSetProducerPaused";
 import "./postAnnouncement";
 import "./promoteOperator";
 import "./provisionFirstUser";
+import "./provisionScreenshotData";
 import "./removePuzzleAnswer";
 import "./removePuzzleTag";
 import "./renameTag";

@@ -26,8 +26,6 @@
     "sass",
     // Detected and used by mongodb
     "aws4",
-    // Used by test suite
-    "playwright"
   ],
   "tags": ["-lintignore"]
 }
