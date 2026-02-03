@@ -57,7 +57,7 @@ const UserInvitePage = () => {
     }, []);
 
   const onSubmit = useCallback(
-    (e: React.FormEvent<HTMLFormElement>) => {
+    (e: React.SubmitEvent<HTMLFormElement>) => {
       e.preventDefault();
       setSubmitting(true);
       addHuntUser.call({ huntId, email }, (inviteError?) => {
@@ -73,7 +73,7 @@ const UserInvitePage = () => {
   );
 
   const onBulkSubmit = useCallback(
-    (e: React.FormEvent<HTMLFormElement>) => {
+    (e: React.SubmitEvent<HTMLFormElement>) => {
       e.preventDefault();
       setSubmitting(true);
       setBulkError(undefined);

@@ -59,7 +59,7 @@ const ModalForm = (props: {
 
   const { onSubmit } = props;
   const submit = useCallback(
-    (e: React.FormEvent) => {
+    (e: React.SubmitEvent<HTMLFormElement>) => {
       e.preventDefault();
       onSubmit(() => {
         // For delete forms, it's possible that the component gets

@@ -1,7 +1,7 @@
 import { Accounts } from "meteor/accounts-base";
 import { Meteor } from "meteor/meteor";
 import { useTracker } from "meteor/react-meteor-data";
-import type { FormEvent } from "react";
+import type { SubmitEvent } from "react";
 import { useCallback, useEffect, useState } from "react";
 import Button from "react-bootstrap/Button";
 import Col from "react-bootstrap/Col";
@@ -71,7 +71,7 @@ const JoinHunt = () => {
   const navigate = useNavigate();
 
   const onAcceptInvitation = useCallback(
-    (e: FormEvent<HTMLFormElement>) => {
+    (e: SubmitEvent<HTMLFormElement>) => {
       e.preventDefault();
       if (submitState !== AccountFormSubmitState.SUBMITTING) {
         setSubmitState(AccountFormSubmitState.SUBMITTING);
@@ -153,7 +153,7 @@ const JoinHunt = () => {
     disabled: submitting,
   });
   const fetchLoginOptions = useCallback(
-    (e: FormEvent<HTMLFormElement>) => {
+    (e: SubmitEvent<HTMLFormElement>) => {
       e.preventDefault();
       if (submitState !== AccountFormSubmitState.SUBMITTING) {
         setSubmitState(AccountFormSubmitState.SUBMITTING);
@@ -243,7 +243,7 @@ const JoinHunt = () => {
   );
 
   const attemptLogin = useCallback(
-    (e: FormEvent<HTMLFormElement>) => {
+    (e: SubmitEvent<HTMLFormElement>) => {
       e.preventDefault();
       setInfoMessage(undefined);
       setSubmitState(AccountFormSubmitState.SUBMITTING);

@@ -115,7 +115,7 @@ const AudioConfig = () => {
     }, []);
 
   const onStartButtonClicked = useCallback(
-    (_e: React.FormEvent) => {
+    (_e: React.MouseEvent<HTMLButtonElement>) => {
       void (async () => {
         if (navigator.mediaDevices) {
           setStatus(AudioConfigStatus.REQUESTING_STREAM);
@@ -177,7 +177,7 @@ const AudioConfig = () => {
   );
 
   const onStopButtonClicked = useCallback(
-    (_e: React.FormEvent) => {
+    (_e: React.MouseEvent<HTMLButtonElement>) => {
       if (stream) {
         stream.getTracks().forEach((t) => t.stop());
       }

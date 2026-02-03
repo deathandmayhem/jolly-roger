@@ -3,7 +3,7 @@ import { faImage } from "@fortawesome/free-solid-svg-icons/faImage";
 import { faSpinner } from "@fortawesome/free-solid-svg-icons/faSpinner";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import type React from "react";
-import type { ChangeEvent, MouseEvent } from "react";
+import type { ChangeEvent, MouseEvent, SubmitEvent } from "react";
 import {
   useCallback,
   useId,
@@ -194,7 +194,7 @@ const InsertImageModal = ({
   }, []);
 
   const onSubmit = useCallback(
-    (e: MouseEvent<HTMLFormElement>) => {
+    (e: SubmitEvent<HTMLFormElement>) => {
       e.preventDefault();
       e.stopPropagation();
 
