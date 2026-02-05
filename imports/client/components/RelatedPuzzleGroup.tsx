@@ -96,7 +96,10 @@ const RelatedPuzzleGroup = ({
   }
   return (
     <PuzzleGroupDiv>
-      <PuzzleGroupHeader onClick={toggleCollapse}>
+      <PuzzleGroupHeader
+        data-group-name={sharedTag?.name}
+        onClick={toggleCollapse}
+      >
         <FontAwesomeIcon
           fixedWidth
           icon={collapsed ? faCaretRight : faCaretDown}

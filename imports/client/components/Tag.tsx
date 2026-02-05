@@ -348,6 +348,7 @@ const Tag = (props: TagProps) => {
 
   const tagElement = (
     <TagDiv
+      data-tag-name={props.tag.name}
       $popoverCapable={props.popoverRelated}
       $popoverOpen={showPopover}
       $isAdministrivia={isAdministrivia}
