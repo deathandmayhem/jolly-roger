@@ -15,7 +15,6 @@ import Alert from "react-bootstrap/Alert";
 import Button from "react-bootstrap/Button";
 import ButtonGroup from "react-bootstrap/ButtonGroup";
 import Modal from "react-bootstrap/Modal";
-import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { LinkContainer } from "react-router-bootstrap";
 import { Link } from "react-router-dom";
@@ -30,6 +29,7 @@ import huntsAll from "../../lib/publications/huntsAll";
 import createFixtureHunt from "../../methods/createFixtureHunt";
 import destroyHunt from "../../methods/destroyHunt";
 import useTypedSubscribe from "../hooks/useTypedSubscribe";
+import { useBootstrapContainer } from "./BootstrapScopeContext";
 import HuntPurgeModal from "./HuntPurgeModal";
 import type { ModalFormHandle } from "./ModalForm";
 import ModalForm from "./ModalForm";
@@ -137,6 +137,8 @@ const CreateFixtureModal = ({
   const hide = useCallback(() => setVisible(false), []);
   useImperativeHandle(ref, () => ({ show }), [show]);
 
+  const container = useBootstrapContainer();
+
   const [disabled, setDisabled] = useState(false);
   const [error, setError] = useState<Error>();
   const clearError = useCallback(() => setError(undefined), []);
@@ -154,7 +156,7 @@ const CreateFixtureModal = ({
   }, [hide]);
 
   const modal = (
-    <Modal show={visible} onHide={hide}>
+    <Modal show={visible} onHide={hide} container={container}>
       <Modal.Header closeButton>
         <Modal.Title>Create sample hunt</Modal.Title>
       </Modal.Header>
@@ -187,7 +189,7 @@ const CreateFixtureModal = ({
     </Modal>
   );
 
-  return createPortal(modal, document.body);
+  return modal;
 };
 
 const HuntListPage = () => {

@@ -26,7 +26,6 @@ import InputGroup from "react-bootstrap/InputGroup";
 import ListGroup from "react-bootstrap/ListGroup";
 import ListGroupItem from "react-bootstrap/ListGroupItem";
 import Modal from "react-bootstrap/Modal";
-import { createPortal } from "react-dom";
 import { Trans, useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
@@ -41,6 +40,7 @@ import promoteOperator from "../../methods/promoteOperator";
 import syncHuntDiscordRole from "../../methods/syncHuntDiscordRole";
 import useFocusRefOnFindHotkey from "../hooks/useFocusRefOnFindHotkey";
 import Avatar from "./Avatar";
+import { useBootstrapContainer } from "./BootstrapScopeContext";
 import CopyToClipboardButton from "./CopyToClipboardButton";
 
 const ProfilesSummary = styled.div`
@@ -124,9 +124,10 @@ const ConfirmationModal = ({
   }, [performAction, hide]);
 
   const { t } = useTranslation();
+  const container = useBootstrapContainer();
 
   const modal = (
-    <Modal show={visible} onHide={hide}>
+    <Modal show={visible} onHide={hide} container={container}>
       <Modal.Header closeButton>
         <Modal.Title>{title}</Modal.Title>
       </Modal.Header>
@@ -153,7 +154,7 @@ const ConfirmationModal = ({
     </Modal>
   );
 
-  return createPortal(modal, document.body);
+  return modal;
 };
 
 const PromoteOperatorModal = ({

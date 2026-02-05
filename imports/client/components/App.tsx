@@ -7,7 +7,13 @@ import { faSun } from "@fortawesome/free-solid-svg-icons/faSun";
 import { faUser } from "@fortawesome/free-solid-svg-icons/faUser";
 import { faWandMagicSparkles } from "@fortawesome/free-solid-svg-icons/faWandMagicSparkles";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import Alert from "react-bootstrap/Alert";
 import Button from "react-bootstrap/Button";
 import Container from "react-bootstrap/Container";
@@ -32,7 +38,9 @@ import styled, { css, useTheme } from "styled-components";
 import isAdmin from "../../lib/isAdmin";
 import { useBreadcrumbItems } from "../hooks/breadcrumb";
 import { type AppThemeState, useAppThemeState } from "../hooks/persisted-state";
+import useEffectiveTheme from "../hooks/useEffectiveTheme";
 import lookupUrl from "../lookupUrl";
+import { BootstrapScopeProvider } from "./BootstrapScopeContext";
 import ConnectionStatus from "./ConnectionStatus";
 import HuntNav from "./HuntNav";
 import Loading from "./Loading";
@@ -53,6 +61,10 @@ const ContentContainer = styled.div`
     max(env(safe-area-inset-right, 0px), 15px)
     max(env(safe-area-inset-bottom, 0px), 20px)
     max(env(safe-area-inset-left, 0px), 15px);
+
+  &:has(> .tailwind-page) {
+    padding: 0;
+  }
 `;
 
 /* Using some prefixed styles with widespread support and graceful failure */
@@ -383,15 +395,23 @@ const App = ({ children }: { children: React.ReactNode }) => {
   }
 
   const [appTheme, setAppTheme] = useAppThemeState();
+  const effectiveTheme = useEffectiveTheme();
+  const scopeRef = useRef<HTMLDivElement>(null);
 
   return (
-    <div>
-      <NotificationCenter />
-      <AppNavbar appTheme={appTheme ?? "light"} setAppTheme={setAppTheme} />
-      <ConnectionStatus />
-      <ContentContainer className="container-fluid">
-        {errorBoundary}
-      </ContentContainer>
+    <div
+      className="bootstrap-page"
+      data-bs-theme={effectiveTheme}
+      ref={scopeRef}
+    >
+      <BootstrapScopeProvider value={scopeRef}>
+        <NotificationCenter />
+        <AppNavbar appTheme={appTheme ?? "light"} setAppTheme={setAppTheme} />
+        <ConnectionStatus />
+        <ContentContainer className="container-fluid">
+          {errorBoundary}
+        </ContentContainer>
+      </BootstrapScopeProvider>
     </div>
   );
 };

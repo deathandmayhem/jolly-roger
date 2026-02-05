@@ -1,11 +1,10 @@
-import React, { Suspense, useEffect } from "react";
+import React, { Suspense } from "react";
 import type { RouteObject } from "react-router-dom";
 import { Navigate, useRoutes } from "react-router-dom";
 import { ThemeProvider } from "styled-components";
-import { useMediaQuery } from "usehooks-ts";
 import { BreadcrumbsProvider } from "../hooks/breadcrumb";
-import { useAppThemeState } from "../hooks/persisted-state";
 import useDocumentTitle from "../hooks/useDocumentTitle";
+import useEffectiveTheme from "../hooks/useEffectiveTheme";
 import { darkTheme, lightTheme } from "../theme";
 import AllProfileListPage from "./AllProfileListPage";
 import AnnouncementsPage from "./AnnouncementsPage";
@@ -119,19 +118,8 @@ const Routes = React.memo(() => {
   useDocumentTitle("Jolly Roger");
 
   const routes = useRoutes(RouteList);
-  const [appTheme] = useAppThemeState();
-  const systemPrefersDark = useMediaQuery("(prefers-color-scheme: dark)");
-  const effectiveTheme =
-    appTheme === "auto" ? (systemPrefersDark ? "dark" : "light") : appTheme;
+  const effectiveTheme = useEffectiveTheme();
   const theme = effectiveTheme === "dark" ? darkTheme : lightTheme;
-
-  useEffect(() => {
-    const body = document.body;
-    body.dataset.bsTheme = effectiveTheme ?? "light";
-    return () => {
-      delete body.dataset.bsTheme;
-    };
-  }, [effectiveTheme]);
 
   return (
     <ThemeProvider theme={theme}>

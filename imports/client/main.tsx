@@ -5,6 +5,8 @@ import { BrowserRouter } from "react-router-dom";
 import { createGlobalStyle } from "styled-components";
 import Routes from "./components/Routes";
 import "./i18n";
+import "./stylesheets/bootstrap.scss";
+import "./stylesheets/tailwind.css";
 
 const Reset = createGlobalStyle`
   @font-face {
@@ -16,6 +18,10 @@ const Reset = createGlobalStyle`
   html {
     width: 100%;
     height: 100%;
+  }
+
+  body {
+    margin: 0;
   }
 
   /* Prevent mobile safari zoom */

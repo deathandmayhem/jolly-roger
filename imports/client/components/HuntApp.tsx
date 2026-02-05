@@ -5,7 +5,6 @@ import Alert from "react-bootstrap/Alert";
 import Button from "react-bootstrap/Button";
 import ButtonToolbar from "react-bootstrap/ButtonToolbar";
 import Modal from "react-bootstrap/Modal";
-import { createPortal } from "react-dom";
 import { Outlet, useNavigate, useParams } from "react-router-dom";
 import type { HuntType } from "../../lib/models/Hunts";
 import Hunts from "../../lib/models/Hunts";
@@ -21,6 +20,7 @@ import undestroyHunt from "../../methods/undestroyHunt";
 import { useBreadcrumb } from "../hooks/breadcrumb";
 import useDocumentTitle from "../hooks/useDocumentTitle";
 import useTypedSubscribe from "../hooks/useTypedSubscribe";
+import { useBootstrapContainer } from "./BootstrapScopeContext";
 import Markdown from "./Markdown";
 
 const HuntDeletedError = React.memo(
@@ -126,6 +126,8 @@ const HuntApp = React.memo(() => {
     };
   }, [huntId, hunt]);
 
+  const container = useBootstrapContainer();
+
   const acceptTerms = useCallback(
     () => acceptUserHuntTerms.call({ huntId }),
     [huntId],
@@ -158,8 +160,8 @@ const HuntApp = React.memo(() => {
 
   let termsModal = null;
   if (mustAcceptTerms) {
-    termsModal = createPortal(
-      <Modal show size="lg">
+    termsModal = (
+      <Modal show size="lg" container={container}>
         <Modal.Body>
           <Markdown text={hunt.termsOfUse!} />
         </Modal.Body>
@@ -168,8 +170,7 @@ const HuntApp = React.memo(() => {
             Accept
           </Button>
         </Modal.Footer>
-      </Modal>,
-      document.body,
+      </Modal>
     );
   }
 
