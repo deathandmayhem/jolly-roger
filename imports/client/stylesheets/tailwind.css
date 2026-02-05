@@ -1,0 +1,25 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Source Sans Pro", sans-serif;
+  --font-body: "Source Sans Pro", sans-serif;
+  --font-mono: "Source Code Pro", monospace;
+}
+
+@plugin "daisyui" {
+  themes:
+    light --default,
+    dark --prefersdark;
+}
+
+/* daisyUI locks page scroll while a modal is open by setting
+ * --page-scroll-lock on :root (a rule the scope-tailwind plugin hoists out of
+ * @scope, where :root could never match). daisyUI's own consumers of that
+ * variable get rewritten to :scope, so they only affect the page element;
+ * since the document body is what actually scrolls, consume the variable here
+ * at the document level. The var() space-toggle makes both declarations
+ * no-ops until a modal sets --page-scroll-lock. */
+:root {
+  overflow: var(--page-scroll-lock) hidden;
+  scrollbar-gutter: var(--page-scroll-lock) stable;
+}

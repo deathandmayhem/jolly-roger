@@ -15,6 +15,7 @@ import { styled } from "styled-components";
 import { calendarTimeFormat } from "../../lib/calendarTimeFormat";
 import type { APIKeyType } from "../../lib/models/APIKeys";
 import destroyAPIKey from "../../methods/destroyAPIKey";
+import { useBootstrapContainer } from "./BootstrapScopeContext";
 import CopyToClipboardButton from "./CopyToClipboardButton";
 import ModalForm, { type ModalFormHandle } from "./ModalForm";
 import RelativeTime from "./RelativeTime";
@@ -26,6 +27,7 @@ const StyledTable = styled(Table)`
 `;
 
 const APIKeyRow = ({ apiKey }: { apiKey: APIKeyType }) => {
+  const container = useBootstrapContainer();
   const destroyModalRef = useRef<ModalFormHandle>(null);
   const [requestState, setRequestState] = useState<
     "idle" | "in-flight" | "error"
@@ -89,7 +91,11 @@ const APIKeyRow = ({ apiKey }: { apiKey: APIKeyType }) => {
           >
             <FontAwesomeIcon icon={faCopy} />
           </CopyToClipboardButton>
-          <OverlayTrigger placement="top" overlay={showHideOverlay}>
+          <OverlayTrigger
+            placement="top"
+            overlay={showHideOverlay}
+            container={container}
+          >
             <Button
               variant="outline-secondary"
               onClick={toggleShown}
@@ -111,7 +117,11 @@ const APIKeyRow = ({ apiKey }: { apiKey: APIKeyType }) => {
       <td>{apiKey.createdAt.toISOString()}</td>
       <td>
         {apiKey.lastUsedAt ? (
-          <OverlayTrigger placement="top" overlay={lastUsedTooltip}>
+          <OverlayTrigger
+            placement="top"
+            overlay={lastUsedTooltip}
+            container={container}
+          >
             {/* OverlayTrigger injects props that RelativeTime doesn't handle/propagate, so we let this additional span consume them so the popovers work */}
             <span>
               <RelativeTime
