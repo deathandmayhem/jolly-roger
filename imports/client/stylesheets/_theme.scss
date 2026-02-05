@@ -11,9 +11,9 @@ $link-hover-decoration: underline;
 
 $toast-max-width: 380px;
 
-@import "../../node_modules/bootstrap/scss/functions";
-@import "../../node_modules/bootstrap/scss/variables";
-@import "../../node_modules/bootstrap/scss/mixins";
+@import "../../../node_modules/bootstrap/scss/functions";
+@import "../../../node_modules/bootstrap/scss/variables";
+@import "../../../node_modules/bootstrap/scss/mixins";
 
 :root {
   --bs-toast-max-width: #{$toast-max-width};

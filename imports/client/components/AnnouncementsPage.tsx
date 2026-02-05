@@ -29,10 +29,9 @@ enum AnnouncementFormSubmitState {
 // Toasts are bounded in width, so the announcement log will only be about this wide.
 // Rather than have the input box be much wider than the rest of the page
 // content, set the input form width to match.
+// This must match $toast-max-width in _theme.scss.
 const BoundedForm = styled(Form)`
-  width: ${window
-    .getComputedStyle(document.body)
-    .getPropertyValue("--bs-toast-max-width")};
+  width: 380px;
 `;
 
 const AnnouncementFormInput = ({
