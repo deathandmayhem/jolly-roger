@@ -22,7 +22,6 @@ import FormSelect from "react-bootstrap/FormSelect";
 import Modal from "react-bootstrap/Modal";
 import Tab from "react-bootstrap/Tab";
 import Tabs from "react-bootstrap/Tabs";
-import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import createDocumentImageUpload from "../../methods/createDocumentImageUpload";
 import type { ImageSource } from "../../methods/insertDocumentImage";
@@ -30,6 +29,7 @@ import insertDocumentImage from "../../methods/insertDocumentImage";
 import type { Sheet } from "../../methods/listDocumentSheets";
 import listDocumentSheets from "../../methods/listDocumentSheets";
 import GoogleScriptInfo from "../GoogleScriptInfo";
+import { useBootstrapContainer } from "./BootstrapScopeContext";
 
 type ImageInsertModalHandle = {
   show: () => void;
@@ -238,9 +238,10 @@ const InsertImageModal = ({
   const idPrefix = useId();
 
   const { t } = useTranslation();
+  const container = useBootstrapContainer();
 
   const modal = (
-    <Modal show={visible} onHide={hide}>
+    <Modal show={visible} onHide={hide} container={container}>
       <Modal.Header closeButton>
         {t("puzzle.insertImage.insertImage", "Insert image")}
       </Modal.Header>
@@ -303,7 +304,7 @@ const InsertImageModal = ({
     </Modal>
   );
 
-  return createPortal(modal, document.body);
+  return modal;
 };
 
 const InsertImage = ({ documentId }: { documentId: string }) => {
@@ -323,6 +324,7 @@ const InsertImage = ({ documentId }: { documentId: string }) => {
   );
 
   const { t } = useTranslation();
+  const container = useBootstrapContainer();
 
   const onStartInsert = useCallback(
     (e: MouseEvent) => {
@@ -351,7 +353,7 @@ const InsertImage = ({ documentId }: { documentId: string }) => {
   }
 
   const errorModal = (
-    <Modal show onHide={clearListSheetsError}>
+    <Modal show onHide={clearListSheetsError} container={container}>
       <Modal.Header closeButton>
         Error fetching sheets in spreadsheet
       </Modal.Header>
@@ -375,7 +377,7 @@ const InsertImage = ({ documentId }: { documentId: string }) => {
           sheets={documentSheets}
         />
       )}
-      {listSheetsError && createPortal(errorModal, document.body)}
+      {listSheetsError && errorModal}
       <Button
         variant="secondary"
         size="sm"

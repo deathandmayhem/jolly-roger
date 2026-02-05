@@ -1,0 +1,13 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Source Sans Pro", sans-serif;
+  --font-body: "Source Sans Pro", sans-serif;
+  --font-mono: "Source Code Pro", monospace;
+}
+
+@plugin "daisyui" {
+  themes:
+    light --default,
+    dark --prefersdark;
+}
