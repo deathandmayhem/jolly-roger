@@ -1,4 +1,4 @@
-import { check, Match } from "meteor/check";
+import { check } from "meteor/check";
 import { Meteor } from "meteor/meteor";
 import Hunts from "../../lib/models/Hunts";
 import InvitationCodes from "../../lib/models/InvitationCodes";
@@ -8,14 +8,6 @@ import addUserToHunt from "../addUserToHunt";
 import defineMethod from "./defineMethod";
 
 defineMethod(acceptHuntInvitationCode, {
-  validate(arg) {
-    check(arg, {
-      invitationCode: String,
-      email: Match.Optional(String),
-    });
-    return arg;
-  },
-
   async run({ invitationCode, email }): Promise<string> {
     // Note: this method can be called either by a logged-in user without the `email` arg,
     // or by a logged-out user to use the invitation code to send themselves an invite via email.
