@@ -29,7 +29,7 @@
     "@fortawesome/free-regular-svg-icons": "^7.1.0",
     "@fortawesome/free-solid-svg-icons": "^7.1.0",
     "@fortawesome/react-fontawesome": "^3.1.1",
-    "@googleapis/drive": "^20.0.1",
+    "@googleapis/drive": "^20.1.0",
     "@googleapis/driveactivity": "^5.0.0",
     "@googleapis/people": "^7.0.1",
     "@googleapis/script": "^11.0.1",
