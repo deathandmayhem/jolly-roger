@@ -81,12 +81,13 @@ hunts.post(
         ...(Object.keys(GdriveMimeTypes) as GdriveMimeTypesType[]),
       ),
       allowDuplicateUrls: Match.Optional(Boolean),
+      completedWithNoAnswer: Match.Optional(Boolean),
     });
 
     try {
       const id = await addPuzzle({
-        huntId: req.params.huntId,
         ...req.body,
+        huntId: req.params.huntId,
       });
       res.json({
         id,
