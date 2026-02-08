@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { foreignKey, nonEmptyString } from "./customTypes";
-import type { ModelType } from "./Model";
-import Model from "./Model";
+import { foreignKey, nonEmptyString } from "../typedModel/customTypes";
+import type { ModelType } from "../typedModel/Model";
+import Model from "../typedModel/Model";
 
 const Server = z.object({
   hostname: nonEmptyString,

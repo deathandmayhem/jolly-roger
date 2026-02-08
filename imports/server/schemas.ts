@@ -1,6 +1,6 @@
 import { Meteor } from "meteor/meteor";
-import { AllModels } from "../lib/models/Model";
 import { User } from "../lib/models/User";
+import { AllModels } from "../lib/typedModel/Model";
 import attachSchema from "./attachSchema";
 import runIfLatestBuild from "./runIfLatestBuild";
 

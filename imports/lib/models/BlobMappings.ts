@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { nonEmptyString } from "./customTypes";
-import type { ModelType } from "./Model";
-import Model from "./Model";
+import { nonEmptyString } from "../typedModel/customTypes";
+import type { ModelType } from "../typedModel/Model";
+import Model from "../typedModel/Model";
 
 // Note that the _id is the asset name
 const BlobMapping = z.object({

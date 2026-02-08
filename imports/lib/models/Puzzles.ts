@@ -1,19 +1,10 @@
 import { z } from "zod";
-import { answer, foreignKey, nonEmptyString } from "./customTypes";
-import {
-  attachCustomJsonSchema,
-  schemaToJsonSchema,
-} from "./generateJsonSchema";
-import type { ModelType } from "./Model";
-import SoftDeletedModel from "./SoftDeletedModel";
-import withCommon from "./withCommon";
+import { answer, foreignKey, nonEmptyString } from "../typedModel/customTypes";
+import type { ModelType } from "../typedModel/Model";
+import SoftDeletedModel from "../typedModel/SoftDeletedModel";
+import withCommon from "../typedModel/withCommon";
 
-const tagList = foreignKey.array().default([]);
-attachCustomJsonSchema(tagList, {
-  bsonType: "array",
-  items: schemaToJsonSchema(foreignKey),
-  uniqueItems: true,
-});
+const tagList = foreignKey.array().default([]).meta({ uniqueItems: true });
 
 const Puzzle = withCommon(
   z.object({
