@@ -37,12 +37,12 @@ const ResolvedProfilePage = ({
     path: huntId ? `/hunts/${huntId}/hunters/${userId}` : `/users/${userId}`,
   });
 
-  if (loading) {
+  if (isSelf) {
+    return <OwnProfilePage initialUser={user} apiKeys={apiKeys} />;
+  } else if (loading) {
     return <div>loading...</div>;
   } else if (!user) {
     return <div>{`No user ${userId} found.`}</div>;
-  } else if (isSelf) {
-    return <OwnProfilePage initialUser={user} apiKeys={apiKeys} />;
   }
 
   return <OthersProfilePage user={user} />;
