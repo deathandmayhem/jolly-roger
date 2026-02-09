@@ -1,3 +1,5 @@
+export const PREFERRED_AUDIO_DEVICE_STORAGE_KEY = "preferredAudioDevice";
+
 /**
  * Attempt to capture an audio stream, trying the preferred device first and
  * falling back to the system default if it is unavailable.

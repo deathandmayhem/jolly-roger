@@ -1,7 +1,7 @@
 ---
 files:
   - imports/client/components/AccountFormHelpers.tsx
-  - imports/client/components/GoogleLinkBlock.tsx
+  - imports/client/components/OwnProfilePage.tsx
   - imports/client/components/InsertImage.tsx
   - imports/client/components/NotificationCenter.tsx
   - imports/client/GoogleScriptInfo.ts
@@ -63,7 +63,7 @@ While Jolly Roger does not use Meteor's native OAuth-based login (provided by
 the `accounts-google` package), it does leverage Meteor's built-in support for
 OAuth, including via Google. Users can link a Google account to their Jolly
 Roger account, either by manually linking it on their profile page (the
-`GoogleLinkBlock` React component and the `linkUserGoogleAccount` and
+`OwnProfilePage` React component and the `linkUserGoogleAccount` and
 `unlinkUserGoogleAccount` Meteor methods) or by creating an account from an
 invite link using our Jolly Roger-specific Google-based user authentication flow
 (`useGoogleSignInCredentialsField` and the call to
@@ -74,7 +74,7 @@ Because we use Meteor's built-in OAuth support, OAuth application credentials
 are stored in `ServiceConfiguration` (see the `configureGoogleOAuthClient`
 Meteor method) instead of the `Settings` model, which we use for all other
 configuration related to Google integrations. This is handled by the
-`GoogleLinkBlock` React component and the `linkUserGoogleAccount` and
+`OwnProfilePage` React component and the `linkUserGoogleAccount` and
 `unlinkUserGoogleAccount` Meteor methods.
 
 In addition to the OAuth application (used for user authentication), Jolly Roger
