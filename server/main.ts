@@ -27,6 +27,9 @@ import "../imports/server/publications/index";
 // Background daemons
 import "../imports/server/daemons/index";
 
+// Job queue
+import "../imports/server/jobs/index";
+
 // Other stuff in the server folder
 import "../imports/server/accounts";
 import "../imports/server/api-init";
