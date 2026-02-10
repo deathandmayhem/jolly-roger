@@ -23,7 +23,7 @@ const stylesheet = path.join(
   "../imports/client/stylesheets/tailwind.css",
 );
 
-const SCOPED_LAYERS = new Set(["base", "components", "utilities"]);
+const SCOPED_LAYERS = new Set(["base", "components", "utilities", "overrides"]);
 const SCOPE_PARAMS = "(.tailwind-page) to (.bootstrap-page)";
 
 // Selectors that target the document root or document element. Inside @scope
