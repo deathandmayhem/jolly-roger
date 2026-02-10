@@ -70,6 +70,7 @@ import nodeIsRoleMention from "../../lib/nodeIsRoleMention";
 import nodeIsText from "../../lib/nodeIsText";
 import {
   listAllRolesForHunt,
+  userMayDestroyPuzzlesForHunt,
   userMayWritePuzzlesForHunt,
 } from "../../lib/permission_stubs";
 import chatMessagesForPuzzle from "../../lib/publications/chatMessagesForPuzzle";
@@ -2007,8 +2008,8 @@ const PuzzleDeletedModal = ({
   huntId: string;
   replacedBy?: string;
 }) => {
-  const canUpdate = useTracker(
-    () => userMayWritePuzzlesForHunt(Meteor.user(), Hunts.findOne(huntId)),
+  const canUndestroy = useTracker(
+    () => userMayDestroyPuzzlesForHunt(Meteor.user(), Hunts.findOne(huntId)),
     [huntId],
   );
 
@@ -2064,7 +2065,7 @@ const PuzzleDeletedModal = ({
             .
           </p>
         )}
-        {canUpdate && (
+        {canUndestroy && (
           <>
             <p>
               {t(

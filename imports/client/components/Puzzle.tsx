@@ -134,6 +134,7 @@ const Puzzle = React.memo(
     bookmarked,
     allTags,
     canUpdate,
+    canDestroy,
     suppressTags,
     segmentAnswers,
   }: {
@@ -142,6 +143,7 @@ const Puzzle = React.memo(
     // All tags associated with the hunt.
     allTags: TagType[];
     canUpdate: boolean;
+    canDestroy: boolean;
     suppressTags?: string[];
     segmentAnswers?: boolean;
   }) => {
@@ -149,6 +151,7 @@ const Puzzle = React.memo(
       puzzle.hunt,
     );
     const showEdit = canUpdate && !operatorActionsHidden;
+    const showDestroy = canDestroy && !operatorActionsHidden;
 
     // Generating the edit modals for all puzzles is expensive, so we do it
     // lazily. The first time the modal button is clicked, we change this state
@@ -192,17 +195,19 @@ const Puzzle = React.memo(
     const { t } = useTranslation();
 
     const editButtons = useMemo(() => {
-      if (showEdit) {
+      if (showEdit || showDestroy) {
         return (
           <>
-            <StyledButton
-              onClick={onShowEditModal}
-              variant={theme.basicMode}
-              title={`${t("puzzle.edit.editPuzzle", "Edit puzzle")}...`}
-            >
-              <FontAwesomeIcon icon={faEdit} />
-            </StyledButton>
-            {!puzzle.deleted && (
+            {showEdit && (
+              <StyledButton
+                onClick={onShowEditModal}
+                variant={theme.basicMode}
+                title={`${t("puzzle.edit.editPuzzle", "Edit puzzle")}...`}
+              >
+                <FontAwesomeIcon icon={faEdit} />
+              </StyledButton>
+            )}
+            {showDestroy && !puzzle.deleted && (
               <StyledButton
                 onClick={onShowDeleteModal}
                 variant={theme.basicMode}
@@ -217,6 +222,7 @@ const Puzzle = React.memo(
       return null;
     }, [
       showEdit,
+      showDestroy,
       puzzle.deleted,
       onShowEditModal,
       onShowDeleteModal,

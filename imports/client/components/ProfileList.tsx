@@ -33,7 +33,7 @@ import styled from "styled-components";
 import { formatDiscordName } from "../../lib/discord";
 import isAdmin from "../../lib/isAdmin";
 import type { HuntType } from "../../lib/models/Hunts";
-import { userIsOperatorForHunt } from "../../lib/permission_stubs";
+import { userHasRoleForHunt } from "../../lib/permission_stubs";
 import clearHuntInvitationCode from "../../methods/clearHuntInvitationCode";
 import demoteOperator from "../../methods/demoteOperator";
 import generateHuntInvitationCode from "../../methods/generateHuntInvitationCode";
@@ -246,9 +246,10 @@ const OperatorControls = ({
   hunt: HuntType;
 }) => {
   const self = useTracker(() => user._id === Meteor.userId(), [user._id]);
-  const { userIsOperator, userIsAdmin } = useTracker(() => {
+  const { userIsOperator, userIsHuntOwner, userIsAdmin } = useTracker(() => {
     return {
-      userIsOperator: userIsOperatorForHunt(user, hunt),
+      userIsOperator: userHasRoleForHunt(user, hunt, "operator"),
+      userIsHuntOwner: userHasRoleForHunt(user, hunt, "hunt_owner"),
       userIsAdmin: isAdmin(user),
     };
   }, [user, hunt]);
@@ -291,6 +292,9 @@ const OperatorControls = ({
     <OperatorBox onClick={preventPropagation}>
       {userIsAdmin && (
         <Badge bg="success">{t("hunterList.admin", "Admin")}</Badge>
+      )}
+      {userIsHuntOwner && (
+        <Badge bg="primary">{t("hunterList.hunt_owner", "Hunt owner")}</Badge>
       )}
       {userIsOperator && (
         <Badge bg="primary">{t("hunterList.operator", "Operator")}</Badge>

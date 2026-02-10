@@ -5,7 +5,7 @@ import Documents from "../../lib/models/Documents";
 import Hunts from "../../lib/models/Hunts";
 import MeteorUsers from "../../lib/models/MeteorUsers";
 import Puzzles from "../../lib/models/Puzzles";
-import { userMayWritePuzzlesForHunt } from "../../lib/permission_stubs";
+import { userMayDestroyPuzzlesForHunt } from "../../lib/permission_stubs";
 import destroyPuzzle from "../../methods/destroyPuzzle";
 import { copySheets, makeReadOnly } from "../gdrive";
 import defineMethod from "./defineMethod";
@@ -28,7 +28,7 @@ defineMethod(destroyPuzzle, {
       throw new Meteor.Error(404, "Unknown puzzle id");
     }
     if (
-      !userMayWritePuzzlesForHunt(
+      !userMayDestroyPuzzlesForHunt(
         await MeteorUsers.findOneAsync(this.userId),
         await Hunts.findOneAsync(puzzle.hunt),
       )

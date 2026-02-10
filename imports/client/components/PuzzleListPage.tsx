@@ -30,7 +30,10 @@ import Hunts from "../../lib/models/Hunts";
 import type { PuzzleType } from "../../lib/models/Puzzles";
 import Puzzles from "../../lib/models/Puzzles";
 import Tags from "../../lib/models/Tags";
-import { userMayWritePuzzlesForHunt } from "../../lib/permission_stubs";
+import {
+  userMayDestroyPuzzlesForHunt,
+  userMayWritePuzzlesForHunt,
+} from "../../lib/permission_stubs";
 import puzzleActivityForHunt from "../../lib/publications/puzzleActivityForHunt";
 import puzzlesForPuzzleList from "../../lib/publications/puzzlesForPuzzleList";
 import {
@@ -165,11 +168,13 @@ const PuzzleListView = ({
   huntId,
   canAdd,
   canUpdate,
+  canDestroy,
   loading,
 }: {
   huntId: string;
   canAdd: boolean;
   canUpdate: boolean;
+  canDestroy: boolean;
   loading: boolean;
 }) => {
   const allPuzzles = useTracker(
@@ -378,6 +383,7 @@ const PuzzleListView = ({
                 allTags={allTags}
                 includeCount={false}
                 canUpdate={canUpdate}
+                canDestroy={canDestroy}
                 suppressedTagIds={suppressedTagIds}
                 trackPersistentExpand={searchString === ""}
               />
@@ -409,6 +415,7 @@ const PuzzleListView = ({
               bookmarked={bookmarked}
               allTags={allTags}
               canUpdate={canUpdate}
+              canDestroy={canDestroy}
             />
           );
           listControls = null;
@@ -432,6 +439,7 @@ const PuzzleListView = ({
                 bookmarked={bookmarked}
                 allTags={allTags}
                 canUpdate={canUpdate}
+                canDestroy={canDestroy}
                 suppressedTagIds={[]}
               />
             </PuzzleGroupDiv>
@@ -450,6 +458,7 @@ const PuzzleListView = ({
               allTags={allTags}
               includeCount={false}
               canUpdate={canUpdate}
+              canDestroy={canDestroy}
               suppressedTagIds={[]}
               trackPersistentExpand={searchString === ""}
             />
@@ -463,6 +472,7 @@ const PuzzleListView = ({
       allPuzzles,
       allTags,
       canUpdate,
+      canDestroy,
       searchString,
       canExpandAllGroups,
       expandAllGroups,
@@ -633,10 +643,12 @@ const PuzzleListPage = () => {
 
   // Assertion is safe because hunt is already subscribed and checked by HuntApp
   const hunt = useTracker(() => Hunts.findOne(huntId)!, [huntId]);
-  const { canAdd, canUpdate } = useTracker(() => {
+  const { canAdd, canUpdate, canDestroy } = useTracker(() => {
+    const user = Meteor.user();
     return {
-      canAdd: userMayWritePuzzlesForHunt(Meteor.user(), hunt),
-      canUpdate: userMayWritePuzzlesForHunt(Meteor.user(), hunt),
+      canAdd: userMayWritePuzzlesForHunt(user, hunt),
+      canUpdate: userMayWritePuzzlesForHunt(user, hunt),
+      canDestroy: userMayDestroyPuzzlesForHunt(user, hunt),
     };
   }, [hunt]);
 
@@ -663,6 +675,7 @@ const PuzzleListPage = () => {
         huntId={huntId}
         canAdd={canAdd}
         canUpdate={canUpdate}
+        canDestroy={canDestroy}
         loading={loading}
       />
     </div>

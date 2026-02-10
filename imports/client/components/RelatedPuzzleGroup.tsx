@@ -48,6 +48,7 @@ const RelatedPuzzleGroup = ({
   bookmarked,
   includeCount,
   canUpdate,
+  canDestroy,
   suppressedTagIds,
   trackPersistentExpand,
 }: {
@@ -59,6 +60,7 @@ const RelatedPuzzleGroup = ({
   allTags: TagType[];
   includeCount?: boolean;
   canUpdate: boolean;
+  canDestroy: boolean;
   suppressedTagIds: string[];
   trackPersistentExpand: boolean;
 }) => {
@@ -118,6 +120,7 @@ const RelatedPuzzleGroup = ({
             bookmarked={bookmarked}
             allTags={allTags}
             canUpdate={canUpdate}
+            canDestroy={canDestroy}
             sharedTag={sharedTag}
             suppressedTagIds={allSuppressedTagIds}
           />
@@ -136,6 +139,7 @@ const RelatedPuzzleGroup = ({
                 allTags={allTags}
                 includeCount={includeCount}
                 canUpdate={canUpdate}
+                canDestroy={canDestroy}
                 suppressedTagIds={subgroupSuppressedTagIds}
                 trackPersistentExpand={trackPersistentExpand}
               />
