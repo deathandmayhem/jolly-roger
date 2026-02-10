@@ -289,7 +289,9 @@ const OperatorControls = ({
 
   return (
     <OperatorBox onClick={preventPropagation}>
-      {userIsAdmin && <Badge bg="success">Admin</Badge>}
+      {userIsAdmin && (
+        <Badge bg="success">{t("hunterList.admin", "Admin")}</Badge>
+      )}
       {userIsOperator && (
         <Badge bg="primary">{t("hunterList.operator", "Operator")}</Badge>
       )}
@@ -583,7 +585,7 @@ const ProfileList = ({
 
     return (
       <FormGroup className="mb-3">
-        <h4>Invite via link</h4>
+        <h4>{t("hunterList.invitationLink.title", "Invite via link")}</h4>
         {invitationLink}
         {renderGenerateInvitationLinkModal && (
           <GenerateInvitationLinkModal
