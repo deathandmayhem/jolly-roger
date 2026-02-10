@@ -11,6 +11,7 @@ import FeatureFlags from "./FeatureFlags";
 import FolderPermissions from "./FolderPermissions";
 import Guesses from "./Guesses";
 import Hunts from "./Hunts";
+import Jobs from "./Jobs";
 import CallHistories from "./mediasoup/CallHistories";
 import ConnectAcks from "./mediasoup/ConnectAcks";
 import ConnectRequests from "./mediasoup/ConnectRequests";
@@ -45,6 +46,7 @@ const Models = {
   FolderPermissions,
   Guesses,
   Hunts,
+  Jobs,
   MediaSoup: {
     CallHistories,
     ConsumerAcks,

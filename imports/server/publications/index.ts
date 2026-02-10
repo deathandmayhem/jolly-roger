@@ -13,6 +13,7 @@ import "./guessesForGuessQueue";
 import "./huntForHuntApp";
 import "./huntForInvitationCode";
 import "./huntsAll";
+import "./jobsAll";
 import "./invitationCodesForHunt";
 import "./pendingAnnouncementsForSelf";
 import "./pendingGuessesForSelf";
