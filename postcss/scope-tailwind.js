@@ -142,7 +142,12 @@ function hoistRootRules(scope, topLayer) {
 module.exports = (opts = {}) => {
   const selector = opts.selector ?? ".tailwind-page";
   const boundary = opts.boundary ?? ".bootstrap-page";
-  const layersToScope = new Set(["base", "components", "utilities"]);
+  const layersToScope = new Set([
+    "base",
+    "components",
+    "utilities",
+    "overrides",
+  ]);
   return {
     postcssPlugin: "postcss-scope-tailwind",
     AtRule: {
