@@ -3,7 +3,7 @@ import { Meteor } from "meteor/meteor";
 import Logger from "../../Logger";
 import Hunts, { HuntPattern } from "../../lib/models/Hunts";
 import MeteorUsers from "../../lib/models/MeteorUsers";
-import { addUserToRole, checkAdmin } from "../../lib/permission_stubs";
+import { addUserToRoles, checkAdmin } from "../../lib/permission_stubs";
 import createHunt from "../../methods/createHunt";
 import addUsersToDiscordRole from "../addUsersToDiscordRole";
 import { ensureHuntFolder } from "../gdrive";
@@ -36,7 +36,7 @@ defineMethod(createHunt, {
     Logger.info("Creating a new hunt", arg);
 
     const huntId = await Hunts.insertAsync(arg);
-    await addUserToRole(this.userId, huntId, "operator");
+    await addUserToRoles(this.userId, huntId, ["hunt_owner", "operator"]);
 
     for (const tag of DEFAULT_TAGS) {
       await getOrCreateTagByName(huntId, tag);

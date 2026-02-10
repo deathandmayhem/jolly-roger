@@ -11,6 +11,7 @@ const RelatedPuzzleList = React.memo(
     bookmarked,
     allTags,
     canUpdate,
+    canDestroy,
     sharedTag,
     suppressedTagIds,
     segmentAnswers,
@@ -19,6 +20,7 @@ const RelatedPuzzleList = React.memo(
     bookmarked: Set<string>;
     allTags: TagType[];
     canUpdate: boolean;
+    canDestroy: boolean;
     sharedTag: TagType | undefined;
     suppressedTagIds: string[];
     segmentAnswers?: boolean;
@@ -38,6 +40,7 @@ const RelatedPuzzleList = React.memo(
         bookmarked={bookmarked}
         allTags={allTags}
         canUpdate={canUpdate}
+        canDestroy={canDestroy}
         suppressTags={suppressedTagIds}
         segmentAnswers={segmentAnswers}
       />

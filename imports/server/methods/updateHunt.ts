@@ -4,7 +4,7 @@ import Logger from "../../Logger";
 import type { HuntType } from "../../lib/models/Hunts";
 import Hunts, { HuntPattern } from "../../lib/models/Hunts";
 import MeteorUsers from "../../lib/models/MeteorUsers";
-import { checkAdmin } from "../../lib/permission_stubs";
+import { userMayConfigureHunt } from "../../lib/permission_stubs";
 import updateHunt from "../../methods/updateHunt";
 import addUsersToDiscordRole from "../addUsersToDiscordRole";
 import { ensureHuntFolder, huntFolderName, renameDocument } from "../gdrive";
@@ -18,11 +18,17 @@ defineMethod(updateHunt, {
 
   async run({ huntId, value }) {
     check(this.userId, String);
-    checkAdmin(await MeteorUsers.findOneAsync(this.userId));
-
+    const caller = await MeteorUsers.findOneAsync(this.userId);
     const oldHunt = await Hunts.findOneAsync(huntId);
     if (!oldHunt) {
       throw new Meteor.Error(404, "Unknown hunt");
+    }
+
+    if (!userMayConfigureHunt(caller, oldHunt)) {
+      throw new Meteor.Error(
+        401,
+        `User ${this.userId} may not modify hunt ${huntId}`,
+      );
     }
 
     Logger.info("Updating hunt settings", { hunt: huntId, ...value });

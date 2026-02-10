@@ -44,14 +44,12 @@ const HuntProfileListPage = () => {
     canMakeOperator,
     canUpdateHuntInvitationCode,
   } = useTracker(() => {
+    const user = Meteor.user();
     return {
-      canInvite: userMayAddUsersToHunt(Meteor.user(), hunt),
-      canSyncDiscord: userMayUseDiscordBotAPIs(Meteor.user()),
-      canMakeOperator: userMayMakeOperatorForHunt(Meteor.user(), hunt),
-      canUpdateHuntInvitationCode: userMayUpdateHuntInvitationCode(
-        Meteor.user(),
-        hunt,
-      ),
+      canInvite: userMayAddUsersToHunt(user, hunt),
+      canSyncDiscord: userMayUseDiscordBotAPIs(user),
+      canMakeOperator: userMayMakeOperatorForHunt(user, hunt),
+      canUpdateHuntInvitationCode: userMayUpdateHuntInvitationCode(user, hunt),
     };
   }, [hunt]);
   const roles = useTracker(

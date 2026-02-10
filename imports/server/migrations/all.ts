@@ -52,3 +52,4 @@ import "./50-upconvert-chatmessage-content";
 import "./51-backfill-updated-at";
 import "./52-remove-discord-discriminator";
 import "./53-backfill-call-activity-speaking";
+import "./54-backfill-hunt-owner-roles";

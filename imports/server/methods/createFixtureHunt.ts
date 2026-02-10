@@ -2,7 +2,7 @@ import { check } from "meteor/check";
 import { Meteor } from "meteor/meteor";
 import FixtureHunt from "../../FixtureHunt";
 import MeteorUsers from "../../lib/models/MeteorUsers";
-import { addUserToRole, userMayCreateHunt } from "../../lib/permission_stubs";
+import { addUserToRoles, userMayCreateHunt } from "../../lib/permission_stubs";
 import createFixtureHunt from "../../methods/createFixtureHunt";
 import makeFixtureHunt from "../makeFixtureHunt";
 import defineMethod from "./defineMethod";
@@ -21,6 +21,9 @@ defineMethod(createFixtureHunt, {
     await MeteorUsers.updateAsync(this.userId, {
       $addToSet: { hunts: FixtureHunt._id },
     });
-    await addUserToRole(this.userId, FixtureHunt._id, "operator");
+    await addUserToRoles(this.userId, FixtureHunt._id, [
+      "hunt_owner",
+      "operator",
+    ]);
   },
 });
