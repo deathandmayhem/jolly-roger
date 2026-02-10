@@ -89,12 +89,14 @@ const ConfirmationModal = ({
   body,
   action,
   performAction,
+  variant,
   ref,
 }: {
   title: string;
   body: string | React.JSX.Element;
   action: string;
   performAction: (callback: (e?: Error) => void) => void;
+  variant?: string;
   ref: React.Ref<ModalHandle>;
 }) => {
   const [visible, setVisible] = useState(true);
@@ -140,7 +142,11 @@ const ConfirmationModal = ({
         <Button variant="secondary" onClick={hide} disabled={disabled}>
           {t("common.cancel", "Cancel")}
         </Button>
-        <Button variant="danger" onClick={onActionClicked} disabled={disabled}>
+        <Button
+          variant={variant || "danger"}
+          onClick={onActionClicked}
+          disabled={disabled}
+        >
           {action}
         </Button>
       </Modal.Footer>
@@ -283,6 +289,12 @@ const OperatorControls = ({
 
   return (
     <OperatorBox onClick={preventPropagation}>
+      {userIsAdmin && (
+        <Badge bg="success">{t("hunterList.admin", "Admin")}</Badge>
+      )}
+      {userIsOperator && (
+        <Badge bg="primary">{t("hunterList.operator", "Operator")}</Badge>
+      )}
       {renderPromoteModal && (
         <PromoteOperatorModal
           forwardedRef={promoteModalRef}
@@ -297,16 +309,12 @@ const OperatorControls = ({
           huntId={hunt._id}
         />
       )}
-      {userIsAdmin && <Badge bg="success">Admin</Badge>}
       {userIsOperator ? (
-        <>
-          {!self && (
-            <Button size="sm" variant="warning" onClick={showDemoteModal}>
-              {t("hunterList.demoteButton", "Demote")}
-            </Button>
-          )}
-          <Badge bg="info">{t("hunterList.operator", "Operator")}</Badge>
-        </>
+        !self && (
+          <Button size="sm" variant="warning" onClick={showDemoteModal}>
+            {t("hunterList.demoteButton", "Demote")}
+          </Button>
+        )
       ) : (
         <Button size="sm" variant="warning" onClick={showPromoteModal}>
           {t("hunterList.makeOperator", "Make operator")}
@@ -368,6 +376,7 @@ const GenerateInvitationLinkModal = ({
       }
       performAction={performAction}
       ref={forwardedRef}
+      variant={isRegenerate ? "danger" : "primary"}
     />
   );
 };
@@ -476,6 +485,8 @@ const ProfileList = ({
     syncHuntDiscordRole.call({ huntId: hunt._id });
   }, [hunt]);
 
+  const { t } = useTranslation();
+
   const syncDiscordButton = useMemo(() => {
     if (!hunt || !canSyncDiscord) {
       return null;
@@ -483,16 +494,23 @@ const ProfileList = ({
 
     return (
       <FormGroup className="mb-3">
-        <Button variant="warning" onClick={syncDiscord}>
-          Sync this hunt&apos;s Discord role
-        </Button>
+        <div>
+          <Button variant="warning" onClick={syncDiscord}>
+            {t(
+              "hunterList.discordSync.resync",
+              "Sync this hunt's Discord role",
+            )}
+          </Button>
+        </div>
         <FormText>
-          (Click this if people are reporting that they can&apos;t access
-          hunt-specific channels)
+          {t(
+            "hunterList.discordSync.hint",
+            "(Click this if people are reporting that they can't access hunt-specific channels)",
+          )}
         </FormText>
       </FormGroup>
     );
-  }, [hunt, canSyncDiscord, syncDiscord]);
+  }, [hunt, canSyncDiscord, syncDiscord, t]);
 
   const [
     renderGenerateInvitationLinkModal,
@@ -536,8 +554,6 @@ const ProfileList = ({
     [renderDisableInvitationLinkModal],
   );
 
-  const { t } = useTranslation();
-
   const invitationLink = useMemo(() => {
     if (!hunt || !canInvite || !invitationCode) {
       return null;
@@ -546,27 +562,31 @@ const ProfileList = ({
     const invitationUrl = Meteor.absoluteUrl(`/join/${invitationCode}`);
 
     return (
-      <p>
-        {t("hunterList.invitationLink.link", "Invitation link")}:{" "}
-        <StyledCopyToClipboardButton
-          text={invitationUrl}
-          variant="link"
-          aria-label="Copy"
-        >
-          <FontAwesomeIcon icon={faCopy} fixedWidth />
-        </StyledCopyToClipboardButton>
-        {invitationUrl}
-      </p>
+      <FormGroup>
+        <div>
+          {t("hunterList.invitationLink.link", "Active invitation link")}:{" "}
+          <StyledCopyToClipboardButton
+            text={invitationUrl}
+            variant="link"
+            aria-label="Copy"
+          >
+            <FontAwesomeIcon icon={faCopy} fixedWidth />
+          </StyledCopyToClipboardButton>
+          {invitationUrl}
+        </div>
+      </FormGroup>
     );
   }, [hunt, canInvite, invitationCode, t]);
 
-  const invitationLinkManagementButtons = useMemo(() => {
+  const invitationLinkManagement = useMemo(() => {
     if (!hunt || !canUpdateHuntInvitationCode) {
       return null;
     }
 
     return (
       <FormGroup className="mb-3">
+        <h4>{t("hunterList.invitationLink.title", "Invite via link")}</h4>
+        {invitationLink}
         {renderGenerateInvitationLinkModal && (
           <GenerateInvitationLinkModal
             forwardedRef={generateInvitationLinkModalRef}
@@ -580,31 +600,46 @@ const ProfileList = ({
             huntId={hunt._id}
           />
         )}
-        <Button variant="info" onClick={showGenerateInvitationLinkModal}>
+        <div className="mt-1">
+          <Button
+            variant={invitationCode ? "warning" : "info"}
+            size="sm"
+            onClick={showGenerateInvitationLinkModal}
+          >
+            {invitationCode
+              ? t(
+                  "hunterList.invitationLink.regenerate",
+                  "Regenerate invitation link",
+                )
+              : t(
+                  "hunterList.invitationLink.generate",
+                  "Generate invitation link",
+                )}
+          </Button>
+          {invitationCode && (
+            <Button
+              variant="danger"
+              className="ms-1"
+              size="sm"
+              onClick={showDisableInvitationLinkModal}
+            >
+              {t(
+                "hunterList.invitationLink.disable",
+                "Disable invitation link",
+              )}
+            </Button>
+          )}
+        </div>
+        <FormText>
           {invitationCode
             ? t(
-                "hunterList.invitationLink.regenerate",
-                "Regenerate invitation link",
+                "hunterList.invitationLink.regenerate.hint",
+                "Anyone with this link is able to join this hunt",
               )
             : t(
-                "hunterList.invitationLink.generate",
-                "Generate invitation link",
+                "hunterList.invitationLink.generate.hint",
+                "Anyone with the link will be able to join this hunt",
               )}
-        </Button>
-        {invitationCode && (
-          <Button
-            variant="info"
-            className="ms-1"
-            onClick={showDisableInvitationLinkModal}
-          >
-            {t("hunterList.invitationLink.disable", "Disable invitation link")}
-          </Button>
-        )}
-        <FormText>
-          {t(
-            "hunterList.invitationLink.hint",
-            "Manage the public invitation link that can be used by anyone to join this hunt",
-          )}
         </FormText>
       </FormGroup>
     );
@@ -612,6 +647,7 @@ const ProfileList = ({
     hunt,
     canUpdateHuntInvitationCode,
     invitationCode,
+    invitationLink,
     renderGenerateInvitationLinkModal,
     showGenerateInvitationLinkModal,
     renderDisableInvitationLinkModal,
@@ -669,8 +705,7 @@ const ProfileList = ({
 
       {syncDiscordButton}
 
-      {invitationLink}
-      {invitationLinkManagementButtons}
+      {invitationLinkManagement}
 
       <FormGroup className="mb-3" controlId={searchId}>
         <FormLabel>{t("common.search", "Search")}</FormLabel>
