@@ -142,7 +142,11 @@ const ConfirmationModal = ({
         <Button variant="secondary" onClick={hide} disabled={disabled}>
           {t("common.cancel", "Cancel")}
         </Button>
-        <Button variant={variant || "danger"} onClick={onActionClicked} disabled={disabled}>
+        <Button
+          variant={variant || "danger"}
+          onClick={onActionClicked}
+          disabled={disabled}
+        >
           {action}
         </Button>
       </Modal.Footer>
@@ -286,7 +290,9 @@ const OperatorControls = ({
   return (
     <OperatorBox onClick={preventPropagation}>
       {userIsAdmin && <Badge bg="success">Admin</Badge>}
-      {userIsOperator && <Badge bg="primary">{t("hunterList.operator", "Operator")}</Badge>}
+      {userIsOperator && (
+        <Badge bg="primary">{t("hunterList.operator", "Operator")}</Badge>
+      )}
       {renderPromoteModal && (
         <PromoteOperatorModal
           forwardedRef={promoteModalRef}
@@ -302,13 +308,11 @@ const OperatorControls = ({
         />
       )}
       {userIsOperator ? (
-        <>
-          {!self && (
-            <Button size="sm" variant="warning" onClick={showDemoteModal}>
-              {t("hunterList.demoteButton", "Demote")}
-            </Button>
-          )}
-        </>
+        !self && (
+          <Button size="sm" variant="warning" onClick={showDemoteModal}>
+            {t("hunterList.demoteButton", "Demote")}
+          </Button>
+        )
       ) : (
         <Button size="sm" variant="warning" onClick={showPromoteModal}>
           {t("hunterList.makeOperator", "Make operator")}
@@ -492,19 +496,19 @@ const ProfileList = ({
           <Button variant="warning" onClick={syncDiscord}>
             {t(
               "hunterList.discordSync.resync",
-              "Sync this hunt's Discord role"
+              "Sync this hunt's Discord role",
             )}
           </Button>
         </div>
         <FormText>
           {t(
             "hunterList.discordSync.hint",
-            "(Click this if people are reporting that they can't access hunt-specific channels)"
+            "(Click this if people are reporting that they can't access hunt-specific channels)",
           )}
         </FormText>
       </FormGroup>
     );
-  }, [hunt, canSyncDiscord, syncDiscord]);
+  }, [hunt, canSyncDiscord, syncDiscord, t]);
 
   const [
     renderGenerateInvitationLinkModal,
@@ -595,36 +599,45 @@ const ProfileList = ({
           />
         )}
         <div className="mt-1">
-        <Button variant={invitationCode ? "warning" : "info"} size="sm" onClick={showGenerateInvitationLinkModal}>
-          {invitationCode
-            ? t(
-                "hunterList.invitationLink.regenerate",
-                "Regenerate invitation link",
-              )
-            : t(
-                "hunterList.invitationLink.generate",
-                "Generate invitation link",
-              )}
-        </Button>
-        {invitationCode && (
           <Button
-            variant="danger"
-            className="ms-1"
+            variant={invitationCode ? "warning" : "info"}
             size="sm"
-            onClick={showDisableInvitationLinkModal}
+            onClick={showGenerateInvitationLinkModal}
           >
-            {t("hunterList.invitationLink.disable", "Disable invitation link")}
+            {invitationCode
+              ? t(
+                  "hunterList.invitationLink.regenerate",
+                  "Regenerate invitation link",
+                )
+              : t(
+                  "hunterList.invitationLink.generate",
+                  "Generate invitation link",
+                )}
           </Button>
-        )}
+          {invitationCode && (
+            <Button
+              variant="danger"
+              className="ms-1"
+              size="sm"
+              onClick={showDisableInvitationLinkModal}
+            >
+              {t(
+                "hunterList.invitationLink.disable",
+                "Disable invitation link",
+              )}
+            </Button>
+          )}
         </div>
         <FormText>
-          {invitationCode ? t(
-            "hunterList.invitationLink.regenerate.hint",
-            "Anyone with this link is able to join this hunt",
-          ) : t(
-            "hunterList.invitationLink.generate.hint",
-            "Anyone with the link will be able to join this hunt",
-          )}
+          {invitationCode
+            ? t(
+                "hunterList.invitationLink.regenerate.hint",
+                "Anyone with this link is able to join this hunt",
+              )
+            : t(
+                "hunterList.invitationLink.generate.hint",
+                "Anyone with the link will be able to join this hunt",
+              )}
         </FormText>
       </FormGroup>
     );
@@ -632,6 +645,7 @@ const ProfileList = ({
     hunt,
     canUpdateHuntInvitationCode,
     invitationCode,
+    invitationLink,
     renderGenerateInvitationLinkModal,
     showGenerateInvitationLinkModal,
     renderDisableInvitationLinkModal,
