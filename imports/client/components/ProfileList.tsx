@@ -283,6 +283,8 @@ const OperatorControls = ({
 
   return (
     <OperatorBox onClick={preventPropagation}>
+      {userIsAdmin && <Badge bg="success">Admin</Badge>}
+      {userIsOperator && <Badge bg="primary">{t("hunterList.operator", "Operator")}</Badge>}
       {renderPromoteModal && (
         <PromoteOperatorModal
           forwardedRef={promoteModalRef}
@@ -297,7 +299,6 @@ const OperatorControls = ({
           huntId={hunt._id}
         />
       )}
-      {userIsAdmin && <Badge bg="success">Admin</Badge>}
       {userIsOperator ? (
         <>
           {!self && (
@@ -305,7 +306,6 @@ const OperatorControls = ({
               {t("hunterList.demoteButton", "Demote")}
             </Button>
           )}
-          <Badge bg="info">{t("hunterList.operator", "Operator")}</Badge>
         </>
       ) : (
         <Button size="sm" variant="warning" onClick={showPromoteModal}>
