@@ -4,10 +4,428 @@
   --font-display: "Source Sans Pro", sans-serif;
   --font-body: "Source Sans Pro", sans-serif;
   --font-mono: "Source Code Pro", monospace;
+
+  /* Suppress the default Tailwind colors so we don't accidentally confuse them with ours */
+  --color-*: initial;
+  --color-black: #000;
+  --color-white: #fff;
+
+  --color-gonzo-50: oklch(0.933 0.005 286);
+  --color-gonzo-100: oklch(0.894 0.0165 286);
+  --color-gonzo-200: oklch(0.842 0.0342 286);
+  --color-gonzo-300: oklch(0.79 0.0554 286);
+  --color-gonzo-400: oklch(0.708 0.092 286);
+  --color-gonzo-500: oklch(0.616 0.1039 286);
+  --color-gonzo-600: oklch(0.545 0.0979 286);
+  --color-gonzo-700: oklch(0.443 0.0855 286);
+  --color-gonzo-800: oklch(0.371 0.0763 286);
+  --color-gonzo-900: oklch(0.299 0.0652 286);
+  --color-gonzo-950: oklch(0.22 0.0511 286);
+
+  --color-fozzie-50: oklch(0.978 0.0119 50);
+  --color-fozzie-100: oklch(0.936 0.0354 50);
+  --color-fozzie-200: oklch(0.881 0.0671 50);
+  --color-fozzie-300: oklch(0.827 0.1 50);
+  --color-fozzie-400: oklch(0.742 0.154 50);
+  --color-fozzie-500: oklch(0.648 0.1621 50);
+  --color-fozzie-600: oklch(0.573 0.1431 50);
+  --color-fozzie-700: oklch(0.469 0.1175 50);
+  --color-fozzie-800: oklch(0.394 0.0989 50);
+  --color-fozzie-900: oklch(0.32 0.08 50);
+  --color-fozzie-950: oklch(0.238 0.0595 50);
+
+  --color-kermit-50: oklch(0.978 0.019 113);
+  --color-kermit-100: oklch(0.936 0.0565 113);
+  --color-kermit-200: oklch(0.881 0.1071 113);
+  --color-kermit-300: oklch(0.827 0.1597 113);
+  --color-kermit-400: oklch(0.742 0.2459 113);
+  --color-kermit-500: oklch(0.648 0.2589 113);
+  --color-kermit-600: oklch(0.573 0.2285 113);
+  --color-kermit-700: oklch(0.469 0.1877 113);
+  --color-kermit-800: oklch(0.394 0.1579 113);
+  --color-kermit-900: oklch(0.32 0.1277 113);
+  --color-kermit-950: oklch(0.238 0.095 113);
+
+  --color-oscar-50: oklch(0.978 0.0104 158);
+  --color-oscar-100: oklch(0.936 0.0308 158);
+  --color-oscar-200: oklch(0.881 0.0585 158);
+  --color-oscar-300: oklch(0.827 0.0872 158);
+  --color-oscar-400: oklch(0.742 0.1343 158);
+  --color-oscar-500: oklch(0.648 0.1414 158);
+  --color-oscar-600: oklch(0.573 0.1247 158);
+  --color-oscar-700: oklch(0.469 0.1025 158);
+  --color-oscar-800: oklch(0.394 0.0862 158);
+  --color-oscar-900: oklch(0.32 0.0697 158);
+  --color-oscar-950: oklch(0.238 0.0519 158);
+
+  --color-zoot-50: oklch(0.978 0.0076 227);
+  --color-zoot-100: oklch(0.936 0.0225 227);
+  --color-zoot-200: oklch(0.881 0.0427 227);
+  --color-zoot-300: oklch(0.827 0.0637 227);
+  --color-zoot-400: oklch(0.742 0.098 227);
+  --color-zoot-500: oklch(0.648 0.1032 227);
+  --color-zoot-600: oklch(0.573 0.0911 227);
+  --color-zoot-700: oklch(0.469 0.0748 227);
+  --color-zoot-800: oklch(0.394 0.0629 227);
+  --color-zoot-900: oklch(0.32 0.0509 227);
+  --color-zoot-950: oklch(0.238 0.0379 227);
+
+  --color-janice-50: oklch(0.978 0.0103 81);
+  --color-janice-100: oklch(0.936 0.0305 81);
+  --color-janice-200: oklch(0.881 0.0579 81);
+  --color-janice-300: oklch(0.827 0.0864 81);
+  --color-janice-400: oklch(0.742 0.133 81);
+  --color-janice-500: oklch(0.648 0.14 81);
+  --color-janice-600: oklch(0.573 0.1235 81);
+  --color-janice-700: oklch(0.469 0.1015 81);
+  --color-janice-800: oklch(0.394 0.0854 81);
+  --color-janice-900: oklch(0.32 0.069 81);
+  --color-janice-950: oklch(0.238 0.0514 81);
+
+  --color-animal-50: oklch(0.978 0.0108 25);
+  --color-animal-100: oklch(0.936 0.0321 25);
+  --color-animal-200: oklch(0.881 0.061 25);
+  --color-animal-300: oklch(0.827 0.0909 25);
+  --color-animal-400: oklch(0.742 0.14 25);
+  --color-animal-500: oklch(0.648 0.1474 25);
+  --color-animal-600: oklch(0.573 0.1301 25);
+  --color-animal-700: oklch(0.469 0.1069 25);
+  --color-animal-800: oklch(0.394 0.0899 25);
+  --color-animal-900: oklch(0.32 0.0727 25);
+  --color-animal-950: oklch(0.238 0.0541 25);
 }
 
-@plugin "daisyui" {
-  themes:
-    light --default,
-    dark --prefersdark;
+@plugin "daisyui";
+
+@plugin "daisyui/theme" {
+  name: "jollyroger";
+  color-scheme: "light";
+
+  --color-base-100: oklch(98.0% 0 286);
+  --color-base-200: oklch(96.0% 0.005 286);
+  --color-base-300: oklch(92.0% 0.01 286);
+  --color-base-content: oklch(21.0% 0.006 286);
+  --color-neutral: oklch(14.0% 0.005 286);
+  --color-neutral-content: oklch(92.0% 0.004 286);
+
+  --color-primary: oklch(37.1% 0.0763 286);
+  --color-primary-content: oklch(97% 0.02 286);
+  --color-secondary: oklch(80.0% 0.13 50);
+  --color-secondary-content: oklch(19% 0.03 50);
+  --color-secondary-outline: var(--color-fozzie-500);
+  --color-secondary-soft: var(--color-fozzie-100);
+  --color-secondary-soft-content: var(--color-fozzie-500);
+  --color-accent: oklch(84.8% 0.1597 116);
+  --color-accent-content: oklch(19% 0.03 116);
+  --color-accent-outline: var(--color-kermit-500);
+  --color-accent-soft: var(--color-kermit-100);
+  --color-accent-soft-content: var(--color-kermit-500);
+  --color-success: oklch(77.0% 0.13 151);
+  --color-success-content: oklch(19% 0.03 151);
+  --color-success-outline: var(--color-oscar-500);
+  --color-success-soft: var(--color-oscar-100);
+  --color-success-soft-content: var(--color-oscar-500);
+  --color-info: oklch(84.5% 0.0549 216);
+  --color-info-content: oklch(19% 0.03 216);
+  --color-info-outline: var(--color-zoot-500);
+  --color-info-soft: var(--color-zoot-100);
+  --color-info-soft-content: var(--color-zoot-500);
+  --color-warning: oklch(86.0% 0.1721 88);
+  --color-warning-content: oklch(19% 0.03 88);
+  --color-warning-outline: var(--color-janice-500);
+  --color-warning-soft: var(--color-janice-100);
+  --color-warning-soft-content: var(--color-janice-500);
+  --color-error: oklch(57.1% 0.1952 30);
+  --color-error-content: oklch(97% 0.02 30);
+
+  --radius-box: 0.5rem;
+  --radius-btn: 0.5rem;
+  --radius-badge: 1rem;
+}
+
+@plugin "daisyui/theme" {
+  name: "jollyroger-dark";
+  color-scheme: "dark";
+
+  --color-base-100: oklch(25% 0.03 286);
+  --color-base-200: oklch(20% 0.025 286);
+  --color-base-300: oklch(15% 0.02 286);
+  --color-base-content: oklch(90.0% 0.02 286);
+  --color-neutral: oklch(40.0% 0.02 286);
+  --color-neutral-content: oklch(92.0% 0.004 286);
+
+  --color-primary: oklch(79% 0.0554 286);
+  --color-primary-content: oklch(19% 0.03 286);
+  --color-secondary: oklch(80.5% 0.1396 50);
+  --color-secondary-content: oklch(19% 0.03 50);
+  --color-accent: oklch(89.6% 0.1326 113);
+  --color-accent-content: oklch(19% 0.03 113);
+  --color-success: oklch(83.9% 0.0872 158);
+  --color-success-content: oklch(19% 0.03 158);
+  --color-info: oklch(78% 0.098 227);
+  --color-info-content: oklch(19% 0.03 227);
+  --color-warning: oklch(82.2% 0.1689 81);
+  --color-warning-content: oklch(19% 0.03 81);
+  --color-error: oklch(70.0% 0.14 25);
+  --color-error-content: oklch(19% 0.03 25);
+
+  --radius-box: 0.5rem;
+  --radius-btn: 0.5rem;
+  --radius-badge: 1rem;
+}
+
+@layer utility {
+  /* --- Buttons: outline/dash overrides --- */
+
+  .btn-primary {
+    --btn-outline: var(--color-primary-outline, var(--color-primary));
+    --btn-soft-fg: var(--color-primary-soft-content, var(--color-primary));
+    --btn-soft-bg: var(
+      --color-primary-soft,
+      color-mix(in oklab, var(--color-primary) 8%, var(--color-base-100))
+    );
+  }
+
+  .btn-secondary {
+    --btn-outline: var(--color-secondary-outline, var(--color-secondary));
+    --btn-soft-fg: var(--color-secondary-soft-content, var(--color-secondary));
+    --btn-soft-bg: var(
+      --color-secondary-soft,
+      color-mix(in oklab, var(--color-secondary) 8%, var(--color-base-100))
+    );
+  }
+
+  .btn-accent {
+    --btn-outline: var(--color-accent-outline, var(--color-accent));
+    --btn-soft-fg: var(--color-accent-soft-content, var(--color-accent));
+    --btn-soft-bg: var(
+      --color-accent-soft,
+      color-mix(in oklab, var(--color-accent) 8%, var(--color-base-100))
+    );
+  }
+
+  .btn-success {
+    --btn-outline: var(--color-success-outline, var(--color-success));
+    --btn-soft-fg: var(--color-success-soft-content, var(--color-success));
+    --btn-soft-bg: var(
+      --color-success-soft,
+      color-mix(in oklab, var(--color-success) 8%, var(--color-base-100))
+    );
+  }
+
+  .btn-info {
+    --btn-outline: var(--color-info-outline, var(--color-info));
+    --btn-soft-fg: var(--color-info-soft-content, var(--color-info));
+    --btn-soft-bg: var(
+      --color-info-soft,
+      color-mix(in oklab, var(--color-info) 8%, var(--color-base-100))
+    );
+  }
+
+  .btn-warning {
+    --btn-outline: var(--color-warning-outline, var(--color-warning));
+    --btn-soft-fg: var(--color-warning-soft-content, var(--color-warning));
+    --btn-soft-bg: var(
+      --color-warning-soft,
+      color-mix(in oklab, var(--color-warning) 8%, var(--color-base-100))
+    );
+  }
+
+  .btn-error {
+    --btn-outline: var(--color-error-outline, var(--color-error));
+    --btn-soft-fg: var(--color-error-soft-content, var(--color-error));
+    --btn-soft-bg: var(
+      --color-error-soft,
+      color-mix(in oklab, var(--color-error) 8%, var(--color-base-100))
+    );
+  }
+
+  .btn-outline,
+  .btn-dash {
+    &:not(
+        .btn-active,
+        :hover,
+        :active:focus,
+        :focus-visible,
+        input:checked:not(.filter .btn),
+        :disabled,
+        [disabled],
+        .btn-disabled
+      ) {
+      --btn-fg: var(--btn-outline);
+      --btn-border: var(--btn-outline);
+    }
+  }
+
+  .btn-soft {
+    &:not(
+        .btn-active,
+        :hover,
+        :active:focus,
+        :focus-visible,
+        input:checked:not(.filter .btn),
+        :disabled,
+        [disabled],
+        .btn-disabled
+      ) {
+      --btn-fg: var(--btn-soft-fg);
+      --btn-bg: var(--btn-soft-bg);
+    }
+  }
+
+  /* --- Badges: outline/dash overrides --- */
+
+  .badge-primary {
+    --badge-outline: var(--color-primary-outline, var(--color-primary));
+    --badge-soft-fg: var(--color-primary-soft-content, var(--color-primary));
+    --badge-soft-bg: var(
+      --color-primary-soft,
+      color-mix(in oklab, var(--color-primary) 8%, var(--color-base-100))
+    );
+  }
+
+  .badge-secondary {
+    --badge-outline: var(--color-secondary-outline, var(--color-secondary));
+    --badge-soft-fg: var(
+      --color-secondary-soft-content,
+      var(--color-secondary)
+    );
+    --badge-soft-bg: var(
+      --color-secondary-soft,
+      color-mix(in oklab, var(--color-secondary) 8%, var(--color-base-100))
+    );
+  }
+
+  .badge-accent {
+    --badge-outline: var(--color-accent-outline, var(--color-accent));
+    --badge-soft-fg: var(--color-accent-soft-content, var(--color-accent));
+    --badge-soft-bg: var(
+      --color-accent-soft,
+      color-mix(in oklab, var(--color-accent) 8%, var(--color-base-100))
+    );
+  }
+
+  .badge-success {
+    --badge-outline: var(--color-success-outline, var(--color-success));
+    --badge-soft-fg: var(--color-success-soft-content, var(--color-success));
+    --badge-soft-bg: var(
+      --color-success-soft,
+      color-mix(in oklab, var(--color-success) 8%, var(--color-base-100))
+    );
+  }
+
+  .badge-info {
+    --badge-outline: var(--color-info-outline, var(--color-info));
+    --badge-soft-fg: var(--color-info-soft-content, var(--color-info));
+    --badge-soft-bg: var(
+      --color-info-soft,
+      color-mix(in oklab, var(--color-info) 8%, var(--color-base-100))
+    );
+  }
+
+  .badge-warning {
+    --badge-outline: var(--color-warning-outline, var(--color-warning));
+    --badge-soft-fg: var(--color-warning-soft-content, var(--color-warning));
+    --badge-soft-bg: var(
+      --color-warning-soft,
+      color-mix(in oklab, var(--color-warning) 8%, var(--color-base-100))
+    );
+  }
+
+  .badge-error {
+    --badge-outline: var(--color-error-outline, var(--color-error));
+    --badge-soft-fg: var(--color-error-soft-content, var(--color-error));
+    --badge-soft-bg: var(
+      --color-error-soft,
+      color-mix(in oklab, var(--color-error) 8%, var(--color-base-100))
+    );
+  }
+
+  .badge-outline,
+  .badge-dash {
+    color: var(--badge-outline);
+  }
+
+  .badge-soft {
+    color: var(--badge-soft-fg);
+    background-color: var(--badge-soft-bg);
+  }
+
+  /* --- Alerts: outline/dash overrides --- */
+
+  .alert-primary {
+    --alert-outline: var(--color-primary-outline, var(--color-primary));
+    --alert-soft-fg: var(--color-primary-soft-content, var(--color-primary));
+    --alert-soft-bg: var(
+      --color-primary-soft,
+      color-mix(in oklab, var(--color-primary) 8%, var(--color-base-100))
+    );
+  }
+
+  .alert-secondary {
+    --alert-outline: var(--color-secondary-outline, var(--color-secondary));
+    --alert-soft-fg: var(
+      --color-secondary-soft-content,
+      var(--color-secondary)
+    );
+    --alert-soft-bg: var(
+      --color-secondary-soft,
+      color-mix(in oklab, var(--color-secondary) 8%, var(--color-base-100))
+    );
+  }
+
+  .alert-accent {
+    --alert-outline: var(--color-accent-outline, var(--color-accent));
+    --alert-soft-fg: var(--color-accent-soft-content, var(--color-accent));
+    --alert-soft-bg: var(
+      --color-accent-soft,
+      color-mix(in oklab, var(--color-accent) 8%, var(--color-base-100))
+    );
+  }
+
+  .alert-success {
+    --alert-outline: var(--color-success-outline, var(--color-success));
+    --alert-soft-fg: var(--color-success-soft-content, var(--color-success));
+    --alert-soft-bg: var(
+      --color-success-soft,
+      color-mix(in oklab, var(--color-success) 8%, var(--color-base-100))
+    );
+  }
+
+  .alert-info {
+    --alert-outline: var(--color-info-outline, var(--color-info));
+    --alert-soft-fg: var(--color-info-soft-content, var(--color-info));
+    --alert-soft-bg: var(
+      --color-info-soft,
+      color-mix(in oklab, var(--color-info) 8%, var(--color-base-100))
+    );
+  }
+
+  .alert-warning {
+    --alert-outline: var(--color-warning-outline, var(--color-warning));
+    --alert-soft-fg: var(--color-warning-soft-content, var(--color-warning));
+    --alert-soft-bg: var(
+      --color-warning-soft,
+      color-mix(in oklab, var(--color-warning) 8%, var(--color-base-100))
+    );
+  }
+
+  .alert-error {
+    --alert-outline: var(--color-error-outline, var(--color-error));
+    --alert-soft-fg: var(--color-error-soft-content, var(--color-error));
+    --alert-soft-bg: var(
+      --color-error-soft,
+      color-mix(in oklab, var(--color-error) 8%, var(--color-base-100))
+    );
+  }
+
+  .alert-outline,
+  .alert-dash {
+    color: var(--alert-outline);
+  }
+
+  .alert-soft {
+    color: var(--alert-soft-fg);
+    background: var(--alert-soft-bg);
+  }
 }
