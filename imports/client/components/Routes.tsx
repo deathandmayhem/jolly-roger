@@ -35,6 +35,7 @@ import VerifyEmailPage from "./VerifyEmailPage";
 const HuntEditPage = React.lazy(() => import("./HuntEditPage"));
 const SetupPage = React.lazy(() => import("./SetupPage"));
 const RTCDebugPage = React.lazy(() => import("./RTCDebugPage"));
+const StyleGuidePage = React.lazy(() => import("./StyleGuidePage"));
 
 /* Authenticated routes - if user not logged in, get redirected to /login */
 export const AuthenticatedRouteList: RouteObject[] = [
@@ -79,6 +80,7 @@ export const AuthenticatedRouteList: RouteObject[] = [
   },
   { path: "/setup", element: <SetupPage /> },
   { path: "/rtcdebug", element: <RTCDebugPage /> },
+  { path: "/style-guide", element: <StyleGuidePage /> },
 ].map((r) => {
   return Object.assign(r, {
     element: <AuthenticatedPage>{r.element}</AuthenticatedPage>,
