@@ -10,6 +10,7 @@ import InvitationCodes from "../lib/models/InvitationCodes";
 import MeteorUsers from "../lib/models/MeteorUsers";
 import type { SettingType } from "../lib/models/Settings";
 import Settings from "../lib/models/Settings";
+import { primaryEmail } from "../lib/models/User";
 
 type LoginInfo = {
   type: string;
@@ -35,7 +36,7 @@ const summaryFromLoginInfo = function (info: LoginInfo) {
          user object already reflects the changed state. Womp womp */
       return {
         msg: "User reset password and logged in",
-        email: info?.user?.emails?.[0]?.address,
+        email: info?.user ? primaryEmail(info.user) : undefined,
       };
     default:
       Logger.info("Received login hook from unknown method", {
@@ -43,7 +44,7 @@ const summaryFromLoginInfo = function (info: LoginInfo) {
       });
       return {
         msg: "User logged in by unknown method",
-        email: info?.user?.emails?.[0]?.address,
+        email: info?.user ? primaryEmail(info.user) : undefined,
         method: info.methodName,
       };
   }
@@ -269,7 +270,7 @@ const DEFAULT_ENROLL_ACCOUNT_TEMPLATE =
 
 async function makeView(user: Meteor.User, url: string) {
   const hunts = await Hunts.find({ _id: { $in: user.hunts } }).fetchAsync();
-  const email = user?.emails?.[0]?.address;
+  const email = primaryEmail(user);
   const huntNames = hunts.map((h) => h.name);
   const huntNamesCount = huntNames.length;
   const huntNamesCommaSeparated = huntNames.join(", ");

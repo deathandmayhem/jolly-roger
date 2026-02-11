@@ -10,6 +10,7 @@ import { glob } from "glob";
 import Logger from "../Logger";
 import isAdmin from "../lib/isAdmin";
 import MeteorUsers from "../lib/models/MeteorUsers";
+import { primaryEmail } from "../lib/models/User";
 import { huntsUserIsOperatorFor } from "../lib/permission_stubs";
 import addRuntimeConfig from "./addRuntimeConfig";
 import onExit from "./onExit";
@@ -199,7 +200,7 @@ if (apiKey) {
         // must not be in a method/publish call
       }
       if (user) {
-        event.setUser(user._id, user.emails?.[0]?.address, user.displayName);
+        event.setUser(user._id, primaryEmail(user), user.displayName);
         event.addMetadata("user", {
           admin: isAdmin(user),
           operator: huntsUserIsOperatorFor(user),

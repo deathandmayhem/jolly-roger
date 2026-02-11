@@ -15,6 +15,7 @@ import { useTranslation } from "react-i18next";
 import Flags from "../../Flags";
 import { formatDiscordName } from "../../lib/discord";
 import type { APIKeyType } from "../../lib/models/APIKeys";
+import { primaryEmail } from "../../lib/models/User";
 import createAPIKey from "../../methods/createAPIKey";
 import linkUserDiscordAccount from "../../methods/linkUserDiscordAccount";
 import unlinkUserDiscordAccount from "../../methods/unlinkUserDiscordAccount";
@@ -310,7 +311,7 @@ const OwnProfilePage = ({
         <FormLabel>{t("common.email", "Email address")}</FormLabel>
         <FormControl
           type="text"
-          value={initialUser.emails![0]!.address}
+          value={primaryEmail(initialUser) ?? ""}
           disabled
         />
       </FormGroup>

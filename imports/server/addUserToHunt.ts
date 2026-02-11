@@ -7,6 +7,7 @@ import Logger from "../Logger";
 import type { HuntType } from "../lib/models/Hunts";
 import MeteorUsers from "../lib/models/MeteorUsers";
 import Settings from "../lib/models/Settings";
+import { primaryEmail } from "../lib/models/User";
 import addUsersToDiscordRole from "./addUsersToDiscordRole";
 import { ensureHuntFolderPermission } from "./gdrive";
 import List from "./List";
@@ -59,7 +60,7 @@ function renderExistingJoinEmail(
   hunt: HuntType,
   joinerName: string | undefined,
 ) {
-  const email = user?.emails?.[0]?.address;
+  const email = user ? primaryEmail(user) : undefined;
   const view = {
     siteName: Accounts.emailTemplates.siteName,
     joinerName,

@@ -2,6 +2,7 @@ import { Meteor } from "meteor/meteor";
 import Bugsnag from "@bugsnag/js";
 import BugsnagPluginReact from "@bugsnag/plugin-react";
 import isAdmin from "../lib/isAdmin";
+import { primaryEmail } from "../lib/models/User";
 import { huntsUserIsOperatorFor } from "../lib/permission_stubs";
 
 if (__meteor_runtime_config__.bugsnagApiKey) {
@@ -13,7 +14,7 @@ if (__meteor_runtime_config__.bugsnagApiKey) {
     onError: (event) => {
       const user = Meteor.user();
       if (user) {
-        event.setUser(user._id, user.emails?.[0]?.address, user.displayName);
+        event.setUser(user._id, primaryEmail(user), user.displayName);
         event.addMetadata("user", {
           admin: isAdmin(user),
           operator: huntsUserIsOperatorFor(user),

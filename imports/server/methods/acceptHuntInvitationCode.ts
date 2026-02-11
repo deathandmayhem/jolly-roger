@@ -3,6 +3,7 @@ import { Meteor } from "meteor/meteor";
 import Hunts from "../../lib/models/Hunts";
 import InvitationCodes from "../../lib/models/InvitationCodes";
 import MeteorUsers from "../../lib/models/MeteorUsers";
+import { primaryEmail } from "../../lib/models/User";
 import acceptHuntInvitationCode from "../../methods/acceptHuntInvitationCode";
 import addUserToHunt from "../addUserToHunt";
 import defineMethod from "./defineMethod";
@@ -37,7 +38,7 @@ defineMethod(acceptHuntInvitationCode, {
       // User is logged in and accepting the invitation for themself.
       check(this.userId, String);
       const user = await MeteorUsers.findOneAsync(this.userId);
-      const emailForExistingUser = user?.emails?.[0]?.address;
+      const emailForExistingUser = user ? primaryEmail(user) : undefined;
       if (!emailForExistingUser) {
         throw new Meteor.Error(500, "No email found for current user");
       }

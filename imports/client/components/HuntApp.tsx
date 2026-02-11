@@ -9,6 +9,7 @@ import { createPortal } from "react-dom";
 import { Outlet, useNavigate, useParams } from "react-router-dom";
 import type { HuntType } from "../../lib/models/Hunts";
 import Hunts from "../../lib/models/Hunts";
+import { primaryEmail } from "../../lib/models/User";
 import {
   userMayAddUsersToHunt,
   userMayUpdateHunt,
@@ -64,14 +65,14 @@ const HuntMemberError = React.memo(
   ({ hunt, canJoin }: { hunt: HuntType; canJoin: boolean }) => {
     const join = useCallback(() => {
       const user = Meteor.user();
-      if (!user?.emails) {
+      if (!user) {
         return;
       }
-      const email = user.emails[0];
+      const email = primaryEmail(user);
       if (!email) {
         return;
       }
-      addHuntUser.call({ huntId: hunt._id, email: email.address });
+      addHuntUser.call({ huntId: hunt._id, email });
     }, [hunt._id]);
 
     const joinButton = useMemo(() => {
