@@ -28,6 +28,11 @@ declare module "meteor/accounts-base" {
       email?: string,
     ): Promise<void>;
 
+    function verifyEmail(
+      token: string,
+      callback?: (error?: Error | Meteor.Error | Meteor.TypedError) => void,
+    ): void;
+
     function removeDefaultRateLimit(): void;
     function setDefaultPublishFields(
       fields: Partial<Record<keyof Meteor.User, 1 | 0>>,

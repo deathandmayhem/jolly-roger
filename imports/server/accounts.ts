@@ -228,6 +228,8 @@ Accounts.onLoginFailure((info: LoginInfo) => {
 Accounts.urls.enrollAccount = (token) => Meteor.absoluteUrl(`enroll/${token}`);
 Accounts.urls.resetPassword = (token) =>
   Meteor.absoluteUrl(`reset-password/${token}`);
+Accounts.urls.verifyEmail = (token) =>
+  Meteor.absoluteUrl(`verify-email/${token}`);
 
 const DEFAULT_ENROLL_ACCOUNT_SUBJECT_TEMPLATE =
   "[jolly-roger] You're invited to {{siteName}}";
