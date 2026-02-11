@@ -65,7 +65,7 @@ const discordSyncRoleJob = defineJob(
       const discord = new DiscordBot(botToken);
 
       for (const userId of args.userIds) {
-        if (signal.aborted) return;
+        signal.throwIfAborted();
 
         const user = await MeteorUsers.findOneAsync(userId);
         if (!user?.discordAccount) {
