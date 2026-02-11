@@ -2,6 +2,7 @@ import { Accounts } from "meteor/accounts-base";
 import { check } from "meteor/check";
 import Logger from "../../Logger";
 import addUserAccountEmail from "../../methods/addUserAccountEmail";
+import checkVerificationEmailCooldown from "../checkVerificationEmailCooldown";
 import defineMethod from "./defineMethod";
 
 defineMethod(addUserAccountEmail, {
@@ -12,6 +13,8 @@ defineMethod(addUserAccountEmail, {
 
   async run({ email }) {
     check(this.userId, String);
+
+    await checkVerificationEmailCooldown(this.userId);
 
     Logger.info("Adding email to user account", {
       user: this.userId,

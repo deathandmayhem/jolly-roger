@@ -8,6 +8,7 @@ import MeteorUsers from "../../imports/lib/models/MeteorUsers";
 import addUserAccountEmail from "../../imports/methods/addUserAccountEmail";
 import makeUserEmailPrimary from "../../imports/methods/makeUserEmailPrimary";
 import removeUserAccountEmail from "../../imports/methods/removeUserAccountEmail";
+import sendUserVerificationEmail from "../../imports/methods/sendUserVerificationEmail";
 import TypedMethod from "../../imports/methods/TypedMethod";
 import resetDatabase from "../lib/resetDatabase";
 import { subscribeAsync } from "./lib";
@@ -222,6 +223,30 @@ if (Meteor.isClient) {
       await assert.isRejected(
         removeUserAccountEmail.callPromise({ email: "primary@example.com" }),
         "Cannot remove primary email",
+      );
+    });
+
+    it("rate-limits verification email sending", async function () {
+      await resetDatabase("email management rate limit");
+
+      await createUser.callPromise({
+        email: "primary@example.com",
+        password: "password",
+        displayName: "Test User",
+      });
+
+      await promisify(Meteor.loginWithPassword)(
+        "primary@example.com",
+        "password",
+      );
+
+      // Adding an email sends a verification email, creating a token
+      await addUserAccountEmail.callPromise({ email: "second@example.com" });
+
+      // Immediately requesting another verification email should be rate-limited
+      await assert.isRejected(
+        sendUserVerificationEmail.callPromise({ email: "second@example.com" }),
+        "Please wait before requesting another verification email",
       );
     });
 
