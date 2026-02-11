@@ -4,6 +4,7 @@ import { useTracker } from "meteor/react-meteor-data";
 import { ServiceConfiguration } from "meteor/service-configuration";
 import { useCallback, useId, useMemo, useState } from "react";
 import Alert from "react-bootstrap/Alert";
+import Badge from "react-bootstrap/Badge";
 import Button from "react-bootstrap/Button";
 import Container from "react-bootstrap/Container";
 import type { FormControlProps } from "react-bootstrap/FormControl";
@@ -11,13 +12,18 @@ import FormControl from "react-bootstrap/FormControl";
 import FormGroup from "react-bootstrap/FormGroup";
 import FormLabel from "react-bootstrap/FormLabel";
 import FormText from "react-bootstrap/FormText";
+import ListGroup from "react-bootstrap/ListGroup";
+import ListGroupItem from "react-bootstrap/ListGroupItem";
 import { useTranslation } from "react-i18next";
 import Flags from "../../Flags";
 import { formatDiscordName } from "../../lib/discord";
 import type { APIKeyType } from "../../lib/models/APIKeys";
-import { primaryEmail } from "../../lib/models/User";
+import addUserAccountEmail from "../../methods/addUserAccountEmail";
 import createAPIKey from "../../methods/createAPIKey";
 import linkUserDiscordAccount from "../../methods/linkUserDiscordAccount";
+import makeUserEmailPrimary from "../../methods/makeUserEmailPrimary";
+import removeUserAccountEmail from "../../methods/removeUserAccountEmail";
+import sendUserVerificationEmail from "../../methods/sendUserVerificationEmail";
 import unlinkUserDiscordAccount from "../../methods/unlinkUserDiscordAccount";
 import updateProfile from "../../methods/updateProfile";
 import { requestDiscordCredential } from "../discord";
@@ -160,6 +166,146 @@ const DiscordLinkBlock = ({ user }: { user: Meteor.User }) => {
           { teamName: teamName },
         )}
       </FormText>
+    </FormGroup>
+  );
+};
+
+const EmailSection = ({ user }: { user: Meteor.User }) => {
+  const { t } = useTranslation();
+  const idPrefix = useId();
+  const [newEmail, setNewEmail] = useState("");
+  const [error, setError] = useState<string | undefined>(undefined);
+  const [busy, setBusy] = useState(false);
+
+  const handleAddEmail = useCallback(() => {
+    const trimmed = newEmail.trim();
+    if (!trimmed) return;
+    setBusy(true);
+    setError(undefined);
+    addUserAccountEmail.call({ email: trimmed }, (err) => {
+      setBusy(false);
+      if (err) {
+        setError(err.reason ?? err.message);
+      } else {
+        setNewEmail("");
+      }
+    });
+  }, [newEmail]);
+
+  const handleRemoveEmail = useCallback((email: string) => {
+    setError(undefined);
+    removeUserAccountEmail.call({ email }, (err) => {
+      if (err) {
+        setError(err.reason ?? err.message);
+      }
+    });
+  }, []);
+
+  const handleMakePrimary = useCallback((email: string) => {
+    setError(undefined);
+    makeUserEmailPrimary.call({ email }, (err) => {
+      if (err) {
+        setError(err.reason ?? err.message);
+      }
+    });
+  }, []);
+
+  const handleResendVerification = useCallback((email: string) => {
+    setError(undefined);
+    sendUserVerificationEmail.call({ email }, (err) => {
+      if (err) {
+        setError(err.reason ?? err.message);
+      }
+    });
+  }, []);
+
+  const emails = user.emails ?? [];
+
+  return (
+    <FormGroup className="mb-3">
+      <FormLabel>{t("profile.emails.label", "Email addresses")}</FormLabel>
+      {error && (
+        <Alert variant="danger" dismissible onClose={() => setError(undefined)}>
+          {error}
+        </Alert>
+      )}
+      <ListGroup className="mb-2">
+        {emails.map((entry, index) => (
+          <ListGroupItem
+            key={entry.address}
+            className="d-flex justify-content-between align-items-center"
+          >
+            <div>
+              {entry.address}{" "}
+              {index === 0 && (
+                <Badge bg="primary">
+                  {t("profile.emails.primary", "Primary")}
+                </Badge>
+              )}{" "}
+              {entry.verified ? (
+                <Badge bg="success">
+                  {t("profile.emails.verified", "Verified")}
+                </Badge>
+              ) : (
+                <Badge bg="warning" text="dark">
+                  {t("profile.emails.unverified", "Unverified")}
+                </Badge>
+              )}
+            </div>
+            <div>
+              {index !== 0 && entry.verified && (
+                <Button
+                  variant="outline-primary"
+                  size="sm"
+                  className="me-1"
+                  onClick={() => handleMakePrimary(entry.address)}
+                >
+                  {t("profile.emails.makePrimary", "Make primary")}
+                </Button>
+              )}
+              {!entry.verified && (
+                <Button
+                  variant="outline-secondary"
+                  size="sm"
+                  className="me-1"
+                  onClick={() => handleResendVerification(entry.address)}
+                >
+                  {t(
+                    "profile.emails.resendVerification",
+                    "Resend verification",
+                  )}
+                </Button>
+              )}
+              {index !== 0 && (
+                <Button
+                  variant="outline-danger"
+                  size="sm"
+                  onClick={() => handleRemoveEmail(entry.address)}
+                >
+                  {t("profile.emails.remove", "Remove")}
+                </Button>
+              )}
+            </div>
+          </ListGroupItem>
+        ))}
+      </ListGroup>
+      <div className="d-flex gap-2">
+        <FormControl
+          id={`${idPrefix}-add-email`}
+          type="email"
+          placeholder={t("profile.emails.addPlaceholder", "Add email address")}
+          value={newEmail}
+          onChange={(e) => setNewEmail(e.currentTarget.value)}
+          disabled={busy}
+        />
+        <Button
+          variant="outline-primary"
+          onClick={handleAddEmail}
+          disabled={busy || !newEmail.trim()}
+        >
+          {t("profile.emails.add", "Add")}
+        </Button>
+      </div>
     </FormGroup>
   );
 };
@@ -307,14 +453,7 @@ const OwnProfilePage = ({
     <Container>
       <h1>{t("profile.ownProfileTitle", "Account information")}</h1>
       <Avatar {...initialUser} size={64} />
-      <FormGroup className="mb-3" controlId={`${idPrefix}-email`}>
-        <FormLabel>{t("common.email", "Email address")}</FormLabel>
-        <FormControl
-          type="text"
-          value={primaryEmail(initialUser) ?? ""}
-          disabled
-        />
-      </FormGroup>
+      <EmailSection user={initialUser} />
       {submitState === OwnProfilePageSubmitState.SUBMITTING ? (
         <Alert variant="info">{t("common.saving", "Saving")}...</Alert>
       ) : null}

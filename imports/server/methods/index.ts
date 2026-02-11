@@ -62,6 +62,7 @@ import "./removePuzzleAnswer";
 import "./removePuzzleTag";
 import "./renameTag";
 import "./sendChatMessage";
+import "./sendUserVerificationEmail";
 import "./setFeatureFlag";
 import "./setGuessState";
 import "./syncHuntDiscordRole";
