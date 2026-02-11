@@ -13,6 +13,7 @@ const Tag = withCommon(
 
 const Tags = new SoftDeletedModel("jr_tags", Tag);
 Tags.addIndex({ deleted: 1, hunt: 1, name: 1 });
+Tags.addIndex({ hunt: 1 });
 export type TagType = ModelType<typeof Tags>;
 
 export default Tags;

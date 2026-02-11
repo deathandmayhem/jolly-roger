@@ -304,6 +304,14 @@ export function userMayUpdateHunt(
   return isAdmin(user);
 }
 
+export function userMayPurgeHunt(
+  user: Pick<Meteor.User, "roles"> | null | undefined,
+  _hunt: Pick<HuntType, "_id"> | null | undefined,
+): boolean {
+  // TODO: make this driven by if you're an owner of the hunt in question
+  return isAdmin(user);
+}
+
 export function userMayJoinCallsForHunt(
   user: Pick<Meteor.User, "roles" | "hunts"> | null | undefined,
   hunt: Pick<HuntType, "_id"> | null | undefined,

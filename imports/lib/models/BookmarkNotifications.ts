@@ -32,6 +32,7 @@ const BookmarkNotifications = new SoftDeletedModel(
   BookmarkNotification,
 );
 BookmarkNotifications.addIndex({ deleted: 1, user: 1 });
+BookmarkNotifications.addIndex({ hunt: 1 });
 export type BookmarkNotificationType = ModelType<typeof BookmarkNotifications>;
 
 export default BookmarkNotifications;

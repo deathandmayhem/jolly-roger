@@ -19,6 +19,7 @@ const PendingAnnouncements = new SoftDeletedModel(
   PendingAnnouncement,
 );
 PendingAnnouncements.addIndex({ user: 1 });
+PendingAnnouncements.addIndex({ hunt: 1 });
 export type PendingAnnouncementType = ModelType<typeof PendingAnnouncements>;
 
 export default PendingAnnouncements;
