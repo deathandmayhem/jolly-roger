@@ -17,44 +17,24 @@ import React, {
 import Alert from "react-bootstrap/Alert";
 import Button from "react-bootstrap/Button";
 import Container from "react-bootstrap/Container";
-import Dropdown from "react-bootstrap/Dropdown";
-import DropdownHeader from "react-bootstrap/DropdownHeader";
-import DropdownItem from "react-bootstrap/DropdownItem";
-import DropdownMenu from "react-bootstrap/DropdownMenu";
-import DropdownToggle from "react-bootstrap/DropdownToggle";
-import Nav from "react-bootstrap/Nav";
-import Navbar from "react-bootstrap/Navbar";
-import NavbarBrand from "react-bootstrap/NavbarBrand";
-import NavItem from "react-bootstrap/NavItem";
-import NavLink from "react-bootstrap/NavLink";
 import type { FallbackProps } from "react-error-boundary";
 import { ErrorBoundary as ReactErrorBoundary } from "react-error-boundary";
 import { useTranslation } from "react-i18next";
-import * as RRBS from "react-router-bootstrap";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import type { StackFrame } from "stacktrace-js";
 import StackTrace from "stacktrace-js";
-import styled, { css, useTheme } from "styled-components";
+import styled from "styled-components";
 import isAdmin from "../../lib/isAdmin";
 import { useBreadcrumbItems } from "../hooks/breadcrumb";
 import { type AppThemeState, useAppThemeState } from "../hooks/persisted-state";
 import useEffectiveTheme from "../hooks/useEffectiveTheme";
+import useTailwindTheme from "../hooks/useTailwindTheme";
 import lookupUrl from "../lookupUrl";
 import { BootstrapScopeProvider } from "./BootstrapScopeContext";
 import ConnectionStatus from "./ConnectionStatus";
 import HuntNav from "./HuntNav";
 import Loading from "./Loading";
 import NotificationCenter from "./NotificationCenter";
-import { NavBarHeight } from "./styling/constants";
-import { mediaBreakpointDown } from "./styling/responsive";
-
-const Breadcrumb = styled.nav`
-  display: flex;
-  align-items: center;
-  height: ${NavBarHeight};
-  flex: 1 1 auto;
-  min-width: 0;
-`;
 
 const ContentContainer = styled.div`
   padding: /* top right bottom left */ max(env(safe-area-inset-top, 0px), 15px)
@@ -65,66 +45,6 @@ const ContentContainer = styled.div`
   &:has(> .tailwind-page) {
     padding: 0;
   }
-`;
-
-/* Using some prefixed styles with widespread support and graceful failure */
-/* stylelint-disable value-no-vendor-prefix */
-const BreadcrumbList = styled.ol`
-  list-style: none;
-  display: block;
-  display: -webkit-box;
-  max-height: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  margin: 0;
-  padding: 0;
-`;
-/* stylelint-enable value-no-vendor-prefix */
-
-const BreadcrumbItem = styled.li`
-  display: inline;
-  text-indent: 0;
-  color: ${({ theme }) => theme.colors.breadcrumbText};
-
-  + li {
-    padding-left: 0.5rem;
-
-    &::before {
-      content: "/";
-      padding-right: 0.5rem;
-      color: ${({ theme }) => theme.colors.breadcrumbBeforeText};
-    }
-  }
-`;
-const NavbarInset = styled(Navbar)`
-  margin-top: env(safe-area-inset-top, 0);
-  padding-left: env(safe-area-inset-right, 0);
-  padding-right: calc(env(safe-area-inset-right, 0) + 4px);
-`;
-
-const NavUsername = styled.span`
-  ${mediaBreakpointDown(
-    "sm",
-    css`
-      display: none;
-    `,
-  )}
-`;
-
-const Brand = styled.img`
-  width: ${NavBarHeight};
-  height: ${NavBarHeight};
-`;
-
-const HuntNavWrapper = styled.div`
-  ${mediaBreakpointDown(
-    "sm",
-    css`
-      display: none;
-    `,
-  )}
 `;
 
 const ErrorFallback = ({
@@ -229,145 +149,223 @@ const AppNavbar = ({
 
   const navigate = useNavigate();
   const logout = useCallback(() => {
-    // Logout, then immediately redirect to the login page
     Meteor.logout(() => navigate("/login", { replace: true }));
   }, [navigate]);
 
   const crumbs = useBreadcrumbItems();
   const breadcrumbsComponent = useMemo(() => {
     return (
-      <Breadcrumb aria-label="breadcrumb">
-        <BreadcrumbList>
+      <nav
+        className="flex items-center h-[50px] flex-1 min-w-0 font-display"
+        aria-label="breadcrumb"
+      >
+        <ol className="list-none line-clamp-2 m-0 p-0">
           {crumbs.map((crumb, index) => {
             const last = index === crumbs.length - 1;
-            if (last) {
-              return (
-                <BreadcrumbItem key={crumb.path} aria-current="page">
-                  {crumb.title}
-                </BreadcrumbItem>
-              );
-            } else {
-              return (
-                <BreadcrumbItem key={crumb.path}>
-                  <Link to={crumb.path}>{crumb.title}</Link>
-                </BreadcrumbItem>
-              );
-            }
+            return (
+              <li
+                key={crumb.path}
+                className={
+                  last
+                    ? "inline text-primary-content"
+                    : "hidden sm:inline text-primary-content/50"
+                }
+                aria-current={last ? "page" : undefined}
+              >
+                {index > 0 && (
+                  <span className="hidden sm:inline px-2 text-primary-content/40">
+                    /
+                  </span>
+                )}
+                {last ? (
+                  crumb.title
+                ) : (
+                  <Link
+                    to={crumb.path}
+                    className="text-primary-content/50 hover:text-primary-content"
+                  >
+                    {crumb.title}
+                  </Link>
+                )}
+              </li>
+            );
           })}
-        </BreadcrumbList>
-      </Breadcrumb>
+        </ol>
+      </nav>
     );
   }, [crumbs]);
 
-  // Note: the .brand class on the <img> ensures that the logo takes up the
-  // correct amount of space in the top bar even if we haven't actually picked
-  // a nonempty source for it yet.
+  const navRef = useRef<HTMLElement>(null);
+  const userDetailsRef = useRef<HTMLDetailsElement>(null);
 
+  // Close open <details> menus when clicking outside the navbar,
+  // and close other menus when one opens (accordion behavior)
+  useEffect(() => {
+    const nav = navRef.current;
+    if (!nav) return;
+
+    const handleClickOutside = (e: MouseEvent) => {
+      if (!nav.contains(e.target as Node)) {
+        for (const details of nav.querySelectorAll("details[open]")) {
+          details.removeAttribute("open");
+        }
+      }
+    };
+
+    const handleToggle = (e: Event) => {
+      const toggled = e.target as HTMLDetailsElement;
+      if (toggled.open) {
+        for (const details of nav.querySelectorAll("details[open]")) {
+          if (details !== toggled) {
+            details.removeAttribute("open");
+          }
+        }
+      }
+    };
+
+    document.addEventListener("click", handleClickOutside);
+    nav.addEventListener("toggle", handleToggle, true);
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+      nav.removeEventListener("toggle", handleToggle, true);
+    };
+  }, []);
   const setAutoMode = useCallback(() => {
     setAppTheme("auto");
+    userDetailsRef.current?.removeAttribute("open");
   }, [setAppTheme]);
   const setLightMode = useCallback(() => {
     setAppTheme("light");
+    userDetailsRef.current?.removeAttribute("open");
   }, [setAppTheme]);
   const setDarkMode = useCallback(() => {
     setAppTheme("dark");
+    userDetailsRef.current?.removeAttribute("open");
   }, [setAppTheme]);
   const { t, i18n } = useTranslation();
-  const changeLanguage = (lng: string) => {
-    void i18n.changeLanguage(lng);
-  };
+  const changeLanguage = useCallback(
+    (lng: string) => {
+      void i18n.changeLanguage(lng);
+      userDetailsRef.current?.removeAttribute("open");
+    },
+    [i18n],
+  );
 
-  const theme = useTheme();
   return (
-    <NavbarInset
-      variant="light"
+    <nav
+      ref={navRef}
+      className="navbar bg-primary text-primary-content h-[50px] min-h-[50px] py-0 px-1"
       style={{
-        backgroundColor: theme.colors.navBarBackground,
-        borderBottom: `1px solid ${theme.colors.navBarBottomBorder}`,
+        marginTop: "env(safe-area-inset-top, 0)",
+        paddingLeft: "env(safe-area-inset-left, 0)",
+        paddingRight: "calc(env(safe-area-inset-right, 0) + 4px)",
       }}
-      className="py-0"
     >
-      <NavbarBrand className="p-0">
-        <Link to="/">
-          <Brand
+      <div className="flex-1 flex items-center gap-2 min-w-0">
+        <Link to="/" className="flex-shrink-0">
+          <img
+            className="w-[50px] h-[50px]"
             src={brandSrc}
             alt="Jolly Roger logo"
             srcSet={`${brandSrc} 1x, ${brandSrc2x} 2x`}
           />
         </Link>
-      </NavbarBrand>
-      {breadcrumbsComponent}
-      {huntId && (
-        <HuntNavWrapper>
-          <HuntNav />
-        </HuntNavWrapper>
-      )}
-      <Nav className="ml-auto">
-        <Dropdown as={NavItem}>
-          <DropdownToggle as={NavLink}>
-            <FontAwesomeIcon icon={faUser} />{" "}
-            <NavUsername>{displayName}</NavUsername>
-          </DropdownToggle>
-          <DropdownMenu align="end">
-            <RRBS.LinkContainer to={`/users/${userId}`}>
-              <DropdownItem eventKey="1">
-                {t("navigation.myProfile", "My profile")}
-              </DropdownItem>
-            </RRBS.LinkContainer>
-            <DropdownItem
-              eventKey="2"
-              href="https://github.com/deathandmayhem/jolly-roger/issues"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {t("navigation.reportAnIssue", "Report an issue")}
-            </DropdownItem>
-            {userIsAdmin ? (
-              <RRBS.LinkContainer to="/setup">
-                <DropdownItem eventKey="4">
-                  {t("navigation.serverSetup", "Server setup")}
-                </DropdownItem>
-              </RRBS.LinkContainer>
-            ) : undefined}
-            <DropdownItem eventKey="3" onClick={logout}>
-              {t("navigation.signOut", "Sign out")}
-            </DropdownItem>
-            <Dropdown.Divider />
-            <DropdownHeader>
-              {t("navigation.theme.header", "Theme")}
-            </DropdownHeader>
-            <DropdownItem onClick={setAutoMode} active={appTheme === "auto"}>
-              <FontAwesomeIcon icon={faWandMagicSparkles} />{" "}
-              {t("navigation.theme.auto", "Auto")}
-            </DropdownItem>
-            <DropdownItem onClick={setLightMode} active={appTheme === "light"}>
-              <FontAwesomeIcon icon={faSun} />{" "}
-              {t("navigation.theme.light", "Light mode")}
-            </DropdownItem>
-            <DropdownItem onClick={setDarkMode} active={appTheme === "dark"}>
-              <FontAwesomeIcon icon={faMoon} />{" "}
-              {t("navigation.theme.dark", "Dark mode")}
-            </DropdownItem>
-            <Dropdown.Divider />
-            <DropdownHeader>
-              {t("navigation.language", "Language")}
-            </DropdownHeader>
-            <DropdownItem
-              onClick={() => changeLanguage("en")}
-              active={i18n.language === "en"}
-            >
-              English
-            </DropdownItem>
-            <DropdownItem
-              onClick={() => changeLanguage("zh")}
-              active={i18n.language === "zh"}
-            >
-              中文
-            </DropdownItem>
-          </DropdownMenu>
-        </Dropdown>
-      </Nav>
-    </NavbarInset>
+        {breadcrumbsComponent}
+      </div>
+      <ul className="menu menu-horizontal menu-sm flex-shrink-0 px-1">
+        {huntId && <HuntNav />}
+        <li>
+          <details ref={userDetailsRef}>
+            <summary>
+              <FontAwesomeIcon icon={faUser} />
+              <span className="hidden sm:inline">{displayName}</span>
+            </summary>
+            <ul className="bg-base-100 text-base-content rounded-box z-50 w-56 p-2 shadow right-0">
+              <li>
+                <Link to={`/users/${userId}`}>
+                  {t("navigation.myProfile", "My profile")}
+                </Link>
+              </li>
+              <li>
+                <a
+                  href="https://github.com/deathandmayhem/jolly-roger/issues"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {t("navigation.reportAnIssue", "Report an issue")}
+                </a>
+              </li>
+              {userIsAdmin && (
+                <li>
+                  <Link to="/setup">
+                    {t("navigation.serverSetup", "Server setup")}
+                  </Link>
+                </li>
+              )}
+              <li>
+                <button type="button" onClick={logout}>
+                  {t("navigation.signOut", "Sign out")}
+                </button>
+              </li>
+              <li className="menu-title">
+                {t("navigation.theme.header", "Theme")}
+              </li>
+              <li>
+                <button
+                  type="button"
+                  className={appTheme === "auto" ? "menu-active" : ""}
+                  onClick={setAutoMode}
+                >
+                  <FontAwesomeIcon icon={faWandMagicSparkles} />
+                  {t("navigation.theme.auto", "Auto")}
+                </button>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  className={appTheme === "light" ? "menu-active" : ""}
+                  onClick={setLightMode}
+                >
+                  <FontAwesomeIcon icon={faSun} />
+                  {t("navigation.theme.light", "Light mode")}
+                </button>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  className={appTheme === "dark" ? "menu-active" : ""}
+                  onClick={setDarkMode}
+                >
+                  <FontAwesomeIcon icon={faMoon} />
+                  {t("navigation.theme.dark", "Dark mode")}
+                </button>
+              </li>
+              <li className="menu-title">
+                {t("navigation.language", "Language")}
+              </li>
+              <li>
+                <button
+                  type="button"
+                  className={i18n.language === "en" ? "menu-active" : ""}
+                  onClick={() => changeLanguage("en")}
+                >
+                  English
+                </button>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  className={i18n.language === "zh" ? "menu-active" : ""}
+                  onClick={() => changeLanguage("zh")}
+                >
+                  中文
+                </button>
+              </li>
+            </ul>
+          </details>
+        </li>
+      </ul>
+    </nav>
   );
 };
 
@@ -396,6 +394,7 @@ const App = ({ children }: { children: React.ReactNode }) => {
 
   const [appTheme, setAppTheme] = useAppThemeState();
   const effectiveTheme = useEffectiveTheme();
+  const tailwindTheme = useTailwindTheme();
   const scopeRef = useRef<HTMLDivElement>(null);
 
   return (
@@ -406,7 +405,9 @@ const App = ({ children }: { children: React.ReactNode }) => {
     >
       <BootstrapScopeProvider value={scopeRef}>
         <NotificationCenter />
-        <AppNavbar appTheme={appTheme ?? "light"} setAppTheme={setAppTheme} />
+        <div className="tailwind-page" data-theme={tailwindTheme}>
+          <AppNavbar appTheme={appTheme ?? "light"} setAppTheme={setAppTheme} />
+        </div>
         <ConnectionStatus />
         <ContentContainer className="container-fluid">
           {errorBoundary}
