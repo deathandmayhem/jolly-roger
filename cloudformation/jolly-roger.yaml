@@ -192,16 +192,12 @@ Resources:
       Runtime: nodejs22.x
       Handler: "index.main"
       Role: !GetAtt LambdaExecutionRole.Arn
-      Environment:
-        Variables:
-          sshUsers:
-            Ref: SshUsers
       Code:
         ZipFile: |
           const response = require('cfn-response');
 
           exports.main = function (event, context) {
-            const sshUsers = process.env.sshUsers.split(',');
+            const sshUsers = event.ResourceProperties.SshUsers.split(',');
             var output = 'users:\n'
             sshUsers.forEach((sshUser) => {
                 const parts = sshUser.split('=');
@@ -217,11 +213,7 @@ Resources:
     Condition: HaveServing
     Properties:
       ServiceToken: !GetAtt SshUsersParsingFunction.Arn
-      Suite: jammy
-      Region: !Ref "AWS::Region"
-      InstanceType: ebs-ssd
-      Architecture: amd64
-      VirtualizationType: hvm
+      SshUsers: !Ref SshUsers
 
   VPC:
     Type: AWS::EC2::VPC
