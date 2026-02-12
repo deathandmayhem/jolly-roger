@@ -25,6 +25,19 @@ defineMethod(linkUserGoogleAccount, {
     // scopes, I don't think you can do anything with it), but we do
     // want to validate it.
     const credential = await Google.retrieveCredential(key, secret);
+    if (!credential?.serviceData) {
+      // The pending credential was already consumed, likely because
+      // Meteor retried this method after a connection drop. If the
+      // user already has a Google account linked, this is a no-op.
+      const user = await MeteorUsers.findOneAsync(this.userId);
+      if (user?.googleAccount) {
+        return;
+      }
+      throw new Meteor.Error(
+        400,
+        "Google credential not found. Please try linking your account again.",
+      );
+    }
     const { email, id, picture } = credential.serviceData;
     Logger.info("Linking user to Google account", {
       email,
