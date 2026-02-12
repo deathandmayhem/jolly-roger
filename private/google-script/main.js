@@ -1,7 +1,7 @@
 // This runs in Google's Apps Script environment, and is thus only sort of
 // JavaScript.
 
-/* global ContentService, SpreadsheetApp, Utilities */
+/* global ContentService, HtmlService, SpreadsheetApp, Utilities */
 
 const SHARED_SECRET = "{{secret}}";
 
@@ -144,6 +144,13 @@ const METHODS = {
     ).setMimeType(ContentService.MimeType.JSON);
   },
 };
+
+// biome-ignore lint/correctness/noUnusedVariables: This is part of the Apps Script API
+function doGet() {
+  return HtmlService.createHtmlOutputFromFile(
+    "cookie-test",
+  ).setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+}
 
 // biome-ignore lint/correctness/noUnusedVariables: This is part of the Apps Script API
 function doPost(e) {

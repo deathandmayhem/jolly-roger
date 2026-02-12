@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+  <head><title>Cookie Test</title></head>
+  <body>
+    <script>
+      /* biome-ignore-all lint/suspicious/noDocumentCookie: intentionally testing cookie access */
+      function cookieTest() {
+        let ok = false;
+        try {
+          document.cookie = "jr_test=1; SameSite=None; Secure";
+          ok = document.cookie.indexOf("jr_test=1") !== -1;
+          document.cookie = "jr_test=; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=None; Secure";
+        } catch {
+          return false;
+        }
+        return ok;
+      }
+
+      document.hasStorageAccess().then(function(hasAccess) {
+        if (hasAccess) {
+          // Unpartitioned cookie access confirmed — no problem
+          window.top.postMessage({
+            type: "jr-cookie-check",
+            ok: true,
+            detail: "hasStorageAccess granted",
+          }, "*");
+          return;
+        }
+
+        const canSetCookie = cookieTest();
+        if (!canSetCookie) {
+          // Can't even set cookies — full blocking (e.g. Safari ITP)
+          window.top.postMessage({
+            type: "jr-cookie-check",
+            ok: false,
+            detail: "cookies fully blocked",
+          }, "*");
+          return;
+        }
+
+        // Ambiguous: cookies work but hasStorageAccess is false.
+        // Could be Firefox TCP (problem) or Safari ITP off (fine).
+        // Try requestStorageAccess without gesture to disambiguate.
+        document.requestStorageAccess().then(function() {
+          // Resolved without gesture — no real restriction (Safari ITP off)
+          window.top.postMessage({
+            type: "jr-cookie-check",
+            ok: true,
+            detail: "requestStorageAccess auto-granted",
+          }, "*");
+        }).catch(function() {
+          // Rejected — real restriction in effect (Firefox TCP)
+          window.top.postMessage({
+            type: "jr-cookie-check",
+            ok: false,
+            detail: "cookies partitioned",
+          }, "*");
+        });
+      });
+    </script>
+  </body>
+</html>

@@ -45,7 +45,9 @@ export default async (
 }> => {
   const content: script_v1.Schema$Content = {
     files: await Promise.all(
-      ["appsscript.json", "main.js"].map((name) => loadFile(secret, name)),
+      ["appsscript.json", "main.js", "cookie-test.html"].map((name) =>
+        loadFile(secret, name),
+      ),
     ),
   };
   const contentHash = crypto
