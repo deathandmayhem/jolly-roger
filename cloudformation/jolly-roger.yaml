@@ -147,6 +147,15 @@ Parameters:
     Description: Email to use for certificate abuse and renewal notifications when using Let's Encrypt via the SingleInstance serving mode. Leave blank to disable notifications.
     Type: String
     Default: ""
+  UseSpotInstances:
+    Description: >-
+      Use spot instances to reduce EC2 costs. Spot instances can be interrupted
+      with 2 minutes notice, causing brief downtime until the ASG replaces the
+      instance. Recommended for SingleInstance serving mode where brief
+      interruptions are acceptable.
+    Type: String
+    Default: "No"
+    AllowedValues: ["Yes", "No"]
 
 Conditions:
   HavePapertrail: !Not [!Equals [!Ref PapertrailHost, ""]]
@@ -155,6 +164,7 @@ Conditions:
   HaveServing: !Not [!Equals [!Ref ServingMode, "None"]]
   HaveLoadBalancing: !Equals [!Ref ServingMode, "NLB"]
   HaveSingleInstance: !Equals [!Ref ServingMode, "SingleInstance"]
+  UseSpot: !Equals [!Ref UseSpotInstances, "Yes"]
 
 Resources:
   LambdaExecutionRole:
@@ -1064,9 +1074,15 @@ Resources:
         - ELB
         - EC2
       HealthCheckGracePeriod: 1800
-      LaunchTemplate:
-        LaunchTemplateId: !Ref AppLaunchTemplate
-        Version: !GetAtt AppLaunchTemplate.LatestVersionNumber
+      MixedInstancesPolicy:
+        InstancesDistribution:
+          OnDemandBaseCapacity: !If [UseSpot, 0, !Ref AppDesiredCapacity]
+          OnDemandPercentageAboveBaseCapacity: !If [UseSpot, 0, 100]
+          SpotAllocationStrategy: price-capacity-optimized
+        LaunchTemplate:
+          LaunchTemplateSpecification:
+            LaunchTemplateId: !Ref AppLaunchTemplate
+            Version: !GetAtt AppLaunchTemplate.LatestVersionNumber
       VPCZoneIdentifier:
         - !Ref PublicSubnet1
         - !Ref PublicSubnet2
