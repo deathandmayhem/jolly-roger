@@ -183,6 +183,14 @@ Resources:
                   - ec2:AssociateAddress
                   - ec2:ReleaseAddress
                 Resource: "arn:aws:ec2:*:*:*"
+              - Effect: Allow
+                Action:
+                  - ec2:DescribeInstanceTypes
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - ssm:GetParameter
+                Resource: "arn:aws:ssm:*:*:parameter/aws/service/canonical/*"
 
   SshUsersParsingFunction:
     Type: AWS::Lambda::Function
@@ -214,6 +222,79 @@ Resources:
     Properties:
       ServiceToken: !GetAtt SshUsersParsingFunction.Arn
       SshUsers: !Ref SshUsers
+
+  ArchitectureLookupFunction:
+    Type: AWS::Lambda::Function
+    Condition: HaveServing
+    Properties:
+      Description: Look up CPU architecture and AMI ID for the given instance type
+      Runtime: nodejs22.x
+      Handler: "index.main"
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Code:
+        ZipFile: |
+          const { EC2Client, DescribeInstanceTypesCommand } = require('@aws-sdk/client-ec2');
+          const { SSMClient, GetParameterCommand } = require('@aws-sdk/client-ssm');
+          const https = require('https');
+
+          function sendResponse(event, context, status, data) {
+            const body = JSON.stringify({
+              Status: status,
+              Reason: 'See CloudWatch Log Stream: ' + context.logStreamName,
+              PhysicalResourceId: context.logStreamName,
+              StackId: event.StackId,
+              RequestId: event.RequestId,
+              LogicalResourceId: event.LogicalResourceId,
+              Data: data,
+            });
+            const url = new URL(event.ResponseURL);
+            return new Promise((resolve, reject) => {
+              const req = https.request({
+                hostname: url.hostname,
+                port: 443,
+                path: url.pathname + url.search,
+                method: 'PUT',
+                headers: { 'Content-Type': '', 'Content-Length': body.length },
+              }, resolve);
+              req.on('error', reject);
+              req.write(body);
+              req.end();
+            });
+          }
+
+          exports.main = async function (event, context) {
+            if (event.RequestType === 'Delete') {
+              return sendResponse(event, context, 'SUCCESS', {});
+            }
+            try {
+              const region = event.ResourceProperties.Region;
+              const ec2 = new EC2Client({ region });
+              const result = await ec2.send(new DescribeInstanceTypesCommand({
+                InstanceTypes: [event.ResourceProperties.InstanceType],
+              }));
+              const arch = result.InstanceTypes[0].ProcessorInfo.SupportedArchitectures[0];
+              // EC2 returns "x86_64" or "arm64"; Ubuntu/Docker use "amd64" or "arm64"
+              const normalized = arch === 'x86_64' ? 'amd64' : arch;
+
+              const ssmPath = `/aws/service/canonical/ubuntu/server/22.04/stable/current/${normalized}/hvm/ebs-gp2/ami-id`;
+              const ssm = new SSMClient({ region });
+              const param = await ssm.send(new GetParameterCommand({ Name: ssmPath }));
+              const amiId = param.Parameter.Value;
+
+              await sendResponse(event, context, 'SUCCESS', { Architecture: normalized, AmiId: amiId });
+            } catch (err) {
+              console.log(err);
+              await sendResponse(event, context, 'FAILED', { Error: err.message });
+            }
+          };
+
+  ArchitectureLookup:
+    Type: Custom::ArchitectureLookup
+    Condition: HaveServing
+    Properties:
+      ServiceToken: !GetAtt ArchitectureLookupFunction.Arn
+      Region: !Ref "AWS::Region"
+      InstanceType: !Ref AppInstanceType
 
   VPC:
     Type: AWS::EC2::VPC
@@ -487,7 +568,7 @@ Resources:
       LaunchTemplateData:
         IamInstanceProfile:
           Arn: !GetAtt AppInstanceProfile.Arn
-        ImageId: resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/amd64/hvm/ebs-gp2/ami-id
+        ImageId: !GetAtt ArchitectureLookup.AmiId
         BlockDeviceMappings:
           - DeviceName: /dev/sda1
             Ebs:
@@ -513,7 +594,7 @@ Resources:
               apt:
                 sources:
                   docker.list:
-                    source: "deb [arch=amd64] https://download.docker.com/linux/ubuntu $RELEASE stable"
+                    source: "deb [arch=${ArchitectureLookup.Architecture}] https://download.docker.com/linux/ubuntu $RELEASE stable"
                     keyid: "8D81803C0EBFCD88"
 
               ${SshUsersConfig}
@@ -843,9 +924,9 @@ Resources:
                 - ""
               CloudWatchAgentConfig: !If
                 - HaveCloudWatch
-                - |2
+                - !Sub |2
                   # Observability
-                    - curl -O https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb
+                    - curl -O https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/${ArchitectureLookup.Architecture}/latest/amazon-cloudwatch-agent.deb
                     - dpkg -i ./amazon-cloudwatch-agent.deb
                     - rm amazon-cloudwatch-agent.deb
                     - sudo systemctl start amazon-cloudwatch-agent
