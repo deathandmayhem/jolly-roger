@@ -61,33 +61,38 @@ const EnrollForm = () => {
         formIsValid
       ) {
         setSubmitState(AccountFormSubmitState.SUBMITTING);
-        void Accounts.resetPassword(token, password, (error?: Error) => {
-          if (error) {
+        // Set the profile first, while the enrollment token is still valid.
+        // This way, if Accounts.resetPassword succeeds but the response is
+        // lost (e.g. spotty connectivity) and Meteor retries it, the profile
+        // is already saved even though the retry will fail.
+        const newProfile = {
+          displayName: trimmedDisplayName,
+          phoneNumber: phoneNumber !== "" ? phoneNumber : undefined,
+          dingwords: [],
+          enrollmentToken: token,
+        };
+        updateProfile.call(newProfile, (profileError?: Error) => {
+          if (profileError) {
             setSubmitState(AccountFormSubmitState.FAILED);
             setErrorMessage(
-              error instanceof Meteor.Error ? error.reason : error.message,
+              profileError instanceof Meteor.Error
+                ? profileError.reason
+                : profileError.message,
             );
-          } else {
-            const newProfile = {
-              displayName: trimmedDisplayName,
-              phoneNumber: phoneNumber !== "" ? phoneNumber : undefined,
-              dingwords: [],
-            };
-            updateProfile.call(newProfile, (innerError?: Error) => {
-              if (innerError) {
-                // This user will have to set their profile manually later.  Oh well.
-                setSubmitState(AccountFormSubmitState.FAILED);
-                setErrorMessage(
-                  innerError instanceof Meteor.Error
-                    ? innerError.reason
-                    : innerError.message,
-                );
-              } else {
-                setSubmitState(AccountFormSubmitState.SUCCESS);
-                setSuccessMessage("Created account successfully");
-              }
-            });
+            return;
           }
+
+          void Accounts.resetPassword(token, password, (error?: Error) => {
+            if (error) {
+              setSubmitState(AccountFormSubmitState.FAILED);
+              setErrorMessage(
+                error instanceof Meteor.Error ? error.reason : error.message,
+              );
+            } else {
+              setSubmitState(AccountFormSubmitState.SUCCESS);
+              setSuccessMessage("Created account successfully");
+            }
+          });
         });
       }
     },

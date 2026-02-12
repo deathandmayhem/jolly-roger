@@ -11,14 +11,40 @@ defineMethod(updateProfile, {
       displayName: String,
       phoneNumber: Match.Optional(String),
       dingwords: [String],
+      enrollmentToken: Match.Optional(String),
     });
 
     return arg;
   },
 
-  async run({ displayName, phoneNumber, dingwords }) {
-    // Allow users to update/upsert profile data.
-    check(this.userId, String);
+  async run({ displayName, phoneNumber, dingwords, enrollmentToken }) {
+    let userId: string;
+    if (enrollmentToken) {
+      // enrollmentToken is only for the unauthenticated enrollment path.
+      // A logged-in user must not be able to use a token to target a
+      // different user's profile.
+      if (this.userId) {
+        throw new Meteor.Error(
+          400,
+          "Cannot use enrollment token while logged in",
+        );
+      }
+
+      // Look up the user by their enrollment token. This supports calling
+      // updateProfile before Accounts.resetPassword consumes the token,
+      // making enrollment resilient to method retries on connection drops.
+      const user = await MeteorUsers.findOneAsync(
+        { "services.password.enroll.token": enrollmentToken },
+        { fields: { _id: 1 } },
+      );
+      if (!user) {
+        throw new Meteor.Error(403, "Token expired");
+      }
+      userId = user._id;
+    } else {
+      check(this.userId, String);
+      userId = this.userId;
+    }
 
     if (!displayName || displayName.match(/^\s/)) {
       throw new Meteor.Error(
@@ -30,18 +56,13 @@ defineMethod(updateProfile, {
     const unset = { phoneNumber: phoneNumber ? undefined : 1 } as const;
 
     Logger.info("Updating profile for user", { displayName });
-    await MeteorUsers.updateAsync(
-      {
-        _id: this.userId,
+    await MeteorUsers.updateAsync(userId, {
+      $set: {
+        displayName,
+        phoneNumber,
+        dingwords,
       },
-      {
-        $set: {
-          displayName,
-          phoneNumber,
-          dingwords,
-        },
-        $unset: unset,
-      },
-    );
+      $unset: unset,
+    });
   },
 });
