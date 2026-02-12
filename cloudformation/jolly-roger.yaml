@@ -146,9 +146,10 @@ Parameters:
   UseSpotInstances:
     Description: >-
       Use spot instances to reduce EC2 costs. Spot instances can be interrupted
-      with 2 minutes notice, causing brief downtime until the ASG replaces the
-      instance. Recommended for SingleInstance serving mode where brief
-      interruptions are acceptable.
+      with 2 minutes notice. Capacity rebalancing is enabled to proactively
+      replace instances at risk of interruption, minimizing downtime.
+      Recommended for SingleInstance serving mode where brief interruptions are
+      acceptable.
     Type: String
     Default: "No"
     AllowedValues: ["Yes", "No"]
@@ -184,11 +185,6 @@ Resources:
                   - logs:CreateLogStream
                   - logs:PutLogEvents
                 Resource: "arn:aws:logs:*:*:*"
-              - Effect: Allow
-                Action:
-                  - ec2:AssociateAddress
-                  - ec2:ReleaseAddress
-                Resource: "arn:aws:ec2:*:*:*"
               - Effect: Allow
                 Action:
                   - ec2:DescribeInstanceTypes
@@ -424,6 +420,14 @@ Resources:
                 Action:
                   - s3:PutObject
                 Resource: !Sub "arn:aws:s3:::${ImageUploadBucket}/*"
+        - PolicyName: eip-association
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ec2:AssociateAddress
+                Resource: "*"
         - PolicyName: dns-updates
           PolicyDocument:
             Version: "2012-10-17"
@@ -871,6 +875,8 @@ Resources:
                 - docker run --name jolly-roger -d --network=host --restart=unless-stopped -e AWS_REGION=$AWS_DEFAULT_REGION -e AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION -e PORT=3000 -e ROOT_URL=https://${AppUrl} -e TURN_SERVER=turns:${AppUrl}:443?transport=tcp -e TURN_SECRET=${TurnSecret} -e MONGO_URL="${MongoUrl}" -e MONGO_OPLOG_URL="${MongoOplogUrl}" ${DockerPackage}
                 - docker run --name watchtower -d --restart=unless-stopped -v /var/run/docker.sock:/var/run/docker.sock nickfedor/watchtower --interval 30 --cleanup
                 - docker run --name haproxy -d --restart=unless-stopped --user root --network=host -v /var/run/haproxy:/var/run/haproxy -v /etc/haproxy:/usr/local/etc/haproxy:ro haproxy
+
+                ${SingleInstanceEipAssociation}
             - PapertrailRsyslogConfig: !If
                 - HavePapertrail
                 - !Sub |
@@ -937,6 +943,15 @@ Resources:
                 - HaveLoadBalancing
                 - ""
                 - ssl crt /usr/local/etc/haproxy/certs/ alpn h2,http/1.1
+              SingleInstanceEipAssociation: !If
+                - HaveLoadBalancing
+                - ""
+                - !Sub
+                  - |2
+                    # Associate the Elastic IP once the app is healthy
+                      - until curl -sf http://localhost:3000/ > /dev/null; do sleep 5; done
+                      - aws ec2 associate-address --allocation-id ${AllocationId} --instance-id $(cloud-init query instance_id)
+                  - AllocationId: !GetAtt AppInstancePublicIp.AllocationId
 
   AppInstancePublicIp:
     Type: AWS::EC2::EIP
@@ -945,74 +960,6 @@ Resources:
       Domain: "vpc"
     DependsOn:
       - InternetGatewayAttachment
-
-  AssociateSingleInstanceIpFunction:
-    Type: AWS::Lambda::Function
-    Condition: HaveServing
-    Properties:
-      Description: Associate the elastic IP with the single EC2 instance whenever it launches successfully
-      Runtime: nodejs22.x
-      Handler: "index.main"
-      Role: !GetAtt LambdaExecutionRole.Arn
-      Code:
-        ZipFile: !Sub
-          - |
-            const { EC2Client, AssociateAddressCommand } = require('@aws-sdk/client-ec2');
-
-            exports.main = async function (event) {
-              const client = new EC2Client({ region: event.region });
-              const params = {
-                AllocationId: '${AllocationId}',
-                InstanceId: event.detail['EC2InstanceId'],
-              };
-              const command = new AssociateAddressCommand(params);
-              try {
-                await client.send(command);
-                return {
-                  statusCode: 200,
-                  body: JSON.stringify('SUCCESS'),
-                };
-              } catch (err) {
-                console.log(err, err.stack);
-                return {
-                  statusCode: 500,
-                  body: JSON.stringify('ERROR'),
-                };
-              };
-            };
-          - AllocationId: !If
-              - HaveLoadBalancing
-              - ""
-              - !GetAtt AppInstancePublicIp.AllocationId
-
-  AssociateSingleInstanceIpRule:
-    Type: AWS::Events::Rule
-    Condition: HaveServing
-    Properties:
-      EventPattern:
-        source:
-          - aws.autoscaling
-        detail-type:
-          - EC2 Instance Launch Successful
-        detail:
-          AutoScalingGroupName:
-            - "JollyRogerAsg"
-      State: !If
-        - HaveLoadBalancing
-        - DISABLED
-        - ENABLED
-      Targets:
-        - Id: AssociateSingleInstanceIpHookTarget
-          Arn: !GetAtt AssociateSingleInstanceIpFunction.Arn
-
-  AssociateSingleInstanceIpFunctionPermission:
-    Type: AWS::Lambda::Permission
-    Condition: HaveServing
-    Properties:
-      FunctionName: !GetAtt AssociateSingleInstanceIpFunction.Arn
-      Action: lambda:InvokeFunction
-      Principal: events.amazonaws.com
-      SourceArn: !GetAtt AssociateSingleInstanceIpRule.Arn
 
   AppAsg:
     Type: AWS::AutoScaling::AutoScalingGroup
@@ -1024,6 +971,7 @@ Resources:
         - ELB
         - EC2
       HealthCheckGracePeriod: 1800
+      CapacityRebalance: !If [UseSpot, true, false]
       MixedInstancesPolicy:
         InstancesDistribution:
           OnDemandBaseCapacity: !If [UseSpot, 0, !Ref AppDesiredCapacity]
@@ -1053,14 +1001,6 @@ Resources:
         PauseTime: PT30M
         MinSuccessfulInstancesPercent: 100
         MinInstancesInService: 1
-    # Note that conditional dependencies aren't supported, but we need to ensure that these are
-    # added before the ASG so that the function triggers the first time an EC2 instance is
-    # launched. When load balancing is on, the event rule is DISABLED, so the function will not
-    # be invoked automatically.
-    DependsOn:
-      - AssociateSingleInstanceIpFunctionPermission
-      - AssociateSingleInstanceIpRule
-      - AssociateSingleInstanceIpFunction
 
   AppDns:
     Type: AWS::Route53::RecordSet
