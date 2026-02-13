@@ -118,7 +118,7 @@ const GoogleLinkBlock = ({ user }: { user: Meteor.User }) => {
         {linkButton()}{" "}
         {user.googleAccount ? (
           <Button variant="danger" onClick={onUnlink}>
-            {t("profile.google.unlink")}
+            {t("profile.google.unlink", "Unlink")}
           </Button>
         ) : undefined}
       </div>
