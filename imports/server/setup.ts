@@ -115,9 +115,10 @@ Meteor.publish("googleScriptInfo", async function () {
       return {
         configured,
         outOfDate: doc.value.contentHash !== contentHash,
+        endpointUrl: doc.value.endpointUrl,
       };
     }
-    return { configured };
+    return { configured, endpointUrl: doc.value.endpointUrl };
   };
   const handle: Meteor.LiveQueryHandle = await cursor.observeAsync({
     added: (doc) => {

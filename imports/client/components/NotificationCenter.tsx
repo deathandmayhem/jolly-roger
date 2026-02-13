@@ -772,18 +772,91 @@ const StyledToastContainer = styled(ToastContainer)`
   }
 `;
 
+// Module-level cache: survives SPA navigations but resets on page reload,
+// so the check re-runs after the user changes tracking protection settings.
+let cookieCheckCache: boolean | undefined;
+
+const useCookieCheck = (
+  endpointUrl: string | undefined,
+): boolean | undefined => {
+  const [result, setResult] = useState<boolean | undefined>(cookieCheckCache);
+
+  useEffect(() => {
+    if (!endpointUrl || result !== undefined) return undefined;
+
+    const onMessage = (event: MessageEvent) => {
+      const data = event.data as any;
+      if (
+        data &&
+        data.type === "jr-cookie-check" &&
+        typeof data.ok === "boolean"
+      ) {
+        cookieCheckCache = data.ok;
+        setResult(data.ok);
+      }
+    };
+    window.addEventListener("message", onMessage);
+    return () => window.removeEventListener("message", onMessage);
+  }, [endpointUrl, result]);
+
+  if (!endpointUrl || result !== undefined) return result;
+
+  // Return undefined (still loading) — the iframe will be rendered by the component
+  return undefined;
+};
+
+const CookieWarningMessage = ({ onDismiss }: { onDismiss: () => void }) => {
+  const ua = navigator.userAgent;
+  let tip: string;
+  if (/Firefox\//i.test(ua)) {
+    tip =
+      "To fix this, click the shield icon in the address bar and disable Enhanced Tracking Protection for this site.";
+  } else if (/Safari\//i.test(ua) && !/Chrome\//i.test(ua)) {
+    tip =
+      "To fix this, go to Settings > Safari > Privacy & Security and disable 'Prevent Cross-Site Tracking'.";
+  } else {
+    tip =
+      "To fix this, check your browser's tracking protection settings for this site.";
+  }
+
+  return (
+    <Toast onClose={onDismiss}>
+      <Toast.Header>
+        <strong className="me-auto">Third-party cookies blocked</strong>
+      </Toast.Header>
+      <Toast.Body>
+        Your browser is blocking cookies that Google uses to identify you in
+        embedded spreadsheets. You may appear as an anonymous animal.
+        <StyledNotificationRow className="mt-2">{tip}</StyledNotificationRow>
+      </Toast.Body>
+    </Toast>
+  );
+};
+
 const NotificationCenter = () => {
-  const showGoogleScriptInfo = useTracker(() => {
+  const googleEnabled = useTracker(() => {
     return (
-      isAdmin(Meteor.user()) &&
       !Flags.active("disable.google") &&
-      ServiceConfiguration.configurations.findOne({ service: "google" })
+      !!ServiceConfiguration.configurations.findOne({ service: "google" })
     );
   }, []);
-  useSubscribe(showGoogleScriptInfo ? "googleScriptInfo" : undefined);
+  const admin = useTracker(() => isAdmin(Meteor.user()), []);
+  const hasGoogleAccount = useTracker(() => !!Meteor.user()?.googleAccount, []);
+  const needsGoogleScriptInfo = googleEnabled && (admin || hasGoogleAccount);
+  useSubscribe(needsGoogleScriptInfo ? "googleScriptInfo" : undefined);
   const showUpdateGoogleScript = useTracker(() => {
-    return showGoogleScriptInfo ? GoogleScriptInfo.findOne()?.outOfDate : false;
-  }, [showGoogleScriptInfo]);
+    return admin && needsGoogleScriptInfo
+      ? GoogleScriptInfo.findOne()?.outOfDate
+      : false;
+  }, [admin, needsGoogleScriptInfo]);
+
+  const cookieCheckEndpointUrl = useTracker(() => {
+    if (!hasGoogleAccount || !needsGoogleScriptInfo) return undefined;
+    return GoogleScriptInfo.findOne()?.endpointUrl;
+  }, [hasGoogleAccount, needsGoogleScriptInfo]);
+  const cookieCheckResult = useCookieCheck(cookieCheckEndpointUrl);
+  const [hideCookieWarning, setHideCookieWarning] = useState(false);
+  const onHideCookieWarning = useCallback(() => setHideCookieWarning(true), []);
 
   const [pendingUpdate, blockReasons] = useBlockReasons();
 
@@ -1027,6 +1100,15 @@ const NotificationCenter = () => {
     );
   }
 
+  if (cookieCheckResult === false && !hideCookieWarning) {
+    messages.push(
+      <CookieWarningMessage
+        key="cookieWarning"
+        onDismiss={onHideCookieWarning}
+      />,
+    );
+  }
+
   guesses.forEach((g) => {
     const dismissedAt = dismissedGuesses[g._id];
     if (dismissedAt && dismissedAt > (g.updatedAt ?? g.createdAt)) return;
@@ -1092,9 +1174,21 @@ const NotificationCenter = () => {
   });
 
   return (
-    <StyledToastContainer position="bottom-end" className="p-3 position-fixed">
-      {messages}
-    </StyledToastContainer>
+    <>
+      {cookieCheckEndpointUrl && cookieCheckResult === undefined && (
+        <iframe
+          src={cookieCheckEndpointUrl}
+          style={{ display: "none" }}
+          title="Cookie check"
+        />
+      )}
+      <StyledToastContainer
+        position="bottom-end"
+        className="p-3 position-fixed"
+      >
+        {messages}
+      </StyledToastContainer>
+    </>
   );
 };
 

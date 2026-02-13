@@ -6,6 +6,8 @@ const GoogleScriptInfo = new Mongo.Collection<{
 
   /* only exposed to admins */
   outOfDate?: boolean;
+
+  endpointUrl?: string;
 }>("googleScriptInfo");
 
 export default GoogleScriptInfo;
