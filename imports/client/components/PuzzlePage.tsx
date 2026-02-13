@@ -1990,6 +1990,7 @@ const PuzzlePageMultiplayerDocument = React.memo(
     if (document) {
       inner = (
         <DocumentDisplay
+          key={document._id}
           document={document}
           displayMode="embed"
           user={selfUser}
