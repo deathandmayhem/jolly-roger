@@ -9,6 +9,10 @@ const Server = z.object({
   // updatedAt is *not* set automatically, because we don't want to update it
   // when other servers are performing garbage collection
   updatedAt: z.date(),
+  // createdAt is also not set automatically.  Optional for migration;
+  // otherwise garbage collection can fail validation on entries that were
+  // inserted without a createdAt set.
+  createdAt: z.date().optional(),
   cleanupInProgressBy: foreignKey.optional(),
 });
 
