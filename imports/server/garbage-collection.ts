@@ -6,6 +6,7 @@ import os from "node:os";
 import { Meteor } from "meteor/meteor";
 import { Random } from "meteor/random";
 import Logger from "../Logger";
+import { gracePeriod, refreshIntervalBase } from "../lib/garbageCollection";
 import Servers from "../lib/models/Servers";
 import ignoringDuplicateKeyErrors from "./ignoringDuplicateKeyErrors";
 import onExit from "./onExit";
@@ -40,11 +41,7 @@ async function cleanup() {
     return;
   }
 
-  // Servers disappearing should be a fairly rare occurrence, so it's
-  // OK for the timeouts here to be generous. Servers get 120 seconds
-  // to update before their records are GC'd. Should be long enough to
-  // account for transients
-  const timeout = new Date(Date.now() - 120 * 1000);
+  const timeout = new Date(Date.now() - gracePeriod);
   const deadServers = await Servers.find({
     updatedAt: { $lt: timeout },
   }).mapAsync((server) => server._id);
@@ -92,7 +89,10 @@ registerPeriodicCleanupHook(async (deadServer) => {
 });
 
 function periodic() {
-  Meteor.setTimeout(periodic, 15000 + 15000 * Random.fraction());
+  Meteor.setTimeout(
+    periodic,
+    refreshIntervalBase + refreshIntervalBase * Random.fraction(),
+  );
   cleanup().catch((error) => {
     Logger.error("Error performing garbage-collection cleanup()", { error });
   });
@@ -136,11 +136,13 @@ Meteor.startup(() => {
     // Ignore duplicate key errors because they could be caused by retries (we
     // don't expect any actual collisions on server ID)
     await ignoringDuplicateKeyErrors(async () => {
+      const now = new Date();
       await Servers.insertAsync({
         _id: serverId,
         pid: process.pid,
         hostname: os.hostname(),
-        updatedAt: new Date(),
+        createdAt: now,
+        updatedAt: now,
       });
     });
 

@@ -35,6 +35,7 @@ import Tooltip from "react-bootstrap/Tooltip";
 import { Link } from "react-router-dom";
 import styled, { css } from "styled-components";
 import { RECENT_ACTIVITY_TIME_WINDOW_MS } from "../../lib/config/webrtc";
+import { gracePeriod } from "../../lib/garbageCollection";
 import isAdmin from "../../lib/isAdmin";
 import { groupedBy } from "../../lib/listUtils";
 import MeteorUsers from "../../lib/models/MeteorUsers";
@@ -63,6 +64,8 @@ import Servers from "../../lib/models/Servers";
 import Avatar from "./Avatar";
 import CopyToClipboardButton from "./CopyToClipboardButton";
 import Loading from "./Loading";
+import RelativeTime from "./RelativeTime";
+import SpinnerTimer from "./SpinnerTimer";
 
 const ClipButton = ({ text }: { text: string }) => {
   return (
@@ -949,6 +952,129 @@ const RoomlessPeers = ({ calls }: { calls: string[] }) => {
   );
 };
 
+const ServerTableRow = ({
+  server,
+  roomCount,
+  roomPercentage,
+}: {
+  server: ServerType;
+  roomCount: number;
+  roomPercentage: number;
+}) => {
+  const idPrefix = useId();
+  const deadline = server.updatedAt.getTime() + gracePeriod;
+  return (
+    <tr key={server._id}>
+      <td>
+        <ClipButton text={server._id} />
+        <code>{server._id}</code>
+      </td>
+      <td>
+        <ClipButton text={server.hostname} />
+        <code>{server.hostname}</code>
+      </td>
+      <td>
+        <ClipButton text={server.pid.toString()} />
+        <code>{server.pid}</code>
+      </td>
+      <td>
+        {server.createdAt ? (
+          <OverlayTrigger
+            placement="top"
+            overlay={
+              <Tooltip id={`${idPrefix}-created-at`}>
+                {server.createdAt.toISOString()}
+              </Tooltip>
+            }
+          >
+            <span>
+              <RelativeTime
+                date={server.createdAt}
+                minimumUnit="second"
+                maxElements={2}
+              />
+            </span>
+          </OverlayTrigger>
+        ) : undefined}
+      </td>
+      <td>
+        <OverlayTrigger
+          placement="top"
+          overlay={
+            <Tooltip id={`${idPrefix}-updated-at`}>
+              {server.updatedAt.toISOString()}
+            </Tooltip>
+          }
+        >
+          <span>
+            <SpinnerTimer
+              width={16}
+              height={16}
+              startTime={server.updatedAt.getTime()}
+              endTime={deadline}
+            />
+            <RelativeTime
+              date={server.updatedAt}
+              minimumUnit="second"
+              maxElements={2}
+            />
+          </span>
+        </OverlayTrigger>
+      </td>
+      <td>{roomCount}</td>
+      <td>
+        <ProgressBar now={roomPercentage} />
+      </td>
+    </tr>
+  );
+};
+
+const StyledServerTable = styled(Table)`
+  table-layout: fixed;
+
+  /* Server ID, fixed width type */
+  th:nth-child(1),
+  td:nth-child(1) {
+    width: 200px;
+  }
+
+  /* Hostname we allow to autosize */
+  th:nth-child(2),
+  td:nth-child(2) {
+    width: 250px;
+  }
+
+  /* PID */
+  th:nth-child(3),
+  td:nth-child(3) {
+    width: 100px;
+  }
+
+  /* Started */
+  th:nth-child(4),
+  td:nth-child(4) {
+    width: 220px;
+  }
+
+  /* Last heartbeat */
+  th:nth-child(5),
+  td:nth-child(5) {
+    width: 200px;
+  }
+
+  /* Rooms */
+  th:nth-child(6),
+  td:nth-child(6) {
+    width: 20px;
+  }
+
+  /* Load fraction */
+  th:nth-child(7),
+  td:nth-child(7) {
+    width: 300px;
+  }
+`;
+
 const ServerTable = ({ servers }: { servers: ServerType[] }) => {
   const roomsByServer = useTracker(() => {
     return groupedBy(Rooms.find().fetch(), (room) => room.routedServer);
@@ -963,14 +1089,16 @@ const ServerTable = ({ servers }: { servers: ServerType[] }) => {
     <>
       <h2>Servers</h2>
 
-      <Table hover size="sm">
+      <StyledServerTable responsive hover size="sm">
         <thead>
           <tr>
             <th>Server ID</th>
             <th>Hostname</th>
             <th>PID</th>
+            <th>Started</th>
             <th>Last heartbeat</th>
-            <th colSpan={2}>Rooms</th>
+            <th>Rooms</th>
+            <th />
           </tr>
         </thead>
         <tbody>
@@ -979,29 +1107,16 @@ const ServerTable = ({ servers }: { servers: ServerType[] }) => {
             const roomPercentage =
               totalRooms > 0 ? 100 * (roomCount / totalRooms) : 0;
             return (
-              <tr key={s._id}>
-                <td>
-                  <ClipButton text={s._id} />
-                  <code>{s._id}</code>
-                </td>
-                <td>
-                  <ClipButton text={s.hostname} />
-                  <code>{s.hostname}</code>
-                </td>
-                <td>
-                  <ClipButton text={s.pid.toString()} />
-                  <code>{s.pid}</code>
-                </td>
-                <td>{s.updatedAt.toISOString()}</td>
-                <td width="1%">{roomCount}</td>
-                <td>
-                  <ProgressBar now={roomPercentage} />
-                </td>
-              </tr>
+              <ServerTableRow
+                key={s._id}
+                server={s}
+                roomCount={roomCount}
+                roomPercentage={roomPercentage}
+              />
             );
           })}
         </tbody>
-      </Table>
+      </StyledServerTable>
     </>
   );
 };
