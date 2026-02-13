@@ -10,10 +10,12 @@ if [ -z "${HTTP_FORWARDED_COUNT+set}" ]; then
 fi
 
 if [ -z "${CLUSTER_WORKERS_COUNT+set}" ]; then
-    # If we have less than 500M of memory, we don't have enough to run more
-    # than 1 worker
+    # Each Node.js worker process has ~150MB of fixed overhead (V8 engine,
+    # compiled code, native modules) on top of the ~130MB JS heap. Only
+    # enable clustering on instances with enough memory to absorb the cost
+    # of multiple processes (main + workers + mediasoup workers per process).
     MEMORY_KB="$(awk '$1=="MemTotal:" {print $2}' /proc/meminfo)"
-    if [ "$MEMORY_KB" -gt 512000 ]; then
+    if [ "$MEMORY_KB" -gt 1536000 ]; then
         export CLUSTER_WORKERS_COUNT=auto
     fi
 fi

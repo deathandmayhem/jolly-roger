@@ -14,14 +14,10 @@
 #
 # - The application instances run several docker services:
 #
-#   - An haproxy instance for port 443, listening for incoming TCP connections
-#     (HTTPS, or potentially STUN, but unwrapped by NLB), separating STUN,
-#     HTTP/2, and HTTP traffic and forwarding as appropriate to coturn or nginx
-#
-#   - An nginx instance, listening for HTTP connections on port 8443 and HTTP/2
-#     connections on port 8444 (nginx doesn't support using the same port for
-#     plaintext HTTP/1 and HTTP/2) and forwarding to the application, and
-#     listening on port 80 to redirect to HTTPS
+#   - An haproxy instance for ports 80 and 443, separating STUN and HTTP
+#     traffic on port 443 (routing STUN to coturn, switching to HTTP mode
+#     for everything else), reverse proxying HTTP to the application, and
+#     redirecting port 80 to HTTPS
 #
 #   - A coturn server for TURN proxying if needed for audio conferencing
 #
@@ -147,6 +143,16 @@ Parameters:
     Description: Email to use for certificate abuse and renewal notifications when using Let's Encrypt via the SingleInstance serving mode. Leave blank to disable notifications.
     Type: String
     Default: ""
+  UseSpotInstances:
+    Description: >-
+      Use spot instances to reduce EC2 costs. Spot instances can be interrupted
+      with 2 minutes notice. Capacity rebalancing is enabled to proactively
+      replace instances at risk of interruption, minimizing downtime.
+      Recommended for SingleInstance serving mode where brief interruptions are
+      acceptable.
+    Type: String
+    Default: "No"
+    AllowedValues: ["Yes", "No"]
 
 Conditions:
   HavePapertrail: !Not [!Equals [!Ref PapertrailHost, ""]]
@@ -155,6 +161,7 @@ Conditions:
   HaveServing: !Not [!Equals [!Ref ServingMode, "None"]]
   HaveLoadBalancing: !Equals [!Ref ServingMode, "NLB"]
   HaveSingleInstance: !Equals [!Ref ServingMode, "SingleInstance"]
+  UseSpot: !Equals [!Ref UseSpotInstances, "Yes"]
 
 Resources:
   LambdaExecutionRole:
@@ -180,9 +187,12 @@ Resources:
                 Resource: "arn:aws:logs:*:*:*"
               - Effect: Allow
                 Action:
-                  - ec2:AssociateAddress
-                  - ec2:ReleaseAddress
-                Resource: "arn:aws:ec2:*:*:*"
+                  - ec2:DescribeInstanceTypes
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - ssm:GetParameter
+                Resource: "arn:aws:ssm:*:*:parameter/aws/service/canonical/*"
 
   SshUsersParsingFunction:
     Type: AWS::Lambda::Function
@@ -214,6 +224,79 @@ Resources:
     Properties:
       ServiceToken: !GetAtt SshUsersParsingFunction.Arn
       SshUsers: !Ref SshUsers
+
+  ArchitectureLookupFunction:
+    Type: AWS::Lambda::Function
+    Condition: HaveServing
+    Properties:
+      Description: Look up CPU architecture and AMI ID for the given instance type
+      Runtime: nodejs22.x
+      Handler: "index.main"
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Code:
+        ZipFile: |
+          const { EC2Client, DescribeInstanceTypesCommand } = require('@aws-sdk/client-ec2');
+          const { SSMClient, GetParameterCommand } = require('@aws-sdk/client-ssm');
+          const https = require('https');
+
+          function sendResponse(event, context, status, data) {
+            const body = JSON.stringify({
+              Status: status,
+              Reason: 'See CloudWatch Log Stream: ' + context.logStreamName,
+              PhysicalResourceId: context.logStreamName,
+              StackId: event.StackId,
+              RequestId: event.RequestId,
+              LogicalResourceId: event.LogicalResourceId,
+              Data: data,
+            });
+            const url = new URL(event.ResponseURL);
+            return new Promise((resolve, reject) => {
+              const req = https.request({
+                hostname: url.hostname,
+                port: 443,
+                path: url.pathname + url.search,
+                method: 'PUT',
+                headers: { 'Content-Type': '', 'Content-Length': body.length },
+              }, resolve);
+              req.on('error', reject);
+              req.write(body);
+              req.end();
+            });
+          }
+
+          exports.main = async function (event, context) {
+            if (event.RequestType === 'Delete') {
+              return sendResponse(event, context, 'SUCCESS', {});
+            }
+            try {
+              const region = event.ResourceProperties.Region;
+              const ec2 = new EC2Client({ region });
+              const result = await ec2.send(new DescribeInstanceTypesCommand({
+                InstanceTypes: [event.ResourceProperties.InstanceType],
+              }));
+              const arch = result.InstanceTypes[0].ProcessorInfo.SupportedArchitectures[0];
+              // EC2 returns "x86_64" or "arm64"; Ubuntu/Docker use "amd64" or "arm64"
+              const normalized = arch === 'x86_64' ? 'amd64' : arch;
+
+              const ssmPath = `/aws/service/canonical/ubuntu/server/22.04/stable/current/${normalized}/hvm/ebs-gp2/ami-id`;
+              const ssm = new SSMClient({ region });
+              const param = await ssm.send(new GetParameterCommand({ Name: ssmPath }));
+              const amiId = param.Parameter.Value;
+
+              await sendResponse(event, context, 'SUCCESS', { Architecture: normalized, AmiId: amiId });
+            } catch (err) {
+              console.log(err);
+              await sendResponse(event, context, 'FAILED', { Error: err.message });
+            }
+          };
+
+  ArchitectureLookup:
+    Type: Custom::ArchitectureLookup
+    Condition: HaveServing
+    Properties:
+      ServiceToken: !GetAtt ArchitectureLookupFunction.Arn
+      Region: !Ref "AWS::Region"
+      InstanceType: !Ref AppInstanceType
 
   VPC:
     Type: AWS::EC2::VPC
@@ -337,6 +420,14 @@ Resources:
                 Action:
                   - s3:PutObject
                 Resource: !Sub "arn:aws:s3:::${ImageUploadBucket}/*"
+        - PolicyName: eip-association
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ec2:AssociateAddress
+                Resource: "*"
         - PolicyName: dns-updates
           PolicyDocument:
             Version: "2012-10-17"
@@ -487,7 +578,7 @@ Resources:
       LaunchTemplateData:
         IamInstanceProfile:
           Arn: !GetAtt AppInstanceProfile.Arn
-        ImageId: resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/amd64/hvm/ebs-gp2/ami-id
+        ImageId: !GetAtt ArchitectureLookup.AmiId
         BlockDeviceMappings:
           - DeviceName: /dev/sda1
             Ebs:
@@ -513,7 +604,7 @@ Resources:
               apt:
                 sources:
                   docker.list:
-                    source: "deb [arch=amd64] https://download.docker.com/linux/ubuntu $RELEASE stable"
+                    source: "deb [arch=${ArchitectureLookup.Architecture}] https://download.docker.com/linux/ubuntu $RELEASE stable"
                     keyid: "8D81803C0EBFCD88"
 
               ${SshUsersConfig}
@@ -572,8 +663,13 @@ Resources:
                       echo -e "commit ssl cert /usr/local/etc/haproxy/certs/cert.pem" | socat stdio /var/run/haproxy/stats.sock
                     fi
                   permissions: "0755"
-                - path: /usr/share/nginx/html/502.html
+                - path: /etc/haproxy/errors/503.http
                   content: |
+                    HTTP/1.1 503 Service Unavailable
+                    Content-Type: text/html; charset=utf-8
+                    Cache-Control: no-cache
+                    Connection: close
+
                     <!DOCTYPE html>
                     <html lang="en">
                       <head>
@@ -682,111 +778,61 @@ Resources:
                 - path: /etc/haproxy/haproxy.cfg
                   content: |
                     global
-                    # Enable runtime API for live certificate updates
-                    stats socket /var/run/haproxy/stats.sock mode 600 level admin
-                    maxconn 50000
-                    log stdout local0
+                      # Enable runtime API for live certificate updates
+                      stats socket /var/run/haproxy/stats.sock mode 600 level admin
+                      maxconn 50000
+                      log stdout local0
 
                     defaults
-                    mode tcp
-                    log global
-                    option tcplog
-                    option logasap
-                    timeout connect 5s
-                    timeout client 50s
-                    timeout server 50s
+                      log global
+                      option logasap
+                      timeout connect 5s
+                      timeout client 50s
+                      timeout server 50s
 
                     frontend inbound
-                    bind :443 ${SingleInstanceCertReference}
-                    tcp-request inspect-delay 5s
-                    # don't pick backend until we've seen enough to identify
-                    # both STUN and HTTP/2 (STUN headers are only 20 bytes, so
-                    # we can't check the full standard HTTP/2 prefix)
-                    acl seen_headers req.len gt 20
-                    tcp-request content accept if seen_headers
-                    # In STUN, the first two bits are always 0 (to convert to
-                    # an int, we need to go through a hex string)
-                    acl is_turn_prefix req.payload(0,1),hex,hex2i,and(196),not
-                    # ...and the 4th-7th byte have the magic cookie
-                    acl is_turn_magic_cookie req.payload(4,4) -m bin 2112a442
-                    # Meanwhile HTTP/2 always starts with "PRI * HTTP/2.0\r\n\r\nSM"
-                    acl is_http2_prefix req.payload(0,20) -m bin 505249202a20485454502f322e300d0a0d0a534d
-                    use_backend nginx-http2 if is_http2_prefix
-                    use_backend turn if is_turn_prefix is_turn_magic_cookie
-                    default_backend nginx
+                      bind :443 ${SingleInstanceCertReference}
+                      mode tcp
+                      tcp-request inspect-delay 5s
+                      # don't pick backend until we've seen enough to identify
+                      # both STUN and HTTP/2 (STUN headers are only 20 bytes, so
+                      # we can't check the full standard HTTP/2 prefix)
+                      acl seen_headers req.len gt 20
+                      tcp-request content accept if seen_headers
+                      # In STUN, the first two bits are always 0 (to convert to
+                      # an int, we need to go through a hex string)
+                      acl is_turn_prefix req.payload(0,1),hex,hex2i,and(196),not
+                      # ...and the 4th-7th byte have the magic cookie
+                      acl is_turn_magic_cookie req.payload(4,4) -m bin 2112a442
+                      # Switch non-STUN traffic to HTTP mode
+                      tcp-request content switch-mode http unless is_turn_prefix is_turn_magic_cookie
+
+                      # --- HTTP mode from here ---
+                      option forwardfor
+                      http-request del-header Proxy
+                      http-response set-header Strict-Transport-Security "max-age=31536000"
+                      compression algo gzip
+                      compression type text/plain text/css application/javascript application/json application/x-javascript text/xml application/xml application/xml+rss text/javascript
+                      # Health check endpoint handled directly
+                      acl is_healthcheck path /healthcheck
+                      http-request return status 200 content-type text/plain string "OK\n" if is_healthcheck
+
+                      use_backend turn if is_turn_prefix is_turn_magic_cookie
+                      default_backend app
+
+                    frontend http-redirect
+                      bind :80
+                      mode http
+                      http-request redirect scheme https code 301
 
                     backend turn
-                    server turn localhost:3478
+                      mode tcp
+                      server turn localhost:3478
 
-                    backend nginx
-                    server nginx localhost:8443 send-proxy
-
-                    backend nginx-http2
-                    server nginx-http2 localhost:8444 send-proxy
-                - path: /etc/nginx/conf.d/default.conf
-                  content: |
-                    # If we receive Upgrade, set Connection to "upgrade"; otherwise, delete any
-                    # Connection header that may have been passed to this server
-                    map $http_upgrade $proxy_connection {
-                      default upgrade;
-                      '' close;
-                    }
-
-                    gzip_types text/plain text/css application/javascript application/json application/x-javascript text/xml application/xml application/xml+rss text/javascript;
-
-                    log_format access '[$time_iso8601] $remote_addr - "$request" $status $body_bytes_sent $request_time $upstream_cache_status "$http_referer" "$http_user_agent"';
-                    access_log /var/log/nginx/access.log access;
-
-                    # HTTP 1.1 support
-                    proxy_http_version 1.1;
-                    proxy_buffering on;
-                    proxy_set_header Host $http_host;
-                    proxy_set_header Upgrade $http_upgrade;
-                    proxy_set_header Connection $proxy_connection;
-                    proxy_set_header X-Forwarded-For $proxy_protocol_addr;
-                    # Mitigate httpoxy attack
-                    proxy_set_header Proxy "";
-                    proxy_cache_path /var/cache/nginx/cache levels=1:2 keys_zone=assets:10m;
-                    proxy_cache assets;
-
-                    set_real_ip_from 127.0.0.1;
-                    real_ip_header proxy_protocol;
-
-                    upstream jolly-roger {
-                      server 127.0.0.1:3000;
-                    }
-
-                    server {
-                      server_name ${AppUrl};
-                      listen 8443 proxy_protocol default_server;
-                      listen 8444 proxy_protocol http2 default_server;
-
-                      add_header Strict-Transport-Security "max-age=31536000";
-                      gzip on;
-                      gzip_comp_level 9;
-                      gzip_proxied any;
-
-                      location /healthcheck {
-                        return 200 "OK\n";
-                      }
-
-                      location / {
-                        proxy_pass http://jolly-roger;
-                      }
-
-                      error_page 502 /502.html;
-                      location = /502.html {
-                        root /usr/share/nginx/html;
-                        internal;
-                      }
-                    }
-
-                    server {
-                      server_name ${AppUrl};
-                      listen 80 default_server;
-
-                      return 301 https://$host$request_uri;
-                    }
+                    backend app
+                      mode http
+                      server app 127.0.0.1:3000
+                      errorfile 503 /usr/local/etc/haproxy/errors/503.http
                 - path: /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
                   content: |
                     {
@@ -827,9 +873,10 @@ Resources:
 
                 - docker run --name coturn -d --restart=unless-stopped --network=host -e DETECT_EXTERNAL_IP=yes coturn/coturn -v --min-port=40000 --max-port=49999 --log-file=stdout --realm=${AppUrl} --use-auth-secret --static-auth-secret=${TurnSecret}
                 - docker run --name jolly-roger -d --network=host --restart=unless-stopped -e AWS_REGION=$AWS_DEFAULT_REGION -e AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION -e PORT=3000 -e ROOT_URL=https://${AppUrl} -e TURN_SERVER=turns:${AppUrl}:443?transport=tcp -e TURN_SECRET=${TurnSecret} -e MONGO_URL="${MongoUrl}" -e MONGO_OPLOG_URL="${MongoOplogUrl}" ${DockerPackage}
-                - docker run --name nginx -d --network=host --restart=unless-stopped -v /etc/nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf -v /usr/share/nginx/html/502.html:/usr/share/nginx/html/502.html nginx
                 - docker run --name watchtower -d --restart=unless-stopped -v /var/run/docker.sock:/var/run/docker.sock nickfedor/watchtower --interval 30 --cleanup
                 - docker run --name haproxy -d --restart=unless-stopped --user root --network=host -v /var/run/haproxy:/var/run/haproxy -v /etc/haproxy:/usr/local/etc/haproxy:ro haproxy
+
+                ${SingleInstanceEipAssociation}
             - PapertrailRsyslogConfig: !If
                 - HavePapertrail
                 - !Sub |
@@ -843,9 +890,9 @@ Resources:
                 - ""
               CloudWatchAgentConfig: !If
                 - HaveCloudWatch
-                - |2
+                - !Sub |2
                   # Observability
-                    - curl -O https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb
+                    - curl -O https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/${ArchitectureLookup.Architecture}/latest/amazon-cloudwatch-agent.deb
                     - dpkg -i ./amazon-cloudwatch-agent.deb
                     - rm amazon-cloudwatch-agent.deb
                     - sudo systemctl start amazon-cloudwatch-agent
@@ -896,6 +943,15 @@ Resources:
                 - HaveLoadBalancing
                 - ""
                 - ssl crt /usr/local/etc/haproxy/certs/ alpn h2,http/1.1
+              SingleInstanceEipAssociation: !If
+                - HaveLoadBalancing
+                - ""
+                - !Sub
+                  - |2
+                    # Associate the Elastic IP once the app is healthy
+                      - until curl -sf http://localhost:3000/ > /dev/null; do sleep 5; done
+                      - aws ec2 associate-address --allocation-id ${AllocationId} --instance-id $(cloud-init query instance_id)
+                  - AllocationId: !GetAtt AppInstancePublicIp.AllocationId
 
   AppInstancePublicIp:
     Type: AWS::EC2::EIP
@@ -904,74 +960,6 @@ Resources:
       Domain: "vpc"
     DependsOn:
       - InternetGatewayAttachment
-
-  AssociateSingleInstanceIpFunction:
-    Type: AWS::Lambda::Function
-    Condition: HaveServing
-    Properties:
-      Description: Associate the elastic IP with the single EC2 instance whenever it launches successfully
-      Runtime: nodejs22.x
-      Handler: "index.main"
-      Role: !GetAtt LambdaExecutionRole.Arn
-      Code:
-        ZipFile: !Sub
-          - |
-            const { EC2Client, AssociateAddressCommand } = require('@aws-sdk/client-ec2');
-
-            exports.main = async function (event) {
-              const client = new EC2Client({ region: event.region });
-              const params = {
-                AllocationId: '${AllocationId}',
-                InstanceId: event.detail['EC2InstanceId'],
-              };
-              const command = new AssociateAddressCommand(params);
-              try {
-                await client.send(command);
-                return {
-                  statusCode: 200,
-                  body: JSON.stringify('SUCCESS'),
-                };
-              } catch (err) {
-                console.log(err, err.stack);
-                return {
-                  statusCode: 500,
-                  body: JSON.stringify('ERROR'),
-                };
-              };
-            };
-          - AllocationId: !If
-              - HaveLoadBalancing
-              - ""
-              - !GetAtt AppInstancePublicIp.AllocationId
-
-  AssociateSingleInstanceIpRule:
-    Type: AWS::Events::Rule
-    Condition: HaveServing
-    Properties:
-      EventPattern:
-        source:
-          - aws.autoscaling
-        detail-type:
-          - EC2 Instance Launch Successful
-        detail:
-          AutoScalingGroupName:
-            - "JollyRogerAsg"
-      State: !If
-        - HaveLoadBalancing
-        - DISABLED
-        - ENABLED
-      Targets:
-        - Id: AssociateSingleInstanceIpHookTarget
-          Arn: !GetAtt AssociateSingleInstanceIpFunction.Arn
-
-  AssociateSingleInstanceIpFunctionPermission:
-    Type: AWS::Lambda::Permission
-    Condition: HaveServing
-    Properties:
-      FunctionName: !GetAtt AssociateSingleInstanceIpFunction.Arn
-      Action: lambda:InvokeFunction
-      Principal: events.amazonaws.com
-      SourceArn: !GetAtt AssociateSingleInstanceIpRule.Arn
 
   AppAsg:
     Type: AWS::AutoScaling::AutoScalingGroup
@@ -983,9 +971,16 @@ Resources:
         - ELB
         - EC2
       HealthCheckGracePeriod: 1800
-      LaunchTemplate:
-        LaunchTemplateId: !Ref AppLaunchTemplate
-        Version: !GetAtt AppLaunchTemplate.LatestVersionNumber
+      CapacityRebalance: !If [UseSpot, true, false]
+      MixedInstancesPolicy:
+        InstancesDistribution:
+          OnDemandBaseCapacity: !If [UseSpot, 0, !Ref AppDesiredCapacity]
+          OnDemandPercentageAboveBaseCapacity: !If [UseSpot, 0, 100]
+          SpotAllocationStrategy: price-capacity-optimized
+        LaunchTemplate:
+          LaunchTemplateSpecification:
+            LaunchTemplateId: !Ref AppLaunchTemplate
+            Version: !GetAtt AppLaunchTemplate.LatestVersionNumber
       VPCZoneIdentifier:
         - !Ref PublicSubnet1
         - !Ref PublicSubnet2
@@ -1006,14 +1001,6 @@ Resources:
         PauseTime: PT30M
         MinSuccessfulInstancesPercent: 100
         MinInstancesInService: 1
-    # Note that conditional dependencies aren't supported, but we need to ensure that these are
-    # added before the ASG so that the function triggers the first time an EC2 instance is
-    # launched. When load balancing is on, the event rule is DISABLED, so the function will not
-    # be invoked automatically.
-    DependsOn:
-      - AssociateSingleInstanceIpFunctionPermission
-      - AssociateSingleInstanceIpRule
-      - AssociateSingleInstanceIpFunction
 
   AppDns:
     Type: AWS::Route53::RecordSet
