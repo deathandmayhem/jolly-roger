@@ -13,6 +13,7 @@ i18n
       en: { translation: en },
       zh: { translation: zh },
     },
+    showSupportNotice: false,
   });
 
 export default i18n;
