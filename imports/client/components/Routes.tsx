@@ -31,6 +31,7 @@ import PuzzlePage from "./PuzzlePage";
 import RootRedirector from "./RootRedirector";
 import UserInvitePage from "./UserInvitePage";
 import UsersApp from "./UsersApp";
+import VerifyEmailPage from "./VerifyEmailPage";
 
 const HuntEditPage = React.lazy(() => import("./HuntEditPage"));
 const SetupPage = React.lazy(() => import("./SetupPage"));
@@ -113,6 +114,7 @@ export const RouteList: RouteObject[] = [
   // Unauthenticated users are presented with a login or account provisioning
   // flow that depends on the invitation code.
   { path: "/join/:invitationCode", element: <JoinHunt /> },
+  { path: "/verify-email/:token", element: <VerifyEmailPage /> },
 ];
 
 const Routes = React.memo(() => {

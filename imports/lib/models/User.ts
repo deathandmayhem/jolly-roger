@@ -58,6 +58,12 @@ export const User = z.object({
 });
 validateSchema(User);
 
+export function primaryEmail(user: {
+  emails?: { address: string }[];
+}): string | undefined {
+  return user.emails?.[0]?.address;
+}
+
 export type ProfileFields =
   | "displayName"
   | "googleAccount"

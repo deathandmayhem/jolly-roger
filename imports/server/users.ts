@@ -107,6 +107,16 @@ const makeHuntFilterTransform = (
   };
 };
 
+// For privacy, only expose the primary email (emails[0]) to other users.
+const filterToPrimaryEmail = (
+  u: Partial<Meteor.User>,
+): Partial<Meteor.User> => {
+  if (u.emails) {
+    return { ...u, emails: u.emails.slice(0, 1) };
+  }
+  return u;
+};
+
 Meteor.publish("displayNames", async function (huntId: unknown) {
   check(huntId, String);
 
@@ -169,7 +179,10 @@ Meteor.publish("allProfiles", async function () {
         },
       );
     },
-    (u) => makeHuntFilterTransform(u.hunts),
+    (u) => {
+      const huntFilter = makeHuntFilterTransform(u.hunts);
+      return (published) => filterToPrimaryEmail(huntFilter(published));
+    },
   );
 
   return undefined;
@@ -201,7 +214,10 @@ Meteor.publish("huntProfiles", async function (huntId: unknown) {
         },
       );
     },
-    (u) => makeHuntFilterTransform(u.hunts),
+    (u) => {
+      const huntFilter = makeHuntFilterTransform(u.hunts);
+      return (published) => filterToPrimaryEmail(huntFilter(published));
+    },
   );
 
   return undefined;
@@ -230,7 +246,10 @@ Meteor.publish("profile", async function (userId: unknown) {
         },
       );
     },
-    (u) => makeHuntFilterTransform(u.hunts),
+    (u) => {
+      const huntFilter = makeHuntFilterTransform(u.hunts);
+      return (published) => filterToPrimaryEmail(huntFilter(published));
+    },
   );
 
   return undefined;

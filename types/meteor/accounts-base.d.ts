@@ -21,6 +21,18 @@ declare module "meteor/accounts-base" {
       callback?: (error?: Error | Meteor.Error | Meteor.TypedError) => void,
     ): Promise<string>;
 
+    function addEmailAsync(userId: string, email: string): Promise<void>;
+    function removeEmail(userId: string, email: string): Promise<void>;
+    function sendVerificationEmail(
+      userId: string,
+      email?: string,
+    ): Promise<void>;
+
+    function verifyEmail(
+      token: string,
+      callback?: (error?: Error | Meteor.Error | Meteor.TypedError) => void,
+    ): void;
+
     function removeDefaultRateLimit(): void;
     function setDefaultPublishFields(
       fields: Partial<Record<keyof Meteor.User, 1 | 0>>,

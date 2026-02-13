@@ -9,6 +9,7 @@ import { formatDiscordName } from "../../lib/discord";
 import { indexedById } from "../../lib/listUtils";
 import type { HuntType } from "../../lib/models/Hunts";
 import Hunts from "../../lib/models/Hunts";
+import { primaryEmail } from "../../lib/models/User";
 import huntsAll from "../../lib/publications/huntsAll";
 import useTypedSubscribe from "../hooks/useTypedSubscribe";
 import Avatar from "./Avatar";
@@ -68,13 +69,13 @@ const OthersProfilePage = ({ user }: { user: Meteor.User }) => {
           <tr>
             <th>{t("common.email", "Email")}</th>
             <td>
-              {user.emails?.[0]?.address ? (
+              {primaryEmail(user) ? (
                 <a
-                  href={`mailto:${user.emails[0].address}`}
+                  href={`mailto:${primaryEmail(user)}`}
                   target="_blank"
                   rel="noreferrer"
                 >
-                  {user.emails[0].address}
+                  {primaryEmail(user)}
                 </a>
               ) : (
                 "(none)"

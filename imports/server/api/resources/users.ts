@@ -3,6 +3,7 @@ import { check } from "meteor/check";
 import type { Meteor } from "meteor/meteor";
 import express from "express";
 import MeteorUsers from "../../../lib/models/MeteorUsers";
+import { primaryEmail } from "../../../lib/models/User";
 import expressAsyncWrapper from "../../expressAsyncWrapper";
 
 const users = express.Router();
@@ -29,7 +30,7 @@ const renderUser = function renderUser(user: Meteor.User) {
 
   return {
     _id: user._id,
-    primaryEmail: user.emails?.[0]?.address,
+    primaryEmail: primaryEmail(user),
     googleAccount: user.googleAccount,
     active,
   };
