@@ -10,8 +10,7 @@ import { gracePeriod, refreshIntervalBase } from "../lib/garbageCollection";
 import Servers from "../lib/models/Servers";
 import ignoringDuplicateKeyErrors from "./ignoringDuplicateKeyErrors";
 import onExit from "./onExit";
-
-const serverId = Random.id();
+import serverId from "./serverId";
 
 // Global registry of callbacks to run when we determine that a backend is dead.
 const globalGCHooks: ((deadServers: string) => void | Promise<void>)[] = [];
@@ -150,4 +149,4 @@ Meteor.startup(() => {
   });
 });
 
-export { serverId, registerPeriodicCleanupHook };
+export { registerPeriodicCleanupHook };
