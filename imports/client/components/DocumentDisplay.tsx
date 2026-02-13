@@ -3,8 +3,19 @@ import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import { faFileAlt } from "@fortawesome/free-solid-svg-icons/faFileAlt";
 import { faTable } from "@fortawesome/free-solid-svg-icons/faTable";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useCallback, useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import type { DocumentType } from "../../lib/models/Documents";
+
+// Google Sheets steals focus during initialization. The number of times
+// depends on the browser engine: Chromium does it twice, Firefox once, and
+// Safari not at all (it blocks cross-origin iframe focus stealing).
+const EXPECTED_FOCUS_STEALS = (() => {
+  const ua = navigator.userAgent;
+  if (/Safari\//.test(ua) && !/Chrome\//.test(ua)) return 0;
+  if ("userAgentData" in navigator) return 2; // Chromium-based
+  return 1; // Firefox and others
+})();
 
 interface DocumentDisplayProps {
   document: DocumentType;
@@ -34,6 +45,27 @@ const StyledIframe = styled.iframe`
   background-color: #f1f3f4;
 `;
 
+const FocusGuard = styled.div`
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(0 0 0 / 15%);
+  cursor: pointer;
+  font-size: 1.1rem;
+  font-weight: 500;
+  user-select: none;
+`;
+
+const FocusGuardLabel = styled.span`
+  background: rgb(255 255 255 / 85%);
+  padding: 0.4em 0.8em;
+  border-radius: 0.3em;
+  color: #333;
+`;
+
 export const DocumentMessage = styled.span`
   display: block;
   width: 100%;
@@ -46,6 +78,94 @@ const GoogleDocumentDisplay = ({
   displayMode,
   user,
 }: DocumentDisplayProps) => {
+  const isSpreadsheet = document.value.type === "spreadsheet";
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const lastFocusedRef = useRef<Element | null>(null);
+  const [focusGuarded, setFocusGuarded] = useState(
+    isSpreadsheet && EXPECTED_FOCUS_STEALS > 0,
+  );
+  const lastStolenAtRef = useRef<number | undefined>(undefined);
+
+  // While the focus guard overlay is up, poll activeElement and restore focus
+  // when Sheets steals it. The overlay prevents user clicks from reaching the
+  // iframe, so any focus steal we detect is programmatic. We auto-dismiss
+  // after countering EXPECTED_FOCUS_STEALS, or after a quiet period following
+  // an iframe load (as a fallback). The user can also click the overlay to
+  // dismiss early.
+  useEffect(() => {
+    if (!focusGuarded) return undefined;
+
+    const QUIET_PERIOD_MS = 3_000;
+
+    let rafId: number;
+    let stealCount = 0;
+
+    const poll = () => {
+      if (
+        stealCount >= EXPECTED_FOCUS_STEALS ||
+        (lastStolenAtRef.current !== undefined &&
+          Date.now() - lastStolenAtRef.current > QUIET_PERIOD_MS)
+      ) {
+        setFocusGuarded(false);
+        return;
+      }
+
+      const active = window.document.activeElement;
+      if (active === iframeRef.current) {
+        stealCount += 1;
+        lastStolenAtRef.current = Date.now();
+        if (lastFocusedRef.current instanceof HTMLElement) {
+          lastFocusedRef.current.focus();
+        } else {
+          iframeRef.current?.blur();
+        }
+      } else if (active && active !== window.document.body) {
+        lastFocusedRef.current = active;
+      }
+
+      rafId = requestAnimationFrame(poll);
+    };
+
+    // If a steal happened while the tab was hidden, RAF wasn't running to
+    // detect it. When the tab becomes visible again, check if the iframe has
+    // focus and dismiss the guard if so.
+    const onVisibilityChange = () => {
+      if (
+        window.document.visibilityState === "visible" &&
+        window.document.activeElement === iframeRef.current
+      ) {
+        setFocusGuarded(false);
+      }
+    };
+
+    window.document.addEventListener("visibilitychange", onVisibilityChange);
+    rafId = requestAnimationFrame(poll);
+    return () => {
+      cancelAnimationFrame(rafId);
+      window.document.removeEventListener(
+        "visibilitychange",
+        onVisibilityChange,
+      );
+    };
+  }, [focusGuarded]);
+
+  const dismissFocusGuard = useCallback(() => {
+    setFocusGuarded(false);
+  }, []);
+
+  const onFocusGuardKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      setFocusGuarded(false);
+    }
+  }, []);
+
+  const onIframeLoad = useCallback(() => {
+    if (lastStolenAtRef.current === undefined) {
+      lastStolenAtRef.current = Date.now();
+    }
+  }, []);
+
   let url: string;
   let title: string;
   let icon: IconDefinition;
@@ -84,7 +204,29 @@ const GoogleDocumentDisplay = ({
       );
     case "embed":
       /* To workaround iOS Safari iframe behavior, scrolling should be "no" */
-      return <StyledIframe title="document" scrolling="no" src={url} />;
+      return (
+        <>
+          <StyledIframe
+            ref={iframeRef}
+            title="document"
+            scrolling="no"
+            src={url}
+            onLoad={onIframeLoad}
+          />
+          {focusGuarded && (
+            <FocusGuard
+              role="button"
+              tabIndex={0}
+              onClick={dismissFocusGuard}
+              onKeyDown={onFocusGuardKeyDown}
+            >
+              <FocusGuardLabel>
+                Click to interact with spreadsheet
+              </FocusGuardLabel>
+            </FocusGuard>
+          )}
+        </>
+      );
     default:
       return (
         <DocumentMessage>Unknown displayMode {displayMode}</DocumentMessage>
