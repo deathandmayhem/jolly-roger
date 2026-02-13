@@ -45,6 +45,7 @@ const Guess = withCommon(
 const Guesses = new SoftDeletedModel("jr_guesses", Guess);
 Guesses.addIndex({ deleted: 1, hunt: 1, puzzle: 1 });
 Guesses.addIndex({ deleted: 1, state: 1 });
+Guesses.addIndex({ hunt: 1 });
 export type GuessType = ModelType<typeof Guesses>;
 
 export default Guesses;

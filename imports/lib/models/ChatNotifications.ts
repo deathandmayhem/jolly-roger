@@ -31,6 +31,7 @@ const ChatNotifications = new SoftDeletedModel(
   ChatNotification,
 );
 ChatNotifications.addIndex({ deleted: 1, user: 1 });
+ChatNotifications.addIndex({ hunt: 1 });
 export type ChatNotificationType = ModelType<typeof ChatNotifications>;
 
 export default ChatNotifications;

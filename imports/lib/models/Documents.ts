@@ -27,6 +27,7 @@ const DocumentSchema = withCommon(
 const Documents = new SoftDeletedModel("jr_documents", DocumentSchema);
 Documents.addIndex({ deleted: 1, puzzle: 1 });
 Documents.addIndex({ "value.id": 1 });
+Documents.addIndex({ hunt: 1 });
 export type DocumentType = ModelType<typeof Documents>;
 
 export default Documents;

@@ -30,6 +30,7 @@ const ModalForm = (props: {
   submitLabel?: string;
   submitStyle?: string;
   submitDisabled?: boolean;
+  closeDisabled?: boolean;
   onSubmit: (callback: () => void) => void;
   children: React.ReactNode;
   ref: React.Ref<ModalFormHandle>;
@@ -88,7 +89,7 @@ const ModalForm = (props: {
           <Button
             variant="light"
             onClick={hide}
-            disabled={props.submitDisabled}
+            disabled={props.closeDisabled ?? props.submitDisabled}
           >
             {t("common.close", "Close")}
           </Button>

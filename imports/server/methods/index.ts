@@ -54,6 +54,7 @@ import "./postAnnouncement";
 import "./promoteOperator";
 import "./provisionFirstUser";
 import "./provisionScreenshotData";
+import "./purgeHunt";
 import "./removePuzzleAnswer";
 import "./removePuzzleTag";
 import "./renameTag";

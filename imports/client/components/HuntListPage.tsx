@@ -1,5 +1,6 @@
 import { Meteor } from "meteor/meteor";
 import { useTracker } from "meteor/react-meteor-data";
+import { faBomb } from "@fortawesome/free-solid-svg-icons/faBomb";
 import { faEdit } from "@fortawesome/free-solid-svg-icons/faEdit";
 import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -22,29 +23,33 @@ import type { HuntType } from "../../lib/models/Hunts";
 import Hunts from "../../lib/models/Hunts";
 import {
   userMayCreateHunt,
+  userMayPurgeHunt,
   userMayUpdateHunt,
 } from "../../lib/permission_stubs";
 import huntsAll from "../../lib/publications/huntsAll";
 import createFixtureHunt from "../../methods/createFixtureHunt";
 import destroyHunt from "../../methods/destroyHunt";
 import useTypedSubscribe from "../hooks/useTypedSubscribe";
+import HuntPurgeModal from "./HuntPurgeModal";
 import type { ModalFormHandle } from "./ModalForm";
 import ModalForm from "./ModalForm";
 
 const Hunt = React.memo(({ hunt }: { hunt: HuntType }) => {
   const huntId = hunt._id;
 
-  const { canUpdate, canDestroy } = useTracker(() => {
+  const { canUpdate, canDestroy, canPurge } = useTracker(() => {
     return {
       canUpdate: userMayUpdateHunt(Meteor.user(), hunt),
 
       // Because we delete by setting the deleted flag, you only need
       // update to "remove" something
       canDestroy: userMayUpdateHunt(Meteor.user(), hunt),
+      canPurge: userMayPurgeHunt(Meteor.user(), hunt),
     };
   }, [hunt]);
 
   const deleteModalRef = useRef<ModalFormHandle>(null);
+  const purgeModalRef = useRef<ModalFormHandle>(null);
 
   const onDelete = useCallback(
     (callback: () => void) => {
@@ -56,6 +61,12 @@ const Hunt = React.memo(({ hunt }: { hunt: HuntType }) => {
   const showDeleteModal = useCallback(() => {
     if (deleteModalRef.current) {
       deleteModalRef.current.show();
+    }
+  }, []);
+
+  const showPurgeModal = useCallback(() => {
+    if (purgeModalRef.current) {
+      purgeModalRef.current.show();
     }
   }, []);
 
@@ -75,6 +86,7 @@ const Hunt = React.memo(({ hunt }: { hunt: HuntType }) => {
           { huntName: hunt.name },
         )}
       </ModalForm>
+      <HuntPurgeModal ref={purgeModalRef} hunt={hunt} />
       <ButtonGroup size="sm">
         {canUpdate ? (
           <LinkContainer to={`/hunts/${huntId}/edit`}>
@@ -86,6 +98,15 @@ const Hunt = React.memo(({ hunt }: { hunt: HuntType }) => {
               <FontAwesomeIcon fixedWidth icon={faEdit} />
             </Button>
           </LinkContainer>
+        ) : undefined}
+        {canPurge ? (
+          <Button
+            onClick={showPurgeModal}
+            variant="danger"
+            title={`${t("huntList.purge.title", "Purge hunt contents")}...`}
+          >
+            <FontAwesomeIcon fixedWidth icon={faBomb} />
+          </Button>
         ) : undefined}
         {canDestroy ? (
           <Button

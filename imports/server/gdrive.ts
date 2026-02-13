@@ -137,6 +137,17 @@ export async function moveDocument(id: string, newParentId: string) {
   });
 }
 
+export async function deleteDocument(id: string) {
+  await checkClientOk();
+  if (!GoogleClient.drive) {
+    throw new Meteor.Error(500, "Google integration is disabled");
+  }
+
+  await GoogleClient.drive.files.delete({
+    fileId: id,
+  });
+}
+
 export async function huntFolderName(huntName: string) {
   return `${huntName}: ${await getTeamName()}`;
 }

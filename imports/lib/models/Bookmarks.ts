@@ -17,6 +17,7 @@ const Bookmark = withCommon(
 const Bookmarks = new SoftDeletedModel("jr_bookmarks", Bookmark);
 Bookmarks.addIndex({ user: 1, hunt: 1, puzzle: 1 }, { unique: true });
 Bookmarks.addIndex({ puzzle: 1 });
+Bookmarks.addIndex({ hunt: 1 });
 export type BookmarkType = ModelType<typeof Bookmarks>;
 
 export default Bookmarks;
