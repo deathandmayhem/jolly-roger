@@ -312,9 +312,9 @@ const AppNavbar = ({
               {t("navigation.reportAnIssue", "Report an issue")}
             </DropdownItem>
             {userIsAdmin ? (
-              <RRBS.LinkContainer to="/setup">
+              <RRBS.LinkContainer to="/admin">
                 <DropdownItem eventKey="4">
-                  {t("navigation.serverSetup", "Server setup")}
+                  {t("navigation.admin", "Admin")}
                 </DropdownItem>
               </RRBS.LinkContainer>
             ) : undefined}

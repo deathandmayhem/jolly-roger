@@ -106,6 +106,9 @@
     "huntLinkText": "活动主页",
     "myProfile": "个人信息",
     "reportAnIssue": "报告问题",
+    "admin": "管理",
+    "adminSetup": "设置",
+    "adminRtcDebug": "RTC 调试",
     "serverSetup": "服务器设置",
     "signOut": "退出登录",
     "theme": {

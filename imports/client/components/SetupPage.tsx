@@ -18,7 +18,6 @@ import { useTranslation } from "react-i18next";
 import Creatable from "react-select/creatable";
 import styled, { useTheme } from "styled-components";
 import Flags from "../../Flags";
-import isAdmin from "../../lib/isAdmin";
 import DiscordCache from "../../lib/models/DiscordCache";
 import type { FlagNames } from "../../lib/models/FeatureFlags";
 import type { SavedDiscordObjectType } from "../../lib/models/Hunts";
@@ -2643,29 +2642,13 @@ const SetupPage = () => {
   const { t } = useTranslation();
   useBreadcrumb({
     title: t("serverSetup.title", "Server setup"),
-    path: "/setup",
+    path: "/admin/setup",
   });
 
   const loading = useTypedSubscribe(settingsAll);
-  const canConfigure = useTracker(() => isAdmin(Meteor.user()), []);
 
   if (loading()) {
     return <div>Loading...</div>;
-  }
-
-  if (!canConfigure) {
-    return (
-      <div>
-        <h1>{t("common.notAuthorized", "Not authorized")}</h1>
-        <p>
-          {t(
-            "serverSetup.notAuthorizedMessage",
-            `This page allows server admins to reconfigure the server, but
-             you're not an admin.`,
-          )}
-        </p>
-      </div>
-    );
   }
 
   return (

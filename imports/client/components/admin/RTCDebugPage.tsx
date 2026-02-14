@@ -1,4 +1,3 @@
-import { Meteor } from "meteor/meteor";
 import { useSubscribe, useTracker } from "meteor/react-meteor-data";
 import { faArrowCircleLeft } from "@fortawesome/free-solid-svg-icons/faArrowCircleLeft";
 import { faBroadcastTower } from "@fortawesome/free-solid-svg-icons/faBroadcastTower";
@@ -34,38 +33,37 @@ import Table from "react-bootstrap/Table";
 import Tooltip from "react-bootstrap/Tooltip";
 import { Link } from "react-router-dom";
 import styled, { css } from "styled-components";
-import { RECENT_ACTIVITY_TIME_WINDOW_MS } from "../../lib/config/webrtc";
-import { gracePeriod } from "../../lib/garbageCollection";
-import isAdmin from "../../lib/isAdmin";
-import { groupedBy } from "../../lib/listUtils";
-import MeteorUsers from "../../lib/models/MeteorUsers";
-import CallHistories from "../../lib/models/mediasoup/CallHistories";
-import ConnectAcks from "../../lib/models/mediasoup/ConnectAcks";
-import ConnectRequests from "../../lib/models/mediasoup/ConnectRequests";
-import ConsumerAcks from "../../lib/models/mediasoup/ConsumerAcks";
-import type { ConsumerType } from "../../lib/models/mediasoup/Consumers";
-import Consumers from "../../lib/models/mediasoup/Consumers";
-import type { PeerType } from "../../lib/models/mediasoup/Peers";
-import Peers from "../../lib/models/mediasoup/Peers";
-import type { ProducerClientType } from "../../lib/models/mediasoup/ProducerClients";
-import ProducerClients from "../../lib/models/mediasoup/ProducerClients";
-import ProducerServers from "../../lib/models/mediasoup/ProducerServers";
-import type { RoomType } from "../../lib/models/mediasoup/Rooms";
-import Rooms from "../../lib/models/mediasoup/Rooms";
-import type { RouterType } from "../../lib/models/mediasoup/Routers";
-import Routers from "../../lib/models/mediasoup/Routers";
-import TransportRequests from "../../lib/models/mediasoup/TransportRequests";
-import TransportStates from "../../lib/models/mediasoup/TransportStates";
-import type { TransportType } from "../../lib/models/mediasoup/Transports";
-import Transports from "../../lib/models/mediasoup/Transports";
-import Puzzles from "../../lib/models/Puzzles";
-import type { ServerType } from "../../lib/models/Servers";
-import Servers from "../../lib/models/Servers";
-import Avatar from "./Avatar";
-import CopyToClipboardButton from "./CopyToClipboardButton";
-import Loading from "./Loading";
-import RelativeTime from "./RelativeTime";
-import SpinnerTimer from "./SpinnerTimer";
+import { RECENT_ACTIVITY_TIME_WINDOW_MS } from "../../../lib/config/webrtc";
+import { gracePeriod } from "../../../lib/garbageCollection";
+import { groupedBy } from "../../../lib/listUtils";
+import MeteorUsers from "../../../lib/models/MeteorUsers";
+import CallHistories from "../../../lib/models/mediasoup/CallHistories";
+import ConnectAcks from "../../../lib/models/mediasoup/ConnectAcks";
+import ConnectRequests from "../../../lib/models/mediasoup/ConnectRequests";
+import ConsumerAcks from "../../../lib/models/mediasoup/ConsumerAcks";
+import type { ConsumerType } from "../../../lib/models/mediasoup/Consumers";
+import Consumers from "../../../lib/models/mediasoup/Consumers";
+import type { PeerType } from "../../../lib/models/mediasoup/Peers";
+import Peers from "../../../lib/models/mediasoup/Peers";
+import type { ProducerClientType } from "../../../lib/models/mediasoup/ProducerClients";
+import ProducerClients from "../../../lib/models/mediasoup/ProducerClients";
+import ProducerServers from "../../../lib/models/mediasoup/ProducerServers";
+import type { RoomType } from "../../../lib/models/mediasoup/Rooms";
+import Rooms from "../../../lib/models/mediasoup/Rooms";
+import type { RouterType } from "../../../lib/models/mediasoup/Routers";
+import Routers from "../../../lib/models/mediasoup/Routers";
+import TransportRequests from "../../../lib/models/mediasoup/TransportRequests";
+import TransportStates from "../../../lib/models/mediasoup/TransportStates";
+import type { TransportType } from "../../../lib/models/mediasoup/Transports";
+import Transports from "../../../lib/models/mediasoup/Transports";
+import Puzzles from "../../../lib/models/Puzzles";
+import type { ServerType } from "../../../lib/models/Servers";
+import Servers from "../../../lib/models/Servers";
+import Avatar from "../Avatar";
+import CopyToClipboardButton from "../CopyToClipboardButton";
+import Loading from "../Loading";
+import RelativeTime from "../RelativeTime";
+import SpinnerTimer from "../SpinnerTimer";
 
 const ClipButton = ({ text }: { text: string }) => {
   return (
@@ -1122,7 +1120,6 @@ const ServerTable = ({ servers }: { servers: ServerType[] }) => {
 };
 
 const RTCDebugPage = () => {
-  const viewerIsAdmin = useTracker(() => isAdmin(Meteor.user()));
   const debugInfoLoading = useSubscribe("mediasoup:debug");
   const loading = debugInfoLoading();
 
@@ -1137,14 +1134,6 @@ const RTCDebugPage = () => {
     [],
   );
   const callIds = useMemo(() => rooms.map((r) => r.call), [rooms]);
-
-  if (!viewerIsAdmin) {
-    return (
-      <div>
-        <p>You must be an admin to view this page.</p>
-      </div>
-    );
-  }
 
   if (loading) {
     return <Loading />;

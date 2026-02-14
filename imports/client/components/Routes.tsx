@@ -34,8 +34,9 @@ import UsersApp from "./UsersApp";
 import VerifyEmailPage from "./VerifyEmailPage";
 
 const HuntEditPage = React.lazy(() => import("./HuntEditPage"));
+const AdminApp = React.lazy(() => import("./admin/AdminApp"));
 const SetupPage = React.lazy(() => import("./SetupPage"));
-const RTCDebugPage = React.lazy(() => import("./RTCDebugPage"));
+const RTCDebugPage = React.lazy(() => import("./admin/RTCDebugPage"));
 
 /* Authenticated routes - if user not logged in, get redirected to /login */
 export const AuthenticatedRouteList: RouteObject[] = [
@@ -78,8 +79,17 @@ export const AuthenticatedRouteList: RouteObject[] = [
       { path: "", element: <AllProfileListPage /> },
     ],
   },
-  { path: "/setup", element: <SetupPage /> },
-  { path: "/rtcdebug", element: <RTCDebugPage /> },
+  {
+    path: "/admin",
+    element: <AdminApp />,
+    children: [
+      { path: "setup", element: <SetupPage /> },
+      { path: "rtcdebug", element: <RTCDebugPage /> },
+      { path: "", element: <Navigate to="setup" replace /> },
+    ],
+  },
+  { path: "/setup", element: <Navigate to="/admin/setup" replace /> },
+  { path: "/rtcdebug", element: <Navigate to="/admin/rtcdebug" replace /> },
 ].map((r) => {
   return {
     ...r,
