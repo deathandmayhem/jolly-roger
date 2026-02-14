@@ -39,11 +39,11 @@ import throttle from "../lib/throttle";
 import {
   cleanupDeadServer,
   registerPeriodicCleanupHook,
-  serverId,
 } from "./garbage-collection";
 import ignoringDuplicateKeyErrors from "./ignoringDuplicateKeyErrors";
 import CallActivities from "./models/CallActivities";
 import onExit from "./onExit";
+import serverId from "./serverId";
 
 const mediaCodecs: types.RouterRtpCodecCapability[] = [
   {

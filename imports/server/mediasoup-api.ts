@@ -21,8 +21,9 @@ import Transports from "../lib/models/mediasoup/Transports";
 import Puzzles from "../lib/models/Puzzles";
 import Servers from "../lib/models/Servers";
 import { checkAdmin, userMayJoinCallsForHunt } from "../lib/permission_stubs";
-import { registerPeriodicCleanupHook, serverId } from "./garbage-collection";
+import { registerPeriodicCleanupHook } from "./garbage-collection";
 import ignoringDuplicateKeyErrors from "./ignoringDuplicateKeyErrors";
+import serverId from "./serverId";
 import withLock from "./withLock";
 
 registerPeriodicCleanupHook(async (deadServer) => {

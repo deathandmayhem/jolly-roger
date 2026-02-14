@@ -4,7 +4,7 @@ import Flags from "../../Flags";
 import ConsumerAcks from "../../lib/models/mediasoup/ConsumerAcks";
 import Consumers from "../../lib/models/mediasoup/Consumers";
 import mediasoupAckConsumer from "../../methods/mediasoupAckConsumer";
-import { serverId } from "../garbage-collection";
+import serverId from "../serverId";
 import defineMethod from "./defineMethod";
 
 defineMethod(mediasoupAckConsumer, {

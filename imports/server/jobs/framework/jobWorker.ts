@@ -4,11 +4,9 @@ import { DDP } from "meteor/ddp";
 import { Meteor } from "meteor/meteor";
 import Logger from "../../../Logger";
 import Jobs, { type JobType } from "../../../lib/models/Jobs";
-import {
-  registerPeriodicCleanupHook,
-  serverId,
-} from "../../garbage-collection";
+import { registerPeriodicCleanupHook } from "../../garbage-collection";
 import onExit from "../../onExit";
+import serverId from "../../serverId";
 import { getHandler } from "./defineJob";
 
 interface WorkerEvents {

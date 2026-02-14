@@ -4,7 +4,7 @@ import Flags from "../../Flags";
 import ConnectRequests from "../../lib/models/mediasoup/ConnectRequests";
 import Transports from "../../lib/models/mediasoup/Transports";
 import mediasoupConnectTransport from "../../methods/mediasoupConnectTransport";
-import { serverId } from "../garbage-collection";
+import serverId from "../serverId";
 import defineMethod from "./defineMethod";
 
 defineMethod(mediasoupConnectTransport, {

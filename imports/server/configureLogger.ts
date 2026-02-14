@@ -3,8 +3,8 @@ import { Meteor } from "meteor/meteor";
 import logfmt from "logfmt";
 import { format, transports } from "winston";
 import { logger } from "../Logger";
-import { serverId } from "./garbage-collection";
 import { workersCount } from "./loadBalance";
+import serverId from "./serverId";
 
 const userIdSymbol = Symbol("userId");
 
