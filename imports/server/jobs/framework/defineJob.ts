@@ -1,6 +1,7 @@
 import { DDP } from "meteor/ddp";
 import { Meteor } from "meteor/meteor";
 import type { z } from "zod";
+import type TypedJob from "../../../lib/jobs/TypedJob";
 import Jobs from "../../../lib/models/Jobs";
 
 type JobContext<
@@ -33,11 +34,8 @@ export default function defineJob<
     | z.ZodType<Record<string, unknown>>
     | undefined = undefined,
 >(
-  name: string,
-  argsSchema: ArgsSchema,
+  job: TypedJob<ArgsSchema, ResultSchema>,
   options: {
-    result?: ResultSchema;
-    maxAttempts?: number;
     deleteAfter?: () => Date | undefined;
     run: (
       args: z.output<ArgsSchema>,
@@ -45,21 +43,19 @@ export default function defineJob<
     ) => Promise<void>;
   },
 ): { enqueue: (args: z.input<ArgsSchema>) => Promise<string> } {
-  if (jobRegistry.has(name)) {
-    throw new Error(`Job "${name}" is already defined`);
+  if (jobRegistry.has(job.name)) {
+    throw new Error(`Job "${job.name}" is already defined`);
   }
 
-  const maxAttempts = options.maxAttempts ?? 1;
-
-  jobRegistry.set(name, {
-    resultSchema: options.result,
+  jobRegistry.set(job.name, {
+    resultSchema: job.resultSchema,
     computeDeleteAfter: options.deleteAfter,
     run: options.run as JobRegistryEntry["run"],
   });
 
   return {
     async enqueue(args: z.input<ArgsSchema>): Promise<string> {
-      const parsed = argsSchema.parse(args);
+      const parsed = job.argsSchema.parse(args);
       let createdBy: string | undefined;
       if (
         DDP._CurrentMethodInvocation.get() ||
@@ -68,11 +64,11 @@ export default function defineJob<
         createdBy = Meteor.userId() ?? undefined;
       }
       return Jobs.insertAsync({
-        type: name,
+        type: job.name,
         args: parsed,
         status: "pending" as const,
         attempts: 0,
-        maxAttempts,
+        maxAttempts: job.maxAttempts,
         ...(createdBy ? { createdBy } : {}),
       });
     },
