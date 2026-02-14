@@ -36,6 +36,7 @@ import VerifyEmailPage from "./VerifyEmailPage";
 const HuntEditPage = React.lazy(() => import("./HuntEditPage"));
 const AdminApp = React.lazy(() => import("./admin/AdminApp"));
 const SetupPage = React.lazy(() => import("./SetupPage"));
+const JobsPage = React.lazy(() => import("./admin/JobsPage"));
 const RTCDebugPage = React.lazy(() => import("./admin/RTCDebugPage"));
 
 /* Authenticated routes - if user not logged in, get redirected to /login */
@@ -84,6 +85,7 @@ export const AuthenticatedRouteList: RouteObject[] = [
     element: <AdminApp />,
     children: [
       { path: "setup", element: <SetupPage /> },
+      { path: "jobs", element: <JobsPage /> },
       { path: "rtcdebug", element: <RTCDebugPage /> },
       { path: "", element: <Navigate to="setup" replace /> },
     ],

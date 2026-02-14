@@ -31,6 +31,9 @@ const AdminNav = () => {
       <StyledNavLink to="/admin/setup">
         {t("navigation.adminSetup", "Setup")}
       </StyledNavLink>
+      <StyledNavLink to="/admin/jobs">
+        {t("navigation.adminJobs", "Jobs")}
+      </StyledNavLink>
       <StyledNavLink to="/admin/rtcdebug">
         {t("navigation.adminRtcDebug", "RTC Debug")}
       </StyledNavLink>
