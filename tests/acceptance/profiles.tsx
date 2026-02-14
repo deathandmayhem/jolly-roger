@@ -29,6 +29,9 @@ const createHunt = new TypedMethod<{ name: string }, string>(
 const joinHunt = new TypedMethod<{ huntId: string; userId: string }, void>(
   "test.methods.profiles.joinHunt",
 );
+const leaveHunt = new TypedMethod<{ huntId: string; userId: string }, void>(
+  "test.methods.profiles.leaveHunt",
+);
 
 if (Meteor.isServer) {
   const defineMethod: typeof import("../../imports/server/methods/defineMethod").default =
@@ -116,6 +119,24 @@ if (Meteor.isServer) {
       });
     },
   });
+
+  defineMethod(leaveHunt, {
+    validate(arg: unknown) {
+      check(arg, {
+        huntId: String,
+        userId: String,
+      });
+
+      return arg;
+    },
+
+    async run({ huntId, userId }) {
+      await MeteorUsers.updateAsync(userId, {
+        $pull: { hunts: huntId },
+        $addToSet: { formerHunts: huntId },
+      });
+    },
+  });
 }
 
 if (Meteor.isClient) {
@@ -194,6 +215,62 @@ if (Meteor.isClient) {
           ["U1", "U3"],
           "Should update when hunt membership changes",
         );
+      });
+    });
+
+    describe("displayNames for former hunt members", function () {
+      it("still publishes display names after leaving", async function () {
+        await resetDatabase(
+          "user profile publishes displayNames for former members",
+        );
+
+        const userId: string = await createUser.callPromise({
+          email: "jolly-roger@deathandmayhem.com",
+          password: "password",
+          displayName: "U1",
+        });
+        const otherUserId: string = await createUser.callPromise({
+          email: "jolly-roger+other@deathandmayhem.com",
+          password: "password",
+          displayName: "U2",
+        });
+
+        const huntId: string = await createHunt.callPromise({
+          name: "Test Hunt",
+        });
+
+        await joinHunt.callPromise({ huntId, userId });
+        await joinHunt.callPromise({ huntId, userId: otherUserId });
+
+        await promisify(Meteor.loginWithPassword)(
+          "jolly-roger@deathandmayhem.com",
+          "password",
+        );
+
+        const huntSub = await subscribeAsync("displayNames", huntId);
+
+        assert.sameMembers(
+          await MeteorUsers.find(
+            {},
+            { projection: { displayName: 1 } },
+          ).mapAsync((u) => u.displayName),
+          ["U1", "U2"],
+          "Both users should be visible before leaving",
+        );
+
+        await leaveHunt.callPromise({ huntId, userId: otherUserId });
+        await stabilize();
+
+        assert.sameMembers(
+          await MeteorUsers.find(
+            {},
+            { projection: { displayName: 1 } },
+          ).mapAsync((u) => u.displayName),
+          ["U1", "U2"],
+          "Former member's display name should still be published",
+        );
+
+        huntSub.stop();
       });
     });
 

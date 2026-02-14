@@ -129,8 +129,17 @@ Meteor.publish("displayNames", async function (huntId: unknown) {
       return undefined;
     }
 
+    // Include former hunt members so their display names remain resolvable
+    // in historical chat messages, guesses, and other records. Other
+    // publications (allProfiles, huntProfiles, huntRoles) intentionally
+    // don't do this -- they should only show current members.
+    //
+    // We don't need formerHunts in the projection above because that
+    // projection watches the *subscribing* user's fields (to re-run the
+    // access check), while the cursor itself is reactive to changes in
+    // other users' documents.
     return MeteorUsers.find(
-      { hunts: huntId },
+      { $or: [{ hunts: huntId }, { formerHunts: huntId }] },
       { projection: { displayName: 1 } },
     );
   });
@@ -150,8 +159,9 @@ Meteor.publish("avatars", async function (huntId: unknown) {
       return undefined;
     }
 
+    // See comment in displayNames above.
     return MeteorUsers.find(
-      { hunts: huntId },
+      { $or: [{ hunts: huntId }, { formerHunts: huntId }] },
       { projection: { discordAccount: 1 } },
     );
   });
