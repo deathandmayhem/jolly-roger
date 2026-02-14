@@ -7,7 +7,7 @@
     // knip can't follow dynamic imports
     "tests/**"
   ],
-  "project": ["**/*", "!.meteor/local/**", "!eslint/dist/**"],
+  "project": ["**/*", "!.meteor/local/**", "!eslint/dist/**", "!extension/**"],
   "rules": {
     // TODO: We may want to enable these later, as they're potentially indicative of dead code
     "exports": "off",
