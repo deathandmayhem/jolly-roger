@@ -7,6 +7,7 @@ import Guesses from "../../lib/models/Guesses";
 import Hunts from "../../lib/models/Hunts";
 import Puzzles from "../../lib/models/Puzzles";
 import addPuzzleAnswer from "../../methods/addPuzzleAnswer";
+import { answerify } from "../../model-helpers";
 import GlobalHooks from "../GlobalHooks";
 import { serverLanguage } from "../lang";
 import sendChatMessageInternal from "../sendChatMessageInternal";
@@ -21,8 +22,12 @@ defineMethod(addPuzzleAnswer, {
     return arg;
   },
 
-  async run({ puzzleId, answer }) {
+  async run({ puzzleId, answer: rawAnswer }) {
     check(this.userId, String);
+
+    // Normalize up front so the $ne filter, $addToSet, chat message, and
+    // hooks all use the same canonical form.
+    const answer = answerify(rawAnswer);
 
     const puzzle = await Puzzles.findOneAsync(puzzleId);
 
@@ -43,48 +48,48 @@ defineMethod(addPuzzleAnswer, {
       );
     }
 
+    // Use $ne as an atomic guard so that two concurrent submissions of
+    // the same answer race on this update and exactly one wins.
+    const updated = await Puzzles.updateAsync(
+      {
+        _id: puzzleId,
+        answers: { $ne: answer },
+      },
+      {
+        $addToSet: {
+          answers: answer,
+        },
+      },
+    );
+
+    if (updated === 0) {
+      throw new Meteor.Error(409, "Answer already exists for this puzzle");
+    }
+
     Logger.info("New correct guess", {
       hunt: puzzle.hunt,
       puzzle: puzzleId,
       user: this.userId,
       guess: answer,
     });
-    const answerId = await Guesses.insertAsync({
+    await Guesses.insertAsync({
       hunt: puzzle.hunt,
       puzzle: puzzleId,
       guess: answer,
       state: "correct",
     });
 
-    const savedAnswer = await Guesses.findOneAsync(answerId);
-    if (!savedAnswer) {
-      throw new Meteor.Error(404, "No such correct guess");
-    }
-
     const message = i18n.t(
       "puzzle.answerOrGuess.acceptedAnswer",
       `\`{{guess}}\` was accepted as the correct answer`,
-      { lng: serverLanguage, guess: savedAnswer.guess },
+      { lng: serverLanguage, guess: answer },
     );
     const content = contentFromMessage(message);
     await sendChatMessageInternal({
-      puzzleId: savedAnswer.puzzle,
+      puzzleId,
       content,
       sender: undefined,
     });
-    await Puzzles.updateAsync(
-      {
-        _id: savedAnswer.puzzle,
-      },
-      {
-        $addToSet: {
-          answers: savedAnswer.guess,
-        },
-      },
-    );
-    await GlobalHooks.runPuzzleSolvedHooks(
-      savedAnswer.puzzle,
-      savedAnswer.guess,
-    );
+    await GlobalHooks.runPuzzleSolvedHooks(puzzleId, answer);
   },
 });

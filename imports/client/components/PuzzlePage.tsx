@@ -659,10 +659,6 @@ const ChatInput = React.memo(
       [onHeightChange],
     );
 
-    const preventDefaultCallback = useCallback((e: React.MouseEvent) => {
-      e.preventDefault();
-    }, []);
-
     const [content, setContent] = useState<Descendant[]>(initialValue);
     const fancyEditorRef = useRef<FancyEditorHandle | null>(null);
     const onContentChange = useCallback(
@@ -749,6 +745,7 @@ const ChatInput = React.memo(
         });
         setContent(initialValue);
         fancyEditorRef.current?.clearInput();
+        fancyEditorRef.current?.focus();
         if (onMessageSent) {
           onMessageSent();
         }
@@ -871,7 +868,6 @@ const ChatInput = React.memo(
           <Button
             variant="secondary"
             onClick={sendContentMessage}
-            onMouseDown={preventDefaultCallback}
             disabled={disabled || !hasNonTrivialContent || hasLoadingImage}
           >
             <FontAwesomeIcon icon={faPaperPlane} />
