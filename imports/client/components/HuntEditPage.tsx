@@ -17,7 +17,6 @@ import FormLabel from "react-bootstrap/FormLabel";
 import FormText from "react-bootstrap/FormText";
 import Modal from "react-bootstrap/Modal";
 import Row from "react-bootstrap/Row";
-import { createPortal } from "react-dom";
 import { Trans, useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 import DiscordCache from "../../lib/models/DiscordCache";
@@ -35,6 +34,7 @@ import updateHunt from "../../methods/updateHunt";
 import { useBreadcrumb } from "../hooks/breadcrumb";
 import useTypedSubscribe from "../hooks/useTypedSubscribe";
 import ActionButtonRow from "./ActionButtonRow";
+import { useBootstrapContainer } from "./BootstrapScopeContext";
 import Markdown from "./Markdown";
 
 enum SubmitState {
@@ -203,6 +203,7 @@ const HuntEditPage = () => {
   );
 
   const { t } = useTranslation();
+  const container = useBootstrapContainer();
 
   useBreadcrumb({
     title: huntId
@@ -416,11 +417,12 @@ const HuntEditPage = () => {
 
   const disableForm = submitState === SubmitState.SUBMITTING;
 
-  const termsOfUsePreview = createPortal(
+  const termsOfUsePreview = (
     <Modal
       show={showTermsOfUsePreview}
       size="lg"
       onHide={toggleShowTermsOfUsePreview}
+      container={container}
     >
       <Modal.Body>
         <Markdown text={termsOfUse} />
@@ -430,8 +432,7 @@ const HuntEditPage = () => {
           {t("common.close", "Close")}
         </Button>
       </Modal.Footer>
-    </Modal>,
-    document.body,
+    </Modal>
   );
 
   const idPrefix = useId();

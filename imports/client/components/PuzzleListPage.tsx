@@ -48,7 +48,6 @@ import {
 import useFocusRefOnFindHotkey from "../hooks/useFocusRefOnFindHotkey";
 import useTypedSubscribe from "../hooks/useTypedSubscribe";
 import { compilePuzzleMatcher } from "../search";
-import HuntNav from "./HuntNav";
 import PuzzleList from "./PuzzleList";
 import type {
   PuzzleModalFormHandle,
@@ -147,18 +146,6 @@ const PuzzleListToolbar = styled.div`
   justify-content: space-between;
   align-items: baseline;
   margin-bottom: 0.5em;
-`;
-
-const HuntNavWrapper = styled.div`
-  display: none;
-  ${mediaBreakpointDown(
-    "sm",
-    css`
-      display: flex;
-      width: 100%;
-      margin-bottom: 8px;
-    `,
-  )}
 `;
 
 const PuzzleListView = ({
@@ -655,10 +642,6 @@ const PuzzleListPage = () => {
     <span>{t("common.loading", "loading")}...</span>
   ) : (
     <div>
-      <HuntNavWrapper>
-        <HuntNav />
-      </HuntNavWrapper>
-
       <PuzzleListView
         huntId={huntId}
         canAdd={canAdd}
