@@ -370,6 +370,13 @@ const useTransport = (
   const connectRef = useRef<(() => void) | undefined>(undefined);
 
   const hasParams = !!device && !!transportParams;
+  // Extract turnConfig sub-fields as strings so they can be listed
+  // individually in the useEffect dep array. Using the turnConfig object
+  // directly would cause spurious re-fires because Minimongo returns fresh
+  // clones on every reactive recomputation.
+  const turnConfigUrls = transportParams?.turnConfig?.urls;
+  const turnConfigUsername = transportParams?.turnConfig?.username;
+  const turnConfigCredential = transportParams?.turnConfig?.credential;
   useEffect(() => {
     if (hasParams) {
       const _id = transportParams._id;
@@ -377,6 +384,13 @@ const useTransport = (
       const iceParameters = transportParams.iceParameters;
       const iceCandidates = transportParams.iceCandidates;
       const serverDtlsParameters = transportParams.dtlsParameters;
+      const turnConfig = turnConfigUrls
+        ? {
+            urls: turnConfigUrls,
+            username: turnConfigUsername!,
+            credential: turnConfigCredential!,
+          }
+        : undefined;
       logger.info("Creating new Mediasoup transport", {
         transportId,
         direction,
@@ -388,9 +402,7 @@ const useTransport = (
         iceParameters: JSON.parse(iceParameters),
         iceCandidates: JSON.parse(iceCandidates),
         dtlsParameters: JSON.parse(serverDtlsParameters),
-        iceServers: transportParams.turnConfig
-          ? [transportParams.turnConfig]
-          : undefined,
+        iceServers: turnConfig ? [turnConfig] : undefined,
         appData: {
           _id,
         },
@@ -449,7 +461,9 @@ const useTransport = (
     transportParams?.iceParameters,
     transportParams?.iceCandidates,
     transportParams?.dtlsParameters,
-    transportParams?.turnConfig,
+    turnConfigUrls,
+    turnConfigUsername,
+    turnConfigCredential,
   ]);
 
   return connectRef;
@@ -891,6 +905,11 @@ const useCallState = ({
           !producerState ||
           producerState.transport !== sendTransport.appData._id
         ) {
+          // Clean up the old entry (producer + subscription) before
+          // replacing it, so we don't leak resources.
+          if (producerState) {
+            cleanupProducerMapEntry(producerMapRef.current, track.id);
+          }
           // Create empty entry, before we attempt to produce for the track
           producerState = {
             transport: (sendTransport.appData as any)._id,
@@ -903,23 +922,55 @@ const useCallState = ({
           producerMapRef.current.set(track.id, producerState);
           logger.info("Creating Mediasoup producer", { track: track.id });
           // Tell the mediasoup library to produce a stream from this track.
+          const currentProducerState = producerState;
           void (async () => {
-            const newProducer = await sendTransport.produce({
-              track,
-              zeroRtpOnPause: true,
-              stopTracks: false,
-              appData: { trackId: track.id },
-            });
-            logger.debug("got producer", newProducer);
-            const entry = producerMapRef.current.get(track.id);
-            if (entry) {
-              entry.producer = newProducer;
-            } else {
-              logger.error("No entry in producerMapRef for track", {
-                trackId: track.id,
+            try {
+              const newProducer = await sendTransport.produce({
+                track,
+                zeroRtpOnPause: true,
+                stopTracks: false,
+                appData: { trackId: track.id },
               });
+              logger.debug("got producer", newProducer);
+              const entry = producerMapRef.current.get(track.id);
+              if (entry) {
+                entry.producer = newProducer;
+              } else {
+                logger.error("No entry in producerMapRef for track", {
+                  trackId: track.id,
+                });
+              }
+              setProducerGeneration((prevValue) => prevValue + 1);
+            } catch (error) {
+              // Guard against cleaning up a newer entry that replaced
+              // ours while produce() was pending.
+              if (
+                producerMapRef.current.get(track.id) !== currentProducerState
+              ) {
+                return;
+              }
+
+              // We expect two specific errors from the transport-closed
+              // race: InvalidStateError (transport was already closed
+              // before produce() checked) and AwaitQueueStoppedError
+              // (transport closed while produce() was queued). Anything
+              // else is a genuine failure we shouldn't retry.
+              const isTransportClosed =
+                error instanceof Error &&
+                (error.name === "InvalidStateError" ||
+                  error.name === "AwaitQueueStoppedError");
+
+              if (!isTransportClosed) {
+                throw error;
+              }
+
+              logger.warn("produce() failed, cleaning up for retry", {
+                trackId: track.id,
+                error,
+              });
+              cleanupProducerMapEntry(producerMapRef.current, track.id);
+              setProducerParamsGeneration((prevValue) => prevValue + 1);
             }
-            setProducerGeneration((prevValue) => prevValue + 1);
           })();
         }
 
