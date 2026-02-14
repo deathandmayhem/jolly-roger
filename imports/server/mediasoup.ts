@@ -1340,6 +1340,13 @@ class SFU {
     }
 
     const producer = await producerPromise;
+
+    // If the producer was removed while we were waiting, don't try to
+    // pause/resume it — producerClientRemoved is already closing it.
+    if (!this.producerClientToProducer.has(id)) {
+      return;
+    }
+
     if (fields.paused) {
       await producer.pause();
     } else {
