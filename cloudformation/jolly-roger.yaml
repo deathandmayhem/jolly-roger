@@ -379,6 +379,15 @@ Resources:
             Action: ["s3:GetObject"]
             Resource: !Sub "arn:aws:s3:::${ImageUploadBucket}/*"
 
+  CertificateStorageBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
   AppInstanceRole:
     Type: AWS::IAM::Role
     Properties:
@@ -420,6 +429,15 @@ Resources:
                 Action:
                   - s3:PutObject
                 Resource: !Sub "arn:aws:s3:::${ImageUploadBucket}/*"
+        - PolicyName: s3-cert-cache
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                Resource: !Sub "arn:aws:s3:::${CertificateStorageBucket}/*"
         - PolicyName: eip-association
           PolicyDocument:
             Version: "2012-10-17"
@@ -647,19 +665,38 @@ Resources:
                     #!/bin/bash
                     set -e
 
-                    # Renew the certificate and update haproxy's offline copy.
-                    if [ -n "${CertNotificationEmail}" ]; then
-                      email_flag="-m ${CertNotificationEmail}"
-                    else
-                      email_flag="--register-unsafely-without-email"
+                    CERT_BUCKET="${CertBucket}"
+                    CERT_PEM="/etc/haproxy/certs/cert.pem"
+
+                    mkdir -p /etc/haproxy/certs
+
+                    need_certbot=true
+
+                    # Skip everything if local cert exists and isn't expiring soon
+                    if [ -f "$CERT_PEM" ] && \
+                       openssl x509 -in "$CERT_PEM" -checkend 2592000 -noout 2>/dev/null; then
+                      need_certbot=false
+                    # Fall back to S3 cache (e.g. fresh instance launch)
+                    elif aws s3 cp "s3://$CERT_BUCKET/cert.pem" "$CERT_PEM" 2>/dev/null && \
+                         openssl x509 -in "$CERT_PEM" -checkend 2592000 -noout 2>/dev/null; then
+                      need_certbot=false
                     fi
-                    certbot -v certonly --dns-route53 -d ${AppUrl} --non-interactive --agree-tos $email_flag
-                    mkdir -p /etc/haproxy/certs/
-                    cat /etc/letsencrypt/live/${AppUrl}/fullchain.pem /etc/letsencrypt/live/${AppUrl}/privkey.pem | tee /etc/haproxy/certs/cert.pem > /dev/null
+
+                    if $need_certbot; then
+                      if [ -n "${CertNotificationEmail}" ]; then
+                        email_flag="-m ${CertNotificationEmail}"
+                      else
+                        email_flag="--register-unsafely-without-email"
+                      fi
+                      certbot -v certonly --dns-route53 -d ${AppUrl} --non-interactive --agree-tos $email_flag
+                      cat /etc/letsencrypt/live/${AppUrl}/fullchain.pem /etc/letsencrypt/live/${AppUrl}/privkey.pem > "$CERT_PEM"
+                      # Persist to S3 for future instance launches
+                      aws s3 cp "$CERT_PEM" "s3://$CERT_BUCKET/cert.pem"
+                    fi
 
                     # If haproxy is running, perform a live certificate update.
-                    if [ -f /var/run/haproxy/stats.sock ]; then
-                      echo -e "set ssl cert /usr/local/etc/haproxy/certs/cert.pem <<\n$(cat /etc/haproxy/certs/cert.pem)\n" | socat stdio /var/run/haproxy/stats.sock
+                    if [ -S /var/run/haproxy/stats.sock ]; then
+                      echo -e "set ssl cert /usr/local/etc/haproxy/certs/cert.pem <<\n$(cat $CERT_PEM)\n" | socat stdio /var/run/haproxy/stats.sock
                       echo -e "commit ssl cert /usr/local/etc/haproxy/certs/cert.pem" | socat stdio /var/run/haproxy/stats.sock
                     fi
                   permissions: "0755"
@@ -934,6 +971,7 @@ Resources:
                   "swap": {
                   "measurement": ["swap_used_percent"]
                   }'
+              CertBucket: !Ref CertificateStorageBucket
               SshUsersConfig: !GetAtt SshUsersParsing.Output
               SingleInstanceCertConfig: !If
                 - HaveLoadBalancing
