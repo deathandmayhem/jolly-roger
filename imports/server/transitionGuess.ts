@@ -87,17 +87,29 @@ export default async function transitionGuess(
     );
     await GlobalHooks.runPuzzleSolvedHooks(guess.puzzle, guess.guess);
   } else if (guess.state === "correct") {
-    // Transitioning from correct -> something else: un-mark that puzzle as solved.
-    await Puzzles.updateAsync(
-      {
-        _id: guess.puzzle,
-      },
-      {
-        $pull: {
-          answers: guess.guess,
+    // Transitioning from correct -> something else. Only pull the answer
+    // from the puzzle if no other correct guess for the same answer remains
+    // (which can happen if duplicate guesses were created by a race).
+    const otherCorrectGuess = await Guesses.findOneAsync({
+      _id: { $ne: guess._id },
+      hunt: guess.hunt,
+      puzzle: guess.puzzle,
+      guess: guess.guess,
+      state: "correct",
+    });
+
+    if (!otherCorrectGuess) {
+      await Puzzles.updateAsync(
+        {
+          _id: guess.puzzle,
         },
-      },
-    );
-    await GlobalHooks.runPuzzleNoLongerSolvedHooks(guess.puzzle, guess.guess);
+        {
+          $pull: {
+            answers: guess.guess,
+          },
+        },
+      );
+      await GlobalHooks.runPuzzleNoLongerSolvedHooks(guess.puzzle, guess.guess);
+    }
   }
 }
