@@ -4,7 +4,7 @@ import { Random } from "meteor/random";
 import Hunts from "../../lib/models/Hunts";
 import InvitationCodes from "../../lib/models/InvitationCodes";
 import MeteorUsers from "../../lib/models/MeteorUsers";
-import { userMayUpdateHuntInvitationCode } from "../../lib/permission_stubs";
+import { checkUserHasPermissionForAction } from "../../lib/permission_stubs";
 import generateHuntInvitationCode from "../../methods/generateHuntInvitationCode";
 import withLock from "../withLock";
 import defineMethod from "./defineMethod";
@@ -28,13 +28,7 @@ defineMethod(generateHuntInvitationCode, {
 
     const user = await MeteorUsers.findOneAsync(this.userId);
 
-    if (!userMayUpdateHuntInvitationCode(user, hunt)) {
-      throw new Meteor.Error(
-        401,
-        `User ${this.userId} may not generate invitation codes for ${huntId}`,
-      );
-    }
-
+    checkUserHasPermissionForAction(user, hunt, "manageInvitationLink");
     const newInvitationCode = Random.id();
 
     await withLock(`invitation_code:${huntId}`, async () => {

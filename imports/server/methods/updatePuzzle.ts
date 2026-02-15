@@ -6,7 +6,7 @@ import Hunts from "../../lib/models/Hunts";
 import MeteorUsers from "../../lib/models/MeteorUsers";
 import type { PuzzleType } from "../../lib/models/Puzzles";
 import Puzzles from "../../lib/models/Puzzles";
-import { userMayWritePuzzlesForHunt } from "../../lib/permission_stubs";
+import { checkUserHasPermissionForAction } from "../../lib/permission_stubs";
 import updatePuzzle from "../../methods/updatePuzzle";
 import GlobalHooks from "../GlobalHooks";
 import { ensureDocument, renameDocument } from "../gdrive";
@@ -46,17 +46,11 @@ defineMethod(updatePuzzle, {
       throw new Meteor.Error(404, "Unknown puzzle id");
     }
     const hunt = await Hunts.findOneAsync(oldPuzzle.hunt);
-    if (
-      !userMayWritePuzzlesForHunt(
-        await MeteorUsers.findOneAsync(this.userId),
-        hunt,
-      )
-    ) {
-      throw new Meteor.Error(
-        401,
-        `User ${this.userId} may not modify puzzles from hunt ${oldPuzzle.hunt}`,
-      );
-    }
+    checkUserHasPermissionForAction(
+      await MeteorUsers.findOneAsync(this.userId),
+      hunt,
+      "editPuzzles",
+    );
 
     // Look up each tag by name and map them to tag IDs.
     const tagIds = await Promise.all(

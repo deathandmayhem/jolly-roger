@@ -2,7 +2,7 @@ import { check } from "meteor/check";
 import Hunts from "../../lib/models/Hunts";
 import InvitationCodes from "../../lib/models/InvitationCodes";
 import MeteorUsers from "../../lib/models/MeteorUsers";
-import { userMayAddUsersToHunt } from "../../lib/permission_stubs";
+import { userHasPermissionForAction } from "../../lib/permission_stubs";
 import invitationCodesForHunt from "../../lib/publications/invitationCodesForHunt";
 import definePublication from "./definePublication";
 
@@ -21,7 +21,7 @@ definePublication(invitationCodesForHunt, {
 
     const user = await MeteorUsers.findOneAsync(this.userId);
     const hunt = await Hunts.findOneAsync({ _id: huntId });
-    if (!userMayAddUsersToHunt(user, hunt)) {
+    if (!userHasPermissionForAction(user, hunt, "inviteUsers")) {
       return [];
     }
 

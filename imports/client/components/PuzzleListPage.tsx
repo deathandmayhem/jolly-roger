@@ -30,10 +30,7 @@ import Hunts from "../../lib/models/Hunts";
 import type { PuzzleType } from "../../lib/models/Puzzles";
 import Puzzles from "../../lib/models/Puzzles";
 import Tags from "../../lib/models/Tags";
-import {
-  userMayDestroyPuzzlesForHunt,
-  userMayWritePuzzlesForHunt,
-} from "../../lib/permission_stubs";
+import { userHasPermissionForAction } from "../../lib/permission_stubs";
 import puzzleActivityForHunt from "../../lib/publications/puzzleActivityForHunt";
 import puzzlesForPuzzleList from "../../lib/publications/puzzlesForPuzzleList";
 import {
@@ -646,9 +643,9 @@ const PuzzleListPage = () => {
   const { canAdd, canUpdate, canDestroy } = useTracker(() => {
     const user = Meteor.user();
     return {
-      canAdd: userMayWritePuzzlesForHunt(user, hunt),
-      canUpdate: userMayWritePuzzlesForHunt(user, hunt),
-      canDestroy: userMayDestroyPuzzlesForHunt(user, hunt),
+      canAdd: userHasPermissionForAction(user, hunt, "editPuzzles"),
+      canUpdate: userHasPermissionForAction(user, hunt, "editPuzzles"),
+      canDestroy: userHasPermissionForAction(user, hunt, "deletePuzzles"),
     };
   }, [hunt]);
 

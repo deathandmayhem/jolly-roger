@@ -1,36 +1,22 @@
 import { Meteor } from "meteor/meteor";
-import type z from "zod";
+import type { z } from "zod";
 import isAdmin, { GLOBAL_SCOPE } from "./isAdmin";
 import type { HuntType } from "./models/Hunts";
 import MeteorUsers from "./models/MeteorUsers";
 import type { Selector } from "./models/Model";
 import type { User } from "./models/User";
+import type {
+  ConfigurableAction,
+  ConfiguredPermissionLevel,
+  DefinedRole,
+} from "./permissions";
 
-// Explicitly defined roles
-type DefinedRole = "hunt_owner" | "operator";
-
-// A list of actions with hunt-specific configurable access control levels.
-export type ConfigurableAction =
-  | "inviteUsers" // Invite users by email
-  | "bulkInviteUsers" // Invite users in batch by email
-  | "manageOperators" // Promote or demote operator permissions
-  | "manageInvitationLink" // Create, regenerate, or destroy a public invitation link.
-  | "editPuzzles" // Add and edit Puzzles within this hunt
-  | "deletePuzzles" // Delete a Puzzle within this hunt
-  | "operateGuessQueue" // Change the state of a Guess (i.e. to correct or incorrect or partial or rejected, or back to pending) if the operator queue is enabled
-  | "sendAnnouncements" // Send an Announcement for this hunt
-  | "purgeHunt"; // Purge all data associated with this hunt
-
-// These permission levels are considered hierarchical:
-// * a server admin can (at least for now) do anything a hunt owner can;
-// * a hunt owner can always do anything an operator can;
-// * and an operator can always do anything a member can.
-export type RequiredPermissionLevel = "hunt_owner" | "operator" | "member";
+type EffectivePermissionLevel = "admin" | ConfiguredPermissionLevel | "none";
 
 // The default required permission level to perform particular actions within a hunt.
 export const DEFAULT_PERMISSION_LEVELS: Record<
   ConfigurableAction,
-  RequiredPermissionLevel
+  ConfiguredPermissionLevel
 > = {
   inviteUsers: "operator",
   bulkInviteUsers: "operator",
@@ -45,56 +31,112 @@ export const DEFAULT_PERMISSION_LEVELS: Record<
 
 export function userHasRoleForHunt(
   user: Pick<Meteor.User, "roles">,
-  hunt: Pick<HuntType, "_id">,
+  huntId: string,
   role: DefinedRole,
 ): boolean {
-  const roles = user.roles?.[hunt._id];
+  const roles = user.roles?.[huntId];
   return roles?.includes(role) ?? false;
 }
 
-function userIsInHunt(
+export function userIsInHunt(
   user: Pick<Meteor.User, "hunts">,
-  hunt: Pick<HuntType, "_id">,
+  huntId: string,
 ): boolean {
-  return user.hunts?.includes(hunt._id) ?? false;
+  return user.hunts?.includes(huntId) ?? false;
 }
 
-function userHasPermissionForAction(
-  user: Pick<Meteor.User, "hunts" | "roles">,
-  hunt: Pick<HuntType, "_id" | "openSignups">,
+export function requiredPermissionForAction(
+  hunt: Pick<HuntType, "_id" | "customPermissions">,
   action: ConfigurableAction,
+): ConfiguredPermissionLevel {
+  return (hunt.customPermissions ?? DEFAULT_PERMISSION_LEVELS)[action];
+}
+
+function effectivePermissionLevelForHunt(
+  user: Pick<Meteor.User, "hunts" | "roles">,
+  huntId: string,
+): EffectivePermissionLevel {
+  if (isAdmin(user)) {
+    return "admin";
+  } else if (userHasRoleForHunt(user, huntId, "hunt_owner")) {
+    return "hunt_owner";
+  } else if (userHasRoleForHunt(user, huntId, "operator")) {
+    return "operator";
+  } else if (userIsInHunt(user, huntId)) {
+    return "member";
+  } else {
+    return "none";
+  }
+}
+
+function effectivePermissionCoversRequiredPermission(
+  effectiveLevel: EffectivePermissionLevel,
+  requiredLevel: ConfiguredPermissionLevel,
 ): boolean {
-  const hasAdmin = isAdmin(user);
-  const hasHuntOwner = userHasRoleForHunt(user, hunt, "hunt_owner");
-  const hasHuntOperator = userHasRoleForHunt(user, hunt, "operator");
-  const hasHuntMember = userIsInHunt(user, hunt);
-
-  // TODO: allow hunt-level configuration to override this
-  const requiredPermission =
-    action === "inviteUsers"
-      ? hunt.openSignups
-        ? "member"
-        : "operator"
-      : DEFAULT_PERMISSION_LEVELS[action];
-
-  switch (requiredPermission) {
+  switch (requiredLevel) {
     case "hunt_owner":
-      // For now, we allow admins to do anything that a hunt owner can.
-      return hasAdmin || hasHuntOwner;
+      return effectiveLevel === "admin" || effectiveLevel === "hunt_owner";
     case "operator":
-      // For now, we allow admins to do anything that an operator can.
-      // In time, we may wish to confine admin powers.
-      // A hunt owner can configure permissions and provision operators,
-      // so there's no point in trying to prevent them from taking actions on a
-      // hunt.
-      return hasAdmin || hasHuntOwner || hasHuntOperator;
+      return (
+        effectiveLevel === "admin" ||
+        effectiveLevel === "hunt_owner" ||
+        effectiveLevel === "operator"
+      );
     case "member":
-      return hasAdmin || hasHuntOwner || hasHuntOperator || hasHuntMember;
+      return (
+        effectiveLevel === "admin" ||
+        effectiveLevel === "hunt_owner" ||
+        effectiveLevel === "operator" ||
+        effectiveLevel === "member"
+      );
     default:
       // biome-ignore lint/nursery/noUnusedExpressions: exhaustive check
-      requiredPermission satisfies never;
+      requiredLevel satisfies never;
       return false;
   }
+}
+
+// This function is intended to be a convenient one-liner to call from method implementations
+// to ensure that we perform the appropriate checks for the action and also explain the error
+// along with the required permission level to perform the action.
+export function checkUserHasPermissionForAction(
+  user: Pick<Meteor.User, "hunts" | "roles"> | null | undefined,
+  hunt: Pick<HuntType, "_id" | "customPermissions"> | null | undefined,
+  action: ConfigurableAction,
+) {
+  if (!user) {
+    throw new Meteor.Error(
+      401,
+      `Logged-out user may not perform action ${action}`,
+    );
+  }
+  if (!hunt) {
+    throw new Meteor.Error(404, "No such hunt");
+  }
+
+  const required = requiredPermissionForAction(hunt, action);
+  const effective = effectivePermissionLevelForHunt(user, hunt._id);
+  if (!effectivePermissionCoversRequiredPermission(effective, required)) {
+    throw new Meteor.Error(
+      401,
+      `Action ${action} on hunt ${hunt._id} requires "${required}" privilege but you only have "${effective}" privilege`,
+    );
+  }
+}
+
+// This function is intended to be used conveniently in contexts where we want
+// to know if a user may take an action so we can show UI for it or not.
+export function userHasPermissionForAction(
+  user: Pick<Meteor.User, "hunts" | "roles"> | null | undefined,
+  hunt: Pick<HuntType, "_id" | "customPermissions"> | null | undefined,
+  action: ConfigurableAction,
+): boolean {
+  if (!user || !hunt) {
+    return false;
+  }
+  const required = requiredPermissionForAction(hunt, action);
+  const effective = effectivePermissionLevelForHunt(user, hunt._id);
+  return effectivePermissionCoversRequiredPermission(effective, required);
 }
 
 export function listAllRolesForHunt(
@@ -106,17 +148,6 @@ export function listAllRolesForHunt(
   }
 
   return [...(user.roles[GLOBAL_SCOPE] ?? []), ...(user.roles[hunt._id] ?? [])];
-}
-
-export function userIsOperatorForHunt(
-  user: Pick<Meteor.User, "roles"> | null | undefined,
-  hunt: Pick<HuntType, "_id"> | null | undefined,
-): boolean {
-  if (!user || !hunt) {
-    return false;
-  }
-
-  return userHasRoleForHunt(user, hunt, "operator");
 }
 
 export function huntsUserIsOperatorFor(
@@ -147,65 +178,20 @@ export function queryOperatorsForHunt(
 
 export function userMayConfigureHunt(
   user: Pick<Meteor.User, "roles"> | null | undefined,
-  hunt: Pick<HuntType, "_id"> | null | undefined,
+  huntId: string,
 ): boolean {
-  if (!user || !hunt) {
+  if (!user) {
     return false;
   }
 
-  return userHasRoleForHunt(user, hunt, "hunt_owner");
-}
-
-export function userMayAddUsersToHunt(
-  user: Pick<Meteor.User, "roles" | "hunts"> | null | undefined,
-  hunt: Pick<HuntType, "_id" | "openSignups"> | null | undefined,
-): boolean {
-  if (!user || !hunt) {
-    return false;
-  }
-
-  return userHasPermissionForAction(user, hunt, "inviteUsers");
-}
-
-export function userMayUpdateHuntInvitationCode(
-  user: Pick<Meteor.User, "roles"> | null | undefined,
-  hunt: Pick<HuntType, "_id" | "openSignups"> | null | undefined,
-): boolean {
-  if (!user || !hunt) {
-    return false;
-  }
-
-  return userHasPermissionForAction(user, hunt, "manageInvitationLink");
-}
-
-// Admins and operators may add announcements to a hunt.
-export function userMayAddAnnouncementToHunt(
-  user: Pick<Meteor.User, "roles"> | null | undefined,
-  hunt: Pick<HuntType, "_id" | "openSignups"> | null | undefined,
-): boolean {
-  if (!user || !hunt) {
-    return false;
-  }
-
-  return userHasPermissionForAction(user, hunt, "sendAnnouncements");
-}
-
-export function userMayMakeOperatorForHunt(
-  user: Pick<Meteor.User, "roles"> | null | undefined,
-  hunt: Pick<HuntType, "_id" | "openSignups"> | null | undefined,
-): boolean {
-  if (!user || !hunt) {
-    return false;
-  }
-
-  return userHasPermissionForAction(user, hunt, "manageOperators");
+  return userHasRoleForHunt(user, huntId, "hunt_owner");
 }
 
 export function userMaySeeUserInfoForHunt(
   user: Pick<Meteor.User, "roles"> | null | undefined,
-  hunt: Pick<HuntType, "_id"> | null | undefined,
+  huntId: string,
 ): boolean {
-  if (!user || !hunt) {
+  if (!user) {
     return false;
   }
 
@@ -213,28 +199,11 @@ export function userMaySeeUserInfoForHunt(
     return true;
   }
 
-  if (userHasRoleForHunt(user, hunt, "operator")) {
+  if (userHasRoleForHunt(user, huntId, "operator")) {
     return true;
   }
 
   return false;
-}
-
-export function userMayBulkAddToHunt(
-  user: Pick<Meteor.User, "roles"> | null | undefined,
-  hunt: Pick<HuntType, "_id" | "openSignups"> | null | undefined,
-): boolean {
-  if (!user || !hunt) {
-    return false;
-  }
-
-  return userHasPermissionForAction(user, hunt, "bulkInviteUsers");
-}
-
-export function userMayUseDiscordBotAPIs(
-  user: Pick<Meteor.User, "roles"> | null | undefined,
-): boolean {
-  return isAdmin(user);
 }
 
 export function checkAdmin(
@@ -243,6 +212,12 @@ export function checkAdmin(
   if (!isAdmin(user)) {
     throw new Meteor.Error(401, "Must be admin");
   }
+}
+
+export function userMayUseDiscordBotAPIs(
+  user: Pick<Meteor.User, "roles"> | null | undefined,
+): boolean {
+  return isAdmin(user);
 }
 
 export function userMayConfigureGdrive(
@@ -299,39 +274,6 @@ export function userMayConfigureAssets(
   return isAdmin(user);
 }
 
-export function userMayUpdateGuessesForHunt(
-  user: Pick<Meteor.User, "roles"> | null | undefined,
-  hunt: Pick<HuntType, "_id" | "openSignups"> | null | undefined,
-): boolean {
-  if (!user || !hunt) {
-    return false;
-  }
-
-  return userHasPermissionForAction(user, hunt, "operateGuessQueue");
-}
-
-export function userMayWritePuzzlesForHunt(
-  user: Pick<Meteor.User, "roles"> | null | undefined,
-  hunt: Pick<HuntType, "_id" | "openSignups"> | null | undefined,
-): boolean {
-  if (!user || !hunt) {
-    return false;
-  }
-
-  return userHasPermissionForAction(user, hunt, "editPuzzles");
-}
-
-export function userMayDestroyPuzzlesForHunt(
-  user: Pick<Meteor.User, "roles"> | null | undefined,
-  hunt: Pick<HuntType, "_id" | "openSignups"> | null | undefined,
-): boolean {
-  if (!user || !hunt) {
-    return false;
-  }
-
-  return userHasPermissionForAction(user, hunt, "deletePuzzles");
-}
-
 export function userMayCreateHunt(
   user: Pick<Meteor.User, "roles"> | null | undefined,
 ): boolean {
@@ -345,29 +287,18 @@ export function userMayUpdateHunt(
   if (!user || !hunt) {
     return false;
   }
-  return isAdmin(user) || userHasRoleForHunt(user, hunt, "hunt_owner");
-}
-
-export function userMayPurgeHunt(
-  user: Pick<Meteor.User, "roles"> | null | undefined,
-  hunt: Pick<HuntType, "_id"> | null | undefined,
-): boolean {
-  if (!user || !hunt) {
-    return false;
-  }
-
-  return isAdmin(user) || userHasRoleForHunt(user, hunt, "hunt_owner");
+  return isAdmin(user) || userHasRoleForHunt(user, hunt._id, "hunt_owner");
 }
 
 export function userMayJoinCallsForHunt(
   user: Pick<Meteor.User, "roles" | "hunts"> | null | undefined,
-  hunt: Pick<HuntType, "_id"> | null | undefined,
+  huntId: string,
 ): boolean {
-  if (!user || !hunt) {
+  if (!user) {
     return false;
   }
 
-  return isAdmin(user) || userIsInHunt(user, hunt);
+  return isAdmin(user) || userIsInHunt(user, huntId);
 }
 
 export async function addUserToRole(

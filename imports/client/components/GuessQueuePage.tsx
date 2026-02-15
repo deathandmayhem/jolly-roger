@@ -24,7 +24,7 @@ import type { HuntType } from "../../lib/models/Hunts";
 import Hunts from "../../lib/models/Hunts";
 import type { PuzzleType } from "../../lib/models/Puzzles";
 import Puzzles from "../../lib/models/Puzzles";
-import { userMayUpdateGuessesForHunt } from "../../lib/permission_stubs";
+import { userHasPermissionForAction } from "../../lib/permission_stubs";
 import guessesForGuessQueue from "../../lib/publications/guessesForGuessQueue";
 import setGuessState from "../../methods/setGuessState";
 import { guessURL } from "../../model-helpers";
@@ -88,7 +88,8 @@ const StyledHeader = styled.div`
 const StyledRow = styled.div<{ $state: GuessType["state"] }>`
   display: contents;
   margin-bottom: 8px;
-  background-color: ${({ theme, $state }) => theme.colors.guess[$state].background};
+  background-color: ${({ theme, $state }) =>
+    theme.colors.guess[$state].background};
 
   &::before {
     content: " ";
@@ -392,7 +393,7 @@ const GuessQueuePage = () => {
     [loading],
   );
   const canEdit = useTracker(
-    () => userMayUpdateGuessesForHunt(Meteor.user(), hunt),
+    () => userHasPermissionForAction(Meteor.user(), hunt, "operateGuessQueue"),
     [hunt],
   );
 

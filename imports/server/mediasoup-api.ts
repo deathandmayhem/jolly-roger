@@ -2,7 +2,6 @@ import { check, Match } from "meteor/check";
 import { Meteor } from "meteor/meteor";
 import Flags from "../Flags";
 import Logger from "../Logger";
-import Hunts from "../lib/models/Hunts";
 import MeteorUsers from "../lib/models/MeteorUsers";
 import CallHistories from "../lib/models/mediasoup/CallHistories";
 import ConnectAcks from "../lib/models/mediasoup/ConnectAcks";
@@ -92,10 +91,7 @@ Meteor.publish("mediasoup:metadata", async function (hunt, call) {
   }
 
   if (
-    !userMayJoinCallsForHunt(
-      await MeteorUsers.findOneAsync(this.userId),
-      await Hunts.findOneAsync(hunt),
-    )
+    !userMayJoinCallsForHunt(await MeteorUsers.findOneAsync(this.userId), hunt)
   ) {
     throw new Meteor.Error(403, "Not a member of this hunt");
   }
@@ -113,10 +109,7 @@ Meteor.publish("mediasoup:join", async function (hunt, call, tab) {
   }
 
   if (
-    !userMayJoinCallsForHunt(
-      await MeteorUsers.findOneAsync(this.userId),
-      await Hunts.findOneAsync(hunt),
-    )
+    !userMayJoinCallsForHunt(await MeteorUsers.findOneAsync(this.userId), hunt)
   ) {
     throw new Meteor.Error(403, "Not a member of this hunt");
   }

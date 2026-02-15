@@ -248,8 +248,8 @@ const OperatorControls = ({
   const self = useTracker(() => user._id === Meteor.userId(), [user._id]);
   const { userIsOperator, userIsHuntOwner, userIsAdmin } = useTracker(() => {
     return {
-      userIsOperator: userHasRoleForHunt(user, hunt, "operator"),
-      userIsHuntOwner: userHasRoleForHunt(user, hunt, "hunt_owner"),
+      userIsOperator: userHasRoleForHunt(user, hunt._id, "operator"),
+      userIsHuntOwner: userHasRoleForHunt(user, hunt._id, "hunt_owner"),
       userIsAdmin: isAdmin(user),
     };
   }, [user, hunt]);
