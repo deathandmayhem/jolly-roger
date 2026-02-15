@@ -35,7 +35,7 @@ files:
   - imports/server/setup.ts
   - private/google-script/cookie-test.html
   - private/google-script/main.js
-updated: 2026-02-13T07:31:00Z
+updated: 2026-02-14T21:00:00Z
 ---
 
 # Google Drive Integration
@@ -266,26 +266,38 @@ upload directly in the event that S3 is not configured.
 
 Even when file permissions are correctly configured (see above), users can still
 appear as "Anonymous Animals" in embedded Google Sheets if their browser blocks
-or partitions third-party cookies. This is common with Firefox's Total Cookie
-Protection (TCP) and Safari's Intelligent Tracking Prevention (ITP), which
-prevent Google's authentication cookies from being sent in cross-origin iframes.
+or partitions third-party cookies. This affects both the in-spreadsheet editing
+experience and the Drive Activity API data we use for activity tracking (see
+above) — anonymous edits can't be attributed to a user, so they don't contribute
+to per-user activity indicators. This can happen because of built-in browser
+tracking protection (Firefox's Total Cookie Protection, Safari's Intelligent
+Tracking Prevention) or because of privacy extensions like Privacy Badger that
+strip `Cookie` and `Set-Cookie` headers from HTTP requests at the network level.
 
 To detect this, Jolly Roger uses the existing Apps Script web app's `doGet`
-handler to serve a small cookie detection page
-(`private/google-script/cookie-test.html`). The `doGet` handler is configured
-with `XFrameOptionsMode.ALLOWALL` so it can be loaded in a hidden iframe. The
-page runs a three-step detection algorithm:
+handler to serve a small detection page
+(`private/google-script/cookie-test.html`) in a hidden iframe. The `doGet`
+handler uses `Session.getTemporaryActiveUserKey()` to determine if Google can
+identify the accessing user from the HTTP request. While it's intended to be
+effectively a hash of the account that rolls over after some period of time, for
+our purposes we only care if it's empty or not. If it *is* empty, either the
+user isn't logged into Google in this browser, or something is preventing
+cookies from reaching Google's server (browser-level tracking protection, an
+extension stripping HTTP headers, etc.). Either way, the user would appear
+anonymous in the Sheets embed. This server-side approach catches all these
+cases, unlike client-side checks (such as `hasStorageAccess()` or
+`document.cookie`) which only see the JavaScript layer and miss extension-level
+blocking.
 
-1. **`hasStorageAccess()`** — If this returns `true`, the browser grants
-   unpartitioned cookie access and there is no problem.
-2. **Cookie set/read test** — If `hasStorageAccess()` returned `false`, the page
-   attempts to set and read back a test cookie. If this fails entirely, cookies
-   are fully blocked (e.g. Safari ITP).
-3. **`requestStorageAccess()` without gesture** — If cookies can be set but
-   `hasStorageAccess()` returned `false`, the page calls
-   `requestStorageAccess()` without a user gesture. If it resolves, there is no
-   real restriction (e.g. Safari with ITP disabled). If it rejects, a real
-   restriction is in effect (e.g. Firefox TCP).
+The result of the test is embedded into a small HTML page. Importantly, this is
+loaded in a hidden iframe rather than fetched via `fetch()` or loaded as a
+script. This is intentional: the iframe creates a **navigation request** to the
+Google domain, which is the same request type that the Google Sheets embed uses.
+Navigation requests carry cookies differently from subresource requests —
+they're subject to the same browser and extension cookie policies that affect
+the Sheets embed, making the test an accurate proxy. A `fetch()` with
+credentials would require CORS headers that we don't control, and a `fetch()`
+without credentials wouldn't send cookies at all.
 
 The result is posted back to the parent via `postMessage` with a message of type
 `jr-cookie-check`.
@@ -297,9 +309,8 @@ account, `NotificationCenter` embeds the detection page in a hidden iframe and
 listens for the result. The result is cached in a module-level variable so the
 check is not re-run during SPA navigations, but does re-run on full page reload
 (so it picks up changes to tracking protection settings). If the check indicates
-cookies
-are blocked, a toast notification warns the user and provides browser-specific
-instructions for disabling tracking protection.
+cookies are blocked, a toast notification warns the user and provides
+browser-specific instructions for fixing the issue.
 
 ## Utility Meteor methods
 
