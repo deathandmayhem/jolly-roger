@@ -32,7 +32,7 @@ Want to help develop Jolly Roger? Join our Discord server
 - **And more** — bookmarks, announcements, multi-answer puzzles, dark mode, i18n, mobile
 
 <!-- To update this video, re-run scripts/generate_screenshots.mts and follow the instructions it prints. -->
-<video src="https://github.com/user-attachments/assets/037411cd-7826-4979-9f67-4df7412af305" autoplay loop muted playsinline></video>
+[Watch the demo video](https://github.com/user-attachments/assets/d157a122-812a-4038-80ad-0f04b40405a1)
 
 ## Features
 
