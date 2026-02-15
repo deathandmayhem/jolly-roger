@@ -17,10 +17,11 @@ defineMethod(createFixtureHunt, {
 
     await makeFixtureHunt(this.userId);
 
-    // Make the user an operator
+    // Make the creator a member
     await MeteorUsers.updateAsync(this.userId, {
       $addToSet: { hunts: FixtureHunt._id },
     });
+    // Make the creator hunt_owner/operator
     await addUserToRoles(this.userId, FixtureHunt._id, [
       "hunt_owner",
       "operator",

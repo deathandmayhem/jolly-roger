@@ -36,6 +36,11 @@ defineMethod(createHunt, {
     Logger.info("Creating a new hunt", arg);
 
     const huntId = await Hunts.insertAsync(arg);
+    // Make the creator a member
+    await MeteorUsers.updateAsync(this.userId, {
+      $addToSet: { hunts: huntId },
+    });
+    // Make the creator hunt_owner/operator
     await addUserToRoles(this.userId, huntId, ["hunt_owner", "operator"]);
 
     for (const tag of DEFAULT_TAGS) {
