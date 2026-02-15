@@ -147,9 +147,13 @@ const METHODS = {
 
 // biome-ignore lint/correctness/noUnusedVariables: This is part of the Apps Script API
 function doGet() {
-  return HtmlService.createHtmlOutputFromFile(
-    "cookie-test",
-  ).setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+  const userKey = Session.getTemporaryActiveUserKey();
+  const ok = userKey !== "";
+  const output = HtmlService.createHtmlOutputFromFile("cookie-test");
+  const html = output.getContent().replace("{{ok}}", ok ? "true" : "false");
+  return HtmlService.createHtmlOutput(html).setXFrameOptionsMode(
+    HtmlService.XFrameOptionsMode.ALLOWALL,
+  );
 }
 
 // biome-ignore lint/correctness/noUnusedVariables: This is part of the Apps Script API
