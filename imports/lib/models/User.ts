@@ -1,11 +1,18 @@
 import { z } from "zod";
-import { foreignKey, nonEmptyString, stringId } from "./customTypes";
+import {
+  foreignKey,
+  nonEmptyString,
+  stringId,
+} from "../typedModel/customTypes";
+import validateSchema from "../typedModel/validateSchema";
 import type { DiscordAccountType } from "./DiscordAccount";
 import DiscordAccount from "./DiscordAccount";
-import validateSchema from "./validateSchema";
 
 declare module "meteor/meteor" {
   namespace Meteor {
+    interface UserProfile {
+      [key: string]: never;
+    }
     interface User {
       lastLogin?: Date;
       hunts?: string[];

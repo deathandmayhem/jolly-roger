@@ -9,6 +9,7 @@
     "url": "https://github.com/deathandmayhem/jolly-roger"
   },
   "scripts": {
+    "postinstall": "cd node_modules/zod-to-mongo-schema && meteor npm install && meteor npm run build",
     "lint:types": "tsgo",
     "lint:biome": "biome check",
     "lint:eslint": "eslint --max-warnings 0 --ext js,jsx,ts,tsx,mjs,mts .",
@@ -76,7 +77,8 @@
     "usehooks-ts": "^3.1.1",
     "winston": "^3.19.0",
     "winston-transport": "^4.9.0",
-    "zod": "^3.23.8"
+    "zod": "^4.3.6",
+    "zod-to-mongo-schema": "https://github.com/ebroder/zod-to-mongo-schema/archive/refs/heads/strict.tar.gz"
   },
   "devDependencies": {
     "@biomejs/biome": "2.3.15",

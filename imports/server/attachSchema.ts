@@ -1,16 +1,16 @@
 import type { Mongo } from "meteor/mongo";
 import { MongoInternals } from "meteor/mongo";
-import type { z } from "zod";
-import type { MongoRecordZodType } from "../lib/models/generateJsonSchema";
-import generateJsonSchema from "../lib/models/generateJsonSchema";
+import type { $ZodType, output } from "zod/v4/core";
+import zodToMongoSchema from "zod-to-mongo-schema";
 
 const { MongoError } = MongoInternals.NpmModules.mongodb.module;
 
-export default async function attachSchema<T extends MongoRecordZodType>(
-  schema: T,
-  collection: Mongo.Collection<z.output<T>>,
-) {
-  const validator = { $jsonSchema: generateJsonSchema(schema) };
+export default async function attachSchema<
+  S extends $ZodType<Record<string, any>>,
+>(schema: S, collection: Mongo.Collection<output<S>>) {
+  const validator = {
+    $jsonSchema: zodToMongoSchema(schema, { strict: false }),
+  };
   const db = collection.rawDatabase();
 
   // Ensure the collection exists (ignore if it was already created)
@@ -21,7 +21,7 @@ export default async function attachSchema<T extends MongoRecordZodType>(
       !(error instanceof MongoError) ||
       error.code !== 48 /* NamespaceExists */
     ) {
-      throw error;
+      throw new Error(`Failed to attach schema to collection ${collection._name}: ${error}\nValidator: ${JSON.stringify(validator, null, 2)}`);
     }
   }
 
