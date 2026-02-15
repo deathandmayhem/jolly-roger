@@ -5,6 +5,7 @@ import type React from "react";
 import { useCallback, useId, useRef, useState } from "react";
 import Alert from "react-bootstrap/Alert";
 import Button from "react-bootstrap/Button";
+import ButtonGroup from "react-bootstrap/ButtonGroup";
 import Col from "react-bootstrap/Col";
 import Container from "react-bootstrap/Container";
 import type { FormProps } from "react-bootstrap/Form";
@@ -17,16 +18,23 @@ import FormLabel from "react-bootstrap/FormLabel";
 import FormText from "react-bootstrap/FormText";
 import Modal from "react-bootstrap/Modal";
 import Row from "react-bootstrap/Row";
+import ToggleButton from "react-bootstrap/ToggleButton";
 import { createPortal } from "react-dom";
 import { Trans, useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router";
+import { css, styled } from "styled-components";
 import DiscordCache from "../../lib/models/DiscordCache";
 import type {
   EditableHuntType,
   SavedDiscordObjectType,
 } from "../../lib/models/Hunts";
-import Hunts from "../../lib/models/Hunts";
+import Hunts, { type CustomPermissionsType } from "../../lib/models/Hunts";
 import Settings from "../../lib/models/Settings";
+import { DEFAULT_PERMISSION_LEVELS } from "../../lib/permission_stubs";
+import type {
+  ConfigurableAction,
+  ConfiguredPermissionLevel,
+} from "../../lib/permissions";
 import discordChannelsForConfiguredGuild from "../../lib/publications/discordChannelsForConfiguredGuild";
 import discordRolesForConfiguredGuild from "../../lib/publications/discordRolesForConfiguredGuild";
 import settingsByName from "../../lib/publications/settingsByName";
@@ -51,6 +59,343 @@ const splitLists = function (lists: string): string[] {
   }
 
   return strippedLists.split(/[, ]+/);
+};
+
+const PERMISSION_ACTIONS: Record<
+  ConfigurableAction,
+  {
+    translationKey: string;
+    defaultText: string;
+    weakestAllowableLevel?: ConfiguredPermissionLevel;
+  }
+> = {
+  inviteUsers: {
+    translationKey: "huntEdit.permissions.actions.inviteUsers",
+    defaultText: "Who can invite users",
+  },
+  bulkInviteUsers: {
+    translationKey: "huntEdit.permissions.actions.bulkInviteUsers",
+    defaultText: "Who can bulk-invite users",
+  },
+  manageOperators: {
+    translationKey: "huntEdit.permissions.actions.manageOperators",
+    defaultText: "Who can promote and demote operators",
+    weakestAllowableLevel: "operator",
+  },
+  manageInvitationLink: {
+    translationKey: "huntEdit.permissions.actions.manageInvitationLink",
+    defaultText: "Who can manage the invitation link",
+  },
+  editPuzzles: {
+    translationKey: "huntEdit.permissions.actions.editPuzzles",
+    defaultText: "Who can add and modify puzzles",
+  },
+  deletePuzzles: {
+    translationKey: "huntEdit.permissions.actions.deletePuzzles",
+    defaultText: "Who can delete and undelete puzzles",
+  },
+  operateGuessQueue: {
+    translationKey: "huntEdit.permissions.actions.operateGuessQueue",
+    defaultText: "Who can operate the guess queue, if enabled",
+  },
+  sendAnnouncements: {
+    translationKey: "huntEdit.permissions.actions.sendAnnouncements",
+    defaultText: "Who can send announcements",
+  },
+  purgeHunt: {
+    translationKey: "huntEdit.permissions.actions.purgeHunt",
+    defaultText: "Who can purge all hunt data",
+    weakestAllowableLevel: "operator",
+  },
+};
+
+const AllPermissionsSelector = ({
+  customPermissions,
+  onChangeLevel,
+}: {
+  customPermissions: CustomPermissionsType | undefined;
+  onChangeLevel: (
+    action: ConfigurableAction,
+    level: ConfiguredPermissionLevel,
+  ) => void;
+}) => {
+  const allActions: ConfigurableAction[] = [
+    "inviteUsers",
+    "bulkInviteUsers",
+    "manageOperators",
+    "manageInvitationLink",
+    "editPuzzles",
+    "deletePuzzles",
+    "operateGuessQueue",
+    "sendAnnouncements",
+    "purgeHunt",
+  ];
+
+  return allActions.map((action) => {
+    const level =
+      customPermissions?.[action] ?? DEFAULT_PERMISSION_LEVELS[action];
+    return (
+      <PermissionSelector
+        key={action}
+        action={action}
+        disabled={customPermissions === undefined}
+        level={level}
+        onChangeLevel={onChangeLevel}
+      />
+    );
+  });
+};
+
+const OPTION_WIDTH_PX = 100;
+
+const StyledDataList = styled.ul<{ $items: number }>`
+  display: flex;
+  margin: 0;
+  padding: 0;
+  width: ${({ $items }) => OPTION_WIDTH_PX * ($items + 1)}px;
+  align-items: flex-start;
+  justify-content: space-between;
+`;
+
+const StyledOption = styled.li<{
+  $selected: boolean;
+  $disabled: boolean;
+  $covered: boolean;
+}>`
+  display: block;
+  width: ${OPTION_WIDTH_PX}px;
+  text-align: center;
+  font-size: 12px;
+  opacity: 0.5;
+  user-select: none;
+
+  ${({ $disabled }) =>
+    !$disabled &&
+    css`
+      cursor: pointer;
+
+      &:hover {
+        opacity: 1;
+      }
+    `}
+
+  ${({ $covered }) =>
+    $covered &&
+    css`
+      opacity: 0.85;
+    `}
+
+  ${({ $selected }) =>
+    $selected &&
+    css`
+      opacity: 1;
+      font-weight: bold;
+    `}
+`;
+
+const CONFIGURABLE_PERMISSION_LEVELS: ConfiguredPermissionLevel[] = [
+  "hunt_owner",
+  "operator",
+  "member",
+];
+const positionMap = {
+  hunt_owner: 0,
+  operator: 1,
+  member: 2,
+};
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.max(Math.min(value, max), min);
+}
+
+const PermissionSelector = ({
+  action,
+  disabled,
+  level,
+  onChangeLevel,
+}: {
+  action: ConfigurableAction;
+  disabled: boolean;
+  level: ConfiguredPermissionLevel;
+  onChangeLevel: (
+    action: ConfigurableAction,
+    newLevel: ConfiguredPermissionLevel,
+  ) => void;
+}) => {
+  const optionsRef = useRef<HTMLUListElement>(null);
+  const { t } = useTranslation();
+  const idPrefix = useId();
+  const permissionMeta = PERMISSION_ACTIONS[action];
+
+  const currentPosition = positionMap[level];
+  const maxPosition =
+    positionMap[permissionMeta.weakestAllowableLevel ?? "member"];
+
+  const inputId = `${idPrefix}-input`;
+  const optionsId = `${idPrefix}-options`;
+
+  const guardedOnChange = useCallback(
+    (action: ConfigurableAction, newLevel: ConfiguredPermissionLevel) => {
+      if (positionMap[newLevel] <= maxPosition) {
+        onChangeLevel(action, newLevel);
+      }
+    },
+    [maxPosition, onChangeLevel],
+  );
+
+  const onChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const nextLevel =
+        (["hunt_owner", "operator", "member"] as const)[
+          parseInt(e.target.value, 10)
+        ] ?? "hunt_owner";
+      guardedOnChange(action, nextLevel);
+    },
+    [action, guardedOnChange],
+  );
+
+  const [dragState, setDragState] = useState<{
+    active: boolean;
+    leftX: number;
+  }>({ active: false, leftX: 0 });
+
+  // Capture events from clicks on option elements and allow dragging between, just like the slider
+  const onPointerDown = useCallback(
+    (e: React.PointerEvent<HTMLLIElement>) => {
+      if (optionsRef.current && !disabled) {
+        optionsRef.current.setPointerCapture(e.pointerId);
+        e.preventDefault(); // prevent highlighting child text
+        const bounds = optionsRef.current.getBoundingClientRect();
+        setDragState({
+          active: true,
+          leftX: bounds.left,
+        });
+
+        const xOffset = e.clientX - bounds.left;
+        const xoffSteps = xOffset / OPTION_WIDTH_PX;
+        const dragPosition = clamp(Math.floor(xoffSteps), 0, maxPosition);
+        const dragLevel = CONFIGURABLE_PERMISSION_LEVELS.at(dragPosition);
+        if (dragLevel) {
+          guardedOnChange(action, dragLevel);
+        }
+      }
+    },
+    [guardedOnChange, action, maxPosition, disabled],
+  );
+
+  const onPointerMove = useCallback(
+    (e: React.PointerEvent<HTMLElement>) => {
+      if (dragState.active) {
+        const xOffset = e.clientX - dragState.leftX;
+        const xoffSteps = xOffset / OPTION_WIDTH_PX;
+        const dragPosition = clamp(Math.floor(xoffSteps), 0, maxPosition);
+        const dragLevel = CONFIGURABLE_PERMISSION_LEVELS.at(dragPosition);
+        if (dragLevel) {
+          guardedOnChange(action, dragLevel);
+        }
+      }
+    },
+    [dragState.active, dragState.leftX, action, guardedOnChange, maxPosition],
+  );
+
+  const onPointerUp = useCallback((_: React.PointerEvent<HTMLElement>) => {
+    setDragState({
+      active: false,
+      leftX: 0,
+    });
+  }, []);
+
+  // Safari doesn't handle the jsx-a11y-suggested thing well.
+  // oxlint-disable jsx-a11y/prefer-tag-over-role
+  return (
+    <div className="mb-3" style={{ width: `${OPTION_WIDTH_PX * 3}px` }}>
+      <div>
+        <label htmlFor={inputId}>
+          {t(permissionMeta.translationKey, permissionMeta.defaultText)}
+        </label>
+      </div>
+      <input
+        style={{
+          width: `${OPTION_WIDTH_PX * maxPosition + 16}px`,
+          marginLeft: `${OPTION_WIDTH_PX / 2 - 8}px`,
+          marginRight: `${OPTION_WIDTH_PX / 2 - 8}px`,
+        }}
+        id={inputId}
+        type="range"
+        min={0}
+        max={maxPosition}
+        value={currentPosition}
+        list={optionsId}
+        disabled={disabled}
+        onChange={onChange}
+      />
+      {/* Because Safari doesn't render <datalist> or <option> labels, even if
+      you specify display: block, we effectively have to include the datalist
+      twice: once for the <input> element (to reference for ticks), and then
+      again if we want to display labels.  This is annoying. */}
+      <datalist id={optionsId}>
+        <option
+          value="0"
+          selected={currentPosition === 0}
+          label={t("huntEdit.permissions.hunt_owners", "Hunt owners")}
+        />
+        {maxPosition >= 1 ? (
+          <option
+            value="1"
+            selected={currentPosition === 1}
+            label={t("huntEdit.permissions.operators", "Operators")}
+          />
+        ) : undefined}
+        {maxPosition >= 2 ? (
+          <option
+            value="2"
+            selected={currentPosition === 2}
+            label={t("huntEdit.permissions.members", "Members")}
+          />
+        ) : undefined}
+      </datalist>
+      <StyledDataList
+        ref={optionsRef}
+        $items={maxPosition}
+        role="listbox"
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+      >
+        <StyledOption
+          $selected={currentPosition === 0}
+          $covered={currentPosition >= 0}
+          $disabled={disabled}
+          role="listitem"
+          onPointerDown={onPointerDown}
+        >
+          {t("huntEdit.permissions.hunt_owners", "Hunt owners")}
+        </StyledOption>
+        {maxPosition >= 1 ? (
+          <StyledOption
+            $selected={currentPosition === 1}
+            $covered={currentPosition >= 1}
+            $disabled={disabled}
+            role="listitem"
+            onPointerDown={onPointerDown}
+          >
+            {t("huntEdit.permissions.operators", "Operators")}
+          </StyledOption>
+        ) : undefined}
+        {maxPosition >= 2 ? (
+          <StyledOption
+            $selected={currentPosition === 2}
+            $covered={currentPosition >= 2}
+            $disabled={disabled}
+            role="listitem"
+            onPointerDown={onPointerDown}
+          >
+            {t("huntEdit.permissions.members", "Members")}
+          </StyledOption>
+        ) : undefined}
+      </StyledDataList>
+    </div>
+  );
+  // oxlint-enable jsx-a11y/prefer-tag-over-role
 };
 
 interface DiscordSelectorParams {
@@ -223,7 +568,6 @@ const HuntEditPage = () => {
     hunt?.mailingLists.join(", ") ?? "",
   );
   const [signupMessage, setSignupMessage] = useState(hunt?.signupMessage ?? "");
-  const [openSignups, setOpenSignups] = useState(hunt?.openSignups ?? false);
   const [hasGuessQueue, setHasGuessQueue] = useState(
     hunt?.hasGuessQueue ?? true,
   );
@@ -237,6 +581,9 @@ const HuntEditPage = () => {
   const [submitTemplate, setSubmitTemplate] = useState(
     hunt?.submitTemplate ?? "",
   );
+  const [customPermissions, setCustomPermissions] = useState(
+    hunt?.customPermissions,
+  );
   const [announcementDiscordChannel, setAnnouncementDiscordChannel] = useState(
     hunt?.announcementDiscordChannel,
   );
@@ -248,6 +595,21 @@ const HuntEditPage = () => {
   );
   const [memberDiscordRole, setMemberDiscordRole] = useState(
     hunt?.memberDiscordRole,
+  );
+
+  const onSetCustomPermissionsEnabled = useCallback((enabled: boolean) => {
+    setCustomPermissions(enabled ? DEFAULT_PERMISSION_LEVELS : undefined);
+  }, []);
+  const onChangePermissionLevel = useCallback(
+    (action: ConfigurableAction, level: ConfiguredPermissionLevel) => {
+      setCustomPermissions((prev: CustomPermissionsType | undefined) => {
+        return {
+          ...(prev ?? DEFAULT_PERMISSION_LEVELS),
+          [action]: level,
+        };
+      });
+    },
+    [],
   );
 
   const onNameChanged = useCallback<NonNullable<FormControlProps["onChange"]>>(
@@ -268,13 +630,6 @@ const HuntEditPage = () => {
   >((e) => {
     setSignupMessage(e.currentTarget.value);
   }, []);
-
-  const onOpenSignupsChanged = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      setOpenSignups(e.currentTarget.checked);
-    },
-    [],
-  );
 
   const onHasGuessQueueChanged = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -361,11 +716,11 @@ const HuntEditPage = () => {
         name,
         mailingLists: splitLists(mailingLists),
         signupMessage: signupMessage === "" ? undefined : signupMessage,
-        openSignups,
         hasGuessQueue,
         termsOfUse: termsOfUse === "" ? undefined : termsOfUse,
         homepageUrl: homepageUrl === "" ? undefined : homepageUrl,
         submitTemplate: submitTemplate === "" ? undefined : submitTemplate,
+        customPermissions,
         announcementDiscordChannel,
         puzzleHooksDiscordChannel,
         firehoseDiscordChannel,
@@ -383,11 +738,11 @@ const HuntEditPage = () => {
       name,
       mailingLists,
       signupMessage,
-      openSignups,
       hasGuessQueue,
       termsOfUse,
       homepageUrl,
       submitTemplate,
+      customPermissions,
       announcementDiscordChannel,
       puzzleHooksDiscordChannel,
       firehoseDiscordChannel,
@@ -481,32 +836,6 @@ const HuntEditPage = () => {
         <FormGroup
           as={Row}
           className="mb-3"
-          controlId={`${idPrefix}-hunt-form-open-signups`}
-        >
-          <FormLabel column xs={3}>
-            {t("huntEdit.openInvites.field", "Open invites")}
-          </FormLabel>
-          <Col xs={9}>
-            <FormCheck
-              id={`${idPrefix}-hunt-form-open-signups`}
-              checked={openSignups}
-              onChange={onOpenSignupsChanged}
-              disabled={disableForm}
-            />
-            <FormText>
-              {t(
-                "huntEdit.openInvites.help",
-                `If open invites are enabled, then any current member of the
-                hunt can add a new member to the hunt. Otherwise, only
-                operators can add new members.`,
-              )}
-            </FormText>
-          </Col>
-        </FormGroup>
-
-        <FormGroup
-          as={Row}
-          className="mb-3"
           controlId={`${idPrefix}-hunt-form-has-guess-queue`}
         >
           <FormLabel column xs={3}>
@@ -565,6 +894,49 @@ const HuntEditPage = () => {
         </FormGroup>
 
         {termsOfUsePreview}
+
+        <Row className="mb-3">
+          <FormLabel column xs={3}>
+            {t("huntEdit.customPermissions.field", "Permissions")}
+          </FormLabel>
+          <Col xs={9}>
+            <Row className="mb-3">
+              <ButtonGroup>
+                <ToggleButton
+                  key="default-permissions"
+                  id={`${idPrefix}-default-permisisons`}
+                  type="radio"
+                  variant="outline-secondary"
+                  name="permissions-mode"
+                  value="default"
+                  checked={customPermissions === undefined}
+                  onChange={() => onSetCustomPermissionsEnabled(false)}
+                >
+                  {t(
+                    "huntEdit.permissions.defaults",
+                    "Use default permissions",
+                  )}
+                </ToggleButton>
+                <ToggleButton
+                  key="operator"
+                  id={`${idPrefix}-custom-permissions`}
+                  type="radio"
+                  variant="outline-secondary"
+                  name="permissions-mode"
+                  value="operator"
+                  checked={customPermissions !== undefined}
+                  onChange={() => onSetCustomPermissionsEnabled(true)}
+                >
+                  {t(`huntEdit.permissions.customize`, "Customize permissions")}
+                </ToggleButton>
+              </ButtonGroup>
+            </Row>
+            <AllPermissionsSelector
+              customPermissions={customPermissions}
+              onChangeLevel={onChangePermissionLevel}
+            />
+          </Col>
+        </Row>
 
         <h3>{t("huntEdit.huntWebsite", "Hunt website")}</h3>
 

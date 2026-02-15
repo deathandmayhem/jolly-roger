@@ -24,7 +24,7 @@ defineMethod(updateHunt, {
       throw new Meteor.Error(404, "Unknown hunt");
     }
 
-    if (!userMayConfigureHunt(caller, oldHunt)) {
+    if (!userMayConfigureHunt(caller, huntId)) {
       throw new Meteor.Error(
         401,
         `User ${this.userId} may not modify hunt ${huntId}`,
