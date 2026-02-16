@@ -2,6 +2,22 @@ interface ObjectWithId {
   _id: string;
 }
 
+export function indexedBy<T>(
+  list: T[],
+  k: keyof T | ((val: T) => string),
+  allowDuplicates = false,
+): Map<string, T> {
+  const retval = new Map();
+  list.forEach((item) => {
+    const key = k instanceof Function ? k(item) : item[k];
+    if (!allowDuplicates && retval.has(key)) {
+      throw new Error(`Duplicate ${String(k)} ${key} passed to indexedBy`);
+    }
+    retval.set(key, item);
+  });
+  return retval;
+}
+
 export function indexedById<T extends ObjectWithId>(list: T[]): Map<string, T> {
   const retval = new Map();
   list.forEach((item) => {
