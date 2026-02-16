@@ -1,9 +1,10 @@
-import discordSyncRoleJob from "./jobs/discordSyncRole";
+import discordSyncRole from "../lib/jobs/discordSyncRole";
+import enqueueJob from "./jobs/framework/enqueueJob";
 
 export default async (
   userIds: string[],
   huntId: string,
   { force = true }: { force?: boolean } = {},
 ) => {
-  await discordSyncRoleJob.enqueue({ huntId, userIds, force });
+  await enqueueJob(discordSyncRole, { huntId, userIds, force });
 };

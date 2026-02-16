@@ -5,9 +5,10 @@ import {
   paginateListObjectsV2,
   S3Client,
 } from "@aws-sdk/client-s3";
-import { z } from "zod";
+import type { z } from "zod";
 import Flags from "../../Flags";
 import Logger from "../../Logger";
+import purgeHunt from "../../lib/jobs/purgeHunt";
 import Announcements from "../../lib/models/Announcements";
 import APIKeys from "../../lib/models/APIKeys";
 import BlobMappings from "../../lib/models/BlobMappings";
@@ -15,7 +16,6 @@ import BookmarkNotifications from "../../lib/models/BookmarkNotifications";
 import Bookmarks from "../../lib/models/Bookmarks";
 import ChatMessages from "../../lib/models/ChatMessages";
 import ChatNotifications from "../../lib/models/ChatNotifications";
-import { foreignKey } from "../../lib/models/customTypes";
 import DiscordCache from "../../lib/models/DiscordCache";
 import DiscordRoleGrants from "../../lib/models/DiscordRoleGrants";
 import DocumentActivities from "../../lib/models/DocumentActivities";
@@ -145,143 +145,128 @@ Meteor.startup(() => {
 
 const DAYS_MSEC = 24 * 60 * 60 * 1000;
 
-const purgeHuntJob = defineJob(
-  "hunt.purgeHunt",
-  z.object({
-    huntId: foreignKey,
-  }),
-  {
-    result: z.object({
-      itemsTotal: z.number(), // How many total units of work do we need to complete?
-      itemsCompleted: z.number(), // How many units of work have we completed so far?
-      currentItemTotal: z.optional(z.number()), // Within the current unit of work, how many substeps are involved?
-      currentItemCompleted: z.optional(z.number()), // And how many have we completed so far?
-    }),
-    maxAttempts: 3,
-    deleteAfter: () => {
-      return new Date(Date.now() + 30 * DAYS_MSEC);
-    },
-    async run(args, { signal, setResult }) {
-      // Verify that hunt exists
-      const hunt = await Hunts.findOneAsync(args.huntId);
-      if (!hunt) {
-        Logger.info("Hunt does not exist", { huntId: args.huntId });
-        return;
+defineJob(purgeHunt, {
+  deleteAfter: () => {
+    return new Date(Date.now() + 30 * DAYS_MSEC);
+  },
+  async run(args, { signal, setResult }) {
+    // Verify that hunt exists
+    const hunt = await Hunts.findOneAsync(args.huntId);
+    if (!hunt) {
+      Logger.info("Hunt does not exist", { huntId: args.huntId });
+      return;
+    }
+
+    const itemsTotal = 3 + COLLECTIONS_TO_PURGE.length;
+    let itemsCompleted = 0;
+    await setResult({ itemsTotal, itemsCompleted });
+
+    // Remove all the Puzzles.  We do this first because once puzzle IDs no longer refer to a valid Puzzle,
+    // we stop allowing insertion of other documents which reference that puzzle, which means we can expect
+    // writes to quiesce and better guarantee that we don't leak documents due to clients making additional
+    // requests.
+    await Puzzles.removeAsync({ hunt: args.huntId });
+    itemsCompleted += 1;
+    await setResult({ itemsTotal, itemsCompleted });
+
+    // Delete any Documents from the Google Drive
+    if (await Flags.activeAsync("disable.google")) {
+      Logger.info(
+        "Skipping Document deletion because Google is disabled by feature flag",
+        { huntId: args.huntId },
+      );
+    } else {
+      const docs = await Documents.findAllowingDeleted({
+        hunt: args.huntId,
+      }).fetchAsync();
+      const currentItemTotal = docs.length;
+      let currentItemCompleted = 0;
+      for (const doc of docs) {
+        signal.throwIfAborted();
+        Logger.info("Remove Google drive document", {
+          id: doc._id,
+          fileId: doc.value.id,
+        });
+        await deleteDocument(doc.value.id);
+        await Documents.removeAsync(doc._id);
+        currentItemCompleted += 1;
+        await setResult({
+          itemsTotal,
+          itemsCompleted,
+          currentItemTotal,
+          currentItemCompleted,
+        });
+        // Avoid tripping on Drive's rate limits
+        await setTimeout(500);
       }
+    }
+    itemsCompleted += 1;
+    await setResult({ itemsTotal, itemsCompleted });
 
-      const itemsTotal = 3 + COLLECTIONS_TO_PURGE.length;
-      let itemsCompleted = 0;
-      await setResult({ itemsTotal, itemsCompleted });
+    // If an s3 bucket is configured, delete everything in the /{huntId} key prefix of that bucket
+    const s3BucketSettings = await Settings.findOneAsync({
+      name: "s3.image_bucket",
+    });
+    if (s3BucketSettings?.value) {
+      const s3 = new S3Client({
+        region: s3BucketSettings.value.bucketRegion,
+      });
 
-      // Remove all the Puzzles.  We do this first because once puzzle IDs no longer refer to a valid Puzzle,
-      // we stop allowing insertion of other documents which reference that puzzle, which means we can expect
-      // writes to quiesce and better guarantee that we don't leak documents due to clients making additional
-      // requests.
-      await Puzzles.removeAsync({ hunt: args.huntId });
-      itemsCompleted += 1;
-      await setResult({ itemsTotal, itemsCompleted });
+      const paginator = paginateListObjectsV2(
+        { client: s3, pageSize: 500 },
+        {
+          Bucket: s3BucketSettings.value.bucketName,
+          Prefix: `${args.huntId}/`,
+        },
+      );
 
-      // Delete any Documents from the Google Drive
-      if (await Flags.activeAsync("disable.google")) {
-        Logger.info(
-          "Skipping Document deletion because Google is disabled by feature flag",
-          { huntId: args.huntId },
-        );
-      } else {
-        const docs = await Documents.findAllowingDeleted({
-          hunt: args.huntId,
-        }).fetchAsync();
-        const currentItemTotal = docs.length;
-        let currentItemCompleted = 0;
-        for (const doc of docs) {
-          signal.throwIfAborted();
-          Logger.info("Remove Google drive document", {
-            id: doc._id,
-            fileId: doc.value.id,
+      // We don't know the total number of pages without reading them, so we'll just track pages completed
+      let currentItemCompleted = 0;
+      for await (const page of paginator) {
+        signal.throwIfAborted();
+        if (page.Contents) {
+          const keysToDelete = page.Contents.map((o) => {
+            return {
+              Key: o.Key,
+            };
           });
-          await deleteDocument(doc.value.id);
-          await Documents.removeAsync(doc._id);
+          if (keysToDelete.length > 0) {
+            await s3.send(
+              new DeleteObjectsCommand({
+                Bucket: s3BucketSettings.value.bucketName,
+                Delete: {
+                  Objects: keysToDelete,
+                  Quiet: true,
+                },
+              }),
+            );
+          }
           currentItemCompleted += 1;
           await setResult({
             itemsTotal,
             itemsCompleted,
-            currentItemTotal,
             currentItemCompleted,
           });
-          // Avoid tripping on Drive's rate limits
-          await setTimeout(500);
         }
       }
-      itemsCompleted += 1;
-      await setResult({ itemsTotal, itemsCompleted });
+    }
+    itemsCompleted += 1;
 
-      // If an s3 bucket is configured, delete everything in the /{huntId} key prefix of that bucket
-      const s3BucketSettings = await Settings.findOneAsync({
-        name: "s3.image_bucket",
+    // Purge all collections
+    for (const collection of COLLECTIONS_TO_PURGE) {
+      signal.throwIfAborted();
+      Logger.info("purgeHunt: removing from collection", {
+        collection: collection.name,
       });
-      if (s3BucketSettings?.value) {
-        const s3 = new S3Client({
-          region: s3BucketSettings.value.bucketRegion,
-        });
-
-        const paginator = paginateListObjectsV2(
-          { client: s3, pageSize: 500 },
-          {
-            Bucket: s3BucketSettings.value.bucketName,
-            Prefix: `${args.huntId}/`,
-          },
-        );
-
-        // We don't know the total number of pages without reading them, so we'll just track pages completed
-        let currentItemCompleted = 0;
-        for await (const page of paginator) {
-          signal.throwIfAborted();
-          if (page.Contents) {
-            const keysToDelete = page.Contents.map((o) => {
-              return {
-                Key: o.Key,
-              };
-            });
-            if (keysToDelete.length > 0) {
-              await s3.send(
-                new DeleteObjectsCommand({
-                  Bucket: s3BucketSettings.value.bucketName,
-                  Delete: {
-                    Objects: keysToDelete,
-                    Quiet: true,
-                  },
-                }),
-              );
-            }
-            currentItemCompleted += 1;
-            await setResult({
-              itemsTotal,
-              itemsCompleted,
-              currentItemCompleted,
-            });
-          }
-        }
-      }
+      const castCollection = collection as unknown as Model<
+        z.ZodObject<{ hunt: z.ZodString }>
+      >;
+      await castCollection.removeAsync({ hunt: args.huntId });
       itemsCompleted += 1;
-
-      // Purge all collections
-      for (const collection of COLLECTIONS_TO_PURGE) {
-        signal.throwIfAborted();
-        Logger.info("purgeHunt: removing from collection", {
-          collection: collection.name,
-        });
-        const castCollection = collection as unknown as Model<
-          z.ZodObject<{ hunt: z.ZodString }>
-        >;
-        await castCollection.removeAsync({ hunt: args.huntId });
-        itemsCompleted += 1;
-        await setResult({
-          itemsTotal,
-          itemsCompleted,
-        });
-      }
-    },
+      await setResult({
+        itemsTotal,
+        itemsCompleted,
+      });
+    }
   },
-);
-
-export default purgeHuntJob;
+});

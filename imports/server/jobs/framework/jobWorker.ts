@@ -8,6 +8,7 @@ import { registerPeriodicCleanupHook } from "../../garbage-collection";
 import onExit from "../../onExit";
 import serverId from "../../serverId";
 import { getHandler } from "./defineJob";
+import PermanentJobError from "./PermanentJobError";
 
 interface WorkerEvents {
   wake: [];
@@ -61,7 +62,7 @@ async function processJob(job: JobType, signal: AbortSignal) {
       : result;
     await Jobs.updateAsync(job._id, { $set: { result: parsed } });
   };
-  const context = { signal, setResult };
+  const context = { jobId: job._id, signal, setResult };
   const runHandler = () => entry.run(job.args, context);
   try {
     await (job.createdBy
@@ -77,6 +78,23 @@ async function processJob(job: JobType, signal: AbortSignal) {
       $unset: { claimedBy: "", claimedAt: "" },
     });
   } catch (error) {
+    if (error instanceof PermanentJobError) {
+      Logger.error("Job failed permanently, skipping retries", {
+        jobId: job._id,
+        type: job.type,
+        error,
+      });
+      await Jobs.updateAsync(job._id, {
+        $set: {
+          status: "failed" as const,
+          completedAt: new Date(),
+          error: error.message,
+        },
+        $unset: { claimedBy: "", claimedAt: "" },
+      });
+      return;
+    }
+
     const hasRetriesLeft = job.attempts < job.maxAttempts;
     if (hasRetriesLeft) {
       const backoffMs = Math.min(job.attempts ** 2 * 5000, 300000);

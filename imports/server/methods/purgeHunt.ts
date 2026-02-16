@@ -1,11 +1,12 @@
 import { check } from "meteor/check";
+import purgeHunt from "../../lib/jobs/purgeHunt";
 import MeteorUsers from "../../lib/models/MeteorUsers";
 import { checkAdmin } from "../../lib/permission_stubs";
-import purgeHunt from "../../methods/purgeHunt";
-import purgeHuntJob from "../jobs/purgeHunt";
+import purgeHuntMethod from "../../methods/purgeHunt";
+import enqueueJob from "../jobs/framework/enqueueJob";
 import defineMethod from "./defineMethod";
 
-defineMethod(purgeHunt, {
+defineMethod(purgeHuntMethod, {
   validate(arg) {
     check(arg, { huntId: String });
     return arg;
@@ -15,6 +16,6 @@ defineMethod(purgeHunt, {
     check(this.userId, String);
     checkAdmin(await MeteorUsers.findOneAsync(this.userId));
 
-    await purgeHuntJob.enqueue({ huntId });
+    await enqueueJob(purgeHunt, { huntId });
   },
 });
