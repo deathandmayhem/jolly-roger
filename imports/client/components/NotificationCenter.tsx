@@ -784,6 +784,14 @@ const useCookieCheck = (
   useEffect(() => {
     if (!endpointUrl || result !== undefined) return undefined;
 
+    let timeout: ReturnType<typeof setTimeout> | undefined;
+
+    function resolve(ok: boolean) {
+      if (timeout) clearTimeout(timeout);
+      cookieCheckCache = ok;
+      setResult(ok);
+    }
+
     const onMessage = (event: MessageEvent) => {
       const data = event.data as any;
       if (
@@ -791,12 +799,21 @@ const useCookieCheck = (
         data.type === "jr-cookie-check" &&
         typeof data.ok === "boolean"
       ) {
-        cookieCheckCache = data.ok;
-        setResult(data.ok);
+        resolve(data.ok);
       }
     };
     window.addEventListener("message", onMessage);
-    return () => window.removeEventListener("message", onMessage);
+
+    // If the iframe never responds (e.g. an extension blocks the request
+    // entirely, or the page gets redirected to a login wall), treat it as
+    // cookies blocked — if the test iframe can't load, the Sheets embed
+    // won't work either.
+    timeout = setTimeout(() => resolve(false), 10000);
+
+    return () => {
+      window.removeEventListener("message", onMessage);
+      clearTimeout(timeout);
+    };
   }, [endpointUrl, result]);
 
   if (!endpointUrl || result !== undefined) return result;
@@ -806,27 +823,38 @@ const useCookieCheck = (
 };
 
 const CookieWarningMessage = ({ onDismiss }: { onDismiss: () => void }) => {
+  const { t } = useTranslation();
   const ua = navigator.userAgent;
   let tip: string;
   if (/Firefox\//i.test(ua)) {
-    tip =
-      "To fix this, click the shield icon in the address bar and disable Enhanced Tracking Protection for this site.";
+    tip = t(
+      "notification.cookieWarning.tip.firefox",
+      "If you're already signed in, try clicking the shield icon in the address bar and disabling Enhanced Tracking Protection for this site. If you use a privacy extension like Privacy Badger, you may also need to allow cookies for this site there.",
+    );
   } else if (/Safari\//i.test(ua) && !/Chrome\//i.test(ua)) {
-    tip =
-      "To fix this, go to Settings > Safari > Privacy & Security and disable 'Prevent Cross-Site Tracking'.";
+    tip = t(
+      "notification.cookieWarning.tip.safari",
+      "If you're already signed in, try going to Settings > Safari > Privacy & Security and disabling 'Prevent Cross-Site Tracking'. If you use a content blocker, you may also need to allow cookies for this site there.",
+    );
   } else {
-    tip =
-      "To fix this, check your browser's tracking protection settings for this site.";
+    tip = t(
+      "notification.cookieWarning.tip.chrome",
+      "If you're already signed in, check that third-party cookies are allowed in your browser settings. If you use a privacy extension like Privacy Badger, you may also need to allow cookies for this site there.",
+    );
   }
 
   return (
     <Toast onClose={onDismiss}>
       <Toast.Header>
-        <strong className="me-auto">Third-party cookies blocked</strong>
+        <strong className="me-auto">
+          {t("notification.cookieWarning.header", "Editing anonymously")}
+        </strong>
       </Toast.Header>
       <Toast.Body>
-        Your browser is blocking cookies that Google uses to identify you in
-        embedded spreadsheets. You may appear as an anonymous animal.
+        {t(
+          "notification.cookieWarning.body",
+          "Either you're not logged into your Google account, or your browser is blocking the cookies that let Google identify you in our embedded spreadsheets. Your edits won't be associated with you, making it harder for everyone to see who's working on what.",
+        )}
         <StyledNotificationRow className="mt-2">{tip}</StyledNotificationRow>
       </Toast.Body>
     </Toast>
