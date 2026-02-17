@@ -1,4 +1,4 @@
-import { indexedById } from "./listUtils";
+import { indexedBy, indexedById } from "./listUtils";
 import type { PuzzleType } from "./models/Puzzles";
 import type { TagType } from "./models/Tags";
 import { computeSolvedness } from "./solvedness";
@@ -416,8 +416,241 @@ function sortPuzzlesByRelevanceWithinPuzzleGroup(
   return sortedPuzzles;
 }
 
+class Collocation<T> {
+  data: Map<string, Map<string, Set<T>>>;
+
+  constructor() {
+    this.data = new Map<string, Map<string, Set<T>>>();
+  }
+
+  add(a: string, b: string, value: T) {
+    this.get(a, b).add(value);
+  }
+
+  get(a: string, b?: string): Set<T> {
+    if (b === undefined) {
+      b = a;
+    }
+    if (b < a) {
+      [a, b] = [b, a];
+    }
+    let cola = this.data.get(a);
+    if (cola === undefined) {
+      cola = new Map<string, Set<T>>();
+      this.data.set(a, cola);
+    }
+    let items = cola.get(b);
+    if (items === undefined) {
+      items = new Set<T>();
+      cola.set(b, items);
+    }
+    return items;
+  }
+
+  keys(): MapIterator<string> {
+    return this.data.keys();
+  }
+
+  count(a: string, b?: string): number {
+    if (b === undefined) {
+      b = a;
+    }
+    if (b < a) {
+      [a, b] = [b, a];
+    }
+    return this.data.get(a)?.get(b)?.size || 0;
+  }
+}
+
+interface grouplet {
+  tag: string;
+  allPuzzles: Set<string>;
+  rootPuzzles: Set<string>;
+  subgroups: grouplet[];
+}
+
+class Grouper {
+  tagsByID: Map<string, TagType>;
+  tagsByName: Map<string, TagType>;
+  puzzlesByID: Map<string, PuzzleType>;
+  nest: boolean;
+
+  constructor(
+    allPuzzles: PuzzleType[],
+    allTags: TagType[],
+    nest: boolean = true,
+  ) {
+    this.tagsByID = indexedBy(allTags, "_id");
+    this.puzzlesByID = indexedBy(allPuzzles, "_id");
+    this.tagsByName = indexedBy(allTags, "name", true);
+    this.nest = nest;
+  }
+
+  toGroup(g: grouplet): InternalPuzzleGroup {
+    const puzzles = Array.from(g.rootPuzzles).map(
+      (id) => this.puzzlesByID.get(id)!,
+    );
+    const sharedTag = this.tagsByID.get(g.tag);
+    return {
+      puzzles: puzzles,
+      subgroups: g.subgroups.map((subg) => this.toGroup(subg)),
+      sharedTag: sharedTag,
+      puzzleIdCache: g.rootPuzzles,
+      interestingness: interestingnessOfGroup(
+        puzzles,
+        sharedTag,
+        this.tagsByID,
+      ),
+    };
+  }
+
+  groupPuzzlesByTag(
+    puzzles: PuzzleType[],
+    tagName: string,
+  ): [InternalPuzzleGroup[], PuzzleType[]] {
+    // sparse collocation matrix tracks which tags overlap with other tags
+    const colloc = new Collocation<string>();
+    const ungroupedPuzzles: PuzzleType[] = [];
+    // Build the collocation matrix
+    puzzles.forEach((puzzle) => {
+      const groups: string[] = [];
+      puzzle.tags.forEach((tagID) => {
+        const tag = this.tagsByID.get(tagID);
+        let groupID: string = "";
+        if (tag?.name.startsWith(`${tagName}:`)) {
+          groupID = tagID;
+        } else if (tag?.name.startsWith(`meta-for:${tagName}`)) {
+          const baseTag = this.tagsByName.get(tag.name.slice(9));
+          groupID = baseTag?._id || "";
+        }
+        if (groupID !== "" && groups.indexOf(groupID) === -1) {
+          groups.push(groupID);
+        }
+      });
+      if (groups.length === 0) {
+        ungroupedPuzzles.push(puzzle);
+      } else {
+        groups.forEach((tag1, index) => {
+          groups.slice(index).forEach((tag2) => {
+            colloc.add(tag1, tag2, puzzle._id);
+          });
+        });
+      }
+    });
+
+    const grouplets: grouplet[] = [
+      ...colloc.keys().map((tag) => ({
+        tag: tag,
+        allPuzzles: colloc.get(tag),
+        rootPuzzles: new Set<string>(colloc.get(tag)),
+        subgroups: [],
+      })),
+    ];
+
+    if (this.nest) {
+      const groups: InternalPuzzleGroup[] = [];
+      // Sort grouplets by size
+      grouplets.sort((a, b) => a.allPuzzles.size - b.allPuzzles.size);
+      grouplets.forEach((first, i) => {
+        const size = colloc.count(first.tag);
+        let topLevel = true;
+        for (let j = i + 1; j < grouplets.length; j++) {
+          const second = grouplets[j]!;
+          const overlap = colloc.count(first.tag, second.tag);
+          if (overlap === size && overlap !== colloc.count(second.tag)) {
+            // if the count of puzzles with both tags equals the count of puzzles with the first tag, then first is a subset of second
+            topLevel = false;
+            second.subgroups.push(first);
+            second.rootPuzzles = second.rootPuzzles.difference(
+              first.allPuzzles,
+            );
+          }
+        }
+        if (topLevel) {
+          // no group was a supergroup of this one -> build the proper group and add it to our return list
+          groups.push(this.toGroup(first));
+        }
+      });
+      return [groups, ungroupedPuzzles];
+    }
+
+    return [grouplets.map((g) => this.toGroup(g)), ungroupedPuzzles];
+  }
+
+  applyGrouping(parentGroup: InternalPuzzleGroup, tagName: string) {
+    parentGroup.subgroups.forEach((group) => {
+      this.applyGrouping(group, tagName);
+    });
+    const [newGroups, ungroupedPuzzles] = this.groupPuzzlesByTag(
+      parentGroup.puzzles,
+      tagName,
+    );
+    parentGroup.subgroups.push(...newGroups);
+    parentGroup.puzzles = ungroupedPuzzles;
+  }
+}
+
+function unwrapInternalGroup(g: InternalPuzzleGroup): PuzzleGroup {
+  return {
+    puzzles: g.puzzles,
+    sharedTag: g.sharedTag,
+    subgroups: g.subgroups.map(unwrapInternalGroup),
+  };
+}
+
+function groupPuzzlesByTags(
+  allPuzzles: PuzzleType[],
+  allTags: TagType[],
+  groupBy: string[],
+  nest: boolean = false,
+): PuzzleGroup[] {
+  const adminTag = allTags.filter((t) => t.name === "administrivia")[0];
+  const adminID = adminTag?._id;
+  const rootGroup: InternalPuzzleGroup = {
+    puzzles: [],
+    subgroups: [],
+    interestingness: 0,
+    puzzleIdCache: new Set(),
+  };
+  const adminPuzzles: PuzzleType[] = [];
+  allPuzzles.forEach((puzzle) => {
+    if (adminID && puzzle.tags.includes(adminID)) {
+      // administrivia gets put in its own group and not mixed in with other groups.
+      adminPuzzles.push(puzzle);
+    } else {
+      rootGroup.puzzles.push(puzzle);
+    }
+  });
+  const grouper = new Grouper(allPuzzles, allTags, nest);
+  for (const tagName of groupBy) {
+    grouper.applyGrouping(rootGroup, tagName);
+  }
+  // add the admin puzzles, and put the ungrouped puzzles in their own group so it can be sorted properly.
+  rootGroup.subgroups.push(
+    {
+      puzzles: rootGroup.puzzles,
+      subgroups: [],
+      puzzleIdCache: new Set(),
+      interestingness: 1,
+    },
+    {
+      sharedTag: adminTag,
+      puzzles: adminPuzzles,
+      subgroups: [],
+      interestingness: -3,
+      puzzleIdCache: new Set(),
+    },
+  );
+
+  sortGroups([rootGroup]);
+
+  const rg2 = unwrapInternalGroup(rootGroup);
+  return rg2.subgroups;
+}
+
 export {
   type PuzzleGroup,
+  groupPuzzlesByTags,
   puzzleInterestingness,
   puzzleGroupsByRelevance,
   filteredPuzzleGroups,
