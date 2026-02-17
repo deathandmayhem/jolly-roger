@@ -68,12 +68,8 @@ const StyledPopover = styled(Popover)`
 const TagDiv = styled.div<{
   $popoverCapable: boolean;
   $popoverOpen: boolean;
-  $isAdministrivia: boolean;
-  $isMeta: boolean;
-  $isGroup: boolean;
-  $isMetaFor: boolean;
-  $isNeeds: boolean;
-  $isPriority: boolean;
+  $category: string;
+  $color: string;
 }>`
   display: inline-flex;
   align-items: center;
@@ -81,7 +77,6 @@ const TagDiv = styled.div<{
   margin: 2px 4px 2px 0;
   padding: 0 6px;
   border-radius: 4px;
-  background-color: #ddd;
   color: #000;
   ${({ $popoverCapable }) =>
     $popoverCapable &&
@@ -104,35 +99,9 @@ const TagDiv = styled.div<{
         z-index: 2;
       }
     `}
-  ${({ $isAdministrivia }) =>
-    $isAdministrivia &&
+  ${({ $color }) =>
     css`
-      background-color: #ff7;
-    `}
-  ${({ $isMeta }) =>
-    $isMeta &&
-    css`
-      background-color: #ffd57f;
-    `}
-  ${({ $isGroup }) =>
-    $isGroup &&
-    css`
-      background-color: #7fffff;
-    `}
-  ${({ $isMetaFor }) =>
-    $isMetaFor &&
-    css`
-      background-color: #ffb0b0;
-    `}
-  ${({ $isNeeds }) =>
-    $isNeeds &&
-    css`
-      background-color: #ff4040;
-    `}
-  ${({ $isPriority }) =>
-    $isPriority &&
-    css`
-      background-color: #aaf;
+      background-color: ${$color};
     `}
 `;
 
@@ -157,9 +126,15 @@ const PopoverPadding = {
 // There may be more cases here in the future
 function getRelatedPuzzlesSharedTagName(name: string) {
   if (name.lastIndexOf("meta-for:", 0) === 0) {
-    return `group:${name.slice("meta-for:".length)}`;
+    return name.slice("meta-for:".length);
   }
   return name;
+}
+
+function splitTag(tag: string): [string, string] {
+  const i = tag.indexOf(":");
+  if (i < 0) return ["", tag];
+  return [tag.slice(0, i), tag.slice(i + 1)];
 }
 
 type PopperScreenFitOptions = { padding: Padding };
@@ -202,6 +177,7 @@ interface BaseTagProps {
   // if present, show a dismiss button
   onRemove?: (tagId: string) => void;
   linkToSearch: boolean;
+  groups: string[];
 }
 
 interface DoNotPopoverRelatedProps {
@@ -313,12 +289,35 @@ const Tag = (props: TagProps) => {
   ]);
 
   const name = props.tag.name;
-  const isAdministrivia = name === "administrivia";
-  const isMeta = name === "is:meta" || name === "is:metameta";
-  const isGroup = name.lastIndexOf("group:", 0) === 0;
-  const isMetaFor = name.lastIndexOf("meta-for:", 0) === 0;
-  const isNeeds = name.lastIndexOf("needs:", 0) === 0;
-  const isPriority = name.lastIndexOf("priority:", 0) === 0;
+  const [prefix, _] = splitTag(name);
+  // TODO these are just some random colors I picked to make the different tags more obvious
+  const colors = [
+    "#ffb2b2",
+    "#ffe0b2",
+    "#efffb2",
+    "#c1ffb2",
+    "#b2ffd1",
+    "#b2ffff",
+    "#b2d1ff",
+    "#c1b2ff",
+    "#efb2ff",
+    "#ffb2e0",
+    "#ffb2b2",
+  ];
+  const colormap = new Map<string, string>([
+    ["administrivia", "#ff7"],
+    ["meta", "#ffd57f"],
+    ["group", "#7fffff"],
+    ["meta-for", "#ffb0b0"],
+    ["needs", "#ff4040"],
+    ["priority", "#aaf"],
+  ]);
+  const category = name === "administrivia" ? "administrivia" : prefix;
+  let color = "#ddd";
+  if (category !== "") {
+    if (colormap.has(category)) color = colormap.get(category)!;
+    else color = colors[category.charCodeAt(0) % colors.length]!;
+  }
 
   // Browsers won't word-break on hyphens, so suggest
   // Use wbr instead of zero-width space to make copy-paste reasonable
@@ -351,12 +350,8 @@ const Tag = (props: TagProps) => {
       data-tag-name={props.tag.name}
       $popoverCapable={props.popoverRelated}
       $popoverOpen={showPopover}
-      $isAdministrivia={isAdministrivia}
-      $isMeta={isMeta}
-      $isGroup={isGroup}
-      $isMetaFor={isMetaFor}
-      $isNeeds={isNeeds}
-      $isPriority={isPriority}
+      $category={category}
+      $color={color}
     >
       {title}
       {props.onRemove && (
