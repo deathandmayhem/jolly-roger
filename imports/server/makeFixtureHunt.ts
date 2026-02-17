@@ -1,18 +1,21 @@
-import FixtureHunt from "../FixtureHunt";
+import type { FixtureHuntType } from "../FixtureHunt";
 import Guesses from "../lib/models/Guesses";
 import Hunts from "../lib/models/Hunts";
 import Puzzles from "../lib/models/Puzzles";
 import Tags from "../lib/models/Tags";
 
-export default async function makeFixtureHunt(createdBy: string) {
-  const huntId = FixtureHunt._id; // fixture hunt id
+export default async function makeFixtureHunt(
+  createdBy: string,
+  fixtureHunt: FixtureHuntType,
+) {
+  const huntId = fixtureHunt._id; // fixture hunt id
 
   // Create hunt if it doesn't exist.
   const hunt = await Hunts.findOneAsync(huntId);
   if (!hunt) {
     await Hunts.insertAsync({
       _id: huntId,
-      name: FixtureHunt.name,
+      name: fixtureHunt.name,
       openSignups: true,
       hasGuessQueue: true,
       createdBy,
@@ -20,7 +23,7 @@ export default async function makeFixtureHunt(createdBy: string) {
   }
 
   // Create tags
-  for (const { _id, name } of FixtureHunt.tags) {
+  for (const { _id, name } of fixtureHunt.tags) {
     await Tags.upsertAsync(
       { _id },
       {
@@ -34,7 +37,7 @@ export default async function makeFixtureHunt(createdBy: string) {
   }
 
   // Create puzzles associated with the hunt.  Don't bother running the puzzle hooks.
-  for (const puzzle of FixtureHunt.puzzles) {
+  for (const puzzle of fixtureHunt.puzzles) {
     await Puzzles.upsertAsync(
       {
         _id: puzzle._id,

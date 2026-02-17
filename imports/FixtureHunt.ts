@@ -3,7 +3,7 @@ import type { HuntType } from "./lib/models/Hunts";
 import type { PuzzleType } from "./lib/models/Puzzles";
 import type { TagType } from "./lib/models/Tags";
 
-type FixtureHuntType = Pick<HuntType, "_id" | "name"> & {
+export type FixtureHuntType = Pick<HuntType, "_id" | "name"> & {
   tags: Pick<TagType, "_id" | "name">[];
   puzzles: (Pick<
     PuzzleType,

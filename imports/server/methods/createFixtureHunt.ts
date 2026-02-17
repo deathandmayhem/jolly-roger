@@ -6,6 +6,7 @@ import { addUserToRole, userMayCreateHunt } from "../../lib/permission_stubs";
 import createFixtureHunt from "../../methods/createFixtureHunt";
 import makeFixtureHunt from "../makeFixtureHunt";
 import defineMethod from "./defineMethod";
+import TypedMethod from "../../methods/TypedMethod";
 
 defineMethod(createFixtureHunt, {
   async run() {
@@ -15,7 +16,7 @@ defineMethod(createFixtureHunt, {
       throw new Meteor.Error(401, "Must be allowed to create hunt");
     }
 
-    await makeFixtureHunt(this.userId);
+    await makeFixtureHunt(this.userId, FixtureHunt);
 
     // Make the user an operator
     await MeteorUsers.updateAsync(this.userId, {
