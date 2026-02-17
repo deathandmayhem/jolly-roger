@@ -41,6 +41,7 @@ export const useOperatorActionsHiddenForHunt = (huntId: string) => {
 
 export type PuzzleListState = {
   displayMode: "group" | "unlock";
+  groupBy: string[];
   showSolved: boolean;
   collapseGroups: Record<string /* tag ID */, boolean>;
 };
@@ -48,6 +49,7 @@ export type PuzzleListState = {
 const defaultPuzzleListState = () => {
   return {
     displayMode: "group",
+    groupBy: ["group"],
     showSolved: true,
     collapseGroups: {},
   } as PuzzleListState;
@@ -90,6 +92,27 @@ export const useHuntPuzzleListDisplayMode = (huntId: string) => {
               typeof update === "function"
                 ? update(prevView.displayMode)
                 : update,
+          };
+          return newView;
+        });
+      },
+      [setHuntPuzzleListView],
+    ),
+  ] as const;
+};
+
+export const useHuntPuzzleListGroupBy = (huntId: string) => {
+  const [huntPuzzleListView, setHuntPuzzleListView] =
+    useHuntPuzzleListState(huntId);
+  return [
+    huntPuzzleListView.groupBy,
+    useCallback(
+      (update: SetStateAction<string[]>) => {
+        setHuntPuzzleListView((prevView) => {
+          const newView = {
+            ...prevView,
+            groupBy:
+              typeof update === "function" ? update(prevView.groupBy) : update,
           };
           return newView;
         });
