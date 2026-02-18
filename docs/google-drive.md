@@ -35,7 +35,7 @@ files:
   - imports/server/setup.ts
   - private/google-script/cookie-test.html
   - private/google-script/main.js
-updated: 2026-02-14T21:00:00Z
+updated: 2026-02-17T21:00:00Z
 ---
 
 # Google Drive Integration
@@ -310,7 +310,9 @@ listens for the result. The result is cached in a module-level variable so the
 check is not re-run during SPA navigations, but does re-run on full page reload
 (so it picks up changes to tracking protection settings). If the check indicates
 cookies are blocked, a toast notification warns the user and provides
-browser-specific instructions for fixing the issue.
+browser-specific instructions for fixing the issue. On mobile-width screens
+(below `MinimumDesktopWidth` from `PuzzlePage`), the check is skipped entirely
+because we show a link to the Google Doc rather than embedding it in an iframe.
 
 ## Utility Meteor methods
 

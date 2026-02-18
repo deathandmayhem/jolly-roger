@@ -143,7 +143,7 @@ const MinimumSidebarWidth = 176;
 const MinimumDocumentWidth = 400;
 const DefaultSidebarWidth = 300;
 
-const MinimumDesktopWidth = MinimumSidebarWidth + MinimumDocumentWidth;
+export const MinimumDesktopWidth = MinimumSidebarWidth + MinimumDocumentWidth;
 
 // PuzzlePage has some pretty unique properties:
 //
