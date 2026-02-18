@@ -96,6 +96,7 @@ if (Meteor.isClient) {
         huntId: fixtureHunt,
         puzzleId: fixturePuzzle,
         userId: Meteor.userId()!,
+        sourceUserId: Meteor.userId()!,
         invitationCode: "abcdef123456",
       };
 
