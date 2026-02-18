@@ -17,6 +17,7 @@ import { Trans, useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import ReactTextareaAutosize from "react-textarea-autosize";
 import styled from "styled-components";
+import { useMediaQuery } from "usehooks-ts";
 import Flags from "../../Flags";
 import { calendarTimeFormat } from "../../lib/calendarTimeFormat";
 import isAdmin from "../../lib/isAdmin";
@@ -60,7 +61,10 @@ import CopyToClipboardButton from "./CopyToClipboardButton";
 import { GuessConfidence, GuessDirection } from "./guessDetails";
 import Markdown from "./Markdown";
 import PuzzleAnswer from "./PuzzleAnswer";
+import { MinimumDesktopWidth } from "./PuzzlePage";
 import SpinnerTimer from "./SpinnerTimer";
+
+const desktopQuery = `(min-width: ${MinimumDesktopWidth}px)`;
 
 // How long to keep showing guess notifications after actioning.
 // Note that this cannot usefully exceed the linger period implemented by the
@@ -779,10 +783,13 @@ let cookieCheckCache: boolean | undefined;
 const useCookieCheck = (
   endpointUrl: string | undefined,
 ): boolean | undefined => {
+  // On mobile we show a link to the Google Doc rather than embedding it in an
+  // iframe, so third-party cookie support doesn't matter.
+  const isDesktop = useMediaQuery(desktopQuery);
   const [result, setResult] = useState<boolean | undefined>(cookieCheckCache);
 
   useEffect(() => {
-    if (!endpointUrl || result !== undefined) return undefined;
+    if (!endpointUrl || !isDesktop || result !== undefined) return undefined;
 
     let timeout: ReturnType<typeof setTimeout> | undefined;
 
@@ -814,8 +821,9 @@ const useCookieCheck = (
       window.removeEventListener("message", onMessage);
       clearTimeout(timeout);
     };
-  }, [endpointUrl, result]);
+  }, [endpointUrl, isDesktop, result]);
 
+  if (!isDesktop) return true;
   if (!endpointUrl || result !== undefined) return result;
 
   // Return undefined (still loading) — the iframe will be rendered by the component
