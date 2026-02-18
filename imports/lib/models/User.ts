@@ -23,6 +23,7 @@ declare module "meteor/meteor" {
       discordAccount?: DiscordAccountType;
       phoneNumber?: string;
       dingwords?: string[];
+      mergedInto?: string;
     }
   }
 }
@@ -55,6 +56,7 @@ export const User = z.object({
   discordAccount: DiscordAccount.optional(),
   phoneNumber: nonEmptyString.optional(),
   dingwords: nonEmptyString.array().optional(),
+  mergedInto: foreignKey.optional(),
 });
 validateSchema(User);
 

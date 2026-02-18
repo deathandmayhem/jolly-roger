@@ -1,4 +1,4 @@
-import type { Meteor } from "meteor/meteor";
+import { Meteor } from "meteor/meteor";
 import { OAuth } from "meteor/oauth";
 import { useTracker } from "meteor/react-meteor-data";
 import { ServiceConfiguration } from "meteor/service-configuration";
@@ -185,12 +185,21 @@ const EmailSection = ({ user }: { user: Meteor.User }) => {
     addUserAccountEmail.call({ email: trimmed }, (err) => {
       setBusy(false);
       if (err) {
-        setError(err.reason ?? err.message);
+        if (err instanceof Meteor.Error && err.error === 409) {
+          setError(
+            t(
+              "profile.emails.conflict",
+              "That email address belongs to another account. If you'd like to merge the accounts, contact an admin.",
+            ),
+          );
+        } else {
+          setError(err.reason ?? err.message);
+        }
       } else {
         setNewEmail("");
       }
     });
-  }, [newEmail]);
+  }, [newEmail, t]);
 
   const handleRemoveEmail = useCallback((email: string) => {
     setError(undefined);

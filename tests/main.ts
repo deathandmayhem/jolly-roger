@@ -24,6 +24,7 @@ if (Meteor.isServer) {
   require("./unit/imports/server/Model");
   require("./unit/imports/server/publishJoinedQuery");
   require("./unit/imports/server/validateSchema");
+  require("./unit/imports/server/mergeUsers");
 }
 
 import "./acceptance/authentication";

@@ -41,6 +41,7 @@ import "./dismissPendingAnnouncement";
 import "./ensurePuzzleDocument";
 import "./generateUploadToken";
 import "./generateHuntInvitationCode";
+import "./confirmUserMerge";
 import "./insertDocumentImage";
 import "./linkUserDiscordAccount";
 import "./linkUserGoogleAccount";

@@ -26,6 +26,7 @@ import Guesses from "../../lib/models/Guesses";
 import Hunts from "../../lib/models/Hunts";
 import InvitationCodes from "../../lib/models/InvitationCodes";
 import Jobs from "../../lib/models/Jobs";
+import MergeOperations from "../../lib/models/MergeOperations";
 import type Model from "../../lib/models/Model";
 import { AllModels } from "../../lib/models/Model";
 import CallHistories from "../../lib/models/mediasoup/CallHistories";
@@ -104,6 +105,7 @@ const COLLECTIONS_EXPLICITLY_LEFT_UNTOUCHED = [
   Jobs,
   LatestDeploymentTimestamps,
   Locks,
+  MergeOperations,
   Servers,
   Settings,
   Subscribers,

@@ -192,6 +192,13 @@ Accounts.registerLoginHandler(async (options: LoginOptions) => {
   }
 });
 
+Accounts.validateLoginAttempt((attempt: LoginInfo) => {
+  if (attempt.user?.mergedInto) {
+    throw new Meteor.Error(403, "User not found");
+  }
+  return true;
+});
+
 Accounts.onLogin(async (info: LoginInfo) => {
   if (!info.user?._id)
     throw new Meteor.Error(500, "Something has gone horribly wrong");
