@@ -555,7 +555,9 @@ const BulkAddRemoveSection = ({
       const tagNames = tagNamesForIds(bulkTags);
       tagNames.forEach((tagName) => {
         const puzzleId = puzzle._id;
-        addPuzzleTag.call({ puzzleId, tagName }, () => {});
+        addPuzzleTag.call({ puzzleId, tagName }, () => {
+          /* intentionally empty */
+        });
       });
     });
   }, [canAddTag, bulkTags, tagNamesForIds]);
@@ -564,7 +566,9 @@ const BulkAddRemoveSection = ({
     canRemoveTag.forEach((puzzle) => {
       bulkTags.forEach((tagId) => {
         const puzzleId = puzzle._id;
-        removePuzzleTag.call({ puzzleId, tagId }, () => {});
+        removePuzzleTag.call({ puzzleId, tagId }, () => {
+          /* intentionally empty */
+        });
       });
     });
   }, [canRemoveTag, bulkTags]);

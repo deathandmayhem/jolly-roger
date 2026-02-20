@@ -36,7 +36,7 @@ export default async function getAudioStream(
     }
   }
 
-  return await navigator.mediaDevices.getUserMedia({
+  return navigator.mediaDevices.getUserMedia({
     audio: audioConstraints,
   });
 }

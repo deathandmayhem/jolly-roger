@@ -25,7 +25,11 @@ export default async function runJob<
     await handler.run(args, {
       jobId,
       signal: controller.signal,
-      setResult: options?.setResult ?? (async () => {}),
+      setResult:
+        options?.setResult ??
+        (async () => {
+          /* intentionally empty */
+        }),
     });
   };
   await DDP._CurrentMethodInvocation.withValue(

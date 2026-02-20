@@ -27,7 +27,7 @@ const Reset = createGlobalStyle`
 
 Meteor.startup(() => {
   const container = document.createElement("div");
-  document.body.appendChild(container);
+  document.body.append(container);
   const root = createRoot(container);
   root.render(
     <>

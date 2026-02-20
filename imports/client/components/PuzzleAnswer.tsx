@@ -80,7 +80,7 @@ const PuzzleAnswer = React.memo(
         graphemes = Array.from(respacedAnswer);
       }
       const segments = Array.from(
-        new Array(Math.ceil(graphemes.length / segmentSize)),
+        { length: Math.ceil(graphemes.length / segmentSize) },
         (_x, i) => {
           return graphemes.slice(i * segmentSize, (i + 1) * segmentSize);
         },

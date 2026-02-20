@@ -123,6 +123,7 @@ async function loginAs(
   user: { email: string; password: string; displayName: string },
 ): Promise<void> {
   await page.goto(`${BASE_URL}/`);
+  // oxlint-disable-next-line unicorn/no-typeof-undefined -- Meteor may not be declared yet in the browser context
   await page.waitForFunction(() => typeof Meteor !== "undefined", {
     timeout: 30_000,
   });
@@ -131,7 +132,7 @@ async function loginAs(
       return new Promise<void>((resolve, reject) => {
         Meteor.loginWithPassword(email, password, (err) => {
           if (err) {
-            reject(err instanceof Error ? err : new Error(String(err)));
+            reject(err instanceof Error ? err : new Error(JSON.stringify(err)));
           } else {
             resolve();
           }
@@ -477,7 +478,9 @@ async function generateHeroMp4(
         segmentPath,
       ]);
 
-      await unlink(barPath).catch(() => {});
+      await unlink(barPath).catch(() => {
+        /* intentionally empty */
+      });
     }
 
     // Concatenate all segments and convert to an optimized GIF.
@@ -517,7 +520,9 @@ async function generateHeroMp4(
 
     // Clean up temp files
     for (const p of [...segmentPaths, concatListPath]) {
-      await unlink(p).catch(() => {});
+      await unlink(p).catch(() => {
+        /* intentionally empty */
+      });
     }
   }
 }
@@ -574,6 +579,7 @@ async function main() {
     // Provision first user and log in
     console.log("Provisioning first user...");
     await provisionPage.goto(`${BASE_URL}/`);
+    // oxlint-disable-next-line unicorn/no-typeof-undefined -- Meteor may not be declared yet in the browser context
     await provisionPage.waitForFunction(() => typeof Meteor !== "undefined", {
       timeout: 30_000,
     });
@@ -1003,6 +1009,7 @@ ${"=".repeat(72)}
   }
 }
 
+// oxlint-disable-next-line unicorn/prefer-top-level-await
 main().catch((err) => {
   console.error(err);
   process.exit(1);

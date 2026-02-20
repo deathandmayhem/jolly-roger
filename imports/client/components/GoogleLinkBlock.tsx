@@ -135,7 +135,7 @@ const GoogleLinkBlock = ({ user }: { user: Meteor.User }) => {
                     will cause us to forget the old one).`}
           components={{
             anonymousLink: (
-              // biome-ignore lint/a11y/useAnchorContent: this link won't really be empty
+              // oxlint-disable-next-line jsx-a11y/anchor-has-content -- i18next Trans fills in content
               <a
                 href="https://support.google.com/docs/answer/2494888?visit_id=1-636184745566842981-35709989&hl=en&rd=1"
                 rel="noopener noreferrer"

@@ -97,14 +97,8 @@ const DiscordSelector = ({
       name: "disabled",
     } as SavedDiscordObjectType;
 
-    if (value) {
-      if (
-        !options.some((opt) => {
-          return opt.id === value.id;
-        })
-      ) {
-        return [noneOption, value, ...options];
-      }
+    if (value && !options.some((opt) => opt.id === value.id)) {
+      return [noneOption, value, ...options];
     }
     return [noneOption, ...options];
   }, [value, options]);
@@ -626,11 +620,11 @@ const HuntEditPage = () => {
                 t={t}
                 components={{
                   MustacheLink: (
-                    // biome-ignore lint/a11y/useAnchorContent: this link won't really be empty
+                    // oxlint-disable-next-line jsx-a11y/anchor-has-content -- i18next Trans fills in content
                     <a href="https://mustache.github.io/mustache.5.html" />
                   ),
                   parsedUrlLink: (
-                    // biome-ignore lint/a11y/useAnchorContent: this link won't really be empty
+                    // oxlint-disable-next-line jsx-a11y/anchor-has-content -- i18next Trans fills in content
                     <a href="https://developer.mozilla.org/en-US/docs/Web/API/URL" />
                   ),
                   code: <code />,

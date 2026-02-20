@@ -219,7 +219,7 @@ export const modifierIsNotWholeDoc = <T extends Document>(
   modifier: Mongo.Modifier<T>,
 ): modifier is Exclude<Mongo.Modifier<T>, T> => {
   const keys = Object.keys(modifier);
-  return keys.length === 0 || keys.every((k) => k.startsWith("$"));
+  return keys.every((k) => k.startsWith("$"));
 };
 
 export async function parseMongoModifierAsync<

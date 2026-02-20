@@ -38,7 +38,7 @@ export default function throttle<T>(
         savedArgs = undefined;
       }
     } else if (timeoutHandle === undefined) {
-      savedThis = this;
+      savedThis = this; // oxlint-disable-line unicorn/no-this-assignment -- needed to replay the throttled call with correct context
       savedArgs = args;
       timeoutHandle = setTimeout(onTimeout, remaining) as any as number;
     }

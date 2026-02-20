@@ -85,6 +85,10 @@ const PuzzleActivityDetailTimeRange = styled.div`
   font-size: 12px;
 `;
 
+const displayNumber = (buckets: number[]) => {
+  return buckets.at(-1) ?? 0;
+};
+
 interface PuzzleActivityProps {
   huntId: string;
   puzzleId: string;
@@ -178,10 +182,6 @@ const PuzzleActivity = ({
       {calendarTimeFormat(unlockTime, t, i18n.language)}
     </Tooltip>
   );
-
-  const displayNumber = (buckets: number[]) => {
-    return buckets.at(-1) ?? 0;
-  };
 
   const sparklineTooltip = (
     <Tooltip id={`${idPrefix}-sparkline`}>

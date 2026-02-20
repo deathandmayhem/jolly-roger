@@ -1,5 +1,5 @@
 declare module "meteor/google-oauth" {
-  export module Google {
+  export namespace Google {
     function requestCredential(callback: (token: string) => void): void;
     function requestCredential(
       options: any,

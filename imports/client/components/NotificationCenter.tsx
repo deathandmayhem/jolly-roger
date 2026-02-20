@@ -1205,6 +1205,7 @@ const NotificationCenter = () => {
   return (
     <>
       {cookieCheckEndpointUrl && cookieCheckResult === undefined && (
+        // oxlint-disable-next-line react/iframe-missing-sandbox -- cross-origin cookie check needs unsandboxed access
         <iframe
           src={cookieCheckEndpointUrl}
           style={{ display: "none" }}

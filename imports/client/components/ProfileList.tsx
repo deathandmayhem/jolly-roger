@@ -593,7 +593,7 @@ const ProfileList = ({
           <GenerateInvitationLinkModal
             forwardedRef={generateInvitationLinkModalRef}
             huntId={hunt._id}
-            isRegenerate={typeof invitationCode !== "undefined"}
+            isRegenerate={invitationCode !== undefined}
           />
         )}
         {renderDisableInvitationLinkModal && (

@@ -97,7 +97,6 @@ function stringToSchema(def: z.ZodStringDef): JsonSchema {
       case "uuid":
       case "url": {
         let pattern;
-        // biome-ignore lint/style/useDefaultSwitchClause: migration from eslint
         switch (check.kind) {
           case "regex":
             pattern = check.regex;
@@ -111,6 +110,7 @@ function stringToSchema(def: z.ZodStringDef): JsonSchema {
           case "url":
             pattern = URL;
             break;
+          // no default
         }
         if (pattern.flags !== "") {
           throw new Error("Regex flags are not supported");

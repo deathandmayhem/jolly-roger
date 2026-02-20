@@ -41,7 +41,7 @@ const end = () => {
 };
 
 const clear = () => {
-  eventBuffer.splice(0, eventBuffer.length);
+  eventBuffer.splice(0);
 };
 
 const dumpBuffer = () => {

@@ -359,7 +359,7 @@ function reducer(state: CallState, action: Action): CallState {
     case "reset":
       return INITIAL_STATE;
     default:
-      throw new Error();
+      throw new Error("Unexpected action type");
   }
 }
 
@@ -1191,13 +1191,14 @@ const useCallState = ({
             }
 
             const consumerState = consumerMapRef.current.get(consumer._id);
-            if (consumerState?.consumer) {
-              if (consumerState.consumer.paused !== paused) {
-                if (paused) {
-                  consumerState.consumer.pause();
-                } else {
-                  consumerState.consumer.resume();
-                }
+            if (
+              consumerState?.consumer &&
+              consumerState.consumer.paused !== paused
+            ) {
+              if (paused) {
+                consumerState.consumer.pause();
+              } else {
+                consumerState.consumer.resume();
               }
             }
           }

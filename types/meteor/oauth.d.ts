@@ -1,5 +1,5 @@
 declare module "meteor/oauth" {
-  export module OAuth {
+  export namespace OAuth {
     function _loginStyle(service: string, config: any, options: any): string;
     function _redirectUri(service: string, config: any): string;
     function _retrieveCredentialSecret(token: string): string;

@@ -45,7 +45,8 @@ const StyledIframe = styled.iframe`
   background-color: #f1f3f4;
 `;
 
-const FocusGuard = styled.div`
+const FocusGuard = styled.button`
+  all: unset;
   position: absolute;
   inset: 0;
   z-index: 1;
@@ -212,7 +213,7 @@ const GoogleDocumentDisplay = ({
           />
           {focusGuarded && (
             <FocusGuard
-              role="button"
+              type="button"
               tabIndex={0}
               onClick={dismissFocusGuard}
               onKeyDown={onFocusGuardKeyDown}

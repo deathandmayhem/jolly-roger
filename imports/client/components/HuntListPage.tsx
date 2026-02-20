@@ -200,7 +200,7 @@ const HuntListPage = () => {
   const { canAdd, myHunts } = useTracker(() => {
     return {
       canAdd: userMayCreateHunt(Meteor.user()),
-      myHunts: new Set(Meteor.user()?.hunts ?? []),
+      myHunts: new Set(Meteor.user()?.hunts),
     };
   }, []);
 
