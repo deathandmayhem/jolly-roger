@@ -118,20 +118,18 @@ const PuzzleActivity = ({
       chats: [] as number[],
       calls: [] as number[],
       documents: [] as number[],
-      maxTotalCount: 0,
+      maxTotalCount: Math.max(
+        1,
+        ActivityBuckets.findOne(
+          {
+            hunt: huntId,
+          },
+          {
+            sort: { totalUsers: -1 },
+          },
+        )?.totalUsers ?? 0,
+      ),
     };
-
-    counts.maxTotalCount = Math.max(
-      1,
-      ActivityBuckets.findOne(
-        {
-          hunt: huntId,
-        },
-        {
-          sort: { totalUsers: -1 },
-        },
-      )?.totalUsers ?? 0,
-    );
 
     for (let i = 0; i < ACTIVITY_SEGMENTS; i++) {
       const bucket = ActivityBuckets.findOne({
@@ -151,20 +149,20 @@ const PuzzleActivity = ({
     // immediately at the start of a new bucket, without having to wait for the
     // next bucket to fill in.
     counts.totals[counts.totals.length - 1] = Math.max(
-      counts.totals[counts.totals.length - 1] ?? 0,
-      counts.totals[counts.totals.length - 2] ?? 0,
+      counts.totals.at(-1) ?? 0,
+      counts.totals.at(-2) ?? 0,
     );
     counts.chats[counts.chats.length - 1] = Math.max(
-      counts.chats[counts.chats.length - 1] ?? 0,
-      counts.chats[counts.chats.length - 2] ?? 0,
+      counts.chats.at(-1) ?? 0,
+      counts.chats.at(-2) ?? 0,
     );
     counts.calls[counts.calls.length - 1] = Math.max(
-      counts.calls[counts.calls.length - 1] ?? 0,
-      counts.calls[counts.calls.length - 2] ?? 0,
+      counts.calls.at(-1) ?? 0,
+      counts.calls.at(-2) ?? 0,
     );
     counts.documents[counts.documents.length - 1] = Math.max(
-      counts.documents[counts.documents.length - 1] ?? 0,
-      counts.documents[counts.documents.length - 2] ?? 0,
+      counts.documents.at(-1) ?? 0,
+      counts.documents.at(-2) ?? 0,
     );
 
     return counts;
@@ -182,7 +180,7 @@ const PuzzleActivity = ({
   );
 
   const displayNumber = (buckets: number[]) => {
-    return buckets[buckets.length - 1] ?? 0;
+    return buckets.at(-1) ?? 0;
   };
 
   const sparklineTooltip = (

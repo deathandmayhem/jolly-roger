@@ -1616,12 +1616,13 @@ const getLocalIPAddresses = (): ListenIp[] => {
       // For each of IPv4 and IPv6, pick the last filtered address. For IPv6 in
       // particular, modern OS's generate new addresses periodically, which can
       // cause this list to otherwise get quite long.
-      const ipv4 = [...filtered]
-        .reverse()
+      const ipv4 = filtered
+        .toReversed()
         .find((address) => address.family === "IPv4");
-      const ipv6 = [...filtered]
-        .reverse()
+      const ipv6 = filtered
+        .toReversed()
         .find((address) => address.family === "IPv6");
+      // oxlint-disable-next-line unicorn/prefer-native-coercion-functions -- type predicate needed for TypeScript narrowing
       return [ipv4?.address, ipv6?.address].filter<string>((v): v is string =>
         Boolean(v),
       );

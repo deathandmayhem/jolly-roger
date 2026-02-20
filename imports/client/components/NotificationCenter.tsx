@@ -1057,10 +1057,7 @@ const NotificationCenter = () => {
 
   const dismissGuess = useCallback((guessId: string) => {
     setDismissedGuesses((prevDismissedGuesses) => {
-      const newState: Record<string, Date> = {};
-      newState[guessId] = new Date();
-      Object.assign(newState, prevDismissedGuesses);
-      return newState;
+      return { ...prevDismissedGuesses, [guessId]: new Date() };
     });
   }, []);
 

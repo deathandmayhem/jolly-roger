@@ -1732,7 +1732,7 @@ const PuzzleGuessModal = ({
           </div>,
           <GuessTable key="table">
             {sortedBy(guesses, (g) => g.createdAt)
-              .reverse()
+              .toReversed()
               .map((guess) => {
                 return (
                   <GuessRow $state={guess.state} key={guess._id}>

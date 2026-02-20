@@ -390,9 +390,7 @@ export function normalizeIndexSpecification(
   } else if (indexIsMap(index)) {
     return [...index];
   } else {
-    return index
-      .map(normalizeIndexSpecification)
-      .reduce((acc, val) => acc.concat(val), []);
+    return index.flatMap(normalizeIndexSpecification);
   }
 }
 
@@ -403,7 +401,7 @@ export function normalizeIndexOptions(
     .filter((v): v is [AllowedIndexOptionsType, any] => {
       return AllowedIndexOptions.includes(v[0] as any);
     })
-    .sort();
+    .toSorted((a, b) => a[0].localeCompare(b[0]));
 }
 
 export const AllModels = new Set<Model<any, any>>();
