@@ -553,7 +553,7 @@ class Grouper {
     ];
 
     const groups: InternalPuzzleGroup[] = [];
-    if (this.nest) {
+    if (this.nest || this.merge) {
       // Sort grouplets by size
       grouplets.sort((a, b) => a.allPuzzles.size - b.allPuzzles.size);
       grouplets.forEach((first, i) => {
@@ -576,15 +576,17 @@ class Grouper {
               // if we're not merging, keep identical groups as repeated siblings.
               continue;
             }
-            // it's a strict subgroup -> make first a child of second
-            topLevel = false;
-            second.subgroups.push(first);
-            second.rootPuzzles = second.rootPuzzles.difference(
-              first.allPuzzles,
-            );
-            second.subgroups = second.subgroups.filter(
-              (sg) => !first.subgroups.includes(sg),
-            );
+            if (this.nest) {
+              // it's a strict subgroup -> make first a child of second
+              topLevel = false;
+              second.subgroups.push(first);
+              second.rootPuzzles = second.rootPuzzles.difference(
+                first.allPuzzles,
+              );
+              second.subgroups = second.subgroups.filter(
+                (sg) => !first.subgroups.includes(sg),
+              );
+            }
           }
         }
         if (topLevel) {
@@ -595,7 +597,7 @@ class Grouper {
     } else {
       groups.push(...grouplets.map((g) => this.toGroup(g)));
     }
-    if (this.makeNones && ungroupedPuzzles) {
+    if (this.makeNones && ungroupedPuzzles && groups.length) {
       groups.push({
         puzzles: ungroupedPuzzles,
         sharedTags: [
@@ -609,7 +611,7 @@ class Grouper {
             updatedAt: new Date(),
           },
         ],
-        interestingness: 1,
+        interestingness: -2,
         subgroups: [],
         puzzleIdCache: new Set<string>(),
       });
