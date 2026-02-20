@@ -624,7 +624,7 @@ defineJob(mergeUsers, {
     }
 
     // Discord OAuth credentials (access token, refresh token, etc.)
-    const discordServiceData = (source.services as any)?.discord;
+    const discordServiceData = source.services?.discord;
     if (discordServiceData) {
       await MeteorUsers.updateAsync(
         { _id: targetUser, "services.discord": { $exists: false } },
