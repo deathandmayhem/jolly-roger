@@ -82,7 +82,9 @@ async function waitForServer(url: string, timeoutMs = 120_000): Promise<void> {
     } catch {
       // server not ready yet
     }
-    await new Promise((r) => setTimeout(r, 1000));
+    await new Promise((r) => {
+      setTimeout(r, 1000);
+    });
   }
   throw new Error(
     `Server at ${url} did not become ready within ${timeoutMs}ms`,
@@ -127,9 +129,13 @@ async function loginAs(
   await page.evaluate(
     ({ email, password }) => {
       return new Promise<void>((resolve, reject) => {
-        Meteor.loginWithPassword(email, password, (err) =>
-          err ? reject(err) : resolve(),
-        );
+        Meteor.loginWithPassword(email, password, (err) => {
+          if (err) {
+            reject(err instanceof Error ? err : new Error(String(err)));
+          } else {
+            resolve();
+          }
+        });
       });
     },
     { email: user.email, password: user.password },
@@ -153,11 +159,13 @@ async function waitForStable(page: Page): Promise<void> {
       // new ones). Repeat if not.
       do {
         while (!DDP._allSubscriptionsReady()) {
-          await new Promise<void>((r) => requestAnimationFrame(() => r()));
+          await new Promise<void>((r) => {
+            requestAnimationFrame(() => r());
+          });
         }
-        await new Promise<void>((r) =>
-          requestAnimationFrame(() => requestAnimationFrame(() => r())),
-        );
+        await new Promise<void>((r) => {
+          requestAnimationFrame(() => requestAnimationFrame(() => r()));
+        });
       } while (!DDP._allSubscriptionsReady());
 
       // Wait for web fonts (Source Sans Pro, etc.) to finish loading
@@ -978,13 +986,17 @@ ${"=".repeat(72)}
       console.log("Shutting down Meteor...");
       meteor.kill("SIGTERM");
       const killTimeout = setTimeout(() => meteor!.kill("SIGKILL"), 10_000);
-      await new Promise<void>((resolve) => meteor!.on("exit", () => resolve()));
+      await new Promise<void>((resolve) => {
+        meteor!.on("exit", () => resolve());
+      });
       clearTimeout(killTimeout);
     }
 
     // Wait for mongod to fully shut down before removing its data directory
     console.log("Waiting for mongod to release files...");
-    await new Promise((r) => setTimeout(r, 2000));
+    await new Promise((r) => {
+      setTimeout(r, 2000);
+    });
 
     console.log("Cleaning up temp directory...");
     await rm(meteorLocalDir, { recursive: true, force: true });

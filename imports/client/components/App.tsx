@@ -262,7 +262,7 @@ const AppNavbar = ({
   }, [setAppTheme]);
   const { t, i18n } = useTranslation();
   const changeLanguage = (lng: string) => {
-    i18n.changeLanguage(lng);
+    void i18n.changeLanguage(lng);
   };
 
   const theme = useTheme();

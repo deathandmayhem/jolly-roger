@@ -156,50 +156,54 @@ router.post(
       }
     });
 
-    req.on("end", async () => {
-      try {
-        // Concatenate chunks into a single buffer representing the entire file contents
-        const contents = Buffer.concat(chunks);
-        logger.info("200 POST", {
-          uploadToken: req.params.uploadToken,
-          asset: uploadToken.asset,
-          size: contents.length,
-        });
-
-        // Compute md5 for eTag.
-        const md5 = crypto.createHash("md5").update(contents).digest("hex");
-        // Compute sha256, which is the _id of the Blob
-        const sha256 = crypto
-          .createHash("sha256")
-          .update(contents)
-          .digest("hex");
-        // Insert the Blob
-        await Blobs.upsertAsync(
-          { _id: sha256 },
-          {
-            $set: {
-              value: contents,
-              mimeType: uploadToken.mimeType,
-              md5,
+    req.on(
+      "end",
+      () =>
+        void (async () => {
+          try {
+            // Concatenate chunks into a single buffer representing the entire file contents
+            const contents = Buffer.concat(chunks);
+            logger.info("200 POST", {
+              uploadToken: req.params.uploadToken,
+              asset: uploadToken.asset,
               size: contents.length,
-            },
-          },
-        );
-        // Save the mapping from asset name to the Blob we just inserted.
-        await BlobMappings.upsertAsync(
-          { _id: uploadToken.asset },
-          {
-            $set: {
-              blob: sha256,
-            },
-          },
-        );
-        res.status(200).send("Upload completed.");
-        res.end();
-      } catch (err) {
-        next(err);
-      }
-    });
+            });
+
+            // Compute md5 for eTag.
+            const md5 = crypto.createHash("md5").update(contents).digest("hex");
+            // Compute sha256, which is the _id of the Blob
+            const sha256 = crypto
+              .createHash("sha256")
+              .update(contents)
+              .digest("hex");
+            // Insert the Blob
+            await Blobs.upsertAsync(
+              { _id: sha256 },
+              {
+                $set: {
+                  value: contents,
+                  mimeType: uploadToken.mimeType,
+                  md5,
+                  size: contents.length,
+                },
+              },
+            );
+            // Save the mapping from asset name to the Blob we just inserted.
+            await BlobMappings.upsertAsync(
+              { _id: uploadToken.asset },
+              {
+                $set: {
+                  blob: sha256,
+                },
+              },
+            );
+            res.status(200).send("Upload completed.");
+            res.end();
+          } catch (err) {
+            next(err);
+          }
+        })(),
+    );
   }),
 );
 
