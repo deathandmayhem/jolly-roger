@@ -4,7 +4,7 @@ import type { z } from "zod";
 import type TypedJob from "../../../lib/jobs/TypedJob";
 import Jobs from "../../../lib/models/Jobs";
 
-export default async function enqueueJob<
+export default function enqueueJob<
   ArgsSchema extends z.ZodType<Record<string, unknown>>,
   ResultSchema extends
     | z.ZodType<Record<string, unknown>>

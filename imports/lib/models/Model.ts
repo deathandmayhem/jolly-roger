@@ -467,12 +467,9 @@ class Model<
       }
     }
 
-    const parsed: z.output<Schema> = await IsInsert.withValue(
-      true,
-      async () => {
-        return this.schema.parseAsync(doc);
-      },
-    );
+    const parsed: z.output<Schema> = await IsInsert.withValue(true, () => {
+      return this.schema.parseAsync(doc);
+    });
     try {
       return await this.collection.insertAsync(parsed);
     } catch (e) {
@@ -570,9 +567,7 @@ class Model<
     }
   }
 
-  async removeAsync(
-    selector: Selector<z.output<this["schema"]>>,
-  ): Promise<number> {
+  removeAsync(selector: Selector<z.output<this["schema"]>>): Promise<number> {
     return this.collection.removeAsync(selector);
   }
 

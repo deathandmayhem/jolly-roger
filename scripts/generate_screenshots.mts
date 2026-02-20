@@ -104,7 +104,7 @@ function startMeteor(meteorLocalDir: string): ChildProcess {
 /**
  * Call a Meteor method from within the Playwright page context.
  */
-async function callMethod(
+function callMethod(
   page: Page,
   method: string,
   ...args: unknown[]
