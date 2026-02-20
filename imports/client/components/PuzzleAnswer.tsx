@@ -40,7 +40,7 @@ const PuzzleAnswerSegment = styled.span`
 function removePunctuation(answer: string) {
   return answer
     .toUpperCase()
-    .replace(/[\s.?!,;:\-_()'\u2018\u2019"\u201C\u201D]+/gu, "");
+    .replaceAll(/[\s.?!,;:\-_()'\u2018\u2019"\u201C\u201D]+/gu, "");
 }
 
 const PuzzleAnswer = React.memo(

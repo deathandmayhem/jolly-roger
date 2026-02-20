@@ -401,7 +401,7 @@ async function generateSubtitleBar(
         justify-content: center;
         color: white;
         font: bold 20px system-ui, -apple-system, sans-serif;
-      ">${subtitle.replace(/&/g, "&amp;").replace(/</g, "&lt;")}</div>
+      ">${subtitle.replaceAll("&", "&amp;").replaceAll("<", "&lt;")}</div>
     </body>
   `);
   await page.screenshot({ path: outputPath, omitBackground: true });

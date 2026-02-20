@@ -536,7 +536,7 @@ const BulkAddRemoveSection = ({
   const canAddTag = useMemo(() => {
     return bulkTags.length > 0
       ? selectedAndMatchingSearch.filter((puzzle) => {
-          return bulkTags.some((tagId) => puzzle.tags.indexOf(tagId) === -1);
+          return bulkTags.some((tagId) => !puzzle.tags.includes(tagId));
         })
       : [];
   }, [bulkTags, selectedAndMatchingSearch]);
@@ -545,7 +545,7 @@ const BulkAddRemoveSection = ({
   const canRemoveTag = useMemo(() => {
     return bulkTags.length > 0
       ? selectedAndMatchingSearch.filter((puzzle) => {
-          return bulkTags.every((tagId) => puzzle.tags.indexOf(tagId) !== -1);
+          return bulkTags.every((tagId) => puzzle.tags.includes(tagId));
         })
       : [];
   }, [bulkTags, selectedAndMatchingSearch]);

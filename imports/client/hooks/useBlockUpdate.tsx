@@ -17,7 +17,7 @@ class BlockManager {
   private unblock?: () => void;
 
   isBlocked() {
-    return [...this.blockers.values()].some((b) => b);
+    return [...this.blockers.values()].some(Boolean);
   }
 
   checkUnblocked() {

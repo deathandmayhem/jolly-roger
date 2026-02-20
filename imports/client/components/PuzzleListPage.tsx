@@ -208,7 +208,7 @@ const PuzzleListView = ({
   }, [setHuntPuzzleListCollapseGroups]);
   const canExpandAllGroups =
     displayMode === "group" &&
-    Object.values(huntPuzzleListCollapseGroups).some((collapsed) => collapsed);
+    Object.values(huntPuzzleListCollapseGroups).some(Boolean);
 
   const [operatorActionsHidden, setOperatorActionsHidden] =
     useOperatorActionsHiddenForHunt(huntId);

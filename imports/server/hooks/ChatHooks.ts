@@ -20,9 +20,7 @@ async function findPuzzlesWithMatchingTag(
 ): Promise<PuzzleType[]> {
   const tags = await Tags.find({ _id: { $in: puzzle.tags } }).fetchAsync();
   const groups = tags.filter((tag) => tag.name.startsWith(fromPrefix));
-  const groupNames = groups.map((group) =>
-    group.name.substring(fromPrefix.length),
-  );
+  const groupNames = groups.map((group) => group.name.slice(fromPrefix.length));
   const matchingTags = await Tags.find({
     hunt: puzzle.hunt,
     name: {

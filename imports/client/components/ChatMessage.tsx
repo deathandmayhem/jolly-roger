@@ -133,7 +133,7 @@ const MarkdownToken = ({
     ));
     const decodedText = decodeHTML(token.text);
     if (token.raw.length > decodedText.length) {
-      const trail = token.raw.substring(decodedText.length);
+      const trail = token.raw.slice(decodedText.length);
       if (trail.trim() === "") {
         const syntheticSpace: Tokens.Space = {
           type: "space",
