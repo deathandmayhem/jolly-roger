@@ -1,4 +1,4 @@
-/* biome-ignore-all lint/suspicious/noConsole: CLI script */
+/* oxlint-disable no-console -- CLI script */
 
 /**
  * Script to generate the screenshots used in the README using Playwright.

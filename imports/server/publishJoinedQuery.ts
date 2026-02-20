@@ -175,7 +175,7 @@ class JoinedObjectObserver<T extends { _id: string }> {
             this.values.set(id, fkValues);
           },
           (err) => {
-            // biome-ignore lint/suspicious/noConsole: migration from eslint
+            // oxlint-disable-next-line no-console
             console.log("incref promise rejected:", err);
           },
         );
@@ -241,7 +241,7 @@ class JoinedObjectObserver<T extends { _id: string }> {
             });
           },
           (err) => {
-            // biome-ignore lint/suspicious/noConsole: migration from eslint
+            // oxlint-disable-next-line no-console
             console.log("incref promise rejected:", err);
           },
         );

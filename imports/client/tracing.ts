@@ -1,4 +1,4 @@
-// biome-ignore-all lint/suspicious/noConsole: migrated from eslint
+/* oxlint-disable no-console */
 
 // A dumb, mostly-oblivious trace buffer to enable getting some event ordering
 // information out of production, hopefully  without generating terrible

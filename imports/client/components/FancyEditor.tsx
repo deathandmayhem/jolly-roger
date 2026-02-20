@@ -650,7 +650,7 @@ const decorate = ([node, path]: [SlateNode, Path]) => {
   );
 
   if (DEBUG_EDITOR) {
-    // biome-ignore lint/suspicious/noConsole: migration from eslint
+    // oxlint-disable-next-line no-console
     console.log("decorated", ranges);
   }
   return ranges;
