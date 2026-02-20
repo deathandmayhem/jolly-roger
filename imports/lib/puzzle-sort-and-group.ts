@@ -4,7 +4,7 @@ import type { TagType } from "./models/Tags";
 import { computeSolvedness } from "./solvedness";
 
 interface PuzzleGroup {
-  sharedTag?: TagType;
+  sharedTags: TagType[];
   puzzles: PuzzleType[];
   subgroups: PuzzleGroup[];
 }
@@ -12,7 +12,7 @@ interface PuzzleGroup {
 // Used with interior mutability for preparing `PuzzleGroup`s suitable for
 // returning to users.
 interface InternalPuzzleGroup {
-  sharedTag?: TagType;
+  sharedTags: TagType[];
   puzzles: PuzzleType[];
   subgroups: InternalPuzzleGroup[];
   puzzleIdCache: Set<string>;
@@ -22,14 +22,11 @@ interface InternalPuzzleGroup {
 function puzzleInterestingness(
   puzzle: PuzzleType,
   indexedTags: Map<string, TagType>,
-  group: string | undefined,
+  groups: string[],
 ): number {
   // If the shared tag for this group is group:<something>, then group will equal '<something>', and
   // we wish to sort a puzzle named 'meta-for:<something>' at the top.
-  let desiredTagName: string | undefined;
-  if (group) {
-    desiredTagName = `meta-for:${group}`;
-  }
+  const metaFors = groups.map((group) => `meta-for:${group}`);
   let isAdministrivia = false;
   let isGroup = false;
   let minScore = 0;
@@ -51,7 +48,7 @@ function puzzleInterestingness(
         // First comes any administrivia
         minScore = Math.min(-4, minScore);
         isAdministrivia = true;
-      } else if (desiredTagName && tag.name === desiredTagName) {
+      } else if (metaFors.includes(tag.name)) {
         // Matching meta gets sorted top.
         minScore = Math.min(-3, minScore);
       } else if (tag.name === "is:metameta") {
@@ -76,7 +73,7 @@ function puzzleInterestingness(
 
 function interestingnessOfGroup(
   puzzles: PuzzleType[],
-  sharedTag: TagType | undefined,
+  sharedTags: TagType[],
   indexedTags: Map<string, TagType>,
 ) {
   // Rough idea: sort, from top to bottom:
@@ -91,17 +88,16 @@ function interestingnessOfGroup(
 
   // ungrouped puzzles go after groups, esp. after groups with a known unsolved meta.
   // Guarantees that if ia === ib, then sharedTag exists.
-  if (!sharedTag) return 1;
+  if (!sharedTags.length) return 1;
 
-  if (sharedTag.name === "administrivia") {
+  if (sharedTags.some((tag) => tag.name === "administrivia")) {
     return -3;
   }
 
   // Look for a puzzle with meta-for:(this group's shared tag)
-  let metaForTag: string | undefined;
-  if (sharedTag && sharedTag.name.lastIndexOf("group:", 0) === 0) {
-    metaForTag = `meta-for:${sharedTag.name.slice("group:".length)}`;
-  }
+  const metaFors = sharedTags
+    .filter((tag) => tag.name.startsWith("group:"))
+    .map((tag) => `meta-for:${tag.name.slice("group:".length)}`);
 
   let hasSolvedMetaForSharedGroup = false;
   let hasUnsolvedMetaForSharedGroup = false;
@@ -119,7 +115,7 @@ function interestingnessOfGroup(
         // tag may be undefined if we get tag IDs before the new Tag arrives from the server;
         // ignore such tags for sorting purposes
 
-        if (metaForTag && tag.name === metaForTag) {
+        if (metaFors.includes(tag.name)) {
           // This puzzle is meta-for: the group.
           if (solvedness === "solved") {
             hasSolvedMetaForSharedGroup = true;
@@ -151,7 +147,11 @@ function compareGroups(a: InternalPuzzleGroup, b: InternalPuzzleGroup): number {
   if (ia !== ib) return ia - ib;
   // Within an interestingness class, sort tags by creation date, which should
   // roughly match hunt order.
-  return a.sharedTag!.createdAt.getTime() - b.sharedTag!.createdAt.getTime();
+  if (!b.sharedTags.length) return -1;
+  if (!a.sharedTags.length) return 1;
+  return (
+    a.sharedTags[0]!.createdAt.getTime() - b.sharedTags[0]!.createdAt.getTime()
+  );
 }
 
 function sortGroups(groups: InternalPuzzleGroup[]) {
@@ -200,7 +200,7 @@ function dedupedGroup(g: InternalPuzzleGroup): PuzzleGroup {
   });
 
   return {
-    sharedTag: g.sharedTag,
+    sharedTags: g.sharedTags,
     puzzles: dedupedPuzzles,
     subgroups: dedupedSubgroups,
   };
@@ -228,7 +228,7 @@ function filteredPuzzleGroup(
 
   // Otherwise, propagate what's left.
   return {
-    sharedTag: group.sharedTag,
+    sharedTags: group.sharedTags,
     puzzles: retainedPuzzles,
     subgroups: retainedSubgroups,
   };
@@ -285,14 +285,15 @@ function puzzleGroupsByRelevance(
   const groups: InternalPuzzleGroup[] = [...groupsMap.keys()].map((key) => {
     const puzzles = groupsMap.get(key)!;
     const sharedTag = tagsByIndex.get(key);
+    const sharedTags = sharedTag ? [sharedTag] : [];
     const puzzleIdCache = new Set(puzzles.map((p) => p._id));
     const interestingness = interestingnessOfGroup(
       puzzles,
-      sharedTag,
+      sharedTags,
       tagsByIndex,
     );
     return {
-      sharedTag,
+      sharedTags,
       puzzles,
       subgroups: [],
       puzzleIdCache,
@@ -349,9 +350,10 @@ function puzzleGroupsByRelevance(
         parentGroup.subgroups = parentGroup.subgroups.filter(
           (parentSubgroup) => {
             return currentGroup.subgroups.every((childSubgroup) => {
-              // sharedTag is guaranteed to be set in each group
+              // sharedTags is guaranteed to be nonempty in each group
               return (
-                parentSubgroup.sharedTag!._id !== childSubgroup.sharedTag!._id
+                parentSubgroup.sharedTags[0]!._id !==
+                childSubgroup.sharedTags[0]!._id
               );
             });
           },
@@ -373,7 +375,7 @@ function puzzleGroupsByRelevance(
     const ungroupedPuzzleIdCache = new Set(ungroupedPuzzles.map((p) => p._id));
     const interestingness = interestingnessOfGroup(
       ungroupedPuzzles,
-      undefined,
+      [],
       tagsByIndex,
     );
     groups.push({
@@ -381,6 +383,7 @@ function puzzleGroupsByRelevance(
       subgroups: [],
       puzzleIdCache: ungroupedPuzzleIdCache,
       interestingness,
+      sharedTags: [],
     });
   }
 
@@ -395,17 +398,16 @@ function puzzleGroupsByRelevance(
 
 function sortPuzzlesByRelevanceWithinPuzzleGroup(
   puzzles: PuzzleType[],
-  sharedTag: TagType | undefined,
+  sharedTags: TagType[],
   indexedTags: Map<string, TagType>,
 ) {
-  let group: string;
-  if (sharedTag && sharedTag.name.lastIndexOf("group:", 0) === 0) {
-    group = sharedTag.name.slice("group:".length);
-  }
+  const groups = sharedTags
+    .filter((tag) => tag.name.startsWith("group:"))
+    .map((tag) => tag.name.slice("group:".length));
   const sortedPuzzles = puzzles.slice(0);
   sortedPuzzles.sort((a, b) => {
-    const ia = puzzleInterestingness(a, indexedTags, group);
-    const ib = puzzleInterestingness(b, indexedTags, group);
+    const ia = puzzleInterestingness(a, indexedTags, groups);
+    const ib = puzzleInterestingness(b, indexedTags, groups);
     if (ia !== ib) {
       return ia - ib;
     } else {
@@ -464,6 +466,7 @@ class Collocation<T> {
 
 interface grouplet {
   tag: string;
+  additionalTags: Set<string>;
   allPuzzles: Set<string>;
   rootPuzzles: Set<string>;
   subgroups: grouplet[];
@@ -474,31 +477,39 @@ class Grouper {
   tagsByName: Map<string, TagType>;
   puzzlesByID: Map<string, PuzzleType>;
   nest: boolean;
+  merge: boolean;
+  makeNones: boolean;
 
   constructor(
     allPuzzles: PuzzleType[],
     allTags: TagType[],
     nest: boolean = true,
+    merge: boolean = true,
+    makeNones: boolean = true,
   ) {
     this.tagsByID = indexedBy(allTags, "_id");
     this.puzzlesByID = indexedBy(allPuzzles, "_id");
     this.tagsByName = indexedBy(allTags, "name", true);
     this.nest = nest;
+    this.merge = merge;
+    this.makeNones = makeNones;
   }
 
   toGroup(g: grouplet): InternalPuzzleGroup {
     const puzzles = Array.from(g.rootPuzzles).map(
       (id) => this.puzzlesByID.get(id)!,
     );
-    const sharedTag = this.tagsByID.get(g.tag);
+    const sharedTags = [g.tag, ...g.additionalTags].map(
+      (tag) => this.tagsByID.get(tag)!,
+    );
     return {
       puzzles: puzzles,
       subgroups: g.subgroups.map((subg) => this.toGroup(subg)),
-      sharedTag: sharedTag,
+      sharedTags: sharedTags,
       puzzleIdCache: g.rootPuzzles,
       interestingness: interestingnessOfGroup(
         puzzles,
-        sharedTag,
+        sharedTags,
         this.tagsByID,
       ),
     };
@@ -541,14 +552,15 @@ class Grouper {
     const grouplets: grouplet[] = [
       ...colloc.keys().map((tag) => ({
         tag: tag,
+        additionalTags: new Set<string>(),
         allPuzzles: colloc.get(tag),
         rootPuzzles: new Set<string>(colloc.get(tag)),
         subgroups: [],
       })),
     ];
 
+    const groups: InternalPuzzleGroup[] = [];
     if (this.nest) {
-      const groups: InternalPuzzleGroup[] = [];
       // Sort grouplets by size
       grouplets.sort((a, b) => a.allPuzzles.size - b.allPuzzles.size);
       grouplets.forEach((first, i) => {
@@ -557,8 +569,21 @@ class Grouper {
         for (let j = i + 1; j < grouplets.length; j++) {
           const second = grouplets[j]!;
           const overlap = colloc.count(first.tag, second.tag);
-          if (overlap === size && overlap !== colloc.count(second.tag)) {
+          if (overlap === size) {
             // if the count of puzzles with both tags equals the count of puzzles with the first tag, then first is a subset of second
+            if (overlap === colloc.count(second.tag)) {
+              if (this.merge) {
+                // they're the same group - just discard this one and attach its tag to the second.
+                second.additionalTags.add(first.tag);
+                second.additionalTags = second.additionalTags.union(
+                  first.additionalTags,
+                );
+                topLevel = false;
+              }
+              // if we're not merging, keep identical groups as repeated siblings.
+              continue;
+            }
+            // it's a strict subgroup -> make first a child of second
             topLevel = false;
             second.subgroups.push(first);
             second.rootPuzzles = second.rootPuzzles.difference(
@@ -574,10 +599,31 @@ class Grouper {
           groups.push(this.toGroup(first));
         }
       });
-      return [groups, ungroupedPuzzles];
+    } else {
+      groups.push(...grouplets.map((g) => this.toGroup(g)));
+    }
+    if (this.makeNones && ungroupedPuzzles) {
+      groups.push({
+        puzzles: ungroupedPuzzles,
+        sharedTags: [
+          {
+            _id: `fake-tag-no-${tagName}`,
+            name: `${tagName}:None`,
+            createdAt: new Date(),
+            createdBy: "nobody",
+            deleted: false,
+            hunt: "",
+            updatedAt: new Date(),
+          },
+        ],
+        interestingness: 1,
+        subgroups: [],
+        puzzleIdCache: new Set<string>(),
+      });
+      return [groups, []];
     }
 
-    return [grouplets.map((g) => this.toGroup(g)), ungroupedPuzzles];
+    return [groups, ungroupedPuzzles];
   }
 
   applyGrouping(parentGroup: InternalPuzzleGroup, tagName: string) {
@@ -590,13 +636,25 @@ class Grouper {
     );
     parentGroup.subgroups.push(...newGroups);
     parentGroup.puzzles = ungroupedPuzzles;
+    if (
+      this.merge &&
+      parentGroup.puzzles.length === 0 &&
+      parentGroup.subgroups.length === 1
+    ) {
+      const child = parentGroup.subgroups[0]!;
+      parentGroup.sharedTags.push(...child.sharedTags);
+      parentGroup.puzzles = child.puzzles;
+      parentGroup.subgroups = child.subgroups;
+      parentGroup.interestingness = child.interestingness;
+      parentGroup.puzzleIdCache = child.puzzleIdCache;
+    }
   }
 }
 
 function unwrapInternalGroup(g: InternalPuzzleGroup): PuzzleGroup {
   return {
     puzzles: g.puzzles,
-    sharedTag: g.sharedTag,
+    sharedTags: g.sharedTags,
     subgroups: g.subgroups.map(unwrapInternalGroup),
   };
 }
@@ -606,12 +664,15 @@ function groupPuzzlesByTags(
   allTags: TagType[],
   groupBy: string[],
   nest: boolean = false,
+  merge: boolean = true,
+  makeNones: boolean = true,
 ): PuzzleGroup[] {
   const adminTag = allTags.filter((t) => t.name === "administrivia")[0];
   const adminID = adminTag?._id;
   const rootGroup: InternalPuzzleGroup = {
     puzzles: [],
     subgroups: [],
+    sharedTags: [],
     interestingness: 0,
     puzzleIdCache: new Set(),
   };
@@ -624,26 +685,29 @@ function groupPuzzlesByTags(
       rootGroup.puzzles.push(puzzle);
     }
   });
-  const grouper = new Grouper(allPuzzles, allTags, nest);
+  const grouper = new Grouper(allPuzzles, allTags, nest, merge, makeNones);
   for (const tagName of groupBy) {
     grouper.applyGrouping(rootGroup, tagName);
   }
   // add the admin puzzles, and put the ungrouped puzzles in their own group so it can be sorted properly.
-  rootGroup.subgroups.push(
-    {
+  if (rootGroup.puzzles) {
+    rootGroup.subgroups.push({
       puzzles: rootGroup.puzzles,
       subgroups: [],
+      sharedTags: [],
       puzzleIdCache: new Set(),
       interestingness: 1,
-    },
-    {
-      sharedTag: adminTag,
+    });
+  }
+  if (adminPuzzles) {
+    rootGroup.subgroups.push({
+      sharedTags: adminTag ? [adminTag] : [],
       puzzles: adminPuzzles,
       subgroups: [],
       interestingness: -3,
       puzzleIdCache: new Set(),
-    },
-  );
+    });
+  }
 
   sortGroups([rootGroup]);
 

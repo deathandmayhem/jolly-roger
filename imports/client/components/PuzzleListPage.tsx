@@ -364,13 +364,10 @@ const PuzzleListView = ({
             retainedIds,
           );
           listComponent = puzzleGroups.map((g) => {
-            const suppressedTagIds = [];
-            if (g.sharedTag) {
-              suppressedTagIds.push(g.sharedTag._id);
-            }
+            const suppressedTagIds = g.sharedTags.map((tag) => tag._id);
             return (
               <RelatedPuzzleGroup
-                key={g.sharedTag ? g.sharedTag._id : "ungrouped"}
+                key={suppressedTagIds.join("-") || "ungrouped"}
                 huntId={huntId}
                 group={g}
                 noSharedTagLabel={`(${t("puzzleList.noGroupSpecified", "no group specified")})`}
@@ -428,7 +425,7 @@ const PuzzleListView = ({
               <RelatedPuzzleList
                 key="bookmarked"
                 relatedPuzzles={bookmarkedPuzzles}
-                sharedTag={undefined}
+                sharedTags={[]}
                 bookmarked={bookmarked}
                 allTags={allTags}
                 canUpdate={canUpdate}
@@ -441,7 +438,11 @@ const PuzzleListView = ({
             <RelatedPuzzleGroup
               key="deleted"
               huntId={huntId}
-              group={{ puzzles: retainedDeletedPuzzles, subgroups: [] }}
+              group={{
+                puzzles: retainedDeletedPuzzles,
+                subgroups: [],
+                sharedTags: [],
+              }}
               noSharedTagLabel={t(
                 "puzzleList.deletedPuzzlesGroup",
                 "Deleted puzzles (operator only)",

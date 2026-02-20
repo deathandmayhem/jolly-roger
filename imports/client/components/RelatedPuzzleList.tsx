@@ -11,7 +11,7 @@ const RelatedPuzzleList = React.memo(
     bookmarked,
     allTags,
     canUpdate,
-    sharedTag,
+    sharedTags,
     suppressedTagIds,
     segmentAnswers,
   }: {
@@ -19,7 +19,7 @@ const RelatedPuzzleList = React.memo(
     bookmarked: Set<string>;
     allTags: TagType[];
     canUpdate: boolean;
-    sharedTag: TagType | undefined;
+    sharedTags: TagType[];
     suppressedTagIds: string[];
     segmentAnswers?: boolean;
   }) => {
@@ -29,7 +29,7 @@ const RelatedPuzzleList = React.memo(
     const tagIndex = indexedById(allTags);
     const sortedPuzzles = sortPuzzlesByRelevanceWithinPuzzleGroup(
       relatedPuzzles,
-      sharedTag,
+      sharedTags,
       tagIndex,
     );
     return (

@@ -65,7 +65,7 @@ const RelatedPuzzleGroup = ({
   const [persistentCollapsed, setPersistentCollapsed] =
     useHuntPuzzleListCollapseGroup(
       huntId,
-      group.sharedTag?._id ?? noSharedTagLabel,
+      suppressedTagIds.join("-") || noSharedTagLabel,
     );
   const [nonPersistentCollapsed, setNonPersistentCollapsed] = useState(false);
   const lastTrackPersistentExpand = useRef(trackPersistentExpand);
@@ -86,26 +86,33 @@ const RelatedPuzzleGroup = ({
     ? persistentCollapsed
     : nonPersistentCollapsed;
 
-  const { puzzles: relatedPuzzles, sharedTag } = group;
+  const { puzzles: relatedPuzzles, sharedTags } = group;
 
   const puzzlePlural = relatedPuzzles.length === 1 ? "puzzle" : "puzzles";
   const countString = `(${relatedPuzzles.length} other ${puzzlePlural})`;
-  const allSuppressedTagIds = [...suppressedTagIds];
-  if (sharedTag) {
-    allSuppressedTagIds.push(sharedTag._id);
-  }
+  const allSuppressedTagIds = [
+    ...suppressedTagIds,
+    ...sharedTags.map((tag) => tag._id),
+  ];
   return (
     <PuzzleGroupDiv>
       <PuzzleGroupHeader
-        data-group-name={sharedTag?.name}
+        data-group-name={sharedTags.map((tag) => tag.name).join("&")}
         onClick={toggleCollapse}
       >
         <FontAwesomeIcon
           fixedWidth
           icon={collapsed ? faCaretRight : faCaretDown}
         />
-        {sharedTag ? (
-          <Tag tag={sharedTag} linkToSearch={false} popoverRelated={false} />
+        {sharedTags.length ? (
+          sharedTags.map((sharedTag) => (
+            <Tag
+              tag={sharedTag}
+              key={sharedTag._id}
+              linkToSearch={false}
+              popoverRelated={false}
+            />
+          ))
         ) : (
           <NoSharedTagLabel>{noSharedTagLabel}</NoSharedTagLabel>
         )}
@@ -118,17 +125,19 @@ const RelatedPuzzleGroup = ({
             bookmarked={bookmarked}
             allTags={allTags}
             canUpdate={canUpdate}
-            sharedTag={sharedTag}
+            sharedTags={sharedTags}
             suppressedTagIds={allSuppressedTagIds}
           />
           {group.subgroups.map((subgroup) => {
             const subgroupSuppressedTagIds = [...allSuppressedTagIds];
-            if (subgroup.sharedTag) {
-              subgroupSuppressedTagIds.push(subgroup.sharedTag._id);
-            }
+            subgroupSuppressedTagIds.push(
+              ...subgroup.sharedTags.map((tag) => tag._id),
+            );
             return (
               <RelatedPuzzleGroup
-                key={subgroup.sharedTag ? subgroup.sharedTag._id : "ungrouped"}
+                key={
+                  subgroup.sharedTags.map((t) => t._id).join("-") || "ungrouped"
+                }
                 huntId={huntId}
                 group={subgroup}
                 noSharedTagLabel={noSharedTagLabel}

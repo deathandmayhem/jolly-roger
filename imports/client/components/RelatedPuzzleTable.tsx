@@ -9,12 +9,12 @@ const RelatedPuzzleTable = React.memo(
   ({
     relatedPuzzles,
     allTags,
-    sharedTag,
+    sharedTags,
     segmentAnswers,
   }: {
     relatedPuzzles: PuzzleType[];
     allTags: TagType[];
-    sharedTag: TagType | undefined;
+    sharedTags: TagType[];
     segmentAnswers?: boolean;
   }) => {
     // Sort the puzzles within each tag group by interestingness.  For instance, metas
@@ -23,7 +23,7 @@ const RelatedPuzzleTable = React.memo(
     const tagIndex = indexedById(allTags);
     const sortedPuzzles = sortPuzzlesByRelevanceWithinPuzzleGroup(
       relatedPuzzles,
-      sharedTag,
+      sharedTags,
       tagIndex,
     );
     return (

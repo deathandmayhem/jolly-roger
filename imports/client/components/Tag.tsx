@@ -278,10 +278,12 @@ const Tag = (props: TagProps) => {
     }
     const tagIndex = indexedById(allTagsIfPresent!);
     const sharedTagName = getRelatedPuzzlesSharedTagName(props.tag.name);
-    const sharedTag = allTagsIfPresent!.find((t) => t.name === sharedTagName);
+    const sharedTags = allTagsIfPresent!.filter(
+      (t) => t.name === sharedTagName,
+    );
     const relatedPuzzles = sortPuzzlesByRelevanceWithinPuzzleGroup(
       getRelatedPuzzles(),
-      sharedTag,
+      sharedTags,
       tagIndex,
     );
     const clipboardData = relatedPuzzles
@@ -410,7 +412,7 @@ const Tag = (props: TagProps) => {
           <RelatedPuzzleTable
             relatedPuzzles={relatedPuzzles}
             allTags={props.allTags}
-            sharedTag={props.tag}
+            sharedTags={[props.tag]}
             segmentAnswers={segmentAnswers}
           />
         </Popover.Body>
