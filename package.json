@@ -96,7 +96,7 @@
     "@types/react-sparklines": "^1.7.5",
     "@types/sinon": "^21.0.0",
     "@typescript-eslint/utils": "^8.55.0",
-    "@typescript/native-preview": "^7.0.0-dev.20260206.1",
+    "@typescript/native-preview": "^7.0.0-dev.20260220.1",
     "chai": "^6.2.2",
     "chai-as-promised": "^8.0.2",
     "concurrently": "^9.2.1",
