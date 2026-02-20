@@ -308,7 +308,7 @@ const ChatPeople = ({
             </AVActions>
             <ChatterSubsection>
               <PeopleListHeader onClick={toggleCallersExpanded}>
-                <FontAwesomeIcon fixedWidth icon={callersHeaderIcon} />
+                <FontAwesomeIcon icon={callersHeaderIcon} />
                 {`${rtcViewers.length} ${t("audio.caller", { count: rtcViewers.length })}`}
                 {voiceActivityRelative && (
                   <>
@@ -358,7 +358,7 @@ const ChatPeople = ({
       {!rtcDisabled && !disabled && callersSubsection}
       <ChatterSubsection ref={chatterRef}>
         <PeopleListHeader onClick={toggleViewersExpanded}>
-          <FontAwesomeIcon fixedWidth icon={viewersHeaderIcon} />
+          <FontAwesomeIcon icon={viewersHeaderIcon} />
           {`${totalViewers} ${t("chat.viewer", { count: totalViewers })}`}
         </PeopleListHeader>
         <PeopleListDiv $collapsed={!viewersExpanded}>

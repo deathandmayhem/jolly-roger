@@ -648,7 +648,7 @@ const BulkAddRemoveSection = ({
               disabled={canAddTag.length === 0}
               onClick={addTagsToSelectedAndVisible}
             >
-              <FontAwesomeIcon fixedWidth icon={faTags} />
+              <FontAwesomeIcon icon={faTags} />
               {t("tags.bulkAddRemoveSection.add", "Add to {{count}} selected", {
                 count: canAddTag.length,
               })}
@@ -658,7 +658,7 @@ const BulkAddRemoveSection = ({
               disabled={canRemoveTag.length === 0}
               onClick={removeTagsFromSelectedAndVisible}
             >
-              <FontAwesomeIcon fixedWidth icon={faTimes} />
+              <FontAwesomeIcon icon={faTimes} />
               {t(
                 "tags.bulkAddRemoveSection.remove",
                 "Remove from {{count}} selected",

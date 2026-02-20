@@ -51,7 +51,6 @@ const GuessState = ({
         <FontAwesomeIcon
           icon={iconLookupTable[state] ?? faQuestionCircle}
           color={iconColor(state)}
-          fixedWidth
         />{" "}
         {t(
           `puzzle.answerOrGuess.guessState.${state}`,
@@ -74,7 +73,6 @@ const GuessState = ({
       <FontAwesomeIcon
         icon={iconLookupTable[state] ?? faQuestionCircle}
         color={iconColor(state)}
-        fixedWidth
       />
     </OverlayTrigger>
   );

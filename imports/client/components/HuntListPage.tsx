@@ -95,7 +95,7 @@ const Hunt = React.memo(({ hunt }: { hunt: HuntType }) => {
               variant="outline-secondary"
               title={`${t("huntList.edit.title", "Edit hunt")}...`}
             >
-              <FontAwesomeIcon fixedWidth icon={faEdit} />
+              <FontAwesomeIcon icon={faEdit} />
             </Button>
           </LinkContainer>
         ) : undefined}
@@ -105,7 +105,7 @@ const Hunt = React.memo(({ hunt }: { hunt: HuntType }) => {
             variant="danger"
             title={`${t("huntList.purge.title", "Purge hunt contents")}...`}
           >
-            <FontAwesomeIcon fixedWidth icon={faBomb} />
+            <FontAwesomeIcon icon={faBomb} />
           </Button>
         ) : undefined}
         {canDestroy ? (
@@ -114,7 +114,7 @@ const Hunt = React.memo(({ hunt }: { hunt: HuntType }) => {
             variant="danger"
             title={`${t("huntList.delete.title", "Delete hunt")}...`}
           >
-            <FontAwesomeIcon fixedWidth icon={faMinus} />
+            <FontAwesomeIcon icon={faMinus} />
           </Button>
         ) : undefined}
       </ButtonGroup>{" "}

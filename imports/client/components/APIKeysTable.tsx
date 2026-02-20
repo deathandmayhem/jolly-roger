@@ -87,7 +87,7 @@ const APIKeyRow = ({ apiKey }: { apiKey: APIKeyType }) => {
             aria-label="Copy to clipboard"
             text={apiKey.key}
           >
-            <FontAwesomeIcon icon={faCopy} fixedWidth />
+            <FontAwesomeIcon icon={faCopy} />
           </CopyToClipboardButton>
           <OverlayTrigger placement="top" overlay={showHideOverlay}>
             <Button
@@ -95,10 +95,7 @@ const APIKeyRow = ({ apiKey }: { apiKey: APIKeyType }) => {
               onClick={toggleShown}
               aria-label={showHideAction}
             >
-              <FontAwesomeIcon
-                icon={keyShown ? faEye : faEyeSlash}
-                fixedWidth
-              />
+              <FontAwesomeIcon icon={keyShown ? faEye : faEyeSlash} />
             </Button>
           </OverlayTrigger>
           <FormControl

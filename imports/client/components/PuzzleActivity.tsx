@@ -207,7 +207,7 @@ const PuzzleActivity = ({
       </PuzzleActivityDetailTimeRange>
       <PuzzleActivityDetail>
         <div>
-          <FontAwesomeIcon icon={faCommentDots} fixedWidth />
+          <FontAwesomeIcon icon={faCommentDots} />
         </div>
         <div>{t("puzzle.activity.chat", "Chat")}</div>
         <div>
@@ -220,7 +220,7 @@ const PuzzleActivity = ({
         </div>
         <div>{displayNumber(chats)}</div>
         <div>
-          <FontAwesomeIcon icon={faPhoneVolume} fixedWidth />
+          <FontAwesomeIcon icon={faPhoneVolume} />
         </div>
         <div>{t("puzzle.activity.call", "Call")}</div>
         <div>
@@ -233,7 +233,7 @@ const PuzzleActivity = ({
         </div>
         <div>{displayNumber(calls)}</div>
         <div>
-          <FontAwesomeIcon icon={faFilePen} fixedWidth />
+          <FontAwesomeIcon icon={faFilePen} />
         </div>
         <div>{t("puzzle.activity.doc", "Doc")}</div>
         <div>
@@ -264,7 +264,7 @@ const PuzzleActivity = ({
       </OverlayTrigger>
       <OverlayTrigger placement="top" overlay={sparklineTooltip}>
         <PuzzleActivitySparkline>
-          <FontAwesomeIcon icon={faPeopleGroup} fixedWidth />
+          <FontAwesomeIcon icon={faPeopleGroup} />
           {/* Sparklines doesn't accept a className argument, so we can't use styled-components */}
           <Sparklines
             data={totals}

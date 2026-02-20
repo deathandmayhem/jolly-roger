@@ -189,7 +189,7 @@ const TagList = React.memo((props: TagListProps) => {
             key="startEditing"
             onClick={startEditing}
           >
-            <FontAwesomeIcon fixedWidth icon={faPlus} />
+            <FontAwesomeIcon icon={faPlus} />
           </TagModifyButton>
         )}
         {onRemoveTag && tags.length > 0 && (
@@ -199,7 +199,7 @@ const TagList = React.memo((props: TagListProps) => {
             key="startRemoving"
             onClick={startRemoving}
           >
-            <FontAwesomeIcon fixedWidth icon={faMinus} />
+            <FontAwesomeIcon icon={faMinus} />
           </TagModifyButton>
         )}
       </ButtonGroup>,

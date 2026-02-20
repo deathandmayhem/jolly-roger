@@ -645,6 +645,7 @@ const useCallState = ({
     }
   }, [router?._id, router?.rtpCapabilities]);
 
+  // oxlint-disable-next-line typescript/no-deprecated
   const rtpCaps = device ? JSON.stringify(device.rtpCapabilities) : undefined;
   const transportSubHandle = useRef<Meteor.SubscriptionHandle | undefined>(
     undefined,

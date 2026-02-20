@@ -830,7 +830,7 @@ const LanguageSection = () => {
   const shouldDisableForm = submitState === SubmitState.SUBMITTING;
 
   const onSaveLanguage = useCallback(
-    (e: React.FormEvent<any>) => {
+    (e: React.SyntheticEvent) => {
       e.preventDefault();
 
       setSubmitState(SubmitState.SUBMITTING);

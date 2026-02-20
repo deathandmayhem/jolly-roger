@@ -100,10 +100,7 @@ const RelatedPuzzleGroup = ({
         data-group-name={sharedTag?.name}
         onClick={toggleCollapse}
       >
-        <FontAwesomeIcon
-          fixedWidth
-          icon={collapsed ? faCaretRight : faCaretDown}
-        />
+        <FontAwesomeIcon icon={collapsed ? faCaretRight : faCaretDown} />
         {sharedTag ? (
           <Tag tag={sharedTag} linkToSearch={false} popoverRelated={false} />
         ) : (

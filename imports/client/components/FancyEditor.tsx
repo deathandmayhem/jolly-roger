@@ -206,7 +206,7 @@ const ChatImageRenderer = ({
         <Elem {...attributes} contentEditable={false}>
           <FontAwesomeIcon
             icon={faFileCircleExclamation}
-            title="Image upload failed"
+            aria-label="Image upload failed"
             color="red"
           />
         </Elem>

@@ -199,7 +199,7 @@ const GoogleDocumentDisplay = ({
     case "link":
       return (
         <StyledDeepLink href={url} target="_blank" rel="noreferrer noopener">
-          <FontAwesomeIcon fixedWidth icon={icon} /> <span>{title}</span>
+          <FontAwesomeIcon icon={icon} /> <span>{title}</span>
         </StyledDeepLink>
       );
     case "embed":
@@ -209,7 +209,6 @@ const GoogleDocumentDisplay = ({
           <StyledIframe
             ref={iframeRef}
             title="document"
-            scrolling="no"
             src={url}
             onLoad={onIframeLoad}
           />

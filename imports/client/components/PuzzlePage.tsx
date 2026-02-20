@@ -1112,7 +1112,7 @@ const PuzzlePageMetadata = ({
                 variant="success"
                 onClick={() => onRemoveAnswer(guess._id)}
               >
-                <FontAwesomeIcon fixedWidth icon={faTimes} />
+                <FontAwesomeIcon icon={faTimes} />
               </AnswerRemoveButton>
             )}
           </PuzzleMetadataAnswer>
@@ -1126,7 +1126,7 @@ const PuzzlePageMetadata = ({
       target="_blank"
       rel="noreferrer noopener"
     >
-      <FontAwesomeIcon fixedWidth icon={faPuzzlePiece} /> <span>Puzzle</span>
+      <FontAwesomeIcon icon={faPuzzlePiece} /> <span>Puzzle</span>
     </PuzzleMetadataExternalLink>
   ) : null;
 
@@ -1633,7 +1633,7 @@ const PuzzleGuessModal = ({
             <OverlayTrigger placement="top" overlay={directionTooltip}>
               <GuessSliderContainer>
                 <GuessSliderLeftLabel>
-                  <FontAwesomeIcon icon={faArrowLeft} fixedWidth />
+                  <FontAwesomeIcon icon={faArrowLeft} />
                 </GuessSliderLeftLabel>
                 <GuessSlider
                   id={`${idPrefix}-guess-direction`}
@@ -1651,14 +1651,13 @@ const PuzzleGuessModal = ({
                   <option value="10">10</option>
                 </datalist>
                 <GuessSliderRightLabel>
-                  <FontAwesomeIcon icon={faArrowRight} fixedWidth />
+                  <FontAwesomeIcon icon={faArrowRight} />
                 </GuessSliderRightLabel>
               </GuessSliderContainer>
             </OverlayTrigger>
             <FontAwesomeIcon
               icon={faCheck}
               color={haveSetDirection ? "green" : "transparent"}
-              fixedWidth
             />
           </ValidatedSliderContainer>
           <FormText>
@@ -1708,7 +1707,6 @@ const PuzzleGuessModal = ({
             <FontAwesomeIcon
               icon={faCheck}
               color={haveSetConfidence ? "green" : "transparent"}
-              fixedWidth
             />
           </ValidatedSliderContainer>
           <FormText>
@@ -1749,7 +1747,7 @@ const PuzzleGuessModal = ({
                           aria-label="Copy"
                           text={guess.guess}
                         >
-                          <FontAwesomeIcon icon={faCopy} fixedWidth />
+                          <FontAwesomeIcon icon={faCopy} />
                         </StyledCopyToClipboardButton>
                         <PuzzleAnswer answer={guess.guess} breakable indented />
                       </GuessAnswerCell>

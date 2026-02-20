@@ -215,17 +215,14 @@ const Producer = ({ producer }: { producer: ProducerClientType }) => {
     if (!producerServer) {
       return [
         "Connecting",
-        <FontAwesomeIcon key="spinner" icon={faSpinner} spin fixedWidth />,
+        <FontAwesomeIcon key="spinner" icon={faSpinner} spin />,
       ];
     } else if (producer.paused) {
-      return [
-        "Paused",
-        <FontAwesomeIcon key="pause" icon={faPause} fixedWidth />,
-      ];
+      return ["Paused", <FontAwesomeIcon key="pause" icon={faPause} />];
     } else {
       return [
         "Broadcasting",
-        <FontAwesomeIcon key="broadcast" icon={faBroadcastTower} fixedWidth />,
+        <FontAwesomeIcon key="broadcast" icon={faBroadcastTower} />,
       ];
     }
   }, [producer.paused, producerServer]);
@@ -245,7 +242,6 @@ const Producer = ({ producer }: { producer: ProducerClientType }) => {
         >
           <FontAwesomeIcon
             icon={producer.kind === "audio" ? faMicrophone : faVideo}
-            fixedWidth
           />
         </OverlayTrigger>
         <OverlayTrigger
@@ -320,18 +316,12 @@ const Consumer = ({ consumer }: { consumer: ConsumerType }) => {
     if (!consumerAcked) {
       return [
         "Connecting",
-        <FontAwesomeIcon key="spinner" icon={faSpinner} spin fixedWidth />,
+        <FontAwesomeIcon key="spinner" icon={faSpinner} spin />,
       ];
     } else if (consumer.paused) {
-      return [
-        "Paused",
-        <FontAwesomeIcon key="pause" icon={faPause} fixedWidth />,
-      ];
+      return ["Paused", <FontAwesomeIcon key="pause" icon={faPause} />];
     } else {
-      return [
-        "Active",
-        <FontAwesomeIcon key="play" icon={faPlay} fixedWidth />,
-      ];
+      return ["Active", <FontAwesomeIcon key="play" icon={faPlay} />];
     }
   }, [consumer.paused, consumerAcked]);
 
@@ -355,7 +345,6 @@ const Consumer = ({ consumer }: { consumer: ConsumerType }) => {
         >
           <FontAwesomeIcon
             icon={consumer.kind === "audio" ? faMicrophone : faVideo}
-            fixedWidth
           />
         </OverlayTrigger>
         <OverlayTrigger
@@ -369,7 +358,7 @@ const Consumer = ({ consumer }: { consumer: ConsumerType }) => {
         {" ("}
         <CopyableInput value={consumer._id} />
         {") "}
-        <FontAwesomeIcon icon={faArrowCircleLeft} fixedWidth />
+        <FontAwesomeIcon icon={faArrowCircleLeft} />
         {producerPeer && <UserDisplay userId={producerPeer?.createdBy} />}
         {" ("}
         <CopyableInput value={consumer.producerPeer} />)
@@ -445,21 +434,18 @@ const Transport = ({ transport }: { transport: TransportType }) => {
 
   const [statusTooltip, statusIcon] = useMemo(() => {
     if (connectionCompleted) {
-      return [
-        "Connected",
-        <FontAwesomeIcon key="wifi" icon={faWifi} fixedWidth />,
-      ];
+      return ["Connected", <FontAwesomeIcon key="wifi" icon={faWifi} />];
     } else if (connectionStarted) {
       return [
         "Connecting",
-        <FontAwesomeIcon key="spinner" icon={faSpinner} fixedWidth spin />,
+        <FontAwesomeIcon key="spinner" icon={faSpinner} spin />,
       ];
     } else {
       return [
         "Not connected",
         <span key="not-connected" className="fa-layers fa-fw">
-          <FontAwesomeIcon icon={faWifi} fixedWidth />
-          <FontAwesomeIcon icon={faSlash} fixedWidth />
+          <FontAwesomeIcon icon={faWifi} />
+          <FontAwesomeIcon icon={faSlash} />
         </span>,
       ];
     }
@@ -494,7 +480,7 @@ const Transport = ({ transport }: { transport: TransportType }) => {
             </Tooltip>
           }
         >
-          <FontAwesomeIcon icon={directionIcon} fixedWidth />
+          <FontAwesomeIcon icon={directionIcon} />
         </OverlayTrigger>
         {" ("}
         <CopyableInput value={transport._id} />)
@@ -643,7 +629,6 @@ const Peer = ({ peer }: { peer: PeerType }) => {
         >
           <FontAwesomeIcon
             icon={peer.muted ? faMicrophoneSlash : faMicrophone}
-            fixedWidth
           />
         </OverlayTrigger>
         <OverlayTrigger
@@ -654,10 +639,7 @@ const Peer = ({ peer }: { peer: PeerType }) => {
             </Tooltip>
           }
         >
-          <FontAwesomeIcon
-            icon={peer.deafened ? faVolumeMute : faVolumeUp}
-            fixedWidth
-          />
+          <FontAwesomeIcon icon={peer.deafened ? faVolumeMute : faVolumeUp} />
         </OverlayTrigger>
         <UserDisplay userId={peer.createdBy} />
         {" ("}
@@ -819,10 +801,7 @@ const Room = ({ room }: { room: RoomType }) => {
             </Tooltip>
           }
         >
-          <FontAwesomeIcon
-            icon={recentActivity ? faVolumeUp : faVolumeOff}
-            fixedWidth
-          />
+          <FontAwesomeIcon icon={recentActivity ? faVolumeUp : faVolumeOff} />
         </OverlayTrigger>
         <CallDisplay call={room.call} />
       </Accordion.Header>
