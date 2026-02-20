@@ -161,9 +161,7 @@ const GoogleDocumentDisplay = ({
   }, []);
 
   const onIframeLoad = useCallback(() => {
-    if (lastStolenAtRef.current === undefined) {
-      lastStolenAtRef.current = Date.now();
-    }
+    lastStolenAtRef.current ??= Date.now();
   }, []);
 
   let url: string;

@@ -1131,8 +1131,7 @@ const PuzzlePageMetadata = ({
   ) : null;
 
   const imageInsert = isDesktop &&
-    document &&
-    document.provider === "google" &&
+    document?.provider === "google" &&
     document.value.type === "spreadsheet" && (
       <InsertImage documentId={document._id} />
     );

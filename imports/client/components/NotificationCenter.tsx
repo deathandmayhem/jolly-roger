@@ -801,11 +801,7 @@ const useCookieCheck = (
 
     const onMessage = (event: MessageEvent) => {
       const data = event.data;
-      if (
-        data &&
-        data.type === "jr-cookie-check" &&
-        typeof data.ok === "boolean"
-      ) {
+      if (data?.type === "jr-cookie-check" && typeof data.ok === "boolean") {
         resolve(data.ok);
       }
     };
