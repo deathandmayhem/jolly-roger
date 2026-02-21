@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { nonEmptyString, uint8Array } from "../../lib/models/customTypes";
-import type { ModelType } from "../../lib/models/Model";
-import Model from "../../lib/models/Model";
+import { nonEmptyString, uint8Array } from "../../lib/typedModel/customTypes";
+import type { ModelType } from "../../lib/typedModel/Model";
+import Model from "../../lib/typedModel/Model";
 
 // _id is the ASCII hex string of the sha256 hash of the blob contents
 export const Blob = z.object({
@@ -13,7 +13,7 @@ export const Blob = z.object({
   // 'd41d8cd98f00b204e9800998ecf8427e'
   md5: z.string().regex(/^[0-9a-fA-F]{32}$/),
   // Size, in bytes, of the blob contents.
-  size: z.number().int().nonnegative(),
+  size: z.int32().nonnegative(),
 });
 
 const Blobs = new Model(
