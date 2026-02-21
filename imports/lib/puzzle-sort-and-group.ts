@@ -1,4 +1,4 @@
-import { indexedBy, indexedById } from "./listUtils";
+import { indexedBy } from "./listUtils";
 import type { PuzzleType } from "./models/Puzzles";
 import type { TagType } from "./models/Tags";
 import { computeSolvedness } from "./solvedness";
@@ -7,16 +7,7 @@ interface PuzzleGroup {
   sharedTags: TagType[];
   puzzles: PuzzleType[];
   subgroups: PuzzleGroup[];
-}
-
-// Used with interior mutability for preparing `PuzzleGroup`s suitable for
-// returning to users.
-interface InternalPuzzleGroup {
-  sharedTags: TagType[];
-  puzzles: PuzzleType[];
-  subgroups: InternalPuzzleGroup[];
-  puzzleIdCache: Set<string>;
-  interestingness: number;
+  interestingness?: number;
 }
 
 function puzzleInterestingness(
@@ -128,10 +119,12 @@ function interestingnessOfGroup(
   return 0;
 }
 
-function compareGroups(a: InternalPuzzleGroup, b: InternalPuzzleGroup): number {
+function compareGroups(a: PuzzleGroup, b: PuzzleGroup): number {
   // Sort groups by interestingness.
   const ia = a.interestingness;
   const ib = b.interestingness;
+  if (ia === undefined) return -1;
+  if (ib === undefined) return 1;
   if (ia !== ib) return ia - ib;
   // Within an interestingness class, sort tags by creation date, which should
   // roughly match hunt order.
@@ -142,56 +135,11 @@ function compareGroups(a: InternalPuzzleGroup, b: InternalPuzzleGroup): number {
   );
 }
 
-function sortGroups(groups: InternalPuzzleGroup[]) {
+function sortGroups(groups: PuzzleGroup[]) {
   groups.forEach((group) => {
     sortGroups(group.subgroups);
   });
   groups.sort((a, b) => compareGroups(a, b));
-}
-
-function isStrictSubgroup(
-  subCand: InternalPuzzleGroup,
-  parentCand: InternalPuzzleGroup,
-) {
-  // A child group is considered a strict subgroup of a parent group if
-  // * the parent contains every puzzle in the child, and
-  // * the parent also contains at least one puzzle that the child does not contain.
-
-  // At the point we're calling this, we ignore the `subgroups` field, which are not yet
-  // populated, and consider only puzzles for determining subgroupiness.
-
-  if (subCand.puzzles.length >= parentCand.puzzles.length) {
-    // If the subgroup is the same size as or larger than the parent candidate,
-    // it can't be contained by the parent candidate group (second criterion above)
-    return false;
-  }
-
-  // first criterion: does every puzzle id in subCand appear in parentCand?
-  const parentIds = parentCand.puzzleIdCache;
-  return subCand.puzzles.every((p) => {
-    return parentIds.has(p._id);
-  });
-}
-
-function dedupedGroup(g: InternalPuzzleGroup): PuzzleGroup {
-  const childMembers = new Set();
-  g.subgroups.forEach((subgroup) => {
-    subgroup.puzzleIdCache.forEach((id) => {
-      childMembers.add(id);
-    });
-  });
-  const dedupedSubgroups = g.subgroups.map((subgroup) =>
-    dedupedGroup(subgroup),
-  );
-  const dedupedPuzzles = g.puzzles.filter((puzzle) => {
-    return !childMembers.has(puzzle._id);
-  });
-
-  return {
-    sharedTags: g.sharedTags,
-    puzzles: dedupedPuzzles,
-    subgroups: dedupedSubgroups,
-  };
 }
 
 function filteredPuzzleGroup(
@@ -219,6 +167,7 @@ function filteredPuzzleGroup(
     sharedTags: group.sharedTags,
     puzzles: retainedPuzzles,
     subgroups: retainedSubgroups,
+    interestingness: group.interestingness,
   };
 }
 
@@ -237,151 +186,7 @@ function puzzleGroupsByRelevance(
   allPuzzles: PuzzleType[],
   allTags: TagType[],
 ): PuzzleGroup[] {
-  // Maps tag id to list of puzzles holding that tag.
-  const groupsMap: Map<string, PuzzleType[]> = new Map();
-  // For collecting puzzles that are not included in any group.
-  const ungroupedPuzzles: PuzzleType[] = [];
-  const tagsByIndex = indexedById(allTags);
-  allPuzzles.forEach((puzzle) => {
-    let grouped = false;
-    puzzle.tags.forEach((tagId) => {
-      const tag = tagsByIndex.get(tagId);
-      // On new puzzle creation, if a tag is new as well, we can receive the
-      // new Puzzle object (and rerender) before the new Tag object streams
-      // in, so it's possible that we don't have a tag object for a given ID,
-      // and that tag here will be undefined.  Handle this case gracefully.
-      if (
-        tag?.name &&
-        (tag.name === "administrivia" ||
-          tag.name.lastIndexOf("group:", 0) === 0)
-      ) {
-        grouped = true;
-        if (!groupsMap.has(tag._id)) {
-          groupsMap.set(tag._id, []);
-        }
-
-        groupsMap.get(tag._id)!.push(puzzle);
-      }
-    });
-
-    if (!grouped) {
-      ungroupedPuzzles.push(puzzle);
-    }
-  });
-
-  // Collect groups into a list.
-  const groups: InternalPuzzleGroup[] = [...groupsMap.keys()].map((key) => {
-    const puzzles = groupsMap.get(key)!;
-    const sharedTag = tagsByIndex.get(key);
-    const sharedTags = sharedTag ? [sharedTag] : [];
-    const puzzleIdCache = new Set(puzzles.map((p) => p._id));
-    const interestingness = interestingnessOfGroup(
-      puzzles,
-      sharedTags,
-      tagsByIndex,
-    );
-    return {
-      sharedTags,
-      puzzles,
-      subgroups: [],
-      puzzleIdCache,
-      interestingness,
-    };
-  });
-
-  // For each group, from smallest to largest (by puzzle count), try to find
-  // groups which contain it entirely and at least one other puzzle.  Nest
-  // the smaller group under each such larger group, deduplicating shared
-  // subgroups along the way, and remove it from the groups forest if adopted
-  // by at least one other group.
-  //
-  // Once we've found all nestings, we'll remove from `puzzles` any puzzles
-  // that are contained by an entry in `subgroups` (recursively).
-
-  // Start by sorting groups by puzzle count, which will allow us to do this
-  // nesting adoption in a single pass through the groups.
-  groups.sort((a, b) => {
-    return a.puzzles.length - b.puzzles.length;
-  });
-
-  let i = 0;
-  while (i < groups.length) {
-    const currentGroup = groups[i]!;
-    const parentCandidates: number[] = [];
-
-    // Collect parent candidate indices.  We only need to consider groups for
-    // which the current group is a strict subgroup, since if two groups
-    // contain exactly the same set of puzzles, it's not clear which should
-    // contain the other, so we'll present both at the same level.
-    for (let j = i + 1; j < groups.length; j++) {
-      if (isStrictSubgroup(currentGroup, groups[j]!)) {
-        parentCandidates.push(j);
-      }
-    }
-
-    // If we have any groups that could contain this one, figure out which
-    // ones we should make this group a direct child of.  An example:
-    // If currentGroup is group A, and A is a strict subgroup of both group B and group C,
-    // then group B might itself be a strict subgroup of group C (and we'll
-    // later nest group B under group C, once we look for which groups should
-    // adopt group B).
-    if (parentCandidates.length > 0) {
-      // For each new adopting parent:
-      parentCandidates.forEach((k) => {
-        const parentGroup = groups[k]!;
-        // Insert that group as a child of that parent.
-        parentGroup.subgroups.push(currentGroup);
-
-        // Remove any direct subgroups of currentGroup from being direct
-        // children of that parent, if present.  Inductively, this prevents
-        // us from having duplicate child groups for strictly-contained subgroups.
-        parentGroup.subgroups = parentGroup.subgroups.filter(
-          (parentSubgroup) => {
-            return currentGroup.subgroups.every((childSubgroup) => {
-              // sharedTags is guaranteed to be nonempty in each group
-              return (
-                parentSubgroup.sharedTags[0]!._id !==
-                childSubgroup.sharedTags[0]!._id
-              );
-            });
-          },
-        );
-      });
-
-      // remove the current group from the group list; it now lives only as a
-      // child of each parent candidate in filtered
-      groups.splice(i, 1);
-
-      // the splice just shortened the list by 1, leave i as it is
-    } else {
-      i += 1;
-    }
-  }
-
-  // Add the ungrouped puzzles too, if there are any.
-  if (ungroupedPuzzles.length > 0) {
-    const ungroupedPuzzleIdCache = new Set(ungroupedPuzzles.map((p) => p._id));
-    const interestingness = interestingnessOfGroup(
-      ungroupedPuzzles,
-      [],
-      tagsByIndex,
-    );
-    groups.push({
-      puzzles: ungroupedPuzzles,
-      subgroups: [],
-      puzzleIdCache: ungroupedPuzzleIdCache,
-      interestingness,
-      sharedTags: [],
-    });
-  }
-
-  // Sort groups by interestingness.
-  sortGroups(groups);
-
-  // For each group, remove any members of puzzles that are also members of
-  // any of their subgroups, so the puzzles will only be shown in the
-  // wholly-contained subgroup.
-  return groups.map((group) => dedupedGroup(group));
+  return groupPuzzlesByTags(allPuzzles, allTags, ["group"], true, false, false);
 }
 
 function sortPuzzlesByRelevanceWithinPuzzleGroup(
@@ -483,7 +288,7 @@ class Grouper {
     this.makeNones = makeNones;
   }
 
-  toGroup(g: grouplet): InternalPuzzleGroup {
+  toGroup(g: grouplet): PuzzleGroup {
     const puzzles = Array.from(g.rootPuzzles).map(
       (id) => this.puzzlesByID.get(id)!,
     );
@@ -494,7 +299,6 @@ class Grouper {
       puzzles: puzzles,
       subgroups: g.subgroups.map((subg) => this.toGroup(subg)),
       sharedTags: sharedTags,
-      puzzleIdCache: g.rootPuzzles,
       interestingness: interestingnessOfGroup(
         puzzles,
         sharedTags,
@@ -506,7 +310,7 @@ class Grouper {
   groupPuzzlesByTag(
     puzzles: PuzzleType[],
     tagName: string,
-  ): [InternalPuzzleGroup[], PuzzleType[]] {
+  ): [PuzzleGroup[], PuzzleType[]] {
     // sparse collocation matrix tracks which tags overlap with other tags
     const colloc = new Collocation<string>();
     const ungroupedPuzzles: PuzzleType[] = [];
@@ -552,7 +356,7 @@ class Grouper {
       })),
     ];
 
-    const groups: InternalPuzzleGroup[] = [];
+    const groups: PuzzleGroup[] = [];
     if (this.nest || this.merge) {
       // Sort grouplets by size
       grouplets.sort((a, b) => a.allPuzzles.size - b.allPuzzles.size);
@@ -613,7 +417,6 @@ class Grouper {
         ],
         interestingness: -2,
         subgroups: [],
-        puzzleIdCache: new Set<string>(),
       });
       return [groups, []];
     }
@@ -621,7 +424,7 @@ class Grouper {
     return [groups, ungroupedPuzzles];
   }
 
-  applyGrouping(parentGroup: InternalPuzzleGroup, tagName: string) {
+  applyGrouping(parentGroup: PuzzleGroup, tagName: string) {
     parentGroup.subgroups.forEach((group) => {
       this.applyGrouping(group, tagName);
     });
@@ -641,17 +444,8 @@ class Grouper {
       parentGroup.puzzles = child.puzzles;
       parentGroup.subgroups = child.subgroups;
       parentGroup.interestingness = child.interestingness;
-      parentGroup.puzzleIdCache = child.puzzleIdCache;
     }
   }
-}
-
-function unwrapInternalGroup(g: InternalPuzzleGroup): PuzzleGroup {
-  return {
-    puzzles: g.puzzles,
-    sharedTags: g.sharedTags,
-    subgroups: g.subgroups.map(unwrapInternalGroup),
-  };
 }
 
 function groupPuzzlesByTags(
@@ -665,12 +459,10 @@ function groupPuzzlesByTags(
   // pull out administrivia first so they don't get folded into the other groups
   const adminTag = allTags.filter((t) => t.name === "administrivia")[0];
   const adminID = adminTag?._id;
-  const rootGroup: InternalPuzzleGroup = {
+  const rootGroup: PuzzleGroup = {
     puzzles: [],
     subgroups: [],
     sharedTags: [],
-    interestingness: 0,
-    puzzleIdCache: new Set(),
   };
   const adminPuzzles: PuzzleType[] = [];
   allPuzzles.forEach((puzzle) => {
@@ -691,7 +483,6 @@ function groupPuzzlesByTags(
       puzzles: rootGroup.puzzles,
       subgroups: [],
       sharedTags: [],
-      puzzleIdCache: new Set(),
       interestingness: 1,
     });
   }
@@ -701,14 +492,12 @@ function groupPuzzlesByTags(
       puzzles: adminPuzzles,
       subgroups: [],
       interestingness: -3,
-      puzzleIdCache: new Set(),
     });
   }
 
   sortGroups([rootGroup]);
 
-  const rg2 = unwrapInternalGroup(rootGroup);
-  return rg2.subgroups;
+  return rootGroup.subgroups;
 }
 
 export {
