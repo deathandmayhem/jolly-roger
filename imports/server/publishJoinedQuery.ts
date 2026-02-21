@@ -167,7 +167,7 @@ class JoinedObjectObserver<T extends { _id: string }> {
           fkValues.set(field, val);
         });
 
-        Promise.all(promises).then(
+        void Promise.all(promises).then(
           () => {
             // console.log(`added ${this.modelName} ${this.id}`);
             this.sub.added(this.modelName, id, fields);
@@ -175,7 +175,7 @@ class JoinedObjectObserver<T extends { _id: string }> {
             this.values.set(id, fkValues);
           },
           (err) => {
-            // biome-ignore lint/suspicious/noConsole: migration from eslint
+            // oxlint-disable-next-line no-console
             console.log("incref promise rejected:", err);
           },
         );
@@ -199,7 +199,7 @@ class JoinedObjectObserver<T extends { _id: string }> {
             promises.push(observer.incref(v));
           });
         });
-        Promise.all(promises).then(
+        void Promise.all(promises).then(
           () => {
             this.sub.changed(this.modelName, id, fields);
 
@@ -241,7 +241,7 @@ class JoinedObjectObserver<T extends { _id: string }> {
             });
           },
           (err) => {
-            // biome-ignore lint/suspicious/noConsole: migration from eslint
+            // oxlint-disable-next-line no-console
             console.log("incref promise rejected:", err);
           },
         );
@@ -264,7 +264,7 @@ class JoinedObjectObserver<T extends { _id: string }> {
         this.values.delete(id);
       },
     });
-    this.watcherPromise.then(
+    void this.watcherPromise.then(
       () => {
         observeReady = true;
       },
@@ -290,7 +290,7 @@ class JoinedObjectObserver<T extends { _id: string }> {
   }
 
   destroy() {
-    this.watcherPromise.then(
+    void this.watcherPromise.then(
       (watcher) => {
         watcher.stop();
       },

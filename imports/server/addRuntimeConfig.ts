@@ -17,7 +17,7 @@ export default function addRuntimeConfig(hook: () => Config) {
 WebApp.addRuntimeConfigHook(({ encodedCurrentConfig }) => {
   let config = WebApp.decodeRuntimeConfig(encodedCurrentConfig) as Config;
   for (const hook of hooks) {
-    config = { ...config, ...hook() };
+    Object.assign(config, hook());
   }
   return WebApp.encodeRuntimeConfig(config);
 });

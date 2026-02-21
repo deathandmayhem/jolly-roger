@@ -800,12 +800,8 @@ const useCookieCheck = (
     }
 
     const onMessage = (event: MessageEvent) => {
-      const data = event.data as any;
-      if (
-        data &&
-        data.type === "jr-cookie-check" &&
-        typeof data.ok === "boolean"
-      ) {
+      const data = event.data;
+      if (data?.type === "jr-cookie-check" && typeof data.ok === "boolean") {
         resolve(data.ok);
       }
     };
@@ -1061,10 +1057,7 @@ const NotificationCenter = () => {
 
   const dismissGuess = useCallback((guessId: string) => {
     setDismissedGuesses((prevDismissedGuesses) => {
-      const newState: Record<string, Date> = {};
-      newState[guessId] = new Date();
-      Object.assign(newState, prevDismissedGuesses);
-      return newState;
+      return { ...prevDismissedGuesses, [guessId]: new Date() };
     });
   }, []);
 
@@ -1212,6 +1205,7 @@ const NotificationCenter = () => {
   return (
     <>
       {cookieCheckEndpointUrl && cookieCheckResult === undefined && (
+        // oxlint-disable-next-line react/iframe-missing-sandbox -- cross-origin cookie check needs unsandboxed access
         <iframe
           src={cookieCheckEndpointUrl}
           style={{ display: "none" }}

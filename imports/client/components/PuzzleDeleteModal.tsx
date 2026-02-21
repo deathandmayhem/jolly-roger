@@ -140,9 +140,10 @@ const PuzzleDeleteModal = ({
     [],
   );
 
-  const replacementOptions: PuzzleSelectOption[] = [
-    ...puzzles.map((p) => ({ label: p.title, value: p._id })),
-  ];
+  const replacementOptions: PuzzleSelectOption[] = puzzles.map((p) => ({
+    label: p.title,
+    value: p._id,
+  }));
 
   const deletePuzzle = useCallback(() => {
     destroyPuzzle.call({

@@ -272,7 +272,7 @@ const DiscordHooks: Hookset = {
       );
       let title = puzzle.title;
       if (title.length > 25) {
-        title = `${title.substring(0, 24)}…`;
+        title = `${title.slice(0, 24)}…`;
       }
 
       const description = await renderChatMessageContent(chatMessage.content);

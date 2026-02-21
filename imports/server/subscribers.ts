@@ -45,7 +45,7 @@ Meteor.publish("subscribers.inc", async function (name, context) {
     name,
     context,
   });
-  this.onStop(async () => Subscribers.removeAsync(doc));
+  this.onStop(() => Subscribers.removeAsync(doc));
 
   return [];
 });

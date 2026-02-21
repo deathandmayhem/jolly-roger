@@ -536,7 +536,7 @@ const BulkAddRemoveSection = ({
   const canAddTag = useMemo(() => {
     return bulkTags.length > 0
       ? selectedAndMatchingSearch.filter((puzzle) => {
-          return bulkTags.some((tagId) => puzzle.tags.indexOf(tagId) === -1);
+          return bulkTags.some((tagId) => !puzzle.tags.includes(tagId));
         })
       : [];
   }, [bulkTags, selectedAndMatchingSearch]);
@@ -545,7 +545,7 @@ const BulkAddRemoveSection = ({
   const canRemoveTag = useMemo(() => {
     return bulkTags.length > 0
       ? selectedAndMatchingSearch.filter((puzzle) => {
-          return bulkTags.every((tagId) => puzzle.tags.indexOf(tagId) !== -1);
+          return bulkTags.every((tagId) => puzzle.tags.includes(tagId));
         })
       : [];
   }, [bulkTags, selectedAndMatchingSearch]);
@@ -555,7 +555,9 @@ const BulkAddRemoveSection = ({
       const tagNames = tagNamesForIds(bulkTags);
       tagNames.forEach((tagName) => {
         const puzzleId = puzzle._id;
-        addPuzzleTag.call({ puzzleId, tagName }, () => {});
+        addPuzzleTag.call({ puzzleId, tagName }, () => {
+          /* intentionally empty */
+        });
       });
     });
   }, [canAddTag, bulkTags, tagNamesForIds]);
@@ -564,7 +566,9 @@ const BulkAddRemoveSection = ({
     canRemoveTag.forEach((puzzle) => {
       bulkTags.forEach((tagId) => {
         const puzzleId = puzzle._id;
-        removePuzzleTag.call({ puzzleId, tagId }, () => {});
+        removePuzzleTag.call({ puzzleId, tagId }, () => {
+          /* intentionally empty */
+        });
       });
     });
   }, [canRemoveTag, bulkTags]);
@@ -648,7 +652,7 @@ const BulkAddRemoveSection = ({
               disabled={canAddTag.length === 0}
               onClick={addTagsToSelectedAndVisible}
             >
-              <FontAwesomeIcon fixedWidth icon={faTags} />
+              <FontAwesomeIcon icon={faTags} />
               {t("tags.bulkAddRemoveSection.add", "Add to {{count}} selected", {
                 count: canAddTag.length,
               })}
@@ -658,7 +662,7 @@ const BulkAddRemoveSection = ({
               disabled={canRemoveTag.length === 0}
               onClick={removeTagsFromSelectedAndVisible}
             >
-              <FontAwesomeIcon fixedWidth icon={faTimes} />
+              <FontAwesomeIcon icon={faTimes} />
               {t(
                 "tags.bulkAddRemoveSection.remove",
                 "Remove from {{count}} selected",

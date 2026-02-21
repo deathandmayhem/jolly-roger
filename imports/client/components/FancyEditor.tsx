@@ -169,7 +169,6 @@ const EditableMentionRenderer = ({
       name = element.roleId;
       break;
     default:
-      // biome-ignore lint/suspicious/noUnusedExpressions: exhaustive check
       element satisfies never;
   }
   const Elem = selected && focused ? SelectedMentionSpan : MentionSpan;
@@ -206,7 +205,7 @@ const ChatImageRenderer = ({
         <Elem {...attributes} contentEditable={false}>
           <FontAwesomeIcon
             icon={faFileCircleExclamation}
-            title="Image upload failed"
+            aria-label="Image upload failed"
             color="red"
           />
         </Elem>
@@ -280,10 +279,8 @@ const withSingleMessage = (editor: Editor) => {
   const { normalizeNode } = editor;
   editor.normalizeNode = (entry: NodeEntry) => {
     const [node, _path] = entry;
-    if (Editor.isEditor(node)) {
-      if (node.children.length > 1) {
-        Transforms.mergeNodes(editor, { at: [1] });
-      }
+    if (Editor.isEditor(node) && node.children.length > 1) {
+      Transforms.mergeNodes(editor, { at: [1] });
     }
 
     normalizeNode(entry);
@@ -377,7 +374,6 @@ const MatchCandidate = ({
         </MatchCandidateRow>
       );
     default:
-      // biome-ignore lint/suspicious/noUnusedExpressions: exhaustive check
       mention satisfies never;
       return null;
   }
@@ -650,7 +646,7 @@ const decorate = ([node, path]: [SlateNode, Path]) => {
   );
 
   if (DEBUG_EDITOR) {
-    // biome-ignore lint/suspicious/noConsole: migration from eslint
+    // oxlint-disable-next-line no-console
     console.log("decorated", ranges);
   }
   return ranges;
@@ -750,7 +746,7 @@ const FancyEditor = ({
         }),
       );
 
-      const imageEntry = matches.length ? matches[0] : null;
+      const imageEntry = matches.length > 0 ? matches[0] : null;
 
       if (imageEntry) {
         const [, imagePath] = imageEntry;
@@ -835,7 +831,13 @@ const FancyEditor = ({
             />
           );
         case "message":
+          return (
+            <StyledMessage {...props.attributes}>
+              {props.children}
+            </StyledMessage>
+          );
         default:
+          props.element satisfies never;
           return (
             <StyledMessage {...props.attributes}>
               {props.children}
@@ -929,7 +931,6 @@ const FancyEditor = ({
                 break;
               }
               default:
-                // biome-ignore lint/suspicious/noUnusedExpressions: exhaustive check
                 mention satisfies never;
             }
             setCompletionAnchorRange(undefined);
@@ -946,13 +947,12 @@ const FancyEditor = ({
       }
 
       if (event.key === "Enter") {
+        event.preventDefault();
         if (event.shiftKey) {
           // Insert soft break.  Avoid hard breaks entirely.
-          event.preventDefault();
           editor.insertText("\n");
         } else {
           // submit contents.  clear the editor.
-          event.preventDefault();
           if (onSubmit()) {
             clearInput();
           }
@@ -1020,7 +1020,6 @@ const FancyEditor = ({
           insertRoleMention(editor, m.roleId);
           break;
         default:
-          // biome-ignore lint/suspicious/noUnusedExpressions: exhaustive check
           m satisfies never;
       }
       setCompletionAnchorRange(undefined);

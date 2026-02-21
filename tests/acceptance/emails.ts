@@ -129,9 +129,9 @@ if (Meteor.isClient) {
 
       const user = await MeteorUsers.findOneAsync(Meteor.userId()!);
       assert.isDefined(user);
-      assert.lengthOf(user!.emails!, 2);
-      assert.equal(user!.emails![1]!.address, "second@example.com");
-      assert.isFalse(user!.emails![1]!.verified);
+      assert.lengthOf(user.emails!, 2);
+      assert.equal(user.emails![1]!.address, "second@example.com");
+      assert.isFalse(user.emails![1]!.verified);
     });
 
     it("can make a verified email primary", async function () {
@@ -292,11 +292,11 @@ if (Meteor.isClient) {
       const userA = await MeteorUsers.findOneAsync(userAId);
       assert.isDefined(userA, "User A should be visible to User B");
       assert.lengthOf(
-        userA!.emails!,
+        userA.emails!,
         1,
         "Should only see one email for other user",
       );
-      assert.equal(userA!.emails![0]!.address, "usera@example.com");
+      assert.equal(userA.emails![0]!.address, "usera@example.com");
 
       sub.stop();
     });

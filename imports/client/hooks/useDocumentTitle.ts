@@ -34,9 +34,7 @@ function useDocumentTitle(title: string) {
   // so a child will always get a higher order than its parent within
   // the same render pass.
   const entryRef = useRef<TitleEntry>(null!);
-  if (entryRef.current === null) {
-    entryRef.current = { title, order: nextOrder++ };
-  }
+  entryRef.current ??= { title, order: nextOrder++ };
 
   // Register on mount, unregister on unmount.
   useEffect(() => {

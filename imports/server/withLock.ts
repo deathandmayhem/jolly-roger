@@ -7,8 +7,8 @@ import Locks from "./models/Locks";
 // 10 seconds
 export const PREEMPT_TIMEOUT = 10000;
 
-async function tryAcquire(name: string) {
-  return ignoringDuplicateKeyErrors(async () => {
+function tryAcquire(name: string) {
+  return ignoringDuplicateKeyErrors(() => {
     // Because the Mongo.Collection doesn't know about SimpleSchema
     // autovalues, it doesn't know which fields are actually required. Cast to
     // any since this is known safe

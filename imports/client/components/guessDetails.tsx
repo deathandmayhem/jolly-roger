@@ -61,8 +61,8 @@ const GuessDirection = ({
   className?: string;
 }) => {
   const arrowShaftWidth = 0.3;
-  const arrowHeadWidth = 1.0; // 0 < arrowHeadWidth <= 1
-  const arrowHeadBaseDepth = 1.0; // 0 < arrowHeadBaseDepth <= 1
+  const arrowHeadWidth = 1; // 0 < arrowHeadWidth <= 1
+  const arrowHeadBaseDepth = 1; // 0 < arrowHeadBaseDepth <= 1
   const arrowHeadFullDepth = 1.5; // arrowHeadBaseDepth <= arrowHeadFullDepth
 
   const { t } = useTranslation();

@@ -208,7 +208,7 @@ const PuzzleListView = ({
   }, [setHuntPuzzleListCollapseGroups]);
   const canExpandAllGroups =
     displayMode === "group" &&
-    Object.values(huntPuzzleListCollapseGroups).some((collapsed) => collapsed);
+    Object.values(huntPuzzleListCollapseGroups).some(Boolean);
 
   const [operatorActionsHidden, setOperatorActionsHidden] =
     useOperatorActionsHiddenForHunt(huntId);
@@ -352,7 +352,6 @@ const PuzzleListView = ({
 
       let listComponent;
       let listControls;
-      // biome-ignore lint/style/useDefaultSwitchClause: migration from eslint
       switch (displayMode) {
         case "group": {
           // We group and sort first, and only filter afterward, to avoid losing the
@@ -414,6 +413,7 @@ const PuzzleListView = ({
           listControls = null;
           break;
         }
+        // no default
       }
       return (
         <div>

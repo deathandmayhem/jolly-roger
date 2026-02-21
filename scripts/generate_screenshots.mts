@@ -1,4 +1,4 @@
-/* biome-ignore-all lint/suspicious/noConsole: CLI script */
+/* oxlint-disable no-console -- CLI script */
 
 /**
  * Script to generate the screenshots used in the README using Playwright.
@@ -82,7 +82,9 @@ async function waitForServer(url: string, timeoutMs = 120_000): Promise<void> {
     } catch {
       // server not ready yet
     }
-    await new Promise((r) => setTimeout(r, 1000));
+    await new Promise((r) => {
+      setTimeout(r, 1000);
+    });
   }
   throw new Error(
     `Server at ${url} did not become ready within ${timeoutMs}ms`,
@@ -102,7 +104,7 @@ function startMeteor(meteorLocalDir: string): ChildProcess {
 /**
  * Call a Meteor method from within the Playwright page context.
  */
-async function callMethod(
+function callMethod(
   page: Page,
   method: string,
   ...args: unknown[]
@@ -121,15 +123,20 @@ async function loginAs(
   user: { email: string; password: string; displayName: string },
 ): Promise<void> {
   await page.goto(`${BASE_URL}/`);
+  // oxlint-disable-next-line unicorn/no-typeof-undefined -- Meteor may not be declared yet in the browser context
   await page.waitForFunction(() => typeof Meteor !== "undefined", {
     timeout: 30_000,
   });
   await page.evaluate(
     ({ email, password }) => {
       return new Promise<void>((resolve, reject) => {
-        Meteor.loginWithPassword(email, password, (err) =>
-          err ? reject(err) : resolve(),
-        );
+        Meteor.loginWithPassword(email, password, (err) => {
+          if (err) {
+            reject(err instanceof Error ? err : new Error(JSON.stringify(err)));
+          } else {
+            resolve();
+          }
+        });
       });
     },
     { email: user.email, password: user.password },
@@ -153,11 +160,13 @@ async function waitForStable(page: Page): Promise<void> {
       // new ones). Repeat if not.
       do {
         while (!DDP._allSubscriptionsReady()) {
-          await new Promise<void>((r) => requestAnimationFrame(() => r()));
+          await new Promise<void>((r) => {
+            requestAnimationFrame(() => r());
+          });
         }
-        await new Promise<void>((r) =>
-          requestAnimationFrame(() => requestAnimationFrame(() => r())),
-        );
+        await new Promise<void>((r) => {
+          requestAnimationFrame(() => requestAnimationFrame(() => r()));
+        });
       } while (!DDP._allSubscriptionsReady());
 
       // Wait for web fonts (Source Sans Pro, etc.) to finish loading
@@ -393,7 +402,7 @@ async function generateSubtitleBar(
         justify-content: center;
         color: white;
         font: bold 20px system-ui, -apple-system, sans-serif;
-      ">${subtitle.replace(/&/g, "&amp;").replace(/</g, "&lt;")}</div>
+      ">${subtitle.replaceAll("&", "&amp;").replaceAll("<", "&lt;")}</div>
     </body>
   `);
   await page.screenshot({ path: outputPath, omitBackground: true });
@@ -469,7 +478,9 @@ async function generateHeroMp4(
         segmentPath,
       ]);
 
-      await unlink(barPath).catch(() => {});
+      await unlink(barPath).catch(() => {
+        /* intentionally empty */
+      });
     }
 
     // Concatenate all segments and convert to an optimized GIF.
@@ -509,7 +520,9 @@ async function generateHeroMp4(
 
     // Clean up temp files
     for (const p of [...segmentPaths, concatListPath]) {
-      await unlink(p).catch(() => {});
+      await unlink(p).catch(() => {
+        /* intentionally empty */
+      });
     }
   }
 }
@@ -566,6 +579,7 @@ async function main() {
     // Provision first user and log in
     console.log("Provisioning first user...");
     await provisionPage.goto(`${BASE_URL}/`);
+    // oxlint-disable-next-line unicorn/no-typeof-undefined -- Meteor may not be declared yet in the browser context
     await provisionPage.waitForFunction(() => typeof Meteor !== "undefined", {
       timeout: 30_000,
     });
@@ -978,19 +992,24 @@ ${"=".repeat(72)}
       console.log("Shutting down Meteor...");
       meteor.kill("SIGTERM");
       const killTimeout = setTimeout(() => meteor!.kill("SIGKILL"), 10_000);
-      await new Promise<void>((resolve) => meteor!.on("exit", () => resolve()));
+      await new Promise<void>((resolve) => {
+        meteor!.on("exit", () => resolve());
+      });
       clearTimeout(killTimeout);
     }
 
     // Wait for mongod to fully shut down before removing its data directory
     console.log("Waiting for mongod to release files...");
-    await new Promise((r) => setTimeout(r, 2000));
+    await new Promise((r) => {
+      setTimeout(r, 2000);
+    });
 
     console.log("Cleaning up temp directory...");
     await rm(meteorLocalDir, { recursive: true, force: true });
   }
 }
 
+// oxlint-disable-next-line unicorn/prefer-top-level-await
 main().catch((err) => {
   console.error(err);
   process.exit(1);

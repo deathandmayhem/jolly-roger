@@ -292,7 +292,9 @@ const Tag = (props: TagProps) => {
           minRowCnt > puzzle.answers.length
             ? minRowCnt - puzzle.answers.length
             : 0;
-        const answers = puzzle.answers.concat(Array(missingCnt).fill(""));
+        const answers = puzzle.answers.concat(
+          Array.from({ length: missingCnt }, () => ""),
+        );
         return answers
           .map((answer) => {
             const formattedAnswer = segmentAnswers

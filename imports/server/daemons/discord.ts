@@ -18,7 +18,7 @@ interface DiscordDaemonEvents {
 class DiscordDaemon extends EventEmitter<DiscordDaemonEvents> {
   private cleanup?: DisposableStack;
 
-  private disabled: boolean = false;
+  private disabled = false;
   private token?: string;
 
   private abort?: AbortController;
@@ -105,39 +105,84 @@ class DiscordDaemon extends EventEmitter<DiscordDaemonEvents> {
         unseen.get(doc.type)!.add(doc.snowflake);
       }
 
-      client.on(Events.GuildAvailable, async (g) => {
-        await cacheGuild(g, unseen);
+      let rejectHandler: (error: unknown) => void;
+      const handlerFailure = new Promise<never>((_, rej) => {
+        rejectHandler = rej;
       });
-      client.on(Events.GuildCreate, async (g) => {
-        await cacheGuild(g, unseen);
-      });
-      client.on(Events.GuildUpdate, async (_, g) => {
-        await cacheGuild(g, unseen);
-      });
-      client.on(Events.GuildDelete, async (g) => {
-        await cacheRemove("guild", g);
-      });
-      client.on(Events.ChannelCreate, async (c) => {
-        await cacheAdd("channel", c, unseen.get("channel"));
-      });
-      client.on(Events.ChannelUpdate, async (_, c) => {
-        await cacheAdd("channel", c, unseen.get("channel"));
-      });
-      client.on(Events.ChannelDelete, async (c) => {
-        await cacheRemove("channel", c);
-      });
-      client.on(Events.GuildRoleCreate, async (r) => {
-        await cacheAdd("role", r, unseen.get("role"));
-      });
-      client.on(Events.GuildRoleUpdate, async (_, r) => {
-        await cacheAdd("role", r, unseen.get("role"));
-      });
-      client.on(Events.GuildRoleDelete, async (r) => {
-        await cacheRemove("role", r);
-      });
-      client.on(Events.UserUpdate, async (_, u) => {
-        await updateUser(u);
-      });
+      const wrapHandler = <T extends unknown[]>(
+        fn: (...args: T) => Promise<void>,
+      ): ((...args: T) => void) => {
+        return (...args: T) => {
+          fn(...args).catch(rejectHandler);
+        };
+      };
+
+      client.on(
+        Events.GuildAvailable,
+        wrapHandler(async (g) => {
+          await cacheGuild(g, unseen);
+        }),
+      );
+      client.on(
+        Events.GuildCreate,
+        wrapHandler(async (g) => {
+          await cacheGuild(g, unseen);
+        }),
+      );
+      client.on(
+        Events.GuildUpdate,
+        wrapHandler(async (_, g) => {
+          await cacheGuild(g, unseen);
+        }),
+      );
+      client.on(
+        Events.GuildDelete,
+        wrapHandler(async (g) => {
+          await cacheRemove("guild", g);
+        }),
+      );
+      client.on(
+        Events.ChannelCreate,
+        wrapHandler(async (c) => {
+          await cacheAdd("channel", c, unseen.get("channel"));
+        }),
+      );
+      client.on(
+        Events.ChannelUpdate,
+        wrapHandler(async (_, c) => {
+          await cacheAdd("channel", c, unseen.get("channel"));
+        }),
+      );
+      client.on(
+        Events.ChannelDelete,
+        wrapHandler(async (c) => {
+          await cacheRemove("channel", c);
+        }),
+      );
+      client.on(
+        Events.GuildRoleCreate,
+        wrapHandler(async (r) => {
+          await cacheAdd("role", r, unseen.get("role"));
+        }),
+      );
+      client.on(
+        Events.GuildRoleUpdate,
+        wrapHandler(async (_, r) => {
+          await cacheAdd("role", r, unseen.get("role"));
+        }),
+      );
+      client.on(
+        Events.GuildRoleDelete,
+        wrapHandler(async (r) => {
+          await cacheRemove("role", r);
+        }),
+      );
+      client.on(
+        Events.UserUpdate,
+        wrapHandler(async (_, u) => {
+          await updateUser(u);
+        }),
+      );
 
       const ready = once(client, Events.ClientReady);
       await client.login(token);
@@ -150,6 +195,7 @@ class DiscordDaemon extends EventEmitter<DiscordDaemonEvents> {
         aborted.then(() => false),
         renewalFailure,
         clientFailure,
+        handlerFailure,
       ]);
       if (!shouldContinue) return;
 
@@ -166,7 +212,12 @@ class DiscordDaemon extends EventEmitter<DiscordDaemonEvents> {
       unseen.clear();
 
       // Now we just need to wait for something to abort us
-      await Promise.race([aborted, renewalFailure, clientFailure]);
+      await Promise.race([
+        aborted,
+        renewalFailure,
+        clientFailure,
+        handlerFailure,
+      ]);
     });
   }
 }

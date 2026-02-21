@@ -1112,7 +1112,7 @@ const PuzzlePageMetadata = ({
                 variant="success"
                 onClick={() => onRemoveAnswer(guess._id)}
               >
-                <FontAwesomeIcon fixedWidth icon={faTimes} />
+                <FontAwesomeIcon icon={faTimes} />
               </AnswerRemoveButton>
             )}
           </PuzzleMetadataAnswer>
@@ -1126,13 +1126,12 @@ const PuzzlePageMetadata = ({
       target="_blank"
       rel="noreferrer noopener"
     >
-      <FontAwesomeIcon fixedWidth icon={faPuzzlePiece} /> <span>Puzzle</span>
+      <FontAwesomeIcon icon={faPuzzlePiece} /> <span>Puzzle</span>
     </PuzzleMetadataExternalLink>
   ) : null;
 
   const imageInsert = isDesktop &&
-    document &&
-    document.provider === "google" &&
+    document?.provider === "google" &&
     document.value.type === "spreadsheet" && (
       <InsertImage documentId={document._id} />
     );
@@ -1633,7 +1632,7 @@ const PuzzleGuessModal = ({
             <OverlayTrigger placement="top" overlay={directionTooltip}>
               <GuessSliderContainer>
                 <GuessSliderLeftLabel>
-                  <FontAwesomeIcon icon={faArrowLeft} fixedWidth />
+                  <FontAwesomeIcon icon={faArrowLeft} />
                 </GuessSliderLeftLabel>
                 <GuessSlider
                   id={`${idPrefix}-guess-direction`}
@@ -1651,14 +1650,13 @@ const PuzzleGuessModal = ({
                   <option value="10">10</option>
                 </datalist>
                 <GuessSliderRightLabel>
-                  <FontAwesomeIcon icon={faArrowRight} fixedWidth />
+                  <FontAwesomeIcon icon={faArrowRight} />
                 </GuessSliderRightLabel>
               </GuessSliderContainer>
             </OverlayTrigger>
             <FontAwesomeIcon
               icon={faCheck}
               color={haveSetDirection ? "green" : "transparent"}
-              fixedWidth
             />
           </ValidatedSliderContainer>
           <FormText>
@@ -1708,7 +1706,6 @@ const PuzzleGuessModal = ({
             <FontAwesomeIcon
               icon={faCheck}
               color={haveSetConfidence ? "green" : "transparent"}
-              fixedWidth
             />
           </ValidatedSliderContainer>
           <FormText>
@@ -1735,7 +1732,7 @@ const PuzzleGuessModal = ({
           </div>,
           <GuessTable key="table">
             {sortedBy(guesses, (g) => g.createdAt)
-              .reverse()
+              .toReversed()
               .map((guess) => {
                 return (
                   <GuessRow $state={guess.state} key={guess._id}>
@@ -1749,7 +1746,7 @@ const PuzzleGuessModal = ({
                           aria-label="Copy"
                           text={guess.guess}
                         >
-                          <FontAwesomeIcon icon={faCopy} fixedWidth />
+                          <FontAwesomeIcon icon={faCopy} />
                         </StyledCopyToClipboardButton>
                         <PuzzleAnswer answer={guess.guess} breakable indented />
                       </GuessAnswerCell>
@@ -2225,11 +2222,15 @@ const PuzzlePage = React.memo(() => {
     setIsChatMinimized(false);
   }, []);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies(chatMessages.length): We do want to trigger this effect on chatMessages length change
-  useEffect(() => {
-    // Any time a new chat message comes in, show the chat again.
-    setIsChatMinimized(false);
-  }, [chatMessages.length]);
+  useEffect(
+    () => {
+      // Any time a new chat message comes in, show the chat again.
+      setIsChatMinimized(false);
+    },
+    // Trigger whenever chatMessages.length changes, even if we don't actually use
+    // it in the effect, since we want to restore the chat pane whenever a new message comes in.
+    [chatMessages.length],
+  );
 
   useEffect(() => {
     // There's no point hiding the chat scrollback at mobile widths; we don't
@@ -2264,18 +2265,28 @@ const PuzzlePage = React.memo(() => {
   }, []);
 
   const answersCount = activePuzzle?.answers?.length ?? 0;
-  // biome-ignore lint/correctness/useExhaustiveDependencies(answersCount): We want to force the metadata section to be visible when the answers change, so solvers will not miss the puzzle being solved.
-  useEffect(() => {
-    setIsMetadataMinimized(false);
-  }, [answersCount]);
+  useEffect(
+    () => {
+      setIsMetadataMinimized(false);
+    },
+    // We want to force the metadata section to be visible when the set of answers
+    // change so solvers don't miss that it was solved, so use answersCount as a
+    // trigger for the effect even though the effect doesn't actually use it.
+    [answersCount],
+  );
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies(sidebarWidth): When the sidebar width changes, we want to scroll to the target.
-  useLayoutEffect(() => {
-    trace("PuzzlePage useLayoutEffect", { hasRef: !!chatSectionRef.current });
-    if (chatSectionRef.current) {
-      chatSectionRef.current.scrollHistoryToTarget();
-    }
-  }, [sidebarWidth]);
+  useLayoutEffect(
+    () => {
+      trace("PuzzlePage useLayoutEffect", { hasRef: !!chatSectionRef.current });
+      if (chatSectionRef.current) {
+        chatSectionRef.current.scrollHistoryToTarget();
+      }
+    },
+    // Use scrollbarWidth as a trigger for this effect (even though it's not
+    // actually used in the effect) so that when the sidebar width changes, we
+    // scroll to the target
+    [sidebarWidth],
+  );
 
   useEffect(() => {
     window.addEventListener("resize", onResize);

@@ -93,7 +93,7 @@ const Message = React.memo(({ msg, displayNames, puzzle }: MessageProps) => {
         [{ts}] [
         {puzzle !== undefined ? (
           <>
-            <span>{`${puzzle.deleted ? "deleted: " : ""}`}</span>
+            <span>{puzzle.deleted ? "deleted: " : ""}</span>
             <a
               href={`/hunts/${msg.hunt}/puzzles/${msg.puzzle}`}
               target="_blank"
@@ -306,11 +306,14 @@ const FirehosePage = () => {
     };
   }, [onLayoutMaybeChanged]);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies(loading): We want to run this effect when loading or chats.length changes.
-  // biome-ignore lint/correctness/useExhaustiveDependencies(chats.length): We want to run this effect when loading or chats.length changes.
-  useLayoutEffect(() => {
-    onLayoutMaybeChanged();
-  }, [loading, onLayoutMaybeChanged, chats.length]);
+  useLayoutEffect(
+    () => {
+      onLayoutMaybeChanged();
+    },
+    // Note: Neither loading nor chats.length are used in the effect, but we want to
+    // run this effect when either of them changes
+    [loading, onLayoutMaybeChanged, chats.length],
+  );
 
   const searchId = useId();
 

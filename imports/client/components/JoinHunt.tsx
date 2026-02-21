@@ -96,6 +96,7 @@ const JoinHunt = () => {
     LoginOptionsResult | undefined
   >(undefined);
 
+  // oxlint-disable-next-line typescript/prefer-nullish-coalescing -- both sides are boolean; || is intentional
   const loading = authLoading || huntLoading;
 
   const onGoogleLoginCompleted = useCallback(

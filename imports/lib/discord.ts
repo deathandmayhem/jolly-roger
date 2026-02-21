@@ -12,7 +12,7 @@ function getAvatarCdnUrl(
     const supportedSizes = [
       16, 20, 32, 40, 60, 64, 80, 100, 128, 160, 256, 320, 512,
     ];
-    const maxSize = supportedSizes[supportedSizes.length - 1];
+    const maxSize = supportedSizes.at(-1)!;
     const requestSize = supportedSizes.find((s) => s >= size) ?? maxSize;
     return `https://cdn.discordapp.com/avatars/${da.id}/${da.avatar}.png?size=${requestSize}`;
   } else {

@@ -100,7 +100,8 @@ function periodic() {
 Meteor.startup(() => {
   // Defer the first run so that other startup hooks run first, but don't catch
   // this async function's errors, because if it fails we want the failure to
-  // bubble up and abort the process
+  // bubble up and abort the process (as an unhandled rejection)
+  // oxlint-disable-next-line typescript/no-misused-promises -- intentionally fire-and-forget
   setImmediate(async () => {
     Logger.info("New server starting", {
       serverId,

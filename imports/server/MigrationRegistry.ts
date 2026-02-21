@@ -86,7 +86,7 @@ class MigrationRegistry {
     this.migrations.push(migration);
   }
 
-  async migrateToLatest(): Promise<boolean> {
+  migrateToLatest(): Promise<boolean> {
     return this.migrateTo(this.migrations.length);
   }
 

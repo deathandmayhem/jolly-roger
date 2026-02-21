@@ -219,7 +219,7 @@ export const modifierIsNotWholeDoc = <T extends Document>(
   modifier: Mongo.Modifier<T>,
 ): modifier is Exclude<Mongo.Modifier<T>, T> => {
   const keys = Object.keys(modifier);
-  return keys.length === 0 || keys.every((k) => k.startsWith("$"));
+  return keys.every((k) => k.startsWith("$"));
 };
 
 export async function parseMongoModifierAsync<
@@ -390,9 +390,7 @@ export function normalizeIndexSpecification(
   } else if (indexIsMap(index)) {
     return [...index];
   } else {
-    return index
-      .map(normalizeIndexSpecification)
-      .reduce((acc, val) => acc.concat(val), []);
+    return index.flatMap(normalizeIndexSpecification);
   }
 }
 
@@ -403,7 +401,7 @@ export function normalizeIndexOptions(
     .filter((v): v is [AllowedIndexOptionsType, any] => {
       return AllowedIndexOptions.includes(v[0] as any);
     })
-    .sort();
+    .toSorted((a, b) => a[0].localeCompare(b[0]));
 }
 
 export const AllModels = new Set<Model<any, any>>();
@@ -467,12 +465,9 @@ class Model<
       }
     }
 
-    const parsed: z.output<Schema> = await IsInsert.withValue(
-      true,
-      async () => {
-        return this.schema.parseAsync(doc);
-      },
-    );
+    const parsed: z.output<Schema> = await IsInsert.withValue(true, () => {
+      return this.schema.parseAsync(doc);
+    });
     try {
       return await this.collection.insertAsync(parsed);
     } catch (e) {
@@ -570,9 +565,7 @@ class Model<
     }
   }
 
-  async removeAsync(
-    selector: Selector<z.output<this["schema"]>>,
-  ): Promise<number> {
+  removeAsync(selector: Selector<z.output<this["schema"]>>): Promise<number> {
     return this.collection.removeAsync(selector);
   }
 

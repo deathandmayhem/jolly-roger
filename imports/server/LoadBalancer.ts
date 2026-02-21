@@ -154,7 +154,7 @@ export default class LoadBalancer {
 
     const httpHandler = this.httpHandler();
     const newListener = function (req: IncomingMessage, res: ServerResponse) {
-      if (httpHandler.apply(httpServer, [req, res]) !== true) {
+      if (!httpHandler.apply(httpServer, [req, res])) {
         oldHttpServerListeners.forEach((oldListener) => {
           oldListener.apply(httpServer, [req, res]);
         });
@@ -175,7 +175,7 @@ export default class LoadBalancer {
       socket: stream.Duplex,
       head: Buffer,
     ) {
-      if (wsHandler.apply(httpServer, [req, socket, head]) !== true) {
+      if (!wsHandler.apply(httpServer, [req, socket, head])) {
         oldHttpServerListeners.forEach((oldListener) => {
           oldListener.apply(httpServer, [req, socket, head]);
         });

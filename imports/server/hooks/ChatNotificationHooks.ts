@@ -76,7 +76,6 @@ const ChatNotificationHooks: Hookset = {
               });
             }
           } else {
-            // biome-ignore lint/suspicious/noUnusedExpressions: exhaustive check
             roleId satisfies never;
           }
         }

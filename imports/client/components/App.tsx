@@ -138,8 +138,7 @@ const ErrorFallback = ({
     <Container>
       <Alert variant="danger">
         <Alert.Heading>
-          <FontAwesomeIcon icon={faExclamationTriangle} fixedWidth /> Something
-          went wrong
+          <FontAwesomeIcon icon={faExclamationTriangle} /> Something went wrong
         </Alert.Heading>
 
         <p>
@@ -263,7 +262,7 @@ const AppNavbar = ({
   }, [setAppTheme]);
   const { t, i18n } = useTranslation();
   const changeLanguage = (lng: string) => {
-    i18n.changeLanguage(lng);
+    void i18n.changeLanguage(lng);
   };
 
   const theme = useTheme();
@@ -326,15 +325,15 @@ const AppNavbar = ({
               {t("navigation.theme.header", "Theme")}
             </DropdownHeader>
             <DropdownItem onClick={setAutoMode} active={appTheme === "auto"}>
-              <FontAwesomeIcon icon={faWandMagicSparkles} fixedWidth />{" "}
+              <FontAwesomeIcon icon={faWandMagicSparkles} />{" "}
               {t("navigation.theme.auto", "Auto")}
             </DropdownItem>
             <DropdownItem onClick={setLightMode} active={appTheme === "light"}>
-              <FontAwesomeIcon icon={faSun} fixedWidth />{" "}
+              <FontAwesomeIcon icon={faSun} />{" "}
               {t("navigation.theme.light", "Light mode")}
             </DropdownItem>
             <DropdownItem onClick={setDarkMode} active={appTheme === "dark"}>
-              <FontAwesomeIcon icon={faMoon} fixedWidth />{" "}
+              <FontAwesomeIcon icon={faMoon} />{" "}
               {t("navigation.theme.dark", "Dark mode")}
             </DropdownItem>
             <Dropdown.Divider />

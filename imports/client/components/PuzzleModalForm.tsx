@@ -174,11 +174,10 @@ const PuzzleModalForm = ({
       setExpectedAnswerCountDirty(true);
       if (value === 0) {
         setConsiderCompletedWithNoAnswer(false);
-        setConsiderCompletedWithNoAnswerDirty(true);
       } else {
         setConsiderCompletedWithNoAnswer(undefined);
-        setConsiderCompletedWithNoAnswerDirty(true);
       }
+      setConsiderCompletedWithNoAnswerDirty(true);
     }, []);
 
   const onAllowDuplicateUrlsChange = useCallback(

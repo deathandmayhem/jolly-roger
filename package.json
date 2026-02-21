@@ -11,6 +11,7 @@
   "scripts": {
     "lint:types": "tsgo",
     "lint:biome": "biome check",
+    "lint:oxlint": "oxlint --tsconfig tsconfig.json --type-aware --deny-warnings --report-unused-disable-directives",
     "lint:eslint": "eslint --max-warnings 0 --ext js,jsx,ts,tsx,mjs,mts .",
     "lint:css": "stylelint '**/*.scss' '**/*.tsx'",
     "lint:docs": "node tests/check_docs.mts",
@@ -105,6 +106,8 @@
     "jiti": "^2.6.1",
     "knip": "^5.84.1",
     "mocha": "^11.7.5",
+    "oxlint": "^1.49.0",
+    "oxlint-tsgolint": "^0.14.2",
     "playwright": "^1.58.2",
     "postcss-scss": "^4.0.9",
     "postcss-styled-syntax": "^0.7.1",

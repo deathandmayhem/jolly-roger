@@ -57,7 +57,7 @@ const HuntPurgeModal = ({
             <Trans
               i18nKey="huntList.purge.confirm.instructions"
               t={t}
-              defaults={"Type <code>{{huntName}}</code> below to confirm"}
+              defaults="Type <code>{{huntName}}</code> below to confirm"
               components={{
                 code: <code />,
               }}

@@ -255,7 +255,6 @@ const ChatPeople = ({
 
   const { muted, deafened } = audioControls;
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies(disabled): We want the parent to re-render when anything might have changed our rendered size
   useLayoutEffect(() => {
     trace("ChatPeople useLayoutEffect", {
       loading,
@@ -280,6 +279,8 @@ const ChatPeople = ({
     viewersExpanded,
     callState,
     voiceActivityRelative,
+    // Note: disabled is unused in the effect, but we want the parent to
+    // re-render when anything might have changed our rendered size
     disabled,
   ]);
 
@@ -308,7 +309,7 @@ const ChatPeople = ({
             </AVActions>
             <ChatterSubsection>
               <PeopleListHeader onClick={toggleCallersExpanded}>
-                <FontAwesomeIcon fixedWidth icon={callersHeaderIcon} />
+                <FontAwesomeIcon icon={callersHeaderIcon} />
                 {`${rtcViewers.length} ${t("audio.caller", { count: rtcViewers.length })}`}
                 {voiceActivityRelative && (
                   <>
@@ -358,7 +359,7 @@ const ChatPeople = ({
       {!rtcDisabled && !disabled && callersSubsection}
       <ChatterSubsection ref={chatterRef}>
         <PeopleListHeader onClick={toggleViewersExpanded}>
-          <FontAwesomeIcon fixedWidth icon={viewersHeaderIcon} />
+          <FontAwesomeIcon icon={viewersHeaderIcon} />
           {`${totalViewers} ${t("chat.viewer", { count: totalViewers })}`}
         </PeopleListHeader>
         <PeopleListDiv $collapsed={!viewersExpanded}>

@@ -81,10 +81,9 @@ export const AuthenticatedRouteList: RouteObject[] = [
   { path: "/setup", element: <SetupPage /> },
   { path: "/rtcdebug", element: <RTCDebugPage /> },
 ].map((r) => {
-  return {
-    ...r,
+  return Object.assign(r, {
     element: <AuthenticatedPage>{r.element}</AuthenticatedPage>,
-  };
+  });
 });
 
 /* Unauthenticated routes - if user already logged in, get redirected to /hunts */
@@ -95,10 +94,9 @@ export const UnauthenticatedRouteList: RouteObject[] = [
   { path: "/enroll/:token", element: <EnrollForm /> },
   { path: "/create-first-user", element: <FirstUserForm /> },
 ].map((r) => {
-  return {
-    ...r,
+  return Object.assign(r, {
     element: <UnauthenticatedPage>{r.element}</UnauthenticatedPage>,
-  };
+  });
 });
 
 export const RouteList: RouteObject[] = [
@@ -129,9 +127,9 @@ const Routes = React.memo(() => {
 
   useEffect(() => {
     const body = document.body;
-    body.setAttribute("data-bs-theme", effectiveTheme ?? "light");
+    body.dataset.bsTheme = effectiveTheme ?? "light";
     return () => {
-      body.removeAttribute("data-bs-theme");
+      delete body.dataset.bsTheme;
     };
   }, [effectiveTheme]);
 

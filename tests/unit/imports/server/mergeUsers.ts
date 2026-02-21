@@ -76,7 +76,7 @@ describe("user merge", function () {
     // Target should inherit source's data
     const target = await MeteorUsers.findOneAsync(targetId);
     assert.isDefined(target);
-    const dingwords = target!.dingwords ?? [];
+    const dingwords = target.dingwords ?? [];
     assert.include(dingwords, "puzzle", "Target should have source dingword");
     assert.include(
       dingwords,
@@ -90,8 +90,8 @@ describe("user merge", function () {
       participants: [sourceId, targetId],
     });
     assert.isDefined(op);
-    assert.isDefined(op!.completedAt);
-    assert.isDefined(op!.snapshot);
+    assert.isDefined(op.completedAt);
+    assert.isDefined(op.snapshot);
   });
 
   it("merges emails from source to target", async function () {
@@ -113,7 +113,7 @@ describe("user merge", function () {
     const target = await MeteorUsers.findOneAsync(targetId);
     assert.isDefined(target);
 
-    const emails = target!.emails ?? [];
+    const emails = target.emails ?? [];
 
     // Target should keep its own email
     const targetEmail = emails.find(
@@ -124,7 +124,7 @@ describe("user merge", function () {
     // Source's emails should be added
     const sourceEmail = emails.find((e) => e.address === "source@example.com");
     assert.isDefined(sourceEmail, "Source email should be added to target");
-    assert.isTrue(sourceEmail!.verified, "Source email should stay verified");
+    assert.isTrue(sourceEmail.verified, "Source email should stay verified");
 
     const sourceExtra = emails.find(
       (e) => e.address === "source-extra@example.com",
@@ -159,7 +159,7 @@ describe("user merge", function () {
     const target = await MeteorUsers.findOneAsync(targetId);
     assert.isDefined(target);
 
-    const hunts = target!.hunts ?? [];
+    const hunts = target.hunts ?? [];
     assert.include(hunts, hunt1);
     assert.include(hunts, hunt2);
     assert.include(hunts, hunt3);
@@ -249,7 +249,7 @@ describe("user merge", function () {
     const target = await MeteorUsers.findOneAsync(targetId);
     assert.isDefined(target);
 
-    const hunts = target!.hunts ?? [];
+    const hunts = target.hunts ?? [];
     assert.include(hunts, hunt1);
     assert.equal(
       hunts.filter((h) => h === hunt1).length,
@@ -257,7 +257,7 @@ describe("user merge", function () {
       "hunt1 should not be duplicated",
     );
 
-    const dingwords = target!.dingwords ?? [];
+    const dingwords = target.dingwords ?? [];
     assert.include(dingwords, "puzzle");
     assert.equal(
       dingwords.filter((d) => d === "puzzle").length,
@@ -265,7 +265,7 @@ describe("user merge", function () {
       "dingword should not be duplicated",
     );
 
-    const emails = target!.emails ?? [];
+    const emails = target.emails ?? [];
     assert.equal(
       emails.filter((e) => e.address === "source@example.com").length,
       1,
@@ -319,7 +319,7 @@ describe("user merge", function () {
     const sourceAfterCrash = await MeteorUsers.findOneAsync(sourceId);
     assert.isDefined(sourceAfterCrash);
     assert.isUndefined(
-      sourceAfterCrash!.emails,
+      sourceAfterCrash.emails,
       "Source emails should be cleared",
     );
 
@@ -341,14 +341,14 @@ describe("user merge", function () {
     // Target should have the source's email, recovered from snapshot.
     const target = await MeteorUsers.findOneAsync(targetId);
     assert.isDefined(target);
-    const emails = target!.emails ?? [];
+    const emails = target.emails ?? [];
     const sourceEmail = emails.find((e) => e.address === "source@example.com");
     assert.isDefined(
       sourceEmail,
       "Source email should be recovered from snapshot",
     );
     assert.isTrue(
-      sourceEmail!.verified,
+      sourceEmail.verified,
       "Verified status should be preserved from snapshot",
     );
   });
@@ -438,7 +438,7 @@ describe("user merge", function () {
     );
     assert.isDefined(mention);
     assert.equal(
-      mention!.userId,
+      mention.userId,
       targetId,
       "Mention userId should point to target",
     );

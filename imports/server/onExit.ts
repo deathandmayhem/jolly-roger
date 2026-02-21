@@ -1,10 +1,10 @@
-// biome-ignore-all lint/suspicious/noConsole: signal handlers should minimize dependencies
+/* oxlint-disable no-console -- signal handlers should minimize dependencies */
 
 const exitHandlers: (() => void | Promise<void>)[] = [];
 
 ["SIGINT" as const, "SIGTERM" as const, "SIGHUP" as const].forEach((signal) => {
   process.once(signal, () => {
-    (async () => {
+    void (async () => {
       for (const handler of exitHandlers.splice(0)) {
         try {
           await handler();

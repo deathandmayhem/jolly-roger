@@ -12,7 +12,7 @@ import type { DocumentType } from "../../lib/models/Documents";
 // Safari not at all (it blocks cross-origin iframe focus stealing).
 const EXPECTED_FOCUS_STEALS = (() => {
   const ua = navigator.userAgent;
-  if (/Safari\//.test(ua) && !/Chrome\//.test(ua)) return 0;
+  if (ua.includes("Safari/") && !ua.includes("Chrome/")) return 0;
   if ("userAgentData" in navigator) return 2; // Chromium-based
   return 1; // Firefox and others
 })();
@@ -45,7 +45,8 @@ const StyledIframe = styled.iframe`
   background-color: #f1f3f4;
 `;
 
-const FocusGuard = styled.div`
+const FocusGuard = styled.button`
+  all: unset;
   position: absolute;
   inset: 0;
   z-index: 1;
@@ -161,9 +162,7 @@ const GoogleDocumentDisplay = ({
   }, []);
 
   const onIframeLoad = useCallback(() => {
-    if (lastStolenAtRef.current === undefined) {
-      lastStolenAtRef.current = Date.now();
-    }
+    lastStolenAtRef.current ??= Date.now();
   }, []);
 
   let url: string;
@@ -199,7 +198,7 @@ const GoogleDocumentDisplay = ({
     case "link":
       return (
         <StyledDeepLink href={url} target="_blank" rel="noreferrer noopener">
-          <FontAwesomeIcon fixedWidth icon={icon} /> <span>{title}</span>
+          <FontAwesomeIcon icon={icon} /> <span>{title}</span>
         </StyledDeepLink>
       );
     case "embed":
@@ -209,13 +208,12 @@ const GoogleDocumentDisplay = ({
           <StyledIframe
             ref={iframeRef}
             title="document"
-            scrolling="no"
             src={url}
             onLoad={onIframeLoad}
           />
           {focusGuarded && (
             <FocusGuard
-              role="button"
+              type="button"
               tabIndex={0}
               onClick={dismissFocusGuard}
               onKeyDown={onFocusGuardKeyDown}

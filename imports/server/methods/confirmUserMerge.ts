@@ -39,6 +39,6 @@ defineMethod(confirmUserMerge, {
       initiatedBy: this.userId,
     });
 
-    return await enqueueJob(mergeUsers, { sourceUser, targetUser });
+    return enqueueJob(mergeUsers, { sourceUser, targetUser });
   },
 });

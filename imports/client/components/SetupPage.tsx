@@ -830,7 +830,7 @@ const LanguageSection = () => {
   const shouldDisableForm = submitState === SubmitState.SUBMITTING;
 
   const onSaveLanguage = useCallback(
-    (e: React.FormEvent<any>) => {
+    (e: React.SyntheticEvent) => {
       e.preventDefault();
 
       setSubmitState(SubmitState.SUBMITTING);
@@ -859,7 +859,6 @@ const LanguageSection = () => {
     },
   ];
   return (
-    // biome-ignore lint/correctness/useUniqueElementIds: id for linking
     <Section id="language">
       <SectionHeader>
         <SectionHeaderLabel>
@@ -993,7 +992,6 @@ const GoogleIntegrationSection = () => {
     : "warning";
 
   return (
-    // biome-ignore lint/correctness/useUniqueElementIds: id for linking
     <Section id="google">
       <SectionHeader>
         <SectionHeaderLabel>Google integration</SectionHeaderLabel>
@@ -1320,7 +1318,6 @@ const AWSIntegrationSection = () => {
   const badgeVariant = configured ? "success" : "warning";
 
   return (
-    // biome-ignore lint/correctness/useUniqueElementIds: id for linking
     <Section id="aws">
       <SectionHeader>
         <SectionHeaderLabel>AWS configuration</SectionHeaderLabel>
@@ -1658,7 +1655,6 @@ const EmailConfigSection = () => {
   const configured = !!config?.value.from;
   const badgeVariant = configured ? "success" : "warning";
   return (
-    // biome-ignore lint/correctness/useUniqueElementIds: id for linking
     <Section id="email">
       <SectionHeader>
         <SectionHeaderLabel>Email configuration</SectionHeaderLabel>
@@ -2026,7 +2022,6 @@ const DiscordIntegrationSection = () => {
   const guildBadgeLabel = guild ? "configured" : "unconfigured";
   const guildBadgeVariant = guild ? "success" : "warning";
   return (
-    // biome-ignore lint/correctness/useUniqueElementIds: id for linking
     <Section id="discord">
       <SectionHeader>
         <SectionHeaderLabel>Discord integration</SectionHeaderLabel>
@@ -2371,7 +2366,6 @@ const BrandingAssetRow = ({
 const BrandingSection = () => {
   const { t } = useTranslation();
   return (
-    // biome-ignore lint/correctness/useUniqueElementIds: id for linking
     <Section id="branding">
       <SectionHeader>
         <SectionHeaderLabel>Branding</SectionHeaderLabel>
@@ -2529,7 +2523,6 @@ const CircuitBreakerControl = ({
 
 const CircuitBreakerSection = () => {
   return (
-    //biome-ignore lint/correctness/useUniqueElementIds: id for linking
     <Section id="circuit-breakers">
       <SectionHeader>Circuit breakers</SectionHeader>
       <p>

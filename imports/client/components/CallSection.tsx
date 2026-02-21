@@ -559,7 +559,7 @@ const Callers = ({
   return (
     <ChatterSubsection ref={chatterRef}>
       <ChatterSubsectionHeader onClick={onToggleCallersExpanded}>
-        <FontAwesomeIcon fixedWidth icon={callersHeaderIcon} />
+        <FontAwesomeIcon icon={callersHeaderIcon} />
         {`${callerCount} ${t("audio.caller", { count: callerCount })}`}
       </ChatterSubsectionHeader>
       <PeopleListDiv $collapsed={!callersExpanded}>

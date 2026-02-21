@@ -143,7 +143,7 @@ const ConfirmationModal = ({
           {t("common.cancel", "Cancel")}
         </Button>
         <Button
-          variant={variant || "danger"}
+          variant={variant ?? "danger"}
           onClick={onActionClicked}
           disabled={disabled}
         >
@@ -452,6 +452,7 @@ const ProfileList = ({
     const searchKeys = searchString.split(" ");
     const toMatch = searchKeys.filter(Boolean).map((s) => s.toLowerCase());
 
+    /* oxlint-disable typescript/prefer-nullish-coalescing -- boolean || chain where false must fall through */
     const isInteresting = (user: Meteor.User) => {
       // A user is interesting if for every search key, that search key matches
       // one of their fields.
@@ -469,6 +470,7 @@ const ProfileList = ({
         );
       });
     };
+    /* oxlint-enable typescript/prefer-nullish-coalescing */
 
     return isInteresting;
   }, [searchString, roles]);
@@ -570,7 +572,7 @@ const ProfileList = ({
             variant="link"
             aria-label="Copy"
           >
-            <FontAwesomeIcon icon={faCopy} fixedWidth />
+            <FontAwesomeIcon icon={faCopy} />
           </StyledCopyToClipboardButton>
           {invitationUrl}
         </div>
@@ -591,7 +593,7 @@ const ProfileList = ({
           <GenerateInvitationLinkModal
             forwardedRef={generateInvitationLinkModalRef}
             huntId={hunt._id}
-            isRegenerate={typeof invitationCode !== "undefined"}
+            isRegenerate={invitationCode !== undefined}
           />
         )}
         {renderDisableInvitationLinkModal && (

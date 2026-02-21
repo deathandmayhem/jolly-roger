@@ -97,7 +97,6 @@ function stringToSchema(def: z.ZodStringDef): JsonSchema {
       case "uuid":
       case "url": {
         let pattern;
-        // biome-ignore lint/style/useDefaultSwitchClause: migration from eslint
         switch (check.kind) {
           case "regex":
             pattern = check.regex;
@@ -111,13 +110,14 @@ function stringToSchema(def: z.ZodStringDef): JsonSchema {
           case "url":
             pattern = URL;
             break;
+          // no default
         }
         if (pattern.flags !== "") {
           throw new Error("Regex flags are not supported");
         }
 
         if (constraints.pattern) {
-          constraints.allOf = constraints.allOf || [];
+          constraints.allOf = constraints.allOf ?? [];
           constraints.allOf.push({ pattern: pattern.source });
         } else {
           constraints.pattern = pattern.source;
@@ -150,7 +150,8 @@ function numberToSchema(def: z.ZodNumberDef): JsonSchema {
           exclusive = !check.inclusive;
         } else if (check.value === constraints.minimum) {
           value = check.value;
-          exclusive = constraints.exclusiveMinimum! || !check.inclusive;
+          // oxlint-disable-next-line typescript-eslint/prefer-nullish-coalescing -- boolean || is intentional (false || x differs from false ?? x)
+          exclusive = constraints.exclusiveMinimum || !check.inclusive;
         } else {
           value = constraints.minimum;
           exclusive = constraints.exclusiveMinimum;
@@ -167,7 +168,8 @@ function numberToSchema(def: z.ZodNumberDef): JsonSchema {
           exclusive = !check.inclusive;
         } else if (check.value === constraints.maximum) {
           value = check.value;
-          exclusive = constraints.exclusiveMaximum! || !check.inclusive;
+          // oxlint-disable-next-line typescript-eslint/prefer-nullish-coalescing -- boolean || is intentional (false || x differs from false ?? x)
+          exclusive = constraints.exclusiveMaximum || !check.inclusive;
         } else {
           value = constraints.maximum;
           exclusive = constraints.exclusiveMaximum;
@@ -178,7 +180,7 @@ function numberToSchema(def: z.ZodNumberDef): JsonSchema {
       }
       case "multipleOf":
         if (constraints.multipleOf) {
-          constraints.allOf = constraints.allOf || [];
+          constraints.allOf = constraints.allOf ?? [];
           constraints.allOf.push({ multipleOf: check.value });
         } else {
           constraints.multipleOf = check.value;

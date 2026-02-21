@@ -16,6 +16,6 @@ export default async function ignoringDuplicateKeyErrors<T>(
       throw e;
     }
 
-    return Promise.resolve(undefined);
+    return undefined;
   }
 }

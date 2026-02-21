@@ -11,12 +11,10 @@ export function getTodayFormatter(
   if (!lang) {
     return todayFormatter;
   }
-  if (!todayFormatterCache[lang]) {
-    todayFormatterCache[lang] = new Intl.DateTimeFormat(lang, {
-      hour: "numeric",
-      minute: "2-digit",
-    });
-  }
+  todayFormatterCache[lang] ??= new Intl.DateTimeFormat(lang, {
+    hour: "numeric",
+    minute: "2-digit",
+  });
 
   return todayFormatterCache[lang];
 }
@@ -33,13 +31,11 @@ export function getThisWeekFormatter(
   if (!lang) {
     return thisWeekFormatter;
   }
-  if (!weekFormatterCache[lang]) {
-    weekFormatterCache[lang] = new Intl.DateTimeFormat(lang, {
-      weekday: "short",
-      hour: "numeric",
-      minute: "2-digit",
-    });
-  }
+  weekFormatterCache[lang] ??= new Intl.DateTimeFormat(lang, {
+    weekday: "short",
+    hour: "numeric",
+    minute: "2-digit",
+  });
 
   return weekFormatterCache[lang];
 }
@@ -58,15 +54,13 @@ export function getDefaultFormatter(
   if (!lang) {
     return defaultFormatter;
   }
-  if (!defaultFormatterCache[lang]) {
-    defaultFormatterCache[lang] = new Intl.DateTimeFormat(lang, {
-      month: "numeric",
-      day: "numeric",
-      year: "numeric",
-      hour: "numeric",
-      minute: "2-digit",
-    });
-  }
+  defaultFormatterCache[lang] ??= new Intl.DateTimeFormat(lang, {
+    month: "numeric",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
 
   return defaultFormatterCache[lang];
 }
