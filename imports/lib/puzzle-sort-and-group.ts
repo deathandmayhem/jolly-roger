@@ -24,11 +24,8 @@ function puzzleInterestingness(
   indexedTags: Map<string, TagType>,
   groups: string[],
 ): number {
-  // If the shared tag for this group is group:<something>, then group will equal '<something>', and
-  // we wish to sort a puzzle named 'meta-for:<something>' at the top.
+  // If this group is identified by tag foo, we wish to sort a puzzle tagged 'meta-for:foo' to the top.
   const metaFors = groups.map((group) => `meta-for:${group}`);
-  let isAdministrivia = false;
-  let isGroup = false;
   let minScore = 0;
 
   puzzle.tags.forEach((tagId) => {
@@ -40,14 +37,9 @@ function puzzleInterestingness(
       // loads, so just pretend that tag doesn't exist if the join from id -> Tag object here
       // comes back undefined.
 
-      if (tag.name.lastIndexOf("group:", 0) === 0) {
-        isGroup = true;
-      }
-
-      if (tag.name === "administrivia") {
+      if (tag.name.startsWith("administrivia")) {
         // First comes any administrivia
         minScore = Math.min(-4, minScore);
-        isAdministrivia = true;
       } else if (metaFors.includes(tag.name)) {
         // Matching meta gets sorted top.
         minScore = Math.min(-3, minScore);
@@ -63,10 +55,6 @@ function puzzleInterestingness(
       }
     }
   });
-  // Sort general administrivia above administrivia with a group
-  if (isAdministrivia && !isGroup) {
-    minScore = Math.min(-5, minScore);
-  }
 
   return minScore;
 }
@@ -533,6 +521,11 @@ class Grouper {
         } else if (tag?.name.startsWith(`meta-for:${tagName}`)) {
           const baseTag = this.tagsByName.get(tag.name.slice(9));
           groupID = baseTag?._id || "";
+        } else if (tag?.name.startsWith(`administrivia-for:${tagName}`)) {
+          const baseTag = this.tagsByName.get(
+            tag.name.slice("administrivia-for:".length),
+          );
+          groupID = baseTag?._id || "";
         }
         if (groupID !== "" && groups.indexOf(groupID) === -1) {
           groups.push(groupID);
@@ -667,6 +660,7 @@ function groupPuzzlesByTags(
   merge: boolean = true,
   makeNones: boolean = true,
 ): PuzzleGroup[] {
+  // pull out administrivia first so they don't get folded into the other groups
   const adminTag = allTags.filter((t) => t.name === "administrivia")[0];
   const adminID = adminTag?._id;
   const rootGroup: InternalPuzzleGroup = {
