@@ -9,7 +9,6 @@ import React, {
 import Button from "react-bootstrap/Button";
 import FormCheck from "react-bootstrap/FormCheck";
 import Modal from "react-bootstrap/Modal";
-import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import Documents from "../../lib/models/Documents";
 import Peers from "../../lib/models/mediasoup/Peers";
@@ -22,6 +21,7 @@ import useSubscribeDisplayNames from "../hooks/useSubscribeDisplayNames";
 import useTypedSubscribe from "../hooks/useTypedSubscribe";
 import indexedDisplayNames from "../indexedDisplayNames";
 import { Subscribers } from "../subscribers";
+import { useBootstrapContainer } from "./BootstrapScopeContext";
 import Loading from "./Loading";
 
 // Casting away the React.lazy because otherwise we lose access to the generic parameter
@@ -166,9 +166,10 @@ const PuzzleDeleteModal = ({
   const idPrefix = useId();
 
   const { t } = useTranslation("PuzzleDeleteModal");
+  const container = useBootstrapContainer();
 
   const modal = (
-    <Modal show={visible} onHide={hide}>
+    <Modal show={visible} onHide={hide} container={container}>
       <Modal.Header closeButton>
         <Modal.Title>
           {t("puzzle.delete.modalTitle", "Delete Puzzle")}
@@ -241,7 +242,7 @@ const PuzzleDeleteModal = ({
     </Modal>
   );
 
-  return createPortal(modal, document.body);
+  return modal;
 };
 
 export default PuzzleDeleteModal;

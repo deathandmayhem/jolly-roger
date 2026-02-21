@@ -13,6 +13,7 @@ import { primaryEmail } from "../../lib/models/User";
 import huntsAll from "../../lib/publications/huntsAll";
 import useTypedSubscribe from "../hooks/useTypedSubscribe";
 import Avatar from "./Avatar";
+import { useBootstrapContainer } from "./BootstrapScopeContext";
 
 const AvatarTooltip = styled(Tooltip)`
   opacity: 1 !important;
@@ -45,6 +46,7 @@ const OthersProfilePage = ({ user }: { user: Meteor.User }) => {
   );
 
   const tooltipId = useId();
+  const container = useBootstrapContainer();
 
   const { t } = useTranslation();
 
@@ -53,6 +55,7 @@ const OthersProfilePage = ({ user }: { user: Meteor.User }) => {
       <h1>
         <OverlayTrigger
           placement="bottom-start"
+          container={container}
           overlay={
             <AvatarTooltip id={tooltipId}>
               <Avatar {...user} size={128} />

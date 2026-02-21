@@ -9,9 +9,9 @@ import {
 import Button from "react-bootstrap/Button";
 import type { ModalProps } from "react-bootstrap/Modal";
 import Modal from "react-bootstrap/Modal";
-import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
+import { useBootstrapContainer } from "./BootstrapScopeContext";
 
 const StyledModalTitle = styled(Modal.Title)`
   overflow: hidden;
@@ -74,12 +74,13 @@ const ModalForm = (props: {
   );
 
   const { t } = useTranslation();
+  const container = useBootstrapContainer();
 
   const submitLabel = props.submitLabel ?? t("common.save", "Save");
   const submitStyle = props.submitStyle ?? "primary";
 
   const modal = (
-    <Modal show={isShown} onHide={hide} size={props.size}>
+    <Modal show={isShown} onHide={hide} size={props.size} container={container}>
       <form className="form-horizontal" onSubmit={submit}>
         <Modal.Header closeButton>
           <StyledModalTitle>{props.title}</StyledModalTitle>
@@ -105,7 +106,7 @@ const ModalForm = (props: {
     </Modal>
   );
 
-  return createPortal(modal, document.body);
+  return modal;
 };
 
 export default ModalForm;

@@ -2,6 +2,16 @@ import { css } from "styled-components";
 
 export type Breakpoint = "xs" | "sm" | "md" | "lg" | "xl";
 
+// Bootstrap default breakpoints. Kept as JS constants so they're available at
+// module load time (before CSS is injected and before .bootstrap-page exists).
+const breakpoints: Record<Breakpoint, string> = {
+  xs: "0",
+  sm: "576px",
+  md: "768px",
+  lg: "992px",
+  xl: "1200px",
+};
+
 const largerBreakpoints = {
   xs: "sm" as Breakpoint,
   sm: "md" as Breakpoint,
@@ -9,22 +19,13 @@ const largerBreakpoints = {
   lg: "xl" as Breakpoint,
 };
 
-function getBreakpoint(b: Breakpoint) {
-  // Bootstrap breakpoints are stored as variables on the root element, but you
-  // can't use a variable directly in a media query, so we have to pull it out
-  // with code.
-  return window
-    .getComputedStyle(document.body)
-    .getPropertyValue(`--bs-breakpoint-${b}`);
-}
-
 export function mediaBreakpointDown(
   size: keyof typeof largerBreakpoints,
   body: ReturnType<typeof css>,
 ) {
   return css`
     /* stylelint-disable-next-line media-query-no-invalid */
-    @media (width < ${getBreakpoint(largerBreakpoints[size])}) {
+    @media (width < ${breakpoints[largerBreakpoints[size]]}) {
       ${body}
     }
   `;

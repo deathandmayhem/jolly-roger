@@ -38,6 +38,11 @@
       "arrowParentheses": "always"
     }
   },
+  "css": {
+    "parser": {
+      "tailwindDirectives": true
+    }
+  },
   "html": {
     "formatter": {
       "indentScriptAndStyle": true,

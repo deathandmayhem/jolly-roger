@@ -20,6 +20,7 @@ import {
 import relativeTimeFormat from "../../lib/relativeTimeFormat";
 import roundedTime from "../../lib/roundedTime";
 import ActivityBuckets from "../ActivityBuckets";
+import { useBootstrapContainer } from "./BootstrapScopeContext";
 import RelativeTime from "./RelativeTime";
 import { mediaBreakpointDown } from "./styling/responsive";
 
@@ -177,6 +178,7 @@ const PuzzleActivity = ({
   }, [finalBucket, huntId, puzzleId]);
 
   const idPrefix = useId();
+  const container = useBootstrapContainer();
 
   const { t, i18n } = useTranslation();
 
@@ -253,7 +255,11 @@ const PuzzleActivity = ({
 
   return (
     <PuzzleActivityItems>
-      <OverlayTrigger placement="top" overlay={unlockTooltip}>
+      <OverlayTrigger
+        placement="top"
+        overlay={unlockTooltip}
+        container={container}
+      >
         <PuzzleOpenTime>
           <FontAwesomeIcon icon={faDoorOpen} />
           <RelativeTime
@@ -264,7 +270,11 @@ const PuzzleActivity = ({
           />
         </PuzzleOpenTime>
       </OverlayTrigger>
-      <OverlayTrigger placement="top" overlay={sparklineTooltip}>
+      <OverlayTrigger
+        placement="top"
+        overlay={sparklineTooltip}
+        container={container}
+      >
         <PuzzleActivitySparkline>
           <FontAwesomeIcon icon={faPeopleGroup} />
           {/* Sparklines doesn't accept a className argument, so we can't use styled-components */}

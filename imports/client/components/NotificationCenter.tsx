@@ -56,6 +56,7 @@ import { useBlockReasons } from "../hooks/useBlockUpdate";
 import useTypedSubscribe from "../hooks/useTypedSubscribe";
 import indexedDisplayNames from "../indexedDisplayNames";
 import AnnouncementToast from "./AnnouncementToast";
+import { useBootstrapContainer } from "./BootstrapScopeContext";
 import ChatMessage from "./ChatMessage";
 import CopyToClipboardButton from "./CopyToClipboardButton";
 import { GuessConfidence, GuessDirection } from "./guessDetails";
@@ -175,6 +176,7 @@ const GuessMessage = React.memo(
     }, [onDismiss, guess._id]);
 
     const idPrefix = useId();
+    const container = useBootstrapContainer();
 
     const { t, i18n } = useTranslation();
 
@@ -311,7 +313,11 @@ const GuessMessage = React.memo(
               </CopyToClipboardButton>
             </StyledNotificationActionItem>
             <StyledNotificationActionItem>
-              <OverlayTrigger placement="top" overlay={extLinkTooltip}>
+              <OverlayTrigger
+                placement="top"
+                overlay={extLinkTooltip}
+                container={container}
+              >
                 <Button
                   variant="outline-secondary"
                   size="sm"
