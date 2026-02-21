@@ -31,7 +31,10 @@ import type { PuzzleType } from "../../lib/models/Puzzles";
 import Puzzles from "../../lib/models/Puzzles";
 import type { TagType } from "../../lib/models/Tags";
 import Tags from "../../lib/models/Tags";
-import { userHasPermissionForAction } from "../../lib/permission_stubs";
+import {
+  requiredPermissionForAction,
+  userHasPermissionForAction,
+} from "../../lib/permission_stubs";
 import puzzleActivityForHunt from "../../lib/publications/puzzleActivityForHunt";
 import puzzlesForPuzzleList from "../../lib/publications/puzzlesForPuzzleList";
 import {
@@ -59,6 +62,7 @@ import PuzzleModalForm from "./PuzzleModalForm";
 import RelatedPuzzleGroup, { PuzzleGroupDiv } from "./RelatedPuzzleGroup";
 import RelatedPuzzleList from "./RelatedPuzzleList";
 import { mediaBreakpointDown } from "./styling/responsive";
+import { ConfiguredPermissionLevel } from "../../lib/permissions";
 
 const ViewControls = styled.div<{ $canAdd?: boolean }>`
   display: grid;
@@ -177,6 +181,7 @@ const PuzzleListView = React.memo(
     canExpandAllGroups,
     trackPersistentExpand,
     expandAllGroups,
+    requiredPermissionLevelToDestroy,
   }: {
     bookmarked: Set<string>;
     canUpdate: boolean;
@@ -191,6 +196,7 @@ const PuzzleListView = React.memo(
     canExpandAllGroups: boolean;
     trackPersistentExpand: boolean;
     expandAllGroups: () => void;
+    requiredPermissionLevelToDestroy: ConfiguredPermissionLevel;
   }) => {
     const { t } = useTranslation();
     const maybeMatchWarning = solvedOverConstrains && (
@@ -284,6 +290,16 @@ const PuzzleListView = React.memo(
       default:
         displayMode satisfies never;
     }
+
+    const defaultDeletedPuzzlesMessage: Record<
+      ConfiguredPermissionLevel,
+      string
+    > = {
+      hunt_owner: "Deleted puzzles (hunt owner only)",
+      operator: "Deleted puzzles (operator only)",
+      member: "Deleted puzzles",
+    };
+
     return (
       <div>
         {maybeMatchWarning}
@@ -313,8 +329,8 @@ const PuzzleListView = React.memo(
             huntId={huntId}
             group={{ puzzles: retainedDeletedPuzzles, subgroups: [] }}
             noSharedTagLabel={t(
-              "puzzleList.deletedPuzzlesGroup",
-              "Deleted puzzles (operator only)",
+              `puzzleList.deletedPuzzlesGroup.${requiredPermissionLevelToDestroy}`,
+              defaultDeletedPuzzlesMessage[requiredPermissionLevelToDestroy],
             )}
             bookmarked={bookmarked}
             allTags={allTags}
@@ -336,12 +352,14 @@ const PuzzleListViewSection = ({
   canUpdate,
   canDestroy,
   loading,
+  requiredPermissionLevelToDestroy,
 }: {
   huntId: string;
   canAdd: boolean;
   canUpdate: boolean;
   canDestroy: boolean;
   loading: boolean;
+  requiredPermissionLevelToDestroy: ConfiguredPermissionLevel;
 }) => {
   const allPuzzles = useTracker(
     () => Puzzles.find({ hunt: huntId }).fetch(),
@@ -653,6 +671,7 @@ const PuzzleListViewSection = ({
         canExpandAllGroups={canExpandAllGroups}
         trackPersistentExpand={searchString === ""}
         expandAllGroups={expandAllGroups}
+        requiredPermissionLevelToDestroy={requiredPermissionLevelToDestroy}
       />
     </div>
   );
@@ -663,14 +682,19 @@ const PuzzleListPage = () => {
 
   // Assertion is safe because hunt is already subscribed and checked by HuntApp
   const hunt = useTracker(() => Hunts.findOne(huntId)!, [huntId]);
-  const { canAdd, canUpdate, canDestroy } = useTracker(() => {
-    const user = Meteor.user();
-    return {
-      canAdd: userHasPermissionForAction(user, hunt, "editPuzzles"),
-      canUpdate: userHasPermissionForAction(user, hunt, "editPuzzles"),
-      canDestroy: userHasPermissionForAction(user, hunt, "deletePuzzles"),
-    };
-  }, [hunt]);
+  const { canAdd, canUpdate, canDestroy, requiredPermissionLevelToDestroy } =
+    useTracker(() => {
+      const user = Meteor.user();
+      return {
+        canAdd: userHasPermissionForAction(user, hunt, "editPuzzles"),
+        canUpdate: userHasPermissionForAction(user, hunt, "editPuzzles"),
+        canDestroy: userHasPermissionForAction(user, hunt, "deletePuzzles"),
+        requiredPermissionLevelToDestroy: requiredPermissionForAction(
+          hunt,
+          "deletePuzzles",
+        ),
+      };
+    }, [hunt]);
 
   const puzzlesLoading = useTypedSubscribe(puzzlesForPuzzleList, {
     huntId,
@@ -697,6 +721,7 @@ const PuzzleListPage = () => {
         canUpdate={canUpdate}
         canDestroy={canDestroy}
         loading={loading}
+        requiredPermissionLevelToDestroy={requiredPermissionLevelToDestroy}
       />
     </div>
   );

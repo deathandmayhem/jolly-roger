@@ -244,7 +244,7 @@ const HuntListPage = () => {
         <div key="nomyhunts">
           {t(
             "huntList.notInAnyHunt",
-            "You're not a member of any hunts yet. Consider joining one, or asking an operator to invite you.",
+            "You're not a member of any hunts yet. Try asking someone to invite you.",
           )}
         </div>,
       );

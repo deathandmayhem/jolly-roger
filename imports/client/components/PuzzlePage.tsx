@@ -2039,7 +2039,7 @@ const PuzzleDeletedModal = ({
         <p>
           {t(
             "puzzle.deleted.body1",
-            `An operator has deleted this puzzle from Jolly Roger. You can
+            `This puzzle has been deleted from Jolly Roger. You can
             still view it to extract information, but you won't be able to
             edit the shared document or send new chat messages going forward.`,
           )}
@@ -2067,7 +2067,7 @@ const PuzzleDeletedModal = ({
             <p>
               {t(
                 "puzzle.deleted.undeleteHelp",
-                "As an operator, you can un-delete this puzzle:",
+                "You can un-delete this puzzle:",
               )}
             </p>
             <Button variant="primary" onClick={undelete}>

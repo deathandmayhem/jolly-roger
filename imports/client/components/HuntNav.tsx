@@ -209,7 +209,7 @@ const HuntNav = () => {
           </StyledPuzzleListLinkLabel>
         </StyledPuzzleListLinkAnchor>
 
-        {/* Show firehose link only to operators */}
+        {/* Show firehose link only to users that may update puzzles */}
         {canUpdate && (
           <StyledPuzzleListLinkAnchor
             to={`/hunts/${huntId}/firehose`}

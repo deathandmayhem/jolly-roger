@@ -81,7 +81,7 @@ const HuntMemberError = React.memo(
       if (canJoin) {
         return (
           <Button variant="primary" onClick={join}>
-            Use operator permissions to join
+            Use admin powers to join
           </Button>
         );
       }
