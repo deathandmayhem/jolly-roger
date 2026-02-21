@@ -145,7 +145,6 @@ const METHODS = {
   },
 };
 
-// biome-ignore lint/correctness/noUnusedVariables: This is part of the Apps Script API
 function doGet() {
   const userKey = Session.getTemporaryActiveUserKey();
   const ok = userKey !== "";
@@ -156,7 +155,6 @@ function doGet() {
   );
 }
 
-// biome-ignore lint/correctness/noUnusedVariables: This is part of the Apps Script API
 function doPost(e) {
   if (e.postData?.type !== "application/json") {
     return ContentService.createTextOutput(

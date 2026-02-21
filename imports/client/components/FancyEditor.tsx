@@ -169,7 +169,6 @@ const EditableMentionRenderer = ({
       name = element.roleId;
       break;
     default:
-      // biome-ignore lint/suspicious/noUnusedExpressions: exhaustive check
       element satisfies never;
   }
   const Elem = selected && focused ? SelectedMentionSpan : MentionSpan;
@@ -375,7 +374,6 @@ const MatchCandidate = ({
         </MatchCandidateRow>
       );
     default:
-      // biome-ignore lint/suspicious/noUnusedExpressions: exhaustive check
       mention satisfies never;
       return null;
   }
@@ -933,7 +931,6 @@ const FancyEditor = ({
                 break;
               }
               default:
-                // biome-ignore lint/suspicious/noUnusedExpressions: exhaustive check
                 mention satisfies never;
             }
             setCompletionAnchorRange(undefined);
@@ -1023,7 +1020,6 @@ const FancyEditor = ({
           insertRoleMention(editor, m.roleId);
           break;
         default:
-          // biome-ignore lint/suspicious/noUnusedExpressions: exhaustive check
           m satisfies never;
       }
       setCompletionAnchorRange(undefined);

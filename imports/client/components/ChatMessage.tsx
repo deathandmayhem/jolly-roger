@@ -1,4 +1,3 @@
-// biome-ignore-all lint/suspicious/noArrayIndexKey: migrated from eslint
 import { decodeHTML } from "entities";
 import type { Token, Tokens } from "marked";
 import { marked } from "marked";
