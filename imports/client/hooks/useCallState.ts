@@ -532,15 +532,18 @@ const useCallState = ({
       : undefined,
   );
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies(huntId): We want to reset if the user navigates to a new puzzle
-  // biome-ignore lint/correctness/useExhaustiveDependencies(puzzleId): See above
-  // biome-ignore lint/correctness/useExhaustiveDependencies(tabId): See above
-  useEffect(() => {
-    return () => {
-      logger.debug("huntId/puzzleId/tabId changed, resetting call state");
-      dispatch({ type: "reset" });
-    };
-  }, [huntId, puzzleId, tabId]);
+  useEffect(
+    () => {
+      return () => {
+        logger.debug("huntId/puzzleId/tabId changed, resetting call state");
+        dispatch({ type: "reset" });
+      };
+    },
+    // Note: None of the dependencies (huntId, puzzleId, tabId) are used in the
+    // effect, but we want to reset the call state if the user navigates to a new
+    // puzzle
+    [huntId, puzzleId, tabId],
+  );
 
   useEffect(() => {
     // When mediaSource (the mic capture stream) changes, stop all the tracks.
@@ -894,7 +897,6 @@ const useCallState = ({
 
   const producerShouldBePaused =
     state.audioControls?.muted || state.audioControls?.deafened;
-  // biome-ignore lint/correctness/useExhaustiveDependencies(producerParamsGeneration): We want to force this effect to run when producerParams changes
   useEffect(() => {
     logger.debug("producerTracks", { tracks: producerTracks.map((t) => t.id) });
     const activeTrackIds = new Set();
@@ -1011,12 +1013,13 @@ const useCallState = ({
   }, [
     sendTransport,
     producerTracks,
+    // Note: producerParamsGeneration isn't actually used in the effect, but we
+    // use it to force this effect to re-run, so it is listed as a dependency
     producerParamsGeneration,
     producerShouldBePaused,
   ]);
 
   // Ensure mute state is respected by mediasoup.
-  // biome-ignore lint/correctness/useExhaustiveDependencies(producerGeneration): We want to force this effect to run when we create a new producer
   useEffect(() => {
     if (producerShouldBePaused !== undefined) {
       // Update producer pause state
@@ -1049,7 +1052,14 @@ const useCallState = ({
         }
       });
     }
-  }, [producerTracks, producerShouldBePaused, producerGeneration]);
+  }, [
+    producerTracks,
+    producerShouldBePaused,
+    // Note: producerGeneration isn't actually used in the effect, but we're
+    // using it as a counter to re-trigger the effect when producers are
+    // created, so it is listed as a dependency
+    producerGeneration,
+  ]);
 
   useEffect(() => {
     // If we've been remote-muted, acknowledge to the server and translate into local mute.

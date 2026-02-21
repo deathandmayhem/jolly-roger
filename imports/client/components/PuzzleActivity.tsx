@@ -103,16 +103,20 @@ const PuzzleActivity = ({
   const [finalBucket, setFinalBucket] = useState(
     roundedTime(ACTIVITY_GRANULARITY),
   );
-  // biome-ignore lint/correctness/useExhaustiveDependencies(finalBucket): This does actually depend on finalBucket because we want to reset the timer whenever it changes.
-  useEffect(() => {
-    const nextBucket =
-      roundedTime(ACTIVITY_GRANULARITY).getTime() + ACTIVITY_GRANULARITY;
-    const timeout = nextBucket - Date.now();
-    const timer = Meteor.setTimeout(() => {
-      setFinalBucket(new Date(nextBucket));
-    }, timeout);
-    return () => Meteor.clearTimeout(timer);
-  }, [finalBucket]);
+  useEffect(
+    () => {
+      const nextBucket =
+        roundedTime(ACTIVITY_GRANULARITY).getTime() + ACTIVITY_GRANULARITY;
+      const timeout = nextBucket - Date.now();
+      const timer = Meteor.setTimeout(() => {
+        setFinalBucket(new Date(nextBucket));
+      }, timeout);
+      return () => Meteor.clearTimeout(timer);
+    },
+    // Note: The effect doesn't use finalBucket, but we want to reset the timer
+    // whenever it changes, so we include it in the dependency array.
+    [finalBucket],
+  );
 
   const { totals, chats, calls, documents, maxTotalCount } = useTracker(() => {
     // Build an array starting from now - ACTIVITY_GRANULARITY * ACTIVITY_BUCKETS to now

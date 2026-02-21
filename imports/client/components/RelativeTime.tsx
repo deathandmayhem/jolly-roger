@@ -36,7 +36,6 @@ const RelativeTime = ({
     setFormatted(initial);
   }, [date, maxElements, minimumUnit, now, terse, t]);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies(formatted.formatted): We explicitly include this so that we set a new timeout if the formatted string changes but (by chance) millisUntilChange doesn't
   useEffect(() => {
     // Set up reevaluation when we'd expect the string to change
     const timeout = Meteor.setTimeout(() => {
@@ -60,6 +59,9 @@ const RelativeTime = ({
     now,
     terse,
     formatted.millisUntilChange,
+    // Note: We don't actually use formatted.formatted in this effect, but we
+    // want to make sure we set a new timeout when it changes since it's
+    // possible that (by some change) it changes but millisUntilChange doesn't
     formatted.formatted,
     t,
   ]);

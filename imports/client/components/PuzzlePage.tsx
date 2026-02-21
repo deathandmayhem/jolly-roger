@@ -2222,11 +2222,15 @@ const PuzzlePage = React.memo(() => {
     setIsChatMinimized(false);
   }, []);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies(chatMessages.length): We do want to trigger this effect on chatMessages length change
-  useEffect(() => {
-    // Any time a new chat message comes in, show the chat again.
-    setIsChatMinimized(false);
-  }, [chatMessages.length]);
+  useEffect(
+    () => {
+      // Any time a new chat message comes in, show the chat again.
+      setIsChatMinimized(false);
+    },
+    // Trigger whenever chatMessages.length changes, even if we don't actually use
+    // it in the effect, since we want to restore the chat pane whenever a new message comes in.
+    [chatMessages.length],
+  );
 
   useEffect(() => {
     // There's no point hiding the chat scrollback at mobile widths; we don't
@@ -2261,18 +2265,28 @@ const PuzzlePage = React.memo(() => {
   }, []);
 
   const answersCount = activePuzzle?.answers?.length ?? 0;
-  // biome-ignore lint/correctness/useExhaustiveDependencies(answersCount): We want to force the metadata section to be visible when the answers change, so solvers will not miss the puzzle being solved.
-  useEffect(() => {
-    setIsMetadataMinimized(false);
-  }, [answersCount]);
+  useEffect(
+    () => {
+      setIsMetadataMinimized(false);
+    },
+    // We want to force the metadata section to be visible when the set of answers
+    // change so solvers don't miss that it was solved, so use answersCount as a
+    // trigger for the effect even though the effect doesn't actually use it.
+    [answersCount],
+  );
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies(sidebarWidth): When the sidebar width changes, we want to scroll to the target.
-  useLayoutEffect(() => {
-    trace("PuzzlePage useLayoutEffect", { hasRef: !!chatSectionRef.current });
-    if (chatSectionRef.current) {
-      chatSectionRef.current.scrollHistoryToTarget();
-    }
-  }, [sidebarWidth]);
+  useLayoutEffect(
+    () => {
+      trace("PuzzlePage useLayoutEffect", { hasRef: !!chatSectionRef.current });
+      if (chatSectionRef.current) {
+        chatSectionRef.current.scrollHistoryToTarget();
+      }
+    },
+    // Use scrollbarWidth as a trigger for this effect (even though it's not
+    // actually used in the effect) so that when the sidebar width changes, we
+    // scroll to the target
+    [sidebarWidth],
+  );
 
   useEffect(() => {
     window.addEventListener("resize", onResize);
