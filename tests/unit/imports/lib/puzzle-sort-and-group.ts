@@ -77,35 +77,35 @@ function makePuzzle(
 
 describe("puzzleInterestingness", function () {
   const topLevelAdminPuz = makePuzzle("Administrivia", ["administrivia"]);
-  assert.equal(
-    puzzleInterestingness(topLevelAdminPuz, allTagsById, undefined),
-    -5,
-  );
+  assert.equal(puzzleInterestingness(topLevelAdminPuz, allTagsById, []), -4);
 
   const adminInGroupPuz = makePuzzle("Administrivia", [
     "administrivia",
     "group:test-group",
   ]);
-  assert.equal(
-    puzzleInterestingness(adminInGroupPuz, allTagsById, undefined),
-    -4,
-  );
+  assert.equal(puzzleInterestingness(adminInGroupPuz, allTagsById, []), -4);
 
   const metaPuz = makePuzzle("Meta", [
     "meta-for:test-group",
     "group:test-group",
   ]);
-  assert.equal(puzzleInterestingness(metaPuz, allTagsById, "test-group"), -3);
-  assert.equal(puzzleInterestingness(metaPuz, allTagsById, "other-group"), -1);
+  assert.equal(puzzleInterestingness(metaPuz, allTagsById, ["test-group"]), -3);
+  assert.equal(
+    puzzleInterestingness(metaPuz, allTagsById, ["other-group"]),
+    -1,
+  );
 
   const metametaPuz = makePuzzle("Metameta", ["is:metameta"]);
   assert.equal(
-    puzzleInterestingness(metametaPuz, allTagsById, "test-group"),
+    puzzleInterestingness(metametaPuz, allTagsById, ["test-group"]),
     -2,
   );
 
   const regularPuz = makePuzzle("Regular", []);
-  assert.equal(puzzleInterestingness(regularPuz, allTagsById, "test-group"), 0);
+  assert.equal(
+    puzzleInterestingness(regularPuz, allTagsById, ["test-group"]),
+    0,
+  );
 });
 
 describe("puzzleGroupsByRelevance", function () {
@@ -119,12 +119,12 @@ describe("puzzleGroupsByRelevance", function () {
       const groups = puzzleGroupsByRelevance([puzA, puzB], allTags);
       assert.deepEqual(groups, [
         {
-          sharedTag: allTagsByName.get("group:a"),
+          sharedTags: [allTagsByName.get("group:a")!],
           puzzles: [puzA, puzB],
           subgroups: [],
         },
         {
-          sharedTag: allTagsByName.get("group:b"),
+          sharedTags: [allTagsByName.get("group:b")!],
           puzzles: [puzA, puzB],
           subgroups: [],
         },
@@ -146,19 +146,19 @@ describe("puzzleGroupsByRelevance", function () {
       const groups = puzzleGroupsByRelevance(allPuz, allTags);
       assert.deepEqual(groups, [
         {
-          sharedTag: allTagsByName.get("group:all"),
+          sharedTags: [allTagsByName.get("group:all")!],
           puzzles: [puzA],
           subgroups: [
             {
-              sharedTag: allTagsByName.get("group:a"),
+              sharedTags: [allTagsByName.get("group:a")!],
               puzzles: [puzB],
               subgroups: [
                 {
-                  sharedTag: allTagsByName.get("group:b"),
+                  sharedTags: [allTagsByName.get("group:b")!],
                   puzzles: [puzC],
                   subgroups: [
                     {
-                      sharedTag: allTagsByName.get("group:c"),
+                      sharedTags: [allTagsByName.get("group:c")!],
                       puzzles: [puzD],
                       subgroups: [],
                     },
@@ -184,22 +184,22 @@ describe("puzzleGroupsByRelevance", function () {
       const groups = puzzleGroupsByRelevance([puzA, puzB, puzInner], allTags);
       assert.deepEqual(groups, [
         {
-          sharedTag: allTagsByName.get("group:a"),
+          sharedTags: [allTagsByName.get("group:a")!],
           puzzles: [puzA],
           subgroups: [
             {
-              sharedTag: allTagsByName.get("group:inner"),
+              sharedTags: [allTagsByName.get("group:inner")!],
               puzzles: [puzInner],
               subgroups: [],
             },
           ],
         },
         {
-          sharedTag: allTagsByName.get("group:b"),
+          sharedTags: [allTagsByName.get("group:b")!],
           puzzles: [puzB],
           subgroups: [
             {
-              sharedTag: allTagsByName.get("group:inner"),
+              sharedTags: [allTagsByName.get("group:inner")!],
               puzzles: [puzInner],
               subgroups: [],
             },
@@ -328,7 +328,7 @@ describe("puzzleGroupsByRelevance", function () {
       assert.deepEqual(groups, [
         {
           // Administrivia
-          sharedTag: allTagsByName.get("administrivia"),
+          sharedTags: [allTagsByName.get("administrivia")!],
           puzzles: [admPuzzle],
           subgroups: [],
         },
@@ -336,7 +336,7 @@ describe("puzzleGroupsByRelevance", function () {
           // Group with an unsolved puzzle with matching meta-for: that group, even
           // though there's another puzzle with matching meta-for: that group that
           // is solved (-2)
-          sharedTag: allTagsByName.get("group:partly-solved"),
+          sharedTags: [allTagsByName.get("group:partly-solved")!],
           puzzles: [
             unsolvedRelatedMeta,
             solvedRelatedMeta,
@@ -346,25 +346,25 @@ describe("puzzleGroupsByRelevance", function () {
         },
         {
           // Group with some other unsolved meta puzzle, but not the one that the group is for
-          sharedTag: allTagsByName.get("group:other-unsolved-meta"),
+          sharedTags: [allTagsByName.get("group:other-unsolved-meta")!],
           puzzles: [otherUnsolvedUnsolvedMeta, otherUnsolvedSolvedMeta],
           subgroups: [],
         },
         {
           // Group with no metas yet and at least one unsolved puzzle
-          sharedTag: allTagsByName.get("group:no-metas"),
+          sharedTags: [allTagsByName.get("group:no-metas")!],
           puzzles: [flatPuzzle1, flatPuzzle2],
           subgroups: [],
         },
         {
           // ungrouped puzzles
-          sharedTag: undefined,
+          sharedTags: [],
           puzzles: [ungrouped1, ungrouped2],
           subgroups: [],
         },
         {
           // Group with solved meta for the group, but at least one unsolved puzzle (2)
-          sharedTag: allTagsByName.get("group:metas-solved"),
+          sharedTags: [allTagsByName.get("group:metas-solved")!],
           puzzles: [
             metasSolvedMeta1,
             metasSolvedMeta2,
@@ -374,7 +374,7 @@ describe("puzzleGroupsByRelevance", function () {
         },
         {
           // group with only solved puzzles
-          sharedTag: allTagsByName.get("group:fully-solved"),
+          sharedTags: [allTagsByName.get("group:fully-solved")!],
           // Note: we preserve the given puzzle order from `allPuzzles` here.
           // Puzzle ordering within a group is deferred until rendering time, where
           // it will sort by puzzleInterestingness.  As a result, this round puzzle
@@ -384,7 +384,7 @@ describe("puzzleGroupsByRelevance", function () {
         },
         {
           // group with only solved puzzles, despite having no metapuzzle (also 3)
-          sharedTag: allTagsByName.get("group:flat-fully-solved"),
+          sharedTags: [allTagsByName.get("group:flat-fully-solved")!],
           puzzles: [flatFullySolved],
           subgroups: [],
         },
@@ -401,7 +401,7 @@ describe("filteredPuzzleGroups", function () {
     const filtered = filteredPuzzleGroups(groups, new Set([puzA._id]));
     assert.deepEqual(filtered, [
       {
-        sharedTag: allTagsByName.get("group:a"),
+        sharedTags: [allTagsByName.get("group:a")!],
         puzzles: [puzA],
         subgroups: [],
       },
@@ -415,11 +415,11 @@ describe("filteredPuzzleGroups", function () {
     const filtered = filteredPuzzleGroups(groups, new Set([puzB._id]));
     assert.deepEqual(filtered, [
       {
-        sharedTag: allTagsByName.get("group:outer"),
+        sharedTags: [allTagsByName.get("group:outer")!],
         puzzles: [],
         subgroups: [
           {
-            sharedTag: allTagsByName.get("group:inner"),
+            sharedTags: [allTagsByName.get("group:inner")!],
             puzzles: [puzB],
             subgroups: [],
           },
