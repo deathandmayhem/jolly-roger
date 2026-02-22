@@ -20,6 +20,9 @@ import "../imports/server/migrations/all";
 // Set up multi-process load balancer
 import "../imports/server/loadBalance";
 
+// Register hooks which methods may call
+import "../imports/server/register-hooks";
+
 // Import methods and publications
 import "../imports/server/methods/index";
 import "../imports/server/publications/index";
