@@ -41,6 +41,7 @@ import styled, { css } from "styled-components";
 import { formatDiscordName } from "../../lib/discord";
 import { indexedById, sortedBy } from "../../lib/listUtils";
 import Avatar from "./Avatar";
+import { useBootstrapContainer } from "./BootstrapScopeContext";
 
 // This implements a markdown-inspired input editor with live formatting preview
 // and autocompleting @-mentions.
@@ -672,7 +673,8 @@ const renderPlaceholder = ({
 };
 
 const Portal = ({ children }: { children: React.ReactNode }) => {
-  return createPortal(children, document.body);
+  const container = useBootstrapContainer();
+  return createPortal(children, container);
 };
 
 export interface FancyEditorHandle {

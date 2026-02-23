@@ -5,6 +5,7 @@ import OverlayTrigger, {
 } from "react-bootstrap/OverlayTrigger";
 import Tooltip from "react-bootstrap/Tooltip";
 import { useTranslation } from "react-i18next";
+import { useBootstrapContainer } from "./BootstrapScopeContext";
 
 interface CopyToClipboardProps extends ButtonProps {
   tooltipPlacement?: OverlayTriggerProps["placement"];
@@ -13,6 +14,7 @@ interface CopyToClipboardProps extends ButtonProps {
 
 const CopyToClipboardButton = (props: CopyToClipboardProps) => {
   const { tooltipPlacement, text, children, ...rest } = props;
+  const container = useBootstrapContainer();
   const [copied, setCopied] = useState<boolean>(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(
     undefined,
@@ -51,6 +53,7 @@ const CopyToClipboardButton = (props: CopyToClipboardProps) => {
     <OverlayTrigger
       placement={tooltipPlacement ?? "top-start"}
       overlay={copyTooltip}
+      container={container}
     >
       <Button {...rest} onClick={onClick}>
         {children}

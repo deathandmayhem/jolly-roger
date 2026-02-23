@@ -22,6 +22,7 @@ import { indexedById } from "../../lib/listUtils";
 import type { PuzzleType } from "../../lib/models/Puzzles";
 import type { TagType } from "../../lib/models/Tags";
 import { sortPuzzlesByRelevanceWithinPuzzleGroup } from "../../lib/puzzle-sort-and-group";
+import { useBootstrapContainer } from "./BootstrapScopeContext";
 import CopyToClipboardButton from "./CopyToClipboardButton";
 import { removePunctuation } from "./PuzzleAnswer";
 import RelatedPuzzleTable from "./RelatedPuzzleTable";
@@ -219,6 +220,7 @@ type TagProps = BaseTagProps & (DoNotPopoverRelatedProps | PopoverRelatedProps);
 const Tag = (props: TagProps) => {
   const [showPopover, setShowPopover] = useState<boolean>(false);
   const [segmentAnswers, setSegmentAnswers] = useState<boolean>(false);
+  const container = useBootstrapContainer();
 
   const onOverlayTriggerToggle = useCallback((nextShow: boolean) => {
     setShowPopover(nextShow);
@@ -425,6 +427,7 @@ const Tag = (props: TagProps) => {
         trigger={["hover", "click"]}
         onToggle={onOverlayTriggerToggle}
         show={showPopover}
+        container={container}
         popperConfig={{
           modifiers: [
             { name: "preventOverflow", options: { padding: PopoverPadding } },

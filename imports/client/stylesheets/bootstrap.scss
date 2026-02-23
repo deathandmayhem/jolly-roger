@@ -1,0 +1,55 @@
+@use "sass:color";
+
+// Theme variable overrides and Bootstrap config (functions, variables, mixins)
+@import "_theme";
+
+// All CSS output goes in the bootstrap layer so that application-level CSS
+// (styled-components) can override it regardless of document order.
+@layer bootstrap {
+  // CSS custom properties (--bs-*) and [data-bs-theme] dark-mode overrides at
+  // the top level so they remain global. They're just variable definitions and
+  // don't cause visual conflicts.
+  /* stylelint-disable no-invalid-position-at-import-rule */
+  @import "../../../node_modules/bootstrap/scss/variables-dark";
+  @import "../../../node_modules/bootstrap/scss/maps";
+  @import "../../../node_modules/bootstrap/scss/root";
+  /* stylelint-enable no-invalid-position-at-import-rule */
+
+  // Scope all Bootstrap component styles so they only apply within
+  // .bootstrap-page, stopping at any .tailwind-page boundary so that
+  // converted pages get a clean Tailwind environment without Bootstrap
+  // resets or component styles leaking in.
+  @scope (.bootstrap-page) to (.tailwind-page) {
+    // The full bootstrap import re-imports config files (no-ops due to !default)
+    // and _root.scss (generates a :root block that won't match in scope — harmless).
+    // Reboot + all component CSS is scoped.
+    /* stylelint-disable no-invalid-position-at-import-rule */
+    @import "../../../node_modules/bootstrap/scss/bootstrap";
+    /* stylelint-enable no-invalid-position-at-import-rule */
+
+    // Replicate essential body styles on the scope root so Bootstrap's base
+    // typography and colors apply. These reference var(--bs-*) so they
+    // automatically respond to dark mode.
+    :scope {
+      font-family: var(--bs-body-font-family);
+      font-size: var(--bs-body-font-size);
+      font-weight: var(--bs-body-font-weight);
+      line-height: var(--bs-body-line-height);
+      color: var(--bs-body-color);
+      background-color: var(--bs-body-bg);
+      -webkit-text-size-adjust: 100%; /* stylelint-disable-line property-no-vendor-prefix */
+      /* stylelint-disable-next-line color-function-notation, color-function-alias-notation, alpha-value-notation */
+      -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+      min-height: 100vh;
+    }
+
+    // Give outline buttons distinct hover and active styles
+    $btn-outline-hover-tint: 80%;
+    @each $color, $value in $theme-colors {
+      .btn-outline-#{$color}:hover {
+        background-color: color.mix(white, $value, $btn-outline-hover-tint);
+        color: $value;
+      }
+    }
+  }
+}

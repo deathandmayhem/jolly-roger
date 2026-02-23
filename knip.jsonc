@@ -2,7 +2,6 @@
   "$schema": "https://unpkg.com/knip@5/schema-jsonc.json",
   "entry": [
     "{client,server,tests}/main.ts",
-    "client/**/*.scss",
     "private/google-script/main.js",
     // knip can't follow dynamic imports
     "tests/**"
@@ -24,8 +23,14 @@
     "meteor-node-stubs",
     // Detected and used by fourseven:scss
     "sass",
+    // Used by PostCSS to load postcss.config.js
+    "postcss-load-config",
     // Detected and used by mongodb
-    "aws4"
+    "aws4",
+    // Used by test suite
+    "playwright",
+    // Referenced via @plugin in tailwind.css
+    "daisyui"
   ],
   "tags": ["-lintignore"]
 }
