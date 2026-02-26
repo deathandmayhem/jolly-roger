@@ -35,7 +35,7 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
         with:
-          install: true # make buildx the default
+          driver: docker
       - name: Sanitize ref name for cache tag
         id: cache-ref
         env:
@@ -53,7 +53,6 @@ jobs:
         with:
           context: .
           target: test
-          load: true
           cache-from: |
             type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-amd64-${{ steps.cache-ref.outputs.ref }}
             type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-amd64-main
