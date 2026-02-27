@@ -104,7 +104,7 @@
     "eslint": "^10.0.2",
     "gray-matter": "^4.0.3",
     "jiti": "^2.6.1",
-    "knip": "^5.84.1",
+    "knip": "^5.85.0",
     "mocha": "^11.7.5",
     "oxlint": "^1.50.0",
     "oxlint-tsgolint": "^0.14.2",
