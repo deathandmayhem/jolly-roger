@@ -107,7 +107,7 @@
     "knip": "^5.85.0",
     "mocha": "^11.7.5",
     "oxlint": "^1.50.0",
-    "oxlint-tsgolint": "^0.14.2",
+    "oxlint-tsgolint": "^0.15.0",
     "playwright": "^1.58.2",
     "postcss-scss": "^4.0.9",
     "postcss-styled-syntax": "^0.7.1",
