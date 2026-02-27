@@ -70,7 +70,7 @@ import nodeIsRoleMention from "../../lib/nodeIsRoleMention";
 import nodeIsText from "../../lib/nodeIsText";
 import {
   listAllRolesForHunt,
-  userMayWritePuzzlesForHunt,
+  userHasPermissionForAction,
 } from "../../lib/permission_stubs";
 import chatMessagesForPuzzle from "../../lib/publications/chatMessagesForPuzzle";
 import puzzleForPuzzlePage from "../../lib/publications/puzzleForPuzzlePage";
@@ -1022,7 +1022,7 @@ const PuzzlePageMetadata = ({
   const hunt = useTracker(() => Hunts.findOne(huntId), [huntId]);
   const hasGuessQueue = hunt?.hasGuessQueue ?? false;
   const canUpdate = useTracker(
-    () => userMayWritePuzzlesForHunt(Meteor.user(), hunt),
+    () => userHasPermissionForAction(Meteor.user(), hunt, "editPuzzles"),
     [hunt],
   );
 
@@ -2004,8 +2004,13 @@ const PuzzleDeletedModal = ({
   huntId: string;
   replacedBy?: string;
 }) => {
-  const canUpdate = useTracker(
-    () => userMayWritePuzzlesForHunt(Meteor.user(), Hunts.findOne(huntId)),
+  const canUndestroy = useTracker(
+    () =>
+      userHasPermissionForAction(
+        Meteor.user(),
+        Hunts.findOne(huntId),
+        "deletePuzzles",
+      ),
     [huntId],
   );
 
@@ -2061,7 +2066,7 @@ const PuzzleDeletedModal = ({
             .
           </p>
         )}
-        {canUpdate && (
+        {canUndestroy && (
           <>
             <p>
               {t(

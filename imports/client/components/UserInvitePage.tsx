@@ -14,7 +14,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 import styled from "styled-components";
 import Hunts from "../../lib/models/Hunts";
-import { userMayBulkAddToHunt } from "../../lib/permission_stubs";
+import { userHasPermissionForAction } from "../../lib/permission_stubs";
 import addHuntUser from "../../methods/addHuntUser";
 import bulkAddHuntUsers from "../../methods/bulkAddHuntUsers";
 import { useBreadcrumb } from "../hooks/breadcrumb";
@@ -41,7 +41,11 @@ const UserInvitePage = () => {
   );
 
   const canBulkInvite = useTracker(() => {
-    return userMayBulkAddToHunt(Meteor.user(), Hunts.findOne(huntId));
+    return userHasPermissionForAction(
+      Meteor.user(),
+      Hunts.findOne(huntId),
+      "bulkInviteUsers",
+    );
   }, [huntId]);
 
   const onEmailChanged: NonNullable<FormControlProps["onChange"]> = useCallback(

@@ -11,7 +11,7 @@ import type { HuntType } from "../../lib/models/Hunts";
 import Hunts from "../../lib/models/Hunts";
 import { primaryEmail } from "../../lib/models/User";
 import {
-  userMayAddUsersToHunt,
+  userHasPermissionForAction,
   userMayUpdateHunt,
 } from "../../lib/permission_stubs";
 import huntForHuntApp from "../../lib/publications/huntForHuntApp";
@@ -121,7 +121,7 @@ const HuntApp = React.memo(() => {
     return {
       member: user?.hunts?.includes(huntId) ?? false,
       canUndestroy: userMayUpdateHunt(user, hunt),
-      canJoin: userMayAddUsersToHunt(user, hunt),
+      canJoin: userHasPermissionForAction(user, hunt, "inviteUsers"),
       mustAcceptTerms: hunt?.termsOfUse && !termsAccepted,
     };
   }, [huntId, hunt]);

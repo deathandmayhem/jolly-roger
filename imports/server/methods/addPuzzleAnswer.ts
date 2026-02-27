@@ -5,7 +5,9 @@ import Logger from "../../Logger";
 import { contentFromMessage } from "../../lib/models/ChatMessages";
 import Guesses from "../../lib/models/Guesses";
 import Hunts from "../../lib/models/Hunts";
+import MeteorUsers from "../../lib/models/MeteorUsers";
 import Puzzles from "../../lib/models/Puzzles";
+import { userIsInHunt } from "../../lib/permission_stubs";
 import addPuzzleAnswer from "../../methods/addPuzzleAnswer";
 import { answerify } from "../../model-helpers";
 import GlobalHooks from "../GlobalHooks";
@@ -24,6 +26,10 @@ defineMethod(addPuzzleAnswer, {
 
   async run({ puzzleId, answer: rawAnswer }) {
     check(this.userId, String);
+    const user = await MeteorUsers.findOneAsync(this.userId);
+    if (!user) {
+      throw new Meteor.Error(500, "Logged-in user not found");
+    }
 
     // Normalize up front so the $ne filter, $addToSet, chat message, and
     // hooks all use the same canonical form.
@@ -39,6 +45,13 @@ defineMethod(addPuzzleAnswer, {
 
     if (!hunt) {
       throw new Meteor.Error(404, "No such hunt");
+    }
+
+    if (!userIsInHunt(user, hunt._id)) {
+      throw new Meteor.Error(
+        403,
+        `You are not a member of the hunt ${hunt._id} and thus cannot add answers to puzzles in that hunt`,
+      );
     }
 
     if (hunt.hasGuessQueue) {

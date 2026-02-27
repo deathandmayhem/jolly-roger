@@ -5,7 +5,6 @@ import { Meteor } from "meteor/meteor";
 import type { Mongo } from "meteor/mongo";
 import Logger from "../Logger";
 import { GLOBAL_SCOPE } from "../lib/isAdmin";
-import Hunts from "../lib/models/Hunts";
 import MeteorUsers from "../lib/models/MeteorUsers";
 import type { ProfileFields } from "../lib/models/User";
 import { userMaySeeUserInfoForHunt } from "../lib/permission_stubs";
@@ -260,7 +259,7 @@ Meteor.publish("huntRoles", async function (huntId: unknown) {
 
   await republishOnUserChange(this, { hunts: 1, roles: 1 }, async (u) => {
     // Only publish other users' roles to admins and other operators.
-    if (!userMaySeeUserInfoForHunt(u, await Hunts.findOneAsync(huntId))) {
+    if (!userMaySeeUserInfoForHunt(u, huntId)) {
       return undefined;
     }
 

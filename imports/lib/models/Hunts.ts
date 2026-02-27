@@ -1,5 +1,6 @@
 import { Match } from "meteor/check";
 import { z } from "zod";
+import { ConfiguredPermissionLevelEnum } from "../permissions";
 import { nonEmptyString, snowflake } from "./customTypes";
 import type { ModelType } from "./Model";
 import SoftDeletedModel from "./SoftDeletedModel";
@@ -12,6 +13,25 @@ export const SavedDiscordObjectFields = z.object({
 
 export type SavedDiscordObjectType = z.infer<typeof SavedDiscordObjectFields>;
 
+// TODO: the following definition doesn't work quite right under zod 3 because zod 3's record type is not exhaustive.
+// Switch to this once we update to zod 4.
+//const CustomPermissions = z.record(
+//  ConfigurableActionEnum,
+//  ConfiguredPermissionLevelEnum,
+//);
+const CustomPermissions = z.object({
+  inviteUsers: ConfiguredPermissionLevelEnum, // Invite users one at a time
+  bulkInviteUsers: ConfiguredPermissionLevelEnum, // Invite users in batch
+  manageOperators: ConfiguredPermissionLevelEnum, // Promote or demote operators
+  manageInvitationLink: ConfiguredPermissionLevelEnum, // Create, roll, or deactivate invitation link
+  editPuzzles: ConfiguredPermissionLevelEnum, // Add or edit puzzles
+  deletePuzzles: ConfiguredPermissionLevelEnum, // Destroy or undestroy puzzles
+  operateGuessQueue: ConfiguredPermissionLevelEnum, // Update guess states after submission when guess queue is enabled
+  sendAnnouncements: ConfiguredPermissionLevelEnum,
+  purgeHunt: ConfiguredPermissionLevelEnum, // Purge all contents of hunt
+});
+export type CustomPermissionsType = z.infer<typeof CustomPermissions>;
+
 const EditableHunt = z.object({
   name: nonEmptyString,
   // Everyone that joins the hunt will be added to these mailing lists
@@ -19,15 +39,16 @@ const EditableHunt = z.object({
   // This message is displayed (as markdown) to users that are not members of
   // this hunt. It should include instructions on how to join
   signupMessage: nonEmptyString.optional(),
-  // If this is true, then any member of this hunt is allowed to add others to
-  // it. Otherwise, you must be an operator to add someone to the hunt.
-  openSignups: z.boolean().default(false),
   // If this is true, an operator must mark guesses as correct or not.
-  // If this is false, users enter answers directly without the guess step.
+  // If this is false, users enter answers directly without the guess step, and
+  // the operateGuessQueue permission is ignored.
   hasGuessQueue: z.boolean(),
   // If provided, users will be presented with this text as a modal to agree to
   // before accessing the hunt.
   termsOfUse: nonEmptyString.optional(),
+  // If provided, then the specified permissions indicate the minimum role
+  // required for a user to perform the specified action.
+  customPermissions: CustomPermissions.optional(),
   // If this is provided, then this is used to generate links to puzzles' guess
   // submission pages. The format is interpreted as a Mustache template
   // (https://mustache.github.io/). It's passed as context a parsed URL
@@ -58,13 +79,29 @@ const SavedDiscordObjectPattern = {
   name: String,
 };
 
+const ConfiguredPermissionPattern = Match.OneOf(
+  "hunt_owner",
+  "operator",
+  "member",
+);
+
 export const HuntPattern = {
   name: String,
   mailingLists: [String] as [StringConstructor],
   signupMessage: Match.Optional(String),
-  openSignups: Boolean,
   hasGuessQueue: Boolean,
   termsOfUse: Match.Optional(String),
+  customPermissions: Match.Optional({
+    inviteUsers: ConfiguredPermissionPattern,
+    bulkInviteUsers: ConfiguredPermissionPattern,
+    manageOperators: ConfiguredPermissionPattern,
+    manageInvitationLink: ConfiguredPermissionPattern,
+    editPuzzles: ConfiguredPermissionPattern,
+    deletePuzzles: ConfiguredPermissionPattern,
+    operateGuessQueue: ConfiguredPermissionPattern,
+    sendAnnouncements: ConfiguredPermissionPattern,
+    purgeHunt: ConfiguredPermissionPattern,
+  }),
   submitTemplate: Match.Optional(String),
   homepageUrl: Match.Optional(String),
   announcementDiscordChannel: Match.Optional(SavedDiscordObjectPattern),

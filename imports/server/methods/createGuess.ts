@@ -3,7 +3,9 @@ import { Meteor } from "meteor/meteor";
 import Logger from "../../Logger";
 import Guesses from "../../lib/models/Guesses";
 import Hunts from "../../lib/models/Hunts";
+import MeteorUsers from "../../lib/models/MeteorUsers";
 import Puzzles from "../../lib/models/Puzzles";
+import { userIsInHunt } from "../../lib/permission_stubs";
 import createGuess from "../../methods/createGuess";
 import sendChatMessageInternal from "../sendChatMessageInternal";
 import defineMethod from "./defineMethod";
@@ -21,6 +23,10 @@ defineMethod(createGuess, {
 
   async run({ puzzleId, guess, direction, confidence }) {
     check(this.userId, String);
+    const user = await MeteorUsers.findOneAsync(this.userId);
+    if (!user) {
+      throw new Meteor.Error(500, "Logged-in user not found");
+    }
 
     const puzzle = await Puzzles.findOneAsync(puzzleId);
 
@@ -32,6 +38,13 @@ defineMethod(createGuess, {
 
     if (!hunt) {
       throw new Meteor.Error(404, "No such hunt");
+    }
+
+    if (!userIsInHunt(user, hunt._id)) {
+      throw new Meteor.Error(
+        403,
+        `You are not a member of the hunt ${hunt._id} and thus cannot submit guesses to puzzles in that hunt`,
+      );
     }
 
     if (!hunt.hasGuessQueue) {
