@@ -17,6 +17,9 @@ updates:
       aws:
         patterns:
           - "@aws-sdk/*"
+      bugsnag:
+        patterns:
+          - "@bugsnag/*"
       google:
         patterns:
           - "@googleapis/*"
@@ -24,6 +27,10 @@ updates:
       fontawesome:
         patterns:
           - "@fortawesome/*"
+      i18next:
+        patterns:
+          - "i18next"
+          - "react-i18next"
       react:
         patterns:
           - "react"
@@ -33,10 +40,17 @@ updates:
           - "slate"
           - "slate-history"
           - "slate-react"
+      testing-library:
+        patterns:
+          - "@testing-library/*"
       stylelint:
         patterns:
           - "stylelint"
           - "stylelint-*"
+      oxlint:
+        patterns:
+          - "oxlint"
+          - "oxlint-tsgolint"
       typescript-eslint:
         patterns:
           - "typescript-eslint"
