@@ -106,7 +106,7 @@
     "jiti": "^2.6.1",
     "knip": "^5.84.1",
     "mocha": "^11.7.5",
-    "oxlint": "^1.49.0",
+    "oxlint": "^1.50.0",
     "oxlint-tsgolint": "^0.14.2",
     "playwright": "^1.58.2",
     "postcss-scss": "^4.0.9",
