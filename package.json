@@ -21,8 +21,8 @@
     "test": "TEST_BROWSER_DRIVER=playwright meteor test --full-app --once --driver-package meteortesting:mocha"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.994.0",
-    "@aws-sdk/s3-presigned-post": "^3.994.0",
+    "@aws-sdk/client-s3": "^3.999.0",
+    "@aws-sdk/s3-presigned-post": "^3.999.0",
     "@babel/runtime": "^7.28.6",
     "@bugsnag/js": "^8.8.1",
     "@bugsnag/plugin-react": "^8.8.0",
