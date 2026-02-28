@@ -1,8 +1,8 @@
 import { z } from "zod";
-import { answer, foreignKey, nonEmptyString } from "./customTypes";
-import type { ModelType } from "./Model";
-import SoftDeletedModel from "./SoftDeletedModel";
-import withCommon from "./withCommon";
+import { answer, foreignKey, nonEmptyString } from "../typedModel/customTypes";
+import type { ModelType } from "../typedModel/Model";
+import SoftDeletedModel from "../typedModel/SoftDeletedModel";
+import withCommon from "../typedModel/withCommon";
 
 // The state of this guess, as handled by the operators:
 // * 'pending' means "shows up in the operator queue"
@@ -30,10 +30,10 @@ const Guess = withCommon(
     guess: answer,
     // Whether this was forward solved (10), backwards solved (-10), or somewhere
     // in between (only optional in that older hunts won't have it)
-    direction: z.number().int().min(-10).max(10).optional(),
+    direction: z.int32().min(-10).max(10).optional(),
     // Submitted-evaluated probability that the answer is right (also only
     // optional on older hunts)
-    confidence: z.number().int().min(0).max(100).optional(),
+    confidence: z.int32().min(0).max(100).optional(),
     state: GuessStates,
     // Additional notes can be used by the operator either for sharing (e.g.)
     // additional information received from the puzzle (e.g. for an intermediate

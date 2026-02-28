@@ -11,16 +11,16 @@ Migrations.add({
         { puzzleHooksSlackChannel: { $exists: true } },
       ],
     }) as any) {
-      await Hunts.updateAsync(
-        h._id,
+      await Hunts.collection.rawCollection().updateOne(
+        { _id: h._id },
         {
           $unset: {
-            firehoseSlackChannel: "",
-            puzzleHooksSlackChannel: "",
+            firehoseSlackChannel: 1,
+            puzzleHooksSlackChannel: 1,
           },
         },
         {
-          bypassSchema: true,
+          bypassDocumentValidation: true,
         },
       );
     }

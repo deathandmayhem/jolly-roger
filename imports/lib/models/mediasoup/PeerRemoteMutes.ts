@@ -1,8 +1,8 @@
 import { z } from "zod";
-import { foreignKey } from "../customTypes";
-import type { ModelType } from "../Model";
-import SoftDeletedModel from "../SoftDeletedModel";
-import withCommon from "../withCommon";
+import { foreignKey } from "../../typedModel/customTypes";
+import type { ModelType } from "../../typedModel/Model";
+import SoftDeletedModel from "../../typedModel/SoftDeletedModel";
+import withCommon from "../../typedModel/withCommon";
 
 // PeerRemoteMute is an audit log of when one user mutes another user. When a
 // user is remote-muted, their Peer record is also updated, which tracks current

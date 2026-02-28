@@ -12,14 +12,14 @@ Migrations.add({
     // Convert any ChatMessages that have text rather than content
     for await (const m of ChatMessages.find(<any>{ text: { $ne: null } })) {
       const content = contentFromMessage((<any>m).text);
-      await ChatMessages.updateAsync(
-        m._id,
+      await ChatMessages.collection.rawCollection().updateOne(
+        { _id: m._id },
         {
           $set: { content },
           $unset: { text: 1 },
         },
         {
-          bypassSchema: true,
+          bypassDocumentValidation: true,
         },
       );
     }
@@ -29,14 +29,14 @@ Migrations.add({
       text: { $ne: null },
     })) {
       const content = contentFromMessage((<any>n).text);
-      await ChatNotifications.updateAsync(
-        n._id,
+      await ChatNotifications.collection.rawCollection().updateOne(
+        { _id: n._id },
         {
           $set: { content },
           $unset: { text: 1 },
         },
         {
-          bypassSchema: true,
+          bypassDocumentValidation: true,
         },
       );
     }

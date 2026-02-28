@@ -1,9 +1,9 @@
 import { z } from "zod";
 import type { Solvedness } from "../solvedness";
-import { answer, foreignKey } from "./customTypes";
-import type { ModelType } from "./Model";
-import SoftDeletedModel from "./SoftDeletedModel";
-import withCommon from "./withCommon";
+import { answer, foreignKey } from "../typedModel/customTypes";
+import type { ModelType } from "../typedModel/Model";
+import SoftDeletedModel from "../typedModel/SoftDeletedModel";
+import withCommon from "../typedModel/withCommon";
 
 const BookmarkNotificationSolvedness: z.ZodType<Solvedness> = z.enum([
   "noAnswers",
