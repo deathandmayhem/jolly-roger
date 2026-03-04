@@ -4,7 +4,7 @@ import { faCaretDown } from "@fortawesome/free-solid-svg-icons/faCaretDown";
 import { faEraser } from "@fortawesome/free-solid-svg-icons/faEraser";
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
+import React, {
   type ComponentPropsWithRef,
   type FC,
   useCallback,
@@ -29,6 +29,7 @@ import Bookmarks from "../../lib/models/Bookmarks";
 import Hunts from "../../lib/models/Hunts";
 import type { PuzzleType } from "../../lib/models/Puzzles";
 import Puzzles from "../../lib/models/Puzzles";
+import type { TagType } from "../../lib/models/Tags";
 import Tags from "../../lib/models/Tags";
 import { userHasPermissionForAction } from "../../lib/permission_stubs";
 import puzzleActivityForHunt from "../../lib/publications/puzzleActivityForHunt";
@@ -161,7 +162,175 @@ const HuntNavWrapper = styled.div`
   )}
 `;
 
-const PuzzleListView = ({
+const PuzzleListView = React.memo(
+  ({
+    bookmarked,
+    canUpdate,
+    canDestroy,
+    displayMode,
+    huntId,
+    retainedPuzzles,
+    retainedDeletedPuzzles,
+    solvedOverConstrains,
+    allPuzzles,
+    allTags,
+    canExpandAllGroups,
+    trackPersistentExpand,
+    expandAllGroups,
+  }: {
+    bookmarked: Set<string>;
+    canUpdate: boolean;
+    canDestroy: boolean;
+    displayMode: "group" | "unlock";
+    huntId: string;
+    retainedPuzzles: PuzzleType[];
+    retainedDeletedPuzzles: PuzzleType[] | undefined;
+    solvedOverConstrains: boolean;
+    allPuzzles: PuzzleType[];
+    allTags: TagType[];
+    canExpandAllGroups: boolean;
+    trackPersistentExpand: boolean;
+    expandAllGroups: () => void;
+  }) => {
+    const { t } = useTranslation();
+    const maybeMatchWarning = solvedOverConstrains && (
+      <Alert variant="info">
+        {t(
+          "puzzleList.maybeMatchWarning",
+          "No matches found in unsolved puzzles; showing matches from solved puzzles",
+        )}
+      </Alert>
+    );
+    const retainedIds = new Set(retainedPuzzles.map((puzzle) => puzzle._id));
+    const allPuzzlesCount = allPuzzles.length;
+    const filterMessage = t(
+      "puzzleList.filteredPuzzleCountMessage",
+      "Showing {{retainedCount}} of {{allPuzzlesCount}} items",
+      {
+        retainedCount: retainedPuzzles.length,
+        allPuzzlesCount: allPuzzlesCount,
+      },
+    );
+
+    const bookmarkedPuzzles = retainedPuzzles.filter((puzzle) =>
+      bookmarked.has(puzzle._id),
+    );
+
+    let listComponent;
+    let listControls;
+    switch (displayMode) {
+      case "group": {
+        // We group and sort first, and only filter afterward, to avoid losing the
+        // relative group structure as a result of removing some puzzles from
+        // consideration.
+        const unfilteredGroups = puzzleGroupsByRelevance(allPuzzles, allTags);
+        const puzzleGroups = filteredPuzzleGroups(
+          unfilteredGroups,
+          retainedIds,
+        );
+        listComponent = puzzleGroups.map((g) => {
+          const suppressedTagIds = [];
+          if (g.sharedTag) {
+            suppressedTagIds.push(g.sharedTag._id);
+          }
+          return (
+            <RelatedPuzzleGroup
+              key={g.sharedTag ? g.sharedTag._id : "ungrouped"}
+              huntId={huntId}
+              group={g}
+              noSharedTagLabel={`(${t("puzzleList.noGroupSpecified", "no group specified")})`}
+              bookmarked={bookmarked}
+              allTags={allTags}
+              includeCount={false}
+              canUpdate={canUpdate}
+              canDestroy={canDestroy}
+              suppressedTagIds={suppressedTagIds}
+              trackPersistentExpand={trackPersistentExpand}
+            />
+          );
+        });
+        listControls = (
+          <Button
+            variant="secondary"
+            size="sm"
+            disabled={!canExpandAllGroups}
+            onClick={expandAllGroups}
+          >
+            <FontAwesomeIcon icon={faCaretDown} />{" "}
+            {t("common.expandAll", "Expand all")}
+          </Button>
+        );
+        break;
+      }
+      case "unlock": {
+        const puzzlesByUnlock = sortedBy(allPuzzles, (p) => {
+          return p.createdAt;
+        });
+        const retainedPuzzlesByUnlock = puzzlesByUnlock.filter((p) =>
+          retainedIds.has(p._id),
+        );
+        listComponent = (
+          <PuzzleList
+            puzzles={retainedPuzzlesByUnlock}
+            bookmarked={bookmarked}
+            allTags={allTags}
+            canUpdate={canUpdate}
+            canDestroy={canDestroy}
+          />
+        );
+        listControls = null;
+        break;
+      }
+      default:
+        displayMode satisfies never;
+    }
+    return (
+      <div>
+        {maybeMatchWarning}
+        <PuzzleListToolbar>
+          <div>{listControls}</div>
+          <div>{filterMessage}</div>
+        </PuzzleListToolbar>
+        {bookmarkedPuzzles.length > 0 && (
+          <PuzzleGroupDiv>
+            <div>{t("puzzleList.bookmarked", "Bookmarked")}</div>
+            <RelatedPuzzleList
+              key="bookmarked"
+              relatedPuzzles={bookmarkedPuzzles}
+              sharedTag={undefined}
+              bookmarked={bookmarked}
+              allTags={allTags}
+              canUpdate={canUpdate}
+              canDestroy={canDestroy}
+              suppressedTagIds={[]}
+            />
+          </PuzzleGroupDiv>
+        )}
+        {listComponent}
+        {retainedDeletedPuzzles && retainedDeletedPuzzles.length > 0 && (
+          <RelatedPuzzleGroup
+            key="deleted"
+            huntId={huntId}
+            group={{ puzzles: retainedDeletedPuzzles, subgroups: [] }}
+            noSharedTagLabel={t(
+              "puzzleList.deletedPuzzlesGroup",
+              "Deleted puzzles (operator only)",
+            )}
+            bookmarked={bookmarked}
+            allTags={allTags}
+            includeCount={false}
+            canUpdate={canUpdate}
+            canDestroy={canDestroy}
+            suppressedTagIds={[]}
+            trackPersistentExpand={trackPersistentExpand}
+          />
+        )}
+      </div>
+    );
+  },
+);
+
+const PuzzleListViewSection = ({
   huntId,
   canAdd,
   canUpdate,
@@ -323,161 +492,6 @@ const PuzzleListView = ({
 
   const { t } = useTranslation();
 
-  const renderList = useCallback(
-    (
-      retainedPuzzles: PuzzleType[],
-      retainedDeletedPuzzles: PuzzleType[] | undefined,
-      solvedOverConstrains: boolean,
-      allPuzzlesCount: number,
-    ) => {
-      const maybeMatchWarning = solvedOverConstrains && (
-        <Alert variant="info">
-          {t(
-            "puzzleList.maybeMatchWarning",
-            "No matches found in unsolved puzzles; showing matches from solved puzzles",
-          )}
-        </Alert>
-      );
-      const retainedIds = new Set(retainedPuzzles.map((puzzle) => puzzle._id));
-      const filterMessage = t(
-        "puzzleList.filteredPuzzleCountMessage",
-        "Showing {{retainedCount}} of {{allPuzzlesCount}} items",
-        {
-          retainedCount: retainedPuzzles.length,
-          allPuzzlesCount: allPuzzlesCount,
-        },
-      );
-
-      const bookmarkedPuzzles = retainedPuzzles.filter((puzzle) =>
-        bookmarked.has(puzzle._id),
-      );
-
-      let listComponent;
-      let listControls;
-      switch (displayMode) {
-        case "group": {
-          // We group and sort first, and only filter afterward, to avoid losing the
-          // relative group structure as a result of removing some puzzles from
-          // consideration.
-          const unfilteredGroups = puzzleGroupsByRelevance(allPuzzles, allTags);
-          const puzzleGroups = filteredPuzzleGroups(
-            unfilteredGroups,
-            retainedIds,
-          );
-          listComponent = puzzleGroups.map((g) => {
-            const suppressedTagIds = [];
-            if (g.sharedTag) {
-              suppressedTagIds.push(g.sharedTag._id);
-            }
-            return (
-              <RelatedPuzzleGroup
-                key={g.sharedTag ? g.sharedTag._id : "ungrouped"}
-                huntId={huntId}
-                group={g}
-                noSharedTagLabel={`(${t("puzzleList.noGroupSpecified", "no group specified")})`}
-                bookmarked={bookmarked}
-                allTags={allTags}
-                includeCount={false}
-                canUpdate={canUpdate}
-                canDestroy={canDestroy}
-                suppressedTagIds={suppressedTagIds}
-                trackPersistentExpand={searchString === ""}
-              />
-            );
-          });
-          listControls = (
-            <Button
-              variant="secondary"
-              size="sm"
-              disabled={!canExpandAllGroups}
-              onClick={expandAllGroups}
-            >
-              <FontAwesomeIcon icon={faCaretDown} />{" "}
-              {t("common.expandAll", "Expand all")}
-            </Button>
-          );
-          break;
-        }
-        case "unlock": {
-          const puzzlesByUnlock = sortedBy(allPuzzles, (p) => {
-            return p.createdAt;
-          });
-          const retainedPuzzlesByUnlock = puzzlesByUnlock.filter((p) =>
-            retainedIds.has(p._id),
-          );
-          listComponent = (
-            <PuzzleList
-              puzzles={retainedPuzzlesByUnlock}
-              bookmarked={bookmarked}
-              allTags={allTags}
-              canUpdate={canUpdate}
-              canDestroy={canDestroy}
-            />
-          );
-          listControls = null;
-          break;
-        }
-        // no default
-      }
-      return (
-        <div>
-          {maybeMatchWarning}
-          <PuzzleListToolbar>
-            <div>{listControls}</div>
-            <div>{filterMessage}</div>
-          </PuzzleListToolbar>
-          {bookmarkedPuzzles.length > 0 && (
-            <PuzzleGroupDiv>
-              <div>{t("puzzleList.bookmarked", "Bookmarked")}</div>
-              <RelatedPuzzleList
-                key="bookmarked"
-                relatedPuzzles={bookmarkedPuzzles}
-                sharedTag={undefined}
-                bookmarked={bookmarked}
-                allTags={allTags}
-                canUpdate={canUpdate}
-                canDestroy={canDestroy}
-                suppressedTagIds={[]}
-              />
-            </PuzzleGroupDiv>
-          )}
-          {listComponent}
-          {retainedDeletedPuzzles && retainedDeletedPuzzles.length > 0 && (
-            <RelatedPuzzleGroup
-              key="deleted"
-              huntId={huntId}
-              group={{ puzzles: retainedDeletedPuzzles, subgroups: [] }}
-              noSharedTagLabel={t(
-                "puzzleList.deletedPuzzlesGroup",
-                "Deleted puzzles (operator only)",
-              )}
-              bookmarked={bookmarked}
-              allTags={allTags}
-              includeCount={false}
-              canUpdate={canUpdate}
-              canDestroy={canDestroy}
-              suppressedTagIds={[]}
-              trackPersistentExpand={searchString === ""}
-            />
-          )}
-        </div>
-      );
-    },
-    [
-      huntId,
-      displayMode,
-      allPuzzles,
-      allTags,
-      canUpdate,
-      canDestroy,
-      searchString,
-      canExpandAllGroups,
-      expandAllGroups,
-      bookmarked,
-      t,
-    ],
-  );
-
   const idPrefix = useId();
 
   const addPuzzleContent = canAdd && (
@@ -625,12 +639,21 @@ const PuzzleListView = ({
           </InputGroup>
         </SearchFormGroup>
       </ViewControls>
-      {renderList(
-        retainedPuzzles,
-        retainedDeletedPuzzles,
-        solvedOverConstrains,
-        allPuzzles.length,
-      )}
+      <PuzzleListView
+        bookmarked={bookmarked}
+        canUpdate={canUpdate}
+        canDestroy={canDestroy}
+        displayMode={displayMode}
+        huntId={huntId}
+        retainedPuzzles={retainedPuzzles}
+        retainedDeletedPuzzles={retainedDeletedPuzzles}
+        solvedOverConstrains={solvedOverConstrains}
+        allPuzzles={allPuzzles}
+        allTags={allTags}
+        canExpandAllGroups={canExpandAllGroups}
+        trackPersistentExpand={searchString === ""}
+        expandAllGroups={expandAllGroups}
+      />
     </div>
   );
 };
@@ -668,7 +691,7 @@ const PuzzleListPage = () => {
         <HuntNav />
       </HuntNavWrapper>
 
-      <PuzzleListView
+      <PuzzleListViewSection
         huntId={huntId}
         canAdd={canAdd}
         canUpdate={canUpdate}
