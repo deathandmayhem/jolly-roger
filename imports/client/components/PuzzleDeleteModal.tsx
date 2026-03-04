@@ -163,7 +163,7 @@ const PuzzleDeleteModal = ({
 
   const idPrefix = useId();
 
-  const { t } = useTranslation("PuzzleDeleteModal");
+  const { t } = useTranslation();
 
   const modal = (
     <Modal show={visible} onHide={hide}>
