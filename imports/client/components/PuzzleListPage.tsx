@@ -651,7 +651,7 @@ const PuzzleListPage = () => {
 
   const puzzlesLoading = useTypedSubscribe(puzzlesForPuzzleList, {
     huntId,
-    includeDeleted: canUpdate,
+    includeDeleted: canDestroy,
   });
   const loading = puzzlesLoading();
 
