@@ -37,6 +37,7 @@ import type { PuzzleType } from "../../lib/models/Puzzles";
 import Puzzles from "../../lib/models/Puzzles";
 import {
   huntsUserIsOperatorFor,
+  huntsUserMayOperateGuessQueueFor,
   listAllRolesForHunt,
 } from "../../lib/permission_stubs";
 import bookmarkNotificationsForSelf from "../../lib/publications/bookmarkNotificationsForSelf";
@@ -911,16 +912,9 @@ const NotificationCenter = () => {
 
   const [pendingUpdate, blockReasons] = useBlockReasons();
 
-  const operatorHunts = useTracker(
-    () => [...huntsUserIsOperatorFor(Meteor.user())],
-    [],
-  );
-  const fetchPendingGuesses = operatorHunts.length > 0;
-  const pendingGuessesLoading = useTypedSubscribe(
-    fetchPendingGuesses ? pendingGuessesForSelf : undefined,
-  );
+  const pendingGuessesLoading = useTypedSubscribe(pendingGuessesForSelf);
 
-  const [operatorActionsHidden] = useOperatorActionsHidden();
+  const [operatorActionsHidden = {}] = useOperatorActionsHidden();
   const activeOperatorHunts = operatorHunts.filter(
     (huntId) => !operatorActionsHidden[huntId],
   );
@@ -991,35 +985,38 @@ const NotificationCenter = () => {
   const [recentGuessEpoch, setRecentGuessEpoch] = useState(
     Date.now() - LINGER_PERIOD,
   );
-  const guesses = useTracker(
-    () =>
-      loading || !fetchPendingGuesses
-        ? []
-        : Guesses.find(
-            {
-              $and: [
-                {
-                  // Only display pending guesses for hunts in which we are an operator.
-                  // It's possible that e.g. on a puzzle page, we'll be subscribed to
-                  // all guesses for that puzzle, so we should avoid showing guess
-                  // queue UI if we're an operator for a different hunt but not the
-                  // one the guess is for.
-                  hunt: { $in: operatorHunts },
-                },
-                {
-                  $or: [
-                    { state: "pending" },
-                    { updatedAt: { $gt: new Date(recentGuessEpoch) } },
-                  ],
-                },
-              ],
-            },
-            { sort: { createdAt: 1 } },
-          )
-            .fetch()
-            .filter((g) => puzzles.has(g.puzzle)),
-    [loading, fetchPendingGuesses, operatorHunts, recentGuessEpoch, puzzles],
-  );
+  const guesses = useTracker(() => {
+    if (loading) return [];
+    const guessQueueOperatorHunts = [
+      ...huntsUserMayOperateGuessQueueFor(Meteor.user(), [...hunts.values()]),
+    ];
+    const activeGuessQueueOperatorHunts = guessQueueOperatorHunts.filter(
+      (huntId) => !operatorActionsHidden[huntId],
+    );
+    return Guesses.find(
+      {
+        $and: [
+          {
+            // Only display pending guesses for hunts in which we are an operator.
+            // It's possible that e.g. on a puzzle page, we'll be subscribed to
+            // all guesses for that puzzle, so we should avoid showing guess
+            // queue UI if we're an operator for a different hunt but not the
+            // one the guess is for.
+            hunt: { $in: activeGuessQueueOperatorHunts },
+          },
+          {
+            $or: [
+              { state: "pending" },
+              { updatedAt: { $gt: new Date(recentGuessEpoch) } },
+            ],
+          },
+        ],
+      },
+      { sort: { createdAt: 1 } },
+    )
+      .fetch()
+      .filter((g) => puzzles.has(g.puzzle));
+  }, [loading, hunts, recentGuessEpoch, puzzles]);
   const pendingAnnouncements = useTracker(
     () =>
       loading
@@ -1051,6 +1048,23 @@ const NotificationCenter = () => {
     );
     return roles;
   }, [chatNotifications]);
+
+  // Notify backend if we are an active operator, for the purposes of role @-mention support.
+  const activeOperatorHuntIds = useTracker(() => {
+    const allHunts = Hunts.find({}).fetch();
+    const operatorHunts = huntsUserIsOperatorFor(Meteor.user());
+    return allHunts
+      .filter(
+        (hunt) =>
+          operatorHunts.has(hunt._id) && !operatorActionsHidden[hunt._id],
+      )
+      .map((hunt) => hunt._id);
+  }, []);
+  useSubscribe(
+    activeOperatorHuntIds.length > 0 ? "subscribers.inc" : undefined,
+    "operators",
+    Object.fromEntries(activeOperatorHuntIds.map((h) => [h, true])),
+  );
 
   const [hideUpdateGoogleScriptMessage, setHideUpdateGoogleScriptMessage] =
     useState(false);
