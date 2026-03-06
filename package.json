@@ -112,7 +112,7 @@
     "postcss-scss": "^4.0.9",
     "postcss-styled-syntax": "^0.7.1",
     "sass": "^1.97.3",
-    "sinon": "^21.0.1",
+    "sinon": "^21.0.2",
     "stylelint": "^17.4.0",
     "stylelint-config-standard": "^40.0.0",
     "stylelint-config-standard-scss": "^17.0.0",
