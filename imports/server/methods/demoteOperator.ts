@@ -4,8 +4,8 @@ import Logger from "../../Logger";
 import Hunts from "../../lib/models/Hunts";
 import MeteorUsers from "../../lib/models/MeteorUsers";
 import {
+  checkUserHasPermissionForAction,
   removeUserFromRole,
-  userMayMakeOperatorForHunt,
 } from "../../lib/permission_stubs";
 import demoteOperator from "../../methods/demoteOperator";
 import defineMethod from "./defineMethod";
@@ -22,17 +22,11 @@ defineMethod(demoteOperator, {
   async run({ targetUserId, huntId }) {
     check(this.userId, String);
 
-    if (
-      !userMayMakeOperatorForHunt(
-        await MeteorUsers.findOneAsync(this.userId),
-        await Hunts.findOneAsync(huntId),
-      )
-    ) {
-      throw new Meteor.Error(
-        401,
-        "Must be operator or inactive operator to demote operator",
-      );
-    }
+    checkUserHasPermissionForAction(
+      await MeteorUsers.findOneAsync(this.userId),
+      await Hunts.findOneAsync(huntId),
+      "manageOperators",
+    );
 
     const targetUser = await MeteorUsers.findOneAsync(targetUserId);
     if (!targetUser) {
