@@ -94,7 +94,7 @@ jobs:
           install: true # make buildx the default
       - name: Extract metadata for Docker
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
       - name: Sanitize ref name for cache tag
@@ -154,7 +154,7 @@ jobs:
       - name: Extract metadata for Docker
         id: meta
         if: github.ref == 'refs/heads/main'
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           flavor: |
