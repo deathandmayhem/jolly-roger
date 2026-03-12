@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { foreignKey } from "../models/customTypes";
+import { foreignKey } from "../typedModel/customTypes";
 import TypedJob from "./TypedJob";
 
 const purgeHunt = new TypedJob("hunt.purgeHunt", {

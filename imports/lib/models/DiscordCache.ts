@@ -1,8 +1,8 @@
 import { z } from "zod";
-import { nonEmptyString, snowflake } from "./customTypes";
-import type { ModelType } from "./Model";
-import Model from "./Model";
-import withTimestamps from "./withTimestamps";
+import { nonEmptyString, snowflake } from "../typedModel/customTypes";
+import type { ModelType } from "../typedModel/Model";
+import Model from "../typedModel/Model";
+import withTimestamps from "../typedModel/withTimestamps";
 
 export const DiscordCacheSchema = withTimestamps(
   z.object({

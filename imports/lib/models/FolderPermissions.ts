@@ -1,15 +1,15 @@
 import { z } from "zod";
-import { foreignKey, nonEmptyString } from "./customTypes";
-import type { ModelType } from "./Model";
-import SoftDeletedModel from "./SoftDeletedModel";
-import withCommon from "./withCommon";
+import { foreignKey, nonEmptyString } from "../typedModel/customTypes";
+import type { ModelType } from "../typedModel/Model";
+import SoftDeletedModel from "../typedModel/SoftDeletedModel";
+import withCommon from "../typedModel/withCommon";
 
 const FolderPermission = withCommon(
   z.object({
     folder: nonEmptyString,
     user: foreignKey,
     // This can change, so capture which one we gave permissions to
-    googleAccount: z.string().email(),
+    googleAccount: z.email(),
     // This is largely a legacy field, as we expect all new grants to use the
     // "commenter" permission (which results in correct attribution of Drive
     // activity), but we originally granted the "reader" permission instead

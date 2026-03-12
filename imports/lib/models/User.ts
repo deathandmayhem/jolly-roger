@@ -1,11 +1,18 @@
 import { z } from "zod";
-import { foreignKey, nonEmptyString, stringId } from "./customTypes";
+import {
+  foreignKey,
+  nonEmptyString,
+  stringId,
+} from "../typedModel/customTypes";
+import validateSchema from "../typedModel/validateSchema";
 import type { DiscordAccountType } from "./DiscordAccount";
 import DiscordAccount from "./DiscordAccount";
-import validateSchema from "./validateSchema";
 
 declare module "meteor/meteor" {
   namespace Meteor {
+    interface UserProfile {
+      [key: string]: never;
+    }
     interface User {
       lastLogin?: Date;
       hunts?: string[];
@@ -39,7 +46,7 @@ export const User = z.object({
     .regex(/^[a-z0-9A-Z_]{3,15}$/)
     .optional(),
   emails: z
-    .object({ address: z.string().email(), verified: z.boolean() })
+    .object({ address: z.email(), verified: z.boolean() })
     .array()
     .optional(),
   createdAt: z.date().optional(),
