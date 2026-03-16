@@ -3,3 +3,5 @@ npm-debug.log
 jsconfig.json
 .vscode/launch.json
 .swc
+extension/dist
+extension/tmp
