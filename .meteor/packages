@@ -7,7 +7,6 @@
 ecmascript@0.16.13
 ecmascript-collections
 accounts-password@3.2.1
-audit-argument-checks@1.0.8
 meteor-base@1.5.2
 mobile-experience@1.1.2
 mongo@2.1.4
