@@ -417,9 +417,9 @@ function sortPuzzlesByRelevanceWithinPuzzleGroup(
 }
 
 export {
-  type PuzzleGroup,
-  puzzleInterestingness,
-  puzzleGroupsByRelevance,
   filteredPuzzleGroups,
+  type PuzzleGroup,
+  puzzleGroupsByRelevance,
+  puzzleInterestingness,
   sortPuzzlesByRelevanceWithinPuzzleGroup,
 };

@@ -198,4 +198,4 @@ const useBreadcrumbItems = () => {
   return crumbs;
 };
 
-export { type Crumb, BreadcrumbsProvider, useBreadcrumb, useBreadcrumbItems };
+export { BreadcrumbsProvider, type Crumb, useBreadcrumb, useBreadcrumbItems };
