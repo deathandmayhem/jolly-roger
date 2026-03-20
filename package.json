@@ -53,7 +53,7 @@
     "i18next-browser-languagedetector": "^8.2.1",
     "ip-address": "^10.1.0",
     "logfmt": "^1.4.0",
-    "marked": "^17.0.4",
+    "marked": "^17.0.5",
     "mediasoup": "^3.19.18",
     "mediasoup-client": "^3.18.7",
     "meteor-node-stubs": "^1.2.27",
