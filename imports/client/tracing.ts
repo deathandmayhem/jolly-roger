@@ -48,4 +48,4 @@ const dumpBuffer = () => {
   console.log(JSON.stringify(eventBuffer));
 };
 
-export { dumpBuffer, eventBuffer, replayEvents, begin, end, clear, trace };
+export { begin, clear, dumpBuffer, end, eventBuffer, replayEvents, trace };

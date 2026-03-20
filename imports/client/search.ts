@@ -76,4 +76,4 @@ function compileGuessMatcher(
   };
 }
 
-export { compilePuzzleMatcher, compileGuessMatcher };
+export { compileGuessMatcher, compilePuzzleMatcher };

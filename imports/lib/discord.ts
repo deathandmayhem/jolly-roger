@@ -24,4 +24,4 @@ function formatDiscordName(da?: DiscordAccountType): string | undefined {
   return da?.username;
 }
 
-export { API_BASE, DiscordOAuthScopes, getAvatarCdnUrl, formatDiscordName };
+export { API_BASE, DiscordOAuthScopes, formatDiscordName, getAvatarCdnUrl };
