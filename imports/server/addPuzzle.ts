@@ -8,7 +8,7 @@ import GdriveMimeTypes from "../lib/GdriveMimeTypes";
 import Hunts from "../lib/models/Hunts";
 import MeteorUsers from "../lib/models/MeteorUsers";
 import Puzzles from "../lib/models/Puzzles";
-import { userMayWritePuzzlesForHunt } from "../lib/permission_stubs";
+import { checkUserHasPermissionForAction } from "../lib/permission_stubs";
 import GlobalHooks from "./GlobalHooks";
 import { ensureDocument } from "./gdrive";
 import getOrCreateTagByName from "./getOrCreateTagByName";
@@ -102,14 +102,11 @@ export default async function addPuzzle({
     throw new Meteor.Error(404, "Unknown hunt id");
   }
 
-  if (
-    !userMayWritePuzzlesForHunt(await MeteorUsers.findOneAsync(userId), hunt)
-  ) {
-    throw new Meteor.Error(
-      401,
-      `User ${userId} may not create new puzzles for hunt ${huntId}`,
-    );
-  }
+  checkUserHasPermissionForAction(
+    await MeteorUsers.findOneAsync(userId),
+    hunt,
+    "editPuzzles",
+  );
 
   // Before we do any writes, try an opportunistic check for duplicates. If a
   // puzzle with this URL already exists, we can short-circuit without
