@@ -151,8 +151,8 @@ const GuessConfidence = ({
 };
 
 export {
-  GuessDirection,
-  GuessConfidence,
-  formatGuessDirection,
   formatConfidence,
+  formatGuessDirection,
+  GuessConfidence,
+  GuessDirection,
 };
