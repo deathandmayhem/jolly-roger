@@ -5,7 +5,7 @@ import Guesses, { GuessStates } from "../../lib/models/Guesses";
 import Hunts from "../../lib/models/Hunts";
 import MeteorUsers from "../../lib/models/MeteorUsers";
 import Puzzles from "../../lib/models/Puzzles";
-import { userMayUpdateGuessesForHunt } from "../../lib/permission_stubs";
+import { checkUserHasPermissionForAction } from "../../lib/permission_stubs";
 import setGuessState from "../../methods/setGuessState";
 import transitionGuess from "../transitionGuess";
 import defineMethod from "./defineMethod";
@@ -33,14 +33,11 @@ defineMethod(setGuessState, {
       throw new Meteor.Error(404, "Puzzle is deleted");
     }
 
-    if (
-      !userMayUpdateGuessesForHunt(
-        await MeteorUsers.findOneAsync(this.userId),
-        await Hunts.findOneAsync(guess.hunt),
-      )
-    ) {
-      throw new Meteor.Error(401, "Must be permitted to update guesses");
-    }
+    checkUserHasPermissionForAction(
+      await MeteorUsers.findOneAsync(this.userId),
+      await Hunts.findOneAsync(guess.hunt),
+      "operateGuessQueue",
+    );
 
     Logger.info("Transitioning guess to new state", {
       guess: guess._id,

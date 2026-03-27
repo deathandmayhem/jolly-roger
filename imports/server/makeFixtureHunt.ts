@@ -13,8 +13,18 @@ export default async function makeFixtureHunt(createdBy: string) {
     await Hunts.insertAsync({
       _id: huntId,
       name: FixtureHunt.name,
-      openSignups: true,
       hasGuessQueue: true,
+      customPermissions: {
+        inviteUsers: "member",
+        bulkInviteUsers: "operator",
+        manageOperators: "operator",
+        manageInvitationLink: "operator",
+        editPuzzles: "operator",
+        deletePuzzles: "operator",
+        operateGuessQueue: "operator",
+        sendAnnouncements: "operator",
+        purgeHunt: "hunt_owner",
+      },
       createdBy,
     });
   }
