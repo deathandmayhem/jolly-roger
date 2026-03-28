@@ -1,25 +1,27 @@
-import type { EJSONable, EJSONableProperty } from "meteor/ejson";
-
-type TypedPublicationParam = EJSONable | EJSONableProperty;
-export type TypedPublicationArgs = Record<string, TypedPublicationParam> | void;
+import z from "zod";
 
 export class BaseTypedPublication<
-  Args extends TypedPublicationArgs,
-  Name extends string | (Args extends void ? null : never),
+  Args extends z.ZodTuple | z.ZodTuple<[], null>,
+  Name extends string | (z.infer<Args> extends [] ? null : never),
 > {
   name: Name;
+  args: Args;
 
-  constructor(name: Name) {
+  constructor(name: Name, args: Args) {
     this.name = name;
+    this.args = args;
   }
 }
 
-export class DefaultTypedPublication extends BaseTypedPublication<void, null> {
+export class DefaultTypedPublication extends BaseTypedPublication<
+  z.ZodTuple<[], null>,
+  null
+> {
   constructor() {
-    super(null);
+    super(null, z.tuple([]));
   }
 }
 
 export default class TypedPublication<
-  Args extends TypedPublicationArgs,
+  Args extends z.ZodTuple,
 > extends BaseTypedPublication<Args, string> {}
