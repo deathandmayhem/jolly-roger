@@ -23,7 +23,7 @@
     "noUncheckedIndexedAccess": true,
 
     /* Module Resolution Options */
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "types": ["node", "mocha"],
     "esModuleInterop": true,
