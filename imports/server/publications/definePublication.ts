@@ -4,60 +4,52 @@ import type { Mongo } from "meteor/mongo";
 import Bugsnag from "@bugsnag/js";
 import Logger from "../../Logger";
 import type TypedPublication from "../../lib/publications/TypedPublication";
-import type {
-  DefaultTypedPublication,
-  TypedPublicationArgs,
-} from "../../lib/publications/TypedPublication";
+import type { DefaultTypedPublication } from "../../lib/publications/TypedPublication";
+import type z from "zod";
 
 type TypedPublicationReturn =
   | undefined
   | Mongo.Cursor<any>
   | Mongo.Cursor<any>[]
   | Promise<undefined | Mongo.Cursor<any> | Mongo.Cursor<any>[]>;
-type TypedPublicationValidator<Arg extends TypedPublicationArgs> = (
-  arg0: unknown,
-) => Arg;
-type TypedPublicationRun<Arg extends TypedPublicationArgs> = Arg extends void
-  ? (this: Subscription) => TypedPublicationReturn
-  : (this: Subscription, arg0: Arg) => TypedPublicationReturn;
 
-const voidValidator = () => {
-  /* noop */
-};
-
-// Supporting publications with void arguments is a bit messy, but as with
-// TypedMethods, worth doing. See TypedMethod for an explanation of the
-// shenanigans required, which are basically the same here
-export default function definePublication<
-  Publication extends TypedPublication<any> | DefaultTypedPublication,
-  Args extends TypedPublicationArgs = Publication extends TypedPublication<
-    infer A
-  >
-    ? A
-    : void,
->(
-  publication: Publication,
+export default function definePublication(
+  publication: DefaultTypedPublication,
+  config: {
+    run: (
+      this: Subscription,
+    ) => TypedPublicationReturn | Promise<TypedPublicationReturn>;
+  },
+): void;
+export default function definePublication<Args extends z.ZodTuple>(
+  publication: TypedPublication<Args>,
+  config: {
+    run: (
+      this: Subscription,
+      ...args: z.infer<Args>
+    ) => TypedPublicationReturn | Promise<TypedPublicationReturn>;
+  },
+): void;
+export default function definePublication(
+  publication: TypedPublication<any> | DefaultTypedPublication,
   {
-    validate,
     run,
   }: {
-    run: TypedPublicationRun<Args>;
-  } & (Args extends void
-    ? { validate?: undefined }
-    : { validate: TypedPublicationValidator<Args> }),
+    run: (
+      this: Subscription,
+      ...args: any[]
+    ) => TypedPublicationReturn | Promise<TypedPublicationReturn>;
+  },
 ) {
-  const validator = (validate ??
-    voidValidator) as TypedPublicationValidator<Args>;
-
-  Meteor.publish(publication.name, async function (arg0: Args) {
+  Meteor.publish(publication.name, async function (...args: any[]) {
     try {
-      const validatedArg0 = validator.bind(this)(arg0) as any;
-      return await run.bind(this)(validatedArg0);
+      const validatedArgs = await publication.args.parseAsync(args);
+      return await run.apply(this, validatedArgs);
     } catch (error) {
       Logger.info("Error in publication", {
         name: publication.name,
         user: this.userId,
-        arguments: arg0,
+        arguments: args,
         error: error instanceof Error ? error.message : error,
       });
       if (error instanceof Error && Bugsnag.isStarted()) {
