@@ -4,21 +4,21 @@
   <body>
     <script>
       // The Apps Script doGet() evaluates if
-      // Session.getTemporaryActiveUserKey() is empty and replaces the
-      // placeholder below with true (not empty) or false (empty). A non-empty
-      // key means Google could identify the user from the HTTP request
-      // (authentication cookies are flowing). An empty key means either the
-      // user isn't logged into Google in this browser, or something is blocking
-      // cookies (browser tracking protection, a privacy extension stripping
-      // Cookie/Set-Cookie headers, etc.).
-      const ok = "{{ok}}";
-      window.top.postMessage(
-        {
-          type: "jr-cookie-check",
-          ok: ok === "true",
-        },
-        "*",
-      );
+            // Session.getTemporaryActiveUserKey() is empty and replaces the
+            // placeholder below with true (not empty) or false (empty). A non-empty
+            // key means Google could identify the user from the HTTP request
+            // (authentication cookies are flowing). An empty key means either the
+            // user isn't logged into Google in this browser, or something is blocking
+            // cookies (browser tracking protection, a privacy extension stripping
+            // Cookie/Set-Cookie headers, etc.).
+            const ok = "{{ok}}";
+            window.top.postMessage(
+              {
+                type: "jr-cookie-check",
+                ok: ok === "true",
+              },
+              "*",
+            );
     </script>
   </body>
 </html>

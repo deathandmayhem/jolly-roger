@@ -215,47 +215,40 @@ const HuntEditPage = () => {
 
   const footer = useRef<HTMLDivElement>(null);
 
-  const [submitState, setSubmitState] = useState<SubmitState>(SubmitState.IDLE);
-  const [errorMessage, setErrorMessage] = useState<string>("");
+  const [submitState, setSubmitState] = useState(SubmitState.IDLE);
+  const [errorMessage, setErrorMessage] = useState("");
 
-  const [name, setName] = useState<string>(hunt?.name ?? "");
-  const [mailingLists, setMailingLists] = useState<string>(
+  const [name, setName] = useState(hunt?.name ?? "");
+  const [mailingLists, setMailingLists] = useState(
     hunt?.mailingLists.join(", ") ?? "",
   );
-  const [signupMessage, setSignupMessage] = useState<string>(
-    hunt?.signupMessage ?? "",
-  );
-  const [openSignups, setOpenSignups] = useState<boolean>(
-    hunt?.openSignups ?? false,
-  );
-  const [hasGuessQueue, setHasGuessQueue] = useState<boolean>(
+  const [signupMessage, setSignupMessage] = useState(hunt?.signupMessage ?? "");
+  const [openSignups, setOpenSignups] = useState(hunt?.openSignups ?? false);
+  const [hasGuessQueue, setHasGuessQueue] = useState(
     hunt?.hasGuessQueue ?? true,
   );
-  const [termsOfUse, setTermsOfUse] = useState<string>(hunt?.termsOfUse ?? "");
-  const [showTermsOfUsePreview, setShowTermsOfUsePreview] =
-    useState<boolean>(false);
+  const [termsOfUse, setTermsOfUse] = useState(hunt?.termsOfUse ?? "");
+  const [showTermsOfUsePreview, setShowTermsOfUsePreview] = useState(false);
   const toggleShowTermsOfUsePreview = useCallback(
     () => setShowTermsOfUsePreview((prev) => !prev),
     [],
   );
-  const [homepageUrl, setHomepageUrl] = useState<string>(
-    hunt?.homepageUrl ?? "",
-  );
-  const [submitTemplate, setSubmitTemplate] = useState<string>(
+  const [homepageUrl, setHomepageUrl] = useState(hunt?.homepageUrl ?? "");
+  const [submitTemplate, setSubmitTemplate] = useState(
     hunt?.submitTemplate ?? "",
   );
-  const [announcementDiscordChannel, setAnnouncementDiscordChannel] = useState<
-    SavedDiscordObjectType | undefined
-  >(hunt?.announcementDiscordChannel);
-  const [puzzleHooksDiscordChannel, setPuzzleHooksDiscordChannel] = useState<
-    SavedDiscordObjectType | undefined
-  >(hunt?.puzzleHooksDiscordChannel);
-  const [firehoseDiscordChannel, setFirehoseDiscordChannel] = useState<
-    SavedDiscordObjectType | undefined
-  >(hunt?.firehoseDiscordChannel);
-  const [memberDiscordRole, setMemberDiscordRole] = useState<
-    SavedDiscordObjectType | undefined
-  >(hunt?.memberDiscordRole);
+  const [announcementDiscordChannel, setAnnouncementDiscordChannel] = useState(
+    hunt?.announcementDiscordChannel,
+  );
+  const [puzzleHooksDiscordChannel, setPuzzleHooksDiscordChannel] = useState(
+    hunt?.puzzleHooksDiscordChannel,
+  );
+  const [firehoseDiscordChannel, setFirehoseDiscordChannel] = useState(
+    hunt?.firehoseDiscordChannel,
+  );
+  const [memberDiscordRole, setMemberDiscordRole] = useState(
+    hunt?.memberDiscordRole,
+  );
 
   const onNameChanged = useCallback<NonNullable<FormControlProps["onChange"]>>(
     (e) => {

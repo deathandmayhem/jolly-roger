@@ -42,11 +42,11 @@ const AnnouncementFormInput = ({
   huntId: string;
   selfDisplayName: string;
 }) => {
-  const [message, setMessage] = useState<string>("");
-  const [submitState, setSubmitState] = useState<AnnouncementFormSubmitState>(
+  const [message, setMessage] = useState("");
+  const [submitState, setSubmitState] = useState(
     AnnouncementFormSubmitState.IDLE,
   );
-  const [errorMessage, setErrorMessage] = useState<string>("");
+  const [errorMessage, setErrorMessage] = useState("");
 
   const onMessageChanged = useCallback(
     (event: React.ChangeEvent<HTMLTextAreaElement>) => {

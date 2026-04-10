@@ -33,7 +33,7 @@ const APIKeyRow = ({ apiKey }: { apiKey: APIKeyType }) => {
   const [requestError, setRequestError] = useState<string | undefined>(
     undefined,
   );
-  const [keyShown, setKeyShown] = useState<boolean>(false);
+  const [keyShown, setKeyShown] = useState(false);
   const toggleShown = useCallback(() => {
     setKeyShown((prevState) => {
       return !prevState;

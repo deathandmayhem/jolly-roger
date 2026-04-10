@@ -113,8 +113,7 @@ const PuzzleDeleteModal = ({
   const [replacementId, setReplacementId] = useState<PuzzleSelectOption | null>(
     null,
   );
-  const [replacementHasSheets, setReplacementHasSheets] =
-    useState<boolean>(false);
+  const [replacementHasSheets, setReplacementHasSheets] = useState(false);
 
   const setReplacementIdCallback = useCallback(
     (v: PuzzleSelectOption | null) => {
@@ -131,8 +130,7 @@ const PuzzleDeleteModal = ({
     [thisPuzzleHasSheets, documents],
   );
 
-  const [copySheetsToReplacement, setCopySheetsToReplacement] =
-    useState<boolean>(true);
+  const [copySheetsToReplacement, setCopySheetsToReplacement] = useState(true);
   const onCopySheetsToReplacementChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       setCopySheetsToReplacement(event.currentTarget.checked);

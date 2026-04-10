@@ -111,17 +111,17 @@ async function fetchDriveActivity() {
         // and one actor, but we handle receiving more than one of both just in
         // case.
         const documentIds = [
-          ...activity.targets.reduce<Set<string>>((acc, target) => {
+          ...activity.targets.reduce((acc, target) => {
             if (target.driveItem?.name?.startsWith("items/")) {
               acc.add(target.driveItem.name.slice("items/".length));
             }
 
             return acc;
-          }, new Set()),
+          }, new Set<string>()),
         ];
 
         const actorIds = [
-          ...activity.actors.reduce<Set<string>>((acc, actor) => {
+          ...activity.actors.reduce((acc, actor) => {
             if (actor.user?.knownUser?.personName?.startsWith("people/")) {
               const actorId = actor.user.knownUser.personName.slice(
                 "people/".length,
@@ -133,7 +133,7 @@ async function fetchDriveActivity() {
             }
 
             return acc;
-          }, new Set()),
+          }, new Set<string>()),
         ];
 
         await recordDriveChanges(ts, documentIds, actorIds);
@@ -208,9 +208,9 @@ async function fetchActivityLoop() {
           await fetchDriveActivity();
 
           // Wake up every 5 seconds (+/- 1 second of jitter)
-          const sleep = await setTimeout(
-            4 * 1000 + Math.random() * 2 * 1000,
-          ).then(() => false);
+          const sleep = setTimeout(4 * 1000 + Math.random() * 2 * 1000).then(
+            () => false,
+          );
           const renewalFailed = await Promise.race([sleep, renewalFailure]);
           if (renewalFailed) {
             return; // from withLock

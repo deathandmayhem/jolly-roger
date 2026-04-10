@@ -138,8 +138,8 @@ const GoogleOAuthForm = ({
   const [state, setState] = useState<GoogleOAuthFormSubmitState>({
     submitState: SubmitState.IDLE,
   });
-  const [clientId, setClientId] = useState<string>(initialClientId ?? "");
-  const [clientSecret, setClientSecret] = useState<string>("");
+  const [clientId, setClientId] = useState(initialClientId ?? "");
+  const [clientSecret, setClientSecret] = useState("");
 
   const dismissAlert = useCallback(() => {
     setState({
@@ -345,7 +345,7 @@ const GoogleDriveRootForm = ({ initialRootId }: { initialRootId?: string }) => {
   const [state, setState] = useState<GoogleDriveRootFormState>({
     submitState: SubmitState.IDLE,
   });
-  const [rootId, setRootId] = useState<string>(initialRootId ?? "");
+  const [rootId, setRootId] = useState(initialRootId ?? "");
 
   const dismissAlert = useCallback(() => {
     setState({ submitState: SubmitState.IDLE });
@@ -473,10 +473,8 @@ const GoogleDriveTemplateForm = ({
   const [state, setState] = useState<GoogleDriveTemplateFormState>({
     submitState: SubmitState.IDLE,
   });
-  const [docTemplate, setDocTemplate] = useState<string>(
-    initialDocTemplate ?? "",
-  );
-  const [spreadsheetTemplate, setSpreadsheetTemplate] = useState<string>(
+  const [docTemplate, setDocTemplate] = useState(initialDocTemplate ?? "");
+  const [spreadsheetTemplate, setSpreadsheetTemplate] = useState(
     initialSpreadsheetTemplate ?? "",
   );
 
@@ -814,9 +812,9 @@ const LanguageSection = () => {
     const languageSetting = Settings.findOne({ name: "language" });
     return languageSetting?.value.language ?? "en";
   }, []);
-  const [language, setLanguage] = useState<string>(initialLanguage);
-  const [submitState, setSubmitState] = useState<SubmitState>(SubmitState.IDLE);
-  const [submitError, setSubmitError] = useState<string>("");
+  const [language, setLanguage] = useState(initialLanguage);
+  const [submitState, setSubmitState] = useState(SubmitState.IDLE);
+  const [submitError, setSubmitError] = useState("");
   const dismissAlert = useCallback(() => {
     setSubmitState(SubmitState.IDLE);
   }, []);
@@ -1240,8 +1238,8 @@ const S3ImageBucketForm = ({
     undefined,
   );
 
-  const [submitState, setSubmitState] = useState<SubmitState>(SubmitState.IDLE);
-  const [submitError, setSubmitError] = useState<string>("");
+  const [submitState, setSubmitState] = useState(SubmitState.IDLE);
+  const [submitError, setSubmitError] = useState("");
 
   const dismissAlert = useCallback(() => {
     setSubmitState(SubmitState.IDLE);
@@ -1358,21 +1356,21 @@ const EmailConfigForm = ({
 }: {
   initialConfig?: SettingType & { name: "email.branding" };
 }) => {
-  const [from, setFrom] = useState<string>(initialConfig?.value.from ?? "");
-  const [enrollAccountSubject, setEnrollAccountSubject] = useState<string>(
+  const [from, setFrom] = useState(initialConfig?.value.from ?? "");
+  const [enrollAccountSubject, setEnrollAccountSubject] = useState(
     initialConfig?.value.enrollAccountMessageSubjectTemplate ?? "",
   );
-  const [enrollAccountMessage, setEnrollAccountMessage] = useState<string>(
+  const [enrollAccountMessage, setEnrollAccountMessage] = useState(
     initialConfig?.value.enrollAccountMessageTemplate ?? "",
   );
-  const [existingJoinSubject, setExistingJoinSubject] = useState<string>(
+  const [existingJoinSubject, setExistingJoinSubject] = useState(
     initialConfig?.value.existingJoinMessageSubjectTemplate ?? "",
   );
-  const [existingJoinMessage, setExistingJoinMessage] = useState<string>(
+  const [existingJoinMessage, setExistingJoinMessage] = useState(
     initialConfig?.value.existingJoinMessageTemplate ?? "",
   );
-  const [submitState, setSubmitState] = useState<SubmitState>(SubmitState.IDLE);
-  const [submitError, setSubmitError] = useState<string>("");
+  const [submitState, setSubmitState] = useState(SubmitState.IDLE);
+  const [submitError, setSubmitError] = useState("");
 
   const dismissAlert = useCallback(() => {
     setSubmitState(SubmitState.IDLE);
@@ -1695,8 +1693,8 @@ const DiscordOAuthForm = ({ oauthSettings }: { oauthSettings: any }) => {
   const [clientSecret, setClientSecret] = useState<string>(
     oauthSettings?.secret ?? "",
   );
-  const [submitState, setSubmitState] = useState<SubmitState>(SubmitState.IDLE);
-  const [submitError, setSubmitError] = useState<string>("");
+  const [submitState, setSubmitState] = useState(SubmitState.IDLE);
+  const [submitError, setSubmitError] = useState("");
 
   const dismissAlert = useCallback(() => {
     setSubmitState(SubmitState.IDLE);
@@ -1811,9 +1809,9 @@ const DiscordBotForm = ({
 }: {
   botToken?: string;
 }) => {
-  const [botToken, setBotToken] = useState<string>(initialBotToken ?? "");
-  const [submitState, setSubmitState] = useState<SubmitState>(SubmitState.IDLE);
-  const [submitError, setSubmitError] = useState<string>("");
+  const [botToken, setBotToken] = useState(initialBotToken ?? "");
+  const [submitState, setSubmitState] = useState(SubmitState.IDLE);
+  const [submitError, setSubmitError] = useState("");
 
   const dismissAlert = useCallback(() => {
     setSubmitState(SubmitState.IDLE);
@@ -1902,9 +1900,9 @@ const DiscordGuildForm = ({
       { projection: { "object.id": 1, "object.name": 1 } },
     ).map((c) => c.object as SavedDiscordObjectType);
   }, []);
-  const [guildId, setGuildId] = useState<string>(initialGuild?.id ?? "");
-  const [submitState, setSubmitState] = useState<SubmitState>(SubmitState.IDLE);
-  const [submitError, setSubmitError] = useState<string>("");
+  const [guildId, setGuildId] = useState(initialGuild?.id ?? "");
+  const [submitState, setSubmitState] = useState(SubmitState.IDLE);
+  const [submitError, setSubmitError] = useState("");
 
   const dismissAlert = useCallback(() => {
     setSubmitState(SubmitState.IDLE);
@@ -2156,9 +2154,9 @@ const BrandingTeamName = () => {
     return teamNameSetting?.value.teamName;
   }, []);
 
-  const [teamName, setTeamName] = useState<string>(initialTeamName ?? "");
-  const [submitState, setSubmitState] = useState<SubmitState>(SubmitState.IDLE);
-  const [submitError, setSubmitError] = useState<string>("");
+  const [teamName, setTeamName] = useState(initialTeamName ?? "");
+  const [submitState, setSubmitState] = useState(SubmitState.IDLE);
+  const [submitError, setSubmitError] = useState("");
 
   const onTeamNameChange: NonNullable<FormControlProps["onChange"]> =
     useCallback((e) => {
@@ -2269,8 +2267,8 @@ const BrandingAssetRow = ({
   backgroundSize?: string;
   children?: ReactNode;
 }) => {
-  const [submitState, setSubmitState] = useState<SubmitState>(SubmitState.IDLE);
-  const [submitError, setSubmitError] = useState<string>("");
+  const [submitState, setSubmitState] = useState(SubmitState.IDLE);
+  const [submitError, setSubmitError] = useState("");
 
   const dismissAlert = useCallback(() => {
     setSubmitState(SubmitState.IDLE);

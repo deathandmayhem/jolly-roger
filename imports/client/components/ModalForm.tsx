@@ -35,8 +35,8 @@ const ModalForm = (props: {
   children: React.ReactNode;
   ref: React.Ref<ModalFormHandle>;
 }) => {
-  const [isShown, setIsShown] = useState<boolean>(false);
-  const dontTryToHide = useRef<boolean>(false);
+  const [isShown, setIsShown] = useState(false);
+  const dontTryToHide = useRef(false);
 
   const show = useCallback(() => {
     setIsShown(true);

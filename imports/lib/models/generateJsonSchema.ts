@@ -254,9 +254,7 @@ function objectToSchema(
   const inheritedProperties: Record<string, JsonSchema> = Object.fromEntries(
     [...allowedKeys].map((key) => [key, {}]),
   );
-  const properties = Object.entries(def.shape()).reduce<
-    Record<string, JsonSchema>
-  >((acc, [key, value]) => {
+  const properties = Object.entries(def.shape()).reduce((acc, [key, value]) => {
     acc[key] = schemaToJsonSchema(value);
     return acc;
   }, inheritedProperties);

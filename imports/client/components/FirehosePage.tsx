@@ -262,7 +262,7 @@ const FirehosePage = () => {
     [searchString, puzzles, displayNames],
   );
 
-  const [shouldScrollBottom, setShouldScrollBottom] = useState<boolean>(true);
+  const [shouldScrollBottom, setShouldScrollBottom] = useState(true);
 
   const saveShouldScroll = useCallback(() => {
     const pane = messagesPaneRef.current;

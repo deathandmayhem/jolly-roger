@@ -15,7 +15,7 @@ const HuntPurgeModal = ({
   ref: React.RefObject<ModalFormHandle | null>;
   hunt: HuntType;
 }) => {
-  const [confirmText, setConfirmText] = useState<string>("");
+  const [confirmText, setConfirmText] = useState("");
   const idPrefix = useId();
   const { t } = useTranslation();
 

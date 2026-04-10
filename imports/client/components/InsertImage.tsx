@@ -146,16 +146,14 @@ const InsertImageModal = ({
   const hide = useCallback(() => setVisible(false), []);
   useImperativeHandle(ref, () => ({ show }), [show]);
 
-  const [submitState, setSubmitState] = useState<InsertImageSubmitState>(
-    InsertImageSubmitState.IDLE,
-  );
-  const [submitError, setSubmitError] = useState<string>("");
+  const [submitState, setSubmitState] = useState(InsertImageSubmitState.IDLE);
+  const [submitError, setSubmitError] = useState("");
   const clearError = useCallback(
     () => setSubmitState(InsertImageSubmitState.IDLE),
     [],
   );
 
-  const [sheet, setSheet] = useState<number>(sheets[0]?.id ?? 0);
+  const [sheet, setSheet] = useState(sheets[0]?.id ?? 0);
   const onChangeSheet = useCallback((e: ChangeEvent<HTMLSelectElement>) => {
     setSheet(parseInt(e.target.value, 10));
   }, []);
@@ -170,7 +168,7 @@ const InsertImageModal = ({
     });
   }, [sheets]);
 
-  const [imageSource, setImageSource] = useState<string>("upload");
+  const [imageSource, setImageSource] = useState("upload");
   const onSelectTab = useCallback((k: string | null) => {
     if (k) {
       setImageSource(k);
@@ -179,7 +177,7 @@ const InsertImageModal = ({
 
   const fileRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File>();
-  const [fileInvalid, setFileInvalid] = useState<boolean>(false);
+  const [fileInvalid, setFileInvalid] = useState(false);
 
   const onChangeFile = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     const newFile = e.target.files?.[0];
@@ -188,7 +186,7 @@ const InsertImageModal = ({
     e.target.setCustomValidity("");
   }, []);
 
-  const [url, setUrl] = useState<string>("");
+  const [url, setUrl] = useState("");
   const onChangeUrl = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     setUrl(e.target.value);
   }, []);

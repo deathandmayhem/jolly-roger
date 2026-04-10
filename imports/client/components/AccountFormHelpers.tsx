@@ -83,7 +83,7 @@ export const useEmailField = ({
 };
 
 export const usePasswordField = ({ disabled }: { disabled: boolean }) => {
-  const [password, setPassword] = useState<string>("");
+  const [password, setPassword] = useState("");
   const onPasswordChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     setPassword(e.target.value);
   }, []);
@@ -131,9 +131,7 @@ export const useGoogleSignInCredentialsField = ({
   const [googleSignInCredentials, setGoogleSignInCredentials] = useState<
     GoogleSignInCredentials | undefined
   >(undefined);
-  const [submitState, setSubmitState] = useState<AccountFormSubmitState>(
-    AccountFormSubmitState.IDLE,
-  );
+  const [submitState, setSubmitState] = useState(AccountFormSubmitState.IDLE);
   const submitting = submitState === AccountFormSubmitState.SUBMITTING;
 
   const requestComplete = useCallback(
@@ -176,7 +174,7 @@ export const useGoogleSignInCredentialsField = ({
 };
 
 export const useDisplayNameField = ({ disabled }: { disabled: boolean }) => {
-  const [displayName, setDisplayName] = useState<string>("");
+  const [displayName, setDisplayName] = useState("");
   const onDisplayNameChange = useCallback(
     (e: ChangeEvent<HTMLInputElement>) => {
       setDisplayName(e.target.value);
@@ -205,7 +203,7 @@ export const useDisplayNameField = ({ disabled }: { disabled: boolean }) => {
 };
 
 export const usePhoneNumberField = ({ disabled }: { disabled: boolean }) => {
-  const [phoneNumber, setPhoneNumber] = useState<string>("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const onPhoneNumberChange = useCallback(
     (e: ChangeEvent<HTMLInputElement>) => {
       setPhoneNumber(e.target.value);

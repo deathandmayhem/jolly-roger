@@ -13,7 +13,7 @@ interface CopyToClipboardProps extends ButtonProps {
 
 const CopyToClipboardButton = (props: CopyToClipboardProps) => {
   const { tooltipPlacement, text, children, ...rest } = props;
-  const [copied, setCopied] = useState<boolean>(false);
+  const [copied, setCopied] = useState(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(
     undefined,
   );

@@ -29,7 +29,7 @@ const Spectrum = ({
   smoothingTimeConstant?: number;
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const bufferLength = useRef<number>(0);
+  const bufferLength = useRef(0);
   const analyserNode = useRef<AnalyserNode | undefined>(undefined);
   const analyserBuffer = useRef<Uint8Array<ArrayBuffer> | undefined>(undefined);
   if (analyserNode.current === undefined) {
@@ -41,9 +41,9 @@ const Spectrum = ({
   }
 
   const periodicHandle = useRef<number | undefined>(undefined);
-  const lastPainted = useRef<number>(0);
+  const lastPainted = useRef(0);
   const throttleMinMsecValue = 1000 / (throttleFps ?? DEFAULT_THROTTLE_MAX_FPS);
-  const throttleMinMsecElapsed = useRef<number>(throttleMinMsecValue);
+  const throttleMinMsecElapsed = useRef(throttleMinMsecValue);
 
   useEffect(() => {
     return () => {

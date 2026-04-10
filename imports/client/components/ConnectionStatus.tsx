@@ -12,7 +12,7 @@ const WaitingAlert = ({
 }: {
   retryTime: DDP.DDPStatus["retryTime"];
 }) => {
-  const [lastUpdated, setLastUpdated] = useState<number>(Date.now());
+  const [lastUpdated, setLastUpdated] = useState(Date.now());
 
   useEffect(() => {
     const timer = window.setInterval(() => {

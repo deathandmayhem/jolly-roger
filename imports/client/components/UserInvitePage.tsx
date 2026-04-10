@@ -32,10 +32,10 @@ const UserInvitePage = () => {
     title: t("invite.breadcrumbTitle", "Invite"),
     path: `/hunts/${huntId}/hunters/invite`,
   });
-  const [submitting, setSubmitting] = useState<boolean>(false);
+  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<Meteor.Error | undefined>(undefined);
-  const [email, setEmail] = useState<string>("");
-  const [bulkEmails, setBulkEmails] = useState<string>("");
+  const [email, setEmail] = useState("");
+  const [bulkEmails, setBulkEmails] = useState("");
   const [bulkError, setBulkError] = useState<Meteor.Error | undefined>(
     undefined,
   );

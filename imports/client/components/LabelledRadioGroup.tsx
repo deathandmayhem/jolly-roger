@@ -40,7 +40,7 @@ const LabelledRadio = ({
         name={group}
         onChange={onChange}
         value={value}
-        defaultChecked={!!defaultChecked}
+        defaultChecked={defaultChecked}
       />
       {label}
     </RadioLabel>
@@ -60,7 +60,7 @@ const LabelledRadioGroup = ({
   initialValue: string;
   help: string;
 }) => {
-  const [value, setValue] = useState<string>(initialValue);
+  const [value, setValue] = useState(initialValue);
   const group = useId();
 
   const onValueChanged = useCallback(

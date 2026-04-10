@@ -128,8 +128,8 @@ const ChatPeople = ({
 
   const { audioControls, audioState } = callState;
 
-  const [callersExpanded, setCallersExpanded] = useState<boolean>(true);
-  const [viewersExpanded, setViewersExpanded] = useState<boolean>(true);
+  const [callersExpanded, setCallersExpanded] = useState(true);
+  const [viewersExpanded, setViewersExpanded] = useState(true);
 
   const subscriberTopic = `puzzle:${puzzleId}`;
   const subscribersLoading = useSubscribe("subscribers.fetch", subscriberTopic);

@@ -26,7 +26,7 @@ async function createTestModel<T extends MongoRecordZodType>(
   schema: T,
 ): Promise<Model<T>> {
   const collectionName = `test_schema_${Random.id()}`;
-  const model = new Model<T>(collectionName, schema);
+  const model = new Model(collectionName, schema);
   await attachSchema(model.schema, model.collection);
   testModels.add(model);
   return model;
