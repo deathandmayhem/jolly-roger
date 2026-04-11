@@ -108,7 +108,15 @@ ARG METEOR_GIT_COMMIT_HASH
 ENV METEOR_GIT_COMMIT_HASH=${METEOR_GIT_COMMIT_HASH}
 
 # Generate production build
-RUN --mount=type=cache,target=/app/.meteor/local/ meteor build --directory /built_app --server=http://localhost:3000
+RUN --mount=type=cache,target=/app/.meteor/local/ <<'EOF'
+#!/bin/bash
+set -eux
+set -o pipefail
+# meteor prints junk about running as root to stdout, so capture this over stderr *sigh*
+NODE_PATH=$(meteor node -e 'console.error(process.execPath);' 2>&1 1>/dev/null)
+export PATH="$(dirname "$NODE_PATH"):$PATH"
+meteor build --directory /built_app --server=http://localhost:3000
+EOF
 
 # Install server dependencies
 WORKDIR /built_app/bundle/programs/server
