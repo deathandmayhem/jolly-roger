@@ -35,6 +35,7 @@ import {
   requiredPermissionForAction,
   userHasPermissionForAction,
 } from "../../lib/permission_stubs";
+import type { ConfiguredPermissionLevel } from "../../lib/permissions";
 import puzzleActivityForHunt from "../../lib/publications/puzzleActivityForHunt";
 import puzzlesForPuzzleList from "../../lib/publications/puzzlesForPuzzleList";
 import {
@@ -62,7 +63,6 @@ import PuzzleModalForm from "./PuzzleModalForm";
 import RelatedPuzzleGroup, { PuzzleGroupDiv } from "./RelatedPuzzleGroup";
 import RelatedPuzzleList from "./RelatedPuzzleList";
 import { mediaBreakpointDown } from "./styling/responsive";
-import { ConfiguredPermissionLevel } from "../../lib/permissions";
 
 const ViewControls = styled.div<{ $canAdd?: boolean }>`
   display: grid;
@@ -512,7 +512,7 @@ const PuzzleListViewSection = ({
 
   const idPrefix = useId();
 
-  const addPuzzleContent = canAdd && (
+  const addPuzzleContent = (canAdd || canUpdate || canDestroy) && (
     <>
       <PuzzleModalForm
         huntId={huntId}
@@ -522,7 +522,7 @@ const PuzzleListViewSection = ({
       />
       <OperatorActionsFormGroup>
         <FormLabel>
-          {t("puzzleList.operatorInterface", "Operator Interface")}
+          {t("puzzleList.privilegedActions", "Puzzle management UI")}
         </FormLabel>
         <ButtonToolbar>
           <StyledToggleButtonGroup
@@ -549,12 +549,14 @@ const PuzzleListViewSection = ({
           </StyledToggleButtonGroup>
         </ButtonToolbar>
       </OperatorActionsFormGroup>
-      <AddPuzzleFormGroup>
-        <StyledButton variant="primary" onClick={showAddModal}>
-          <FontAwesomeIcon icon={faPlus} />{" "}
-          {t("puzzle.edit.addPuzzle", "Add a puzzle")}
-        </StyledButton>
-      </AddPuzzleFormGroup>
+      {canAdd ? (
+        <AddPuzzleFormGroup>
+          <StyledButton variant="primary" onClick={showAddModal}>
+            <FontAwesomeIcon icon={faPlus} />{" "}
+            {t("puzzle.edit.addPuzzle", "Add a puzzle")}
+          </StyledButton>
+        </AddPuzzleFormGroup>
+      ) : undefined}
     </>
   );
 

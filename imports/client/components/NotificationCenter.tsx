@@ -52,7 +52,7 @@ import setGuessState from "../../methods/setGuessState";
 import { guessURL } from "../../model-helpers";
 import { requestDiscordCredential } from "../discord";
 import GoogleScriptInfo from "../GoogleScriptInfo";
-import { useOperatorActionsHidden } from "../hooks/persisted-state";
+import { useGuessQueueHidden } from "../hooks/persisted-state";
 import { useBlockReasons } from "../hooks/useBlockUpdate";
 import useTypedSubscribe from "../hooks/useTypedSubscribe";
 import indexedDisplayNames from "../indexedDisplayNames";
@@ -914,15 +914,7 @@ const NotificationCenter = () => {
 
   const pendingGuessesLoading = useTypedSubscribe(pendingGuessesForSelf);
 
-  const [operatorActionsHidden = {}] = useOperatorActionsHidden();
-  const activeOperatorHunts = operatorHunts.filter(
-    (huntId) => !operatorActionsHidden[huntId],
-  );
-  useSubscribe(
-    activeOperatorHunts.length > 0 ? "subscribers.inc" : undefined,
-    "operators",
-    Object.fromEntries(activeOperatorHunts.map((h) => [h, true])),
-  );
+  const [guessQueueHidden] = useGuessQueueHidden();
 
   const pendingAnnouncementsLoading = useTypedSubscribe(
     pendingAnnouncementsForSelf,
@@ -991,7 +983,7 @@ const NotificationCenter = () => {
       ...huntsUserMayOperateGuessQueueFor(Meteor.user(), [...hunts.values()]),
     ];
     const activeGuessQueueOperatorHunts = guessQueueOperatorHunts.filter(
-      (huntId) => !operatorActionsHidden[huntId],
+      (huntId) => !guessQueueHidden[huntId],
     );
     return Guesses.find(
       {
@@ -1016,7 +1008,7 @@ const NotificationCenter = () => {
     )
       .fetch()
       .filter((g) => puzzles.has(g.puzzle));
-  }, [loading, hunts, recentGuessEpoch, puzzles]);
+  }, [loading, hunts, recentGuessEpoch, guessQueueHidden, puzzles]);
   const pendingAnnouncements = useTracker(
     () =>
       loading
@@ -1055,11 +1047,10 @@ const NotificationCenter = () => {
     const operatorHunts = huntsUserIsOperatorFor(Meteor.user());
     return allHunts
       .filter(
-        (hunt) =>
-          operatorHunts.has(hunt._id) && !operatorActionsHidden[hunt._id],
+        (hunt) => operatorHunts.has(hunt._id) && !guessQueueHidden[hunt._id],
       )
       .map((hunt) => hunt._id);
-  }, []);
+  }, [guessQueueHidden]);
   useSubscribe(
     activeOperatorHuntIds.length > 0 ? "subscribers.inc" : undefined,
     "operators",
@@ -1172,7 +1163,7 @@ const NotificationCenter = () => {
   guesses.forEach((g) => {
     const dismissedAt = dismissedGuesses[g._id];
     if (dismissedAt && dismissedAt > (g.updatedAt ?? g.createdAt)) return;
-    if (operatorActionsHidden[g.hunt]) return;
+    if (guessQueueHidden[g.hunt]) return;
     const hunt = hunts.get(g.hunt);
     const puzzle = puzzles.get(g.puzzle);
     if (!hunt || !puzzle) return;
