@@ -60,6 +60,7 @@
     "meteor-node-stubs": "^1.2.27",
     "mime-types": "^3.0.2",
     "mustache": "^4.2.0",
+    "path-browserify": "^1.0.1",
     "react": "^19.2.5",
     "react-bootstrap": "^2.10.10",
     "react-dom": "^19.2.5",
