@@ -22,6 +22,9 @@
     // Detected and used by Meteor
     "@babel/runtime",
     "meteor-node-stubs",
+    "@rsdoctor/rspack-plugin",
+    "@rspack/plugin-react-refresh",
+    "react-refresh",
     // Detected and used by fourseven:scss
     "sass",
     // Detected and used by mongodb
