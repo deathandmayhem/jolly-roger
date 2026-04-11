@@ -1,4 +1,4 @@
-const { defineConfig } = require('@meteorjs/rspack');
+const { defineConfig } = require("@meteorjs/rspack");
 
 /**
  * Rspack configuration for Meteor projects.
@@ -10,10 +10,14 @@ const { defineConfig } = require('@meteorjs/rspack');
  *
  * Use these flags to adjust your build settings based on environment.
  */
-module.exports = defineConfig(Meteor => {
+module.exports = defineConfig((Meteor) => {
   // winston tries to import path, so we need to stub it out here
   const fallbackClient = { path: require.resolve("path-browserify") };
-  const fallbackServer = { bufferutil: false, "zlib-sync": false, "utf-8-validate": false };
+  const fallbackServer = {
+    bufferutil: false,
+    "zlib-sync": false,
+    "utf-8-validate": false,
+  };
 
   return {
     resolve: {
