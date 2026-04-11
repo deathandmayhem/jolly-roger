@@ -44,9 +44,7 @@ const Spectrogram = styled.div`
 `;
 
 const AudioConfig = () => {
-  const [status, setStatus] = useState<AudioConfigStatus>(
-    AudioConfigStatus.IDLE,
-  );
+  const [status, setStatus] = useState(AudioConfigStatus.IDLE);
   const [preferredDeviceId, setPreferredDeviceId] = useState<
     string | undefined
   >(() => {
@@ -55,7 +53,7 @@ const AudioConfig = () => {
     );
   });
   const [knownDevices, setKnownDevices] = useState<MediaDeviceInfo[]>([]);
-  const [loopback, setLoopback] = useState<boolean>(false);
+  const [loopback, setLoopback] = useState(false);
   const [stream, setStream] = useState<MediaStream | undefined>(undefined);
   const [audioContext, setAudioContext] = useState<AudioContext | undefined>(
     undefined,

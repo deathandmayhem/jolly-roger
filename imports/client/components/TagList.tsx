@@ -96,8 +96,8 @@ const sortedTagsForSinglePuzzle = (tags: TagType[]) => {
 };
 
 const TagList = React.memo((props: TagListProps) => {
-  const [editing, setEditing] = useState<boolean>(false);
-  const [removing, setRemoving] = useState<boolean>(false);
+  const [editing, setEditing] = useState(false);
+  const [removing, setRemoving] = useState(false);
 
   const { onCreateTag, onRemoveTag } = props;
 

@@ -54,8 +54,7 @@ const defaultCallbacks: BreadcrumbContextType = {
   },
 };
 
-const BreadcrumbContext =
-  React.createContext<BreadcrumbContextType>(defaultCallbacks);
+const BreadcrumbContext = React.createContext(defaultCallbacks);
 
 const byPathLength = (c1: CrumbWithId, c2: CrumbWithId) => {
   return c1.path.length - c2.path.length;

@@ -717,7 +717,7 @@ const FancyEditor = ({
     Range | undefined
   >(undefined);
   // Offset into the list of potentially-matching usernames
-  const [completionCursorIndex, setCompletionCursorIndex] = useState<number>(0);
+  const [completionCursorIndex, setCompletionCursorIndex] = useState(0);
   // The current needle to search for in user display names, emails, etc.
   const [completionSearchString, setCompletionSearchString] = useState("");
 

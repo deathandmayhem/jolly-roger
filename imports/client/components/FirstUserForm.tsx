@@ -18,10 +18,10 @@ enum SubmitState {
 
 // This form is used strictly for the creation of the first user, who is made an admin.
 const FirstUserForm = () => {
-  const [email, setEmail] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
-  const [submitState, setSubmitState] = useState<SubmitState>(SubmitState.IDLE);
-  const [submitError, setSubmitError] = useState<string>("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [submitState, setSubmitState] = useState(SubmitState.IDLE);
+  const [submitError, setSubmitError] = useState("");
 
   const onEmailChange: NonNullable<FormControlProps["onChange"]> = useCallback(
     (e) => {

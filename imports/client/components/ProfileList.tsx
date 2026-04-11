@@ -436,7 +436,7 @@ const ProfileList = ({
   roles?: Record<string, string[]>;
   invitationCode?: string;
 }) => {
-  const [searchString, setSearchString] = useState<string>("");
+  const [searchString, setSearchString] = useState("");
 
   const searchBarRef = useRef<HTMLInputElement>(null); // Wrong type but I should fix it
   useFocusRefOnFindHotkey(searchBarRef);

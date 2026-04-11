@@ -21,9 +21,7 @@ const StyledModeSwitchLink = styled.div`
 const ForgotPasswordForm = () => {
   const location = useLocation();
   const { state } = location;
-  const [submitState, setSubmitState] = useState<AccountFormSubmitState>(
-    AccountFormSubmitState.IDLE,
-  );
+  const [submitState, setSubmitState] = useState(AccountFormSubmitState.IDLE);
   const [errorMessage, setErrorMessage] = useState<string | undefined>(
     undefined,
   );

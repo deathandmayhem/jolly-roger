@@ -802,7 +802,7 @@ const useCallState = ({
   // A map from track ID to state for that track, including subscription handle,
   // mediasoup Producer, and a call-exactly-once callback function, all of
   // which need careful lifecycle handling and explicit cleanup.
-  const producerMapRef = useRef<Map<string, ProducerState>>(new Map());
+  const producerMapRef = useRef(new Map<string, ProducerState>());
 
   // When producer params change (as a result of the onProduce callback being
   // called below from mediasoup), we need to both release any stream bound to
@@ -813,15 +813,14 @@ const useCallState = ({
   // in `producerMapRef` are written to a new value.
   // Used in the deps array of the effect which consumes those fields and
   // subscribes to 'mediasoup:producer'
-  const [producerParamsGeneration, setProducerParamsGeneration] =
-    useState<number>(0);
+  const [producerParamsGeneration, setProducerParamsGeneration] = useState(0);
 
   // Once we have a ready producer (or producers), we want to be sure that their
   // pause states and server-side mute/deafen states are all appropriately set.
   // Incremented whenever the `producer` of an entry in `producerMapRef` is written
   // to a new values.
   // Used in the deps array of the effect which pauses or resumes the producer.
-  const [producerGeneration, setProducerGeneration] = useState<number>(0);
+  const [producerGeneration, setProducerGeneration] = useState(0);
 
   const onProduce = useCallback(
     (
@@ -1119,7 +1118,7 @@ const useCallState = ({
   }, [puzzleConsumers]);
 
   // Map from consumer._id to our working state for that consumer.
-  const consumerMapRef = useRef<Map<string, ConsumerState>>(new Map());
+  const consumerMapRef = useRef(new Map<string, ConsumerState>());
 
   const cleanupConsumer = useCallback(
     (meteorId: string, consumerState: ConsumerState) => {

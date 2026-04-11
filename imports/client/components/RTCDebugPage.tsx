@@ -762,7 +762,7 @@ const Room = ({ room }: { room: RoomType }) => {
     () => CallHistories.findOne({ call: room.call })?.lastActivity,
     [room.call],
   );
-  const [recentActivity, setRecentActivity] = useState<boolean>(false);
+  const [recentActivity, setRecentActivity] = useState(false);
   useEffect(() => {
     let timeout: number | undefined;
     const lastActivityMs = lastActivity?.getTime() ?? 0;

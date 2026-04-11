@@ -494,7 +494,7 @@ const AnnouncementMessage = React.memo(
     announcement: AnnouncementType;
     createdByDisplayName: string;
   }) => {
-    const [dismissed, setDismissed] = useState<boolean>(false);
+    const [dismissed, setDismissed] = useState(false);
     const onDismiss = useCallback(() => {
       setDismissed(true);
       dismissPendingAnnouncement.call({ pendingAnnouncementId: id });
@@ -786,7 +786,7 @@ const useCookieCheck = (
   // On mobile we show a link to the Google Doc rather than embedding it in an
   // iframe, so third-party cookie support doesn't matter.
   const isDesktop = useMediaQuery(desktopQuery);
-  const [result, setResult] = useState<boolean | undefined>(cookieCheckCache);
+  const [result, setResult] = useState(cookieCheckCache);
 
   useEffect(() => {
     if (!endpointUrl || !isDesktop || result !== undefined) return undefined;
@@ -969,7 +969,7 @@ const NotificationCenter = () => {
     [loading],
   );
 
-  const [recentGuessEpoch, setRecentGuessEpoch] = useState<number>(
+  const [recentGuessEpoch, setRecentGuessEpoch] = useState(
     Date.now() - LINGER_PERIOD,
   );
   const guesses = useTracker(
@@ -1034,11 +1034,9 @@ const NotificationCenter = () => {
   }, [chatNotifications]);
 
   const [hideUpdateGoogleScriptMessage, setHideUpdateGoogleScriptMessage] =
-    useState<boolean>(false);
-  const [hideDiscordSetupMessage, setHideDiscordSetupMessage] =
-    useState<boolean>(false);
-  const [hideProfileSetupMessage, setHideProfileSetupMessage] =
-    useState<boolean>(false);
+    useState(false);
+  const [hideDiscordSetupMessage, setHideDiscordSetupMessage] = useState(false);
+  const [hideProfileSetupMessage, setHideProfileSetupMessage] = useState(false);
   const [dismissedGuesses, setDismissedGuesses] = useState<
     Record<string, Date>
   >({});

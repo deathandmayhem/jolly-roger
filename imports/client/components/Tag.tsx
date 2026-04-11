@@ -217,8 +217,8 @@ interface PopoverRelatedProps {
 type TagProps = BaseTagProps & (DoNotPopoverRelatedProps | PopoverRelatedProps);
 
 const Tag = (props: TagProps) => {
-  const [showPopover, setShowPopover] = useState<boolean>(false);
-  const [segmentAnswers, setSegmentAnswers] = useState<boolean>(false);
+  const [showPopover, setShowPopover] = useState(false);
+  const [segmentAnswers, setSegmentAnswers] = useState(false);
 
   const onOverlayTriggerToggle = useCallback((nextShow: boolean) => {
     setShowPopover(nextShow);

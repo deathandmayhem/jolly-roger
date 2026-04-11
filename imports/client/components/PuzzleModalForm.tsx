@@ -87,37 +87,34 @@ const PuzzleModalForm = ({
     [propsTags],
   );
 
-  const [title, setTitle] = useState<string>(puzzle?.title ?? "");
-  const [url, setUrl] = useState<string>(puzzle?.url ?? "");
-  const [tags, setTags] = useState<string[]>(
-    puzzle ? tagNamesForIds(puzzle.tags) : [],
-  );
+  const [title, setTitle] = useState(puzzle?.title ?? "");
+  const [url, setUrl] = useState(puzzle?.url ?? "");
+  const [tags, setTags] = useState(puzzle ? tagNamesForIds(puzzle.tags) : []);
   const [docType, setDocType] = useState<GdriveMimeTypesType | undefined>(
     puzzle ? undefined : "spreadsheet",
   );
-  const [expectedAnswerCount, setExpectedAnswerCount] = useState<number>(
+  const [expectedAnswerCount, setExpectedAnswerCount] = useState(
     puzzle ? puzzle.expectedAnswerCount : 1,
   );
   const [considerCompletedWithNoAnswer, setConsiderCompletedWithNoAnswer] =
-    useState<boolean | undefined>(puzzle?.completedWithNoAnswer);
-  const [confirmingDuplicateUrl, setConfirmingDuplicateUrl] =
-    useState<boolean>(false);
-  const [allowDuplicateUrls, setAllowDuplicateUrls] = useState<
-    boolean | undefined
-  >(puzzle ? undefined : false);
-  const [submitState, setSubmitState] = useState<PuzzleModalFormSubmitState>(
+    useState(puzzle?.completedWithNoAnswer);
+  const [confirmingDuplicateUrl, setConfirmingDuplicateUrl] = useState(false);
+  const [allowDuplicateUrls, setAllowDuplicateUrls] = useState(
+    puzzle ? undefined : false,
+  );
+  const [submitState, setSubmitState] = useState(
     PuzzleModalFormSubmitState.IDLE,
   );
-  const [errorMessage, setErrorMessage] = useState<string>("");
-  const [titleDirty, setTitleDirty] = useState<boolean>(false);
-  const [urlDirty, setUrlDirty] = useState<boolean>(false);
-  const [tagsDirty, setTagsDirty] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [titleDirty, setTitleDirty] = useState(false);
+  const [urlDirty, setUrlDirty] = useState(false);
+  const [tagsDirty, setTagsDirty] = useState(false);
   const [expectedAnswerCountDirty, setExpectedAnswerCountDirty] =
-    useState<boolean>(false);
+    useState(false);
   const [
     considerCompletedWithNoAnswerDirty,
     setConsiderCompletedWithNoAnswerDirty,
-  ] = useState<boolean>(false);
+  ] = useState(false);
 
   const formRef = useRef<ModalFormHandle>(null);
 

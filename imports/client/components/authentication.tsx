@@ -14,7 +14,7 @@ export const useAuthenticated = () => {
     };
   }, []);
 
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Check if we're done logging in

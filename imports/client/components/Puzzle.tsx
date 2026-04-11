@@ -154,10 +154,10 @@ const Puzzle = React.memo(
     // lazily. The first time the modal button is clicked, we change this state
     // variable, which causes us to mount a new modal, which is set to open on
     // mount. Subsequent times, we just open the existing modal.
-    const [showEditModal, setShowEditModal] = useState<boolean>(false);
+    const [showEditModal, setShowEditModal] = useState(false);
     const editModalRef =
       useRef<React.ComponentRef<typeof PuzzleModalForm>>(null);
-    const [renderDeleteModal, setRenderDeleteModal] = useState<boolean>(false);
+    const [renderDeleteModal, setRenderDeleteModal] = useState(false);
     const deleteModalRef =
       useRef<React.ComponentRef<typeof PuzzleDeleteModal>>(null);
 

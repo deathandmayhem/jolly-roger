@@ -86,11 +86,11 @@ const TagManagerTagListColumn = styled(TagList)`
 `;
 
 const RenameTagSection = ({ huntId }: { huntId: string }) => {
-  const [errorMessage, setErrorMessage] = useState<string>("");
-  const [submitState, setSubmitState] = useState<SubmitState>(SubmitState.IDLE);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [submitState, setSubmitState] = useState(SubmitState.IDLE);
 
-  const [selectedTagId, setSelectedTagId] = useState<string>("");
-  const [newTagName, setNewTagName] = useState<string>("");
+  const [selectedTagId, setSelectedTagId] = useState("");
+  const [newTagName, setNewTagName] = useState("");
 
   const allTags = useTracker(
     () => Tags.find({ hunt: huntId }).fetch(),
@@ -393,12 +393,10 @@ const BulkAddRemoveSection = ({
 }) => {
   // List of tag IDs
   const [bulkTags, setBulkTags] = useState<string[]>([]);
-  const [searchString, setSearchString] = useState<string>("");
+  const [searchString, setSearchString] = useState("");
 
   // Selected puzzles will be listed with a checkmark.
-  const [selectedPuzzleIds, setSelectedPuzzleIds] = useState<Set<string>>(
-    new Set(),
-  );
+  const [selectedPuzzleIds, setSelectedPuzzleIds] = useState(new Set<string>());
 
   const searchBarRef = useRef<HTMLInputElement>(null);
 

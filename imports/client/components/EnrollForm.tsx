@@ -28,9 +28,7 @@ import {
 // JoinHunt instead.
 const EnrollForm = () => {
   const token = useParams<"token">().token;
-  const [submitState, setSubmitState] = useState<AccountFormSubmitState>(
-    AccountFormSubmitState.IDLE,
-  );
+  const [submitState, setSubmitState] = useState(AccountFormSubmitState.IDLE);
   const [errorMessage, setErrorMessage] = useState<string | undefined>(
     undefined,
   );

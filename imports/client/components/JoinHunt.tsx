@@ -59,13 +59,11 @@ const JoinHunt = () => {
   const ownHunts = user?.hunts ?? [];
   const isAlreadyInHunt = hunt && ownHunts.includes(hunt._id);
 
-  const [submitState, setSubmitState] = useState<AccountFormSubmitState>(
-    AccountFormSubmitState.IDLE,
-  );
+  const [submitState, setSubmitState] = useState(AccountFormSubmitState.IDLE);
   const [errorMessage, setErrorMessage] = useState<string | undefined>(
     undefined,
   );
-  const [successMessage, setSuccessMessage] = useState<string>("");
+  const [successMessage, setSuccessMessage] = useState("");
   const [infoMessage, setInfoMessage] = useState<string | undefined>(undefined);
 
   const navigate = useNavigate();

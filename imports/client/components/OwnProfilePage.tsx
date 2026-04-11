@@ -386,19 +386,15 @@ const OwnProfilePage = ({
   initialUser: Meteor.User;
   apiKeys?: APIKeyType[];
 }) => {
-  const [displayName, setDisplayName] = useState<string>(
-    initialUser.displayName ?? "",
-  );
-  const [phoneNumber, setPhoneNumber] = useState<string>(
-    initialUser.phoneNumber ?? "",
-  );
-  const [dingwordsFlat, setDingwordsFlat] = useState<string>(
+  const [displayName, setDisplayName] = useState(initialUser.displayName ?? "");
+  const [phoneNumber, setPhoneNumber] = useState(initialUser.phoneNumber ?? "");
+  const [dingwordsFlat, setDingwordsFlat] = useState(
     initialUser.dingwords ? initialUser.dingwords.join(",") : "",
   );
-  const [submitState, setSubmitState] = useState<OwnProfilePageSubmitState>(
+  const [submitState, setSubmitState] = useState(
     OwnProfilePageSubmitState.IDLE,
   );
-  const [submitError, setSubmitError] = useState<string>("");
+  const [submitError, setSubmitError] = useState("");
 
   const handleDisplayNameFieldChange: NonNullable<
     FormControlProps["onChange"]

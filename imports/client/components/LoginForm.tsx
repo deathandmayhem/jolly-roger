@@ -20,9 +20,7 @@ const LoginForm = () => {
   const { state } = location;
   const { teamName, teamNameLoading } = useTeamName();
 
-  const [submitState, setSubmitState] = useState<AccountFormSubmitState>(
-    AccountFormSubmitState.IDLE,
-  );
+  const [submitState, setSubmitState] = useState(AccountFormSubmitState.IDLE);
   const [errorMessage, setErrorMessage] = useState<string | undefined>(
     undefined,
   );

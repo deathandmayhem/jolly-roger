@@ -428,8 +428,8 @@ const ChatHistory = React.memo(
     }, [puzzleId]);
 
     const historyRef = useRef<HTMLDivElement>(null);
-    const scrollBottomTarget = useRef<number>(0);
-    const shouldIgnoreNextScrollEvent = useRef<boolean>(false);
+    const scrollBottomTarget = useRef(0);
+    const shouldIgnoreNextScrollEvent = useRef(false);
 
     const saveScrollBottomTarget = useCallback(() => {
       if (historyRef.current) {
@@ -659,7 +659,7 @@ const ChatInput = React.memo(
       [onHeightChange],
     );
 
-    const [content, setContent] = useState<Descendant[]>(initialValue);
+    const [content, setContent] = useState(initialValue);
     const fancyEditorRef = useRef<FancyEditorHandle | null>(null);
     const onContentChange = useCallback(
       (newContent: Descendant[]) => {
@@ -921,7 +921,7 @@ const ChatSection = React.memo(
     ref: React.Ref<ChatSectionHandle>;
   }) => {
     const historyRef = useRef<React.ComponentRef<typeof ChatHistory>>(null);
-    const scrollToTargetRequestRef = useRef<boolean>(false);
+    const scrollToTargetRequestRef = useRef(false);
 
     const scrollHistoryToTarget = useCallback(() => {
       trace("ChatSection scrollHistoryToTarget", {
@@ -1429,17 +1429,15 @@ const PuzzleGuessModal = ({
   displayNames: Map<string, string>;
   ref: React.Ref<PuzzleGuessModalHandle>;
 }) => {
-  const [guessInput, setGuessInput] = useState<string>("");
-  const [directionInput, setDirectionInput] = useState<number>(0);
-  const [haveSetDirection, setHaveSetDirection] = useState<boolean>(false);
-  const [confidenceInput, setConfidenceInput] = useState<number>(50);
-  const [haveSetConfidence, setHaveSetConfidence] = useState<boolean>(false);
-  const [confirmingSubmit, setConfirmingSubmit] = useState<boolean>(false);
-  const [confirmationMessage, setConfirmationMessage] = useState<string>("");
-  const [submitState, setSubmitState] = useState<PuzzleGuessSubmitState>(
-    PuzzleGuessSubmitState.IDLE,
-  );
-  const [submitError, setSubmitError] = useState<string>("");
+  const [guessInput, setGuessInput] = useState("");
+  const [directionInput, setDirectionInput] = useState(0);
+  const [haveSetDirection, setHaveSetDirection] = useState(false);
+  const [confidenceInput, setConfidenceInput] = useState(50);
+  const [haveSetConfidence, setHaveSetConfidence] = useState(false);
+  const [confirmingSubmit, setConfirmingSubmit] = useState(false);
+  const [confirmationMessage, setConfirmationMessage] = useState("");
+  const [submitState, setSubmitState] = useState(PuzzleGuessSubmitState.IDLE);
+  const [submitError, setSubmitError] = useState("");
   const formRef = useRef<React.ComponentRef<typeof ModalForm>>(null);
 
   const { t, i18n } = useTranslation();
@@ -1817,13 +1815,11 @@ const PuzzleAnswerModal = ({
   guesses: GuessType[];
   ref: React.Ref<PuzzleAnswerModalHandle>;
 }) => {
-  const [answer, setAnswer] = useState<string>("");
-  const [confirmingSubmit, setConfirmingSubmit] = useState<boolean>(false);
-  const [confirmationMessage, setConfirmationMessage] = useState<string>("");
-  const [submitState, setSubmitState] = useState<PuzzleAnswerSubmitState>(
-    PuzzleAnswerSubmitState.IDLE,
-  );
-  const [submitError, setSubmitError] = useState<string>("");
+  const [answer, setAnswer] = useState("");
+  const [confirmingSubmit, setConfirmingSubmit] = useState(false);
+  const [confirmationMessage, setConfirmationMessage] = useState("");
+  const [submitState, setSubmitState] = useState(PuzzleAnswerSubmitState.IDLE);
+  const [submitError, setSubmitError] = useState("");
 
   const formRef = useRef<ModalFormHandle>(null);
 
@@ -2089,11 +2085,10 @@ const PuzzleDeletedModal = ({
 const PuzzlePage = React.memo(() => {
   const puzzlePageDivRef = useRef<HTMLDivElement | null>(null);
   const chatSectionRef = useRef<ChatSectionHandle | null>(null);
-  const [sidebarWidth, setSidebarWidth] = useState<number>(DefaultSidebarWidth);
-  const [isChatMinimized, setIsChatMinimized] = useState<boolean>(false);
-  const [isMetadataMinimized, setIsMetadataMinimized] =
-    useState<boolean>(false);
-  const [isDesktop, setIsDesktop] = useState<boolean>(
+  const [sidebarWidth, setSidebarWidth] = useState(DefaultSidebarWidth);
+  const [isChatMinimized, setIsChatMinimized] = useState(false);
+  const [isMetadataMinimized, setIsMetadataMinimized] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(
     window.innerWidth >= MinimumDesktopWidth,
   );
 
