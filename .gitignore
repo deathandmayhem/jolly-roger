@@ -3,3 +3,9 @@ npm-debug.log
 jsconfig.json
 .vscode/launch.json
 .swc
+
+# Meteor Modern-Tools build context directories
+_build
+*/build-assets
+*/build-chunks
+.rsdoctor

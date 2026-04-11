@@ -4,7 +4,7 @@ import jollyRoger from "./eslint/index";
 
 export default defineConfig(
   {
-    ignores: [".meteor/**", "eslint/dist/**", "**/node_modules/**", "eslint.config.mts", "eslint/**"],
+    ignores: ["_build/**", ".meteor/**", "eslint/dist/**", "**/node_modules/**", "eslint.config.mts", "eslint/**"],
   },
   tseslint.configs.base,
   {
