@@ -20,6 +20,39 @@ module.exports = defineConfig((Meteor) => {
   };
 
   return {
+    module: {
+      rules: [
+        {
+          test: /\.tsx?$/,
+          exclude: [/node_modules|\.meteor\/local/],
+          loader: "builtin:swc-loader",
+          options: {
+            jsc: {
+              parser: {
+                syntax: "typescript",
+                tsx: true,
+              },
+              transform: {
+                react: {
+                  runtime: "automatic",
+                },
+              },
+              experimental: {
+                plugins: [
+                  [
+                    "@swc/plugin-styled-components",
+                    {
+                      displayName: true,
+                    },
+                  ],
+                ],
+              },
+            },
+          },
+          type: "javascript/auto",
+        },
+      ],
+    },
     resolve: {
       fallback: Meteor.isClient ? fallbackClient : fallbackServer,
     },
