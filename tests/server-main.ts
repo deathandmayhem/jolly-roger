@@ -10,22 +10,20 @@ import "./unit/imports/lib/puzzle-sort-and-group";
 import "./unit/imports/lib/relativeTimeFormat";
 import "./unit/imports/lib/ValidateShape";
 
-if (Meteor.isServer) {
-  // Disable rate limiting
-  if (!Meteor.isAppTest) {
-    throw new Meteor.Error(500, "This code must not run in production");
-  }
-
-  Accounts.removeDefaultRateLimit();
-
-  require("./unit/imports/server/Flags");
-  require("./unit/imports/server/generateJsonSchema");
-  require("./unit/imports/server/MigrationRegistry");
-  require("./unit/imports/server/Model");
-  require("./unit/imports/server/publishJoinedQuery");
-  require("./unit/imports/server/validateSchema");
-  require("./unit/imports/server/mergeUsers");
+// Disable rate limiting
+if (!Meteor.isAppTest) {
+  throw new Meteor.Error(500, "This code must not run in production");
 }
+
+Accounts.removeDefaultRateLimit();
+
+import "./unit/imports/server/Flags";
+import "./unit/imports/server/generateJsonSchema";
+import "./unit/imports/server/MigrationRegistry";
+import "./unit/imports/server/Model";
+import "./unit/imports/server/publishJoinedQuery";
+import "./unit/imports/server/validateSchema";
+import "./unit/imports/server/mergeUsers";
 
 import "./acceptance/authentication";
 import "./acceptance/chatHooks";

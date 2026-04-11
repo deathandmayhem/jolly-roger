@@ -136,6 +136,9 @@
       "server": "server/main.ts"
     },
     "modern": true,
-    "testModule": "tests/main.ts"
+    "testModule": {
+      "client": "tests/client-main.ts",
+      "server": "tests/server-main.ts"
+    }
   }
 }
