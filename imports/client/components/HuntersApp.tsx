@@ -1,6 +1,6 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { Outlet, useParams } from "react-router-dom";
+import { Outlet, useParams } from "react-router";
 import { useBreadcrumb } from "../hooks/breadcrumb";
 
 const HuntersApp = React.memo(() => {

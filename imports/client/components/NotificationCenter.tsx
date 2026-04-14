@@ -14,7 +14,7 @@ import Toast from "react-bootstrap/Toast";
 import ToastContainer from "react-bootstrap/ToastContainer";
 import Tooltip from "react-bootstrap/Tooltip";
 import { Trans, useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import ReactTextareaAutosize from "react-textarea-autosize";
 import styled from "styled-components";
 import { useMediaQuery } from "usehooks-ts";

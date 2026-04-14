@@ -4,7 +4,7 @@ import type { SubmitEvent } from "react";
 import { useCallback, useState } from "react";
 import Button from "react-bootstrap/Button";
 import { useTranslation } from "react-i18next";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router";
 import { styled } from "styled-components";
 import {
   AccountFormFrame,

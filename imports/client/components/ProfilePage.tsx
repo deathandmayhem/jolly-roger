@@ -1,6 +1,6 @@
 import { Meteor } from "meteor/meteor";
 import { useSubscribe, useTracker } from "meteor/react-meteor-data";
-import { Navigate, useParams } from "react-router-dom";
+import { Navigate, useParams } from "react-router";
 import APIKeys from "../../lib/models/APIKeys";
 import MeteorUsers from "../../lib/models/MeteorUsers";
 import apiKeysForSelf from "../../lib/publications/apiKeysForSelf";

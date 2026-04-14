@@ -32,7 +32,7 @@ import ProgressBar from "react-bootstrap/ProgressBar";
 import Row from "react-bootstrap/Row";
 import Table from "react-bootstrap/Table";
 import Tooltip from "react-bootstrap/Tooltip";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import styled, { css } from "styled-components";
 import { RECENT_ACTIVITY_TIME_WINDOW_MS } from "../../lib/config/webrtc";
 import { gracePeriod } from "../../lib/garbageCollection";

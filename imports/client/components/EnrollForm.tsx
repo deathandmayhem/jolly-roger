@@ -3,7 +3,7 @@ import { Meteor } from "meteor/meteor";
 import type { SubmitEvent } from "react";
 import { useCallback, useState } from "react";
 import Button from "react-bootstrap/Button";
-import { useParams } from "react-router-dom";
+import { useParams } from "react-router";
 import updateProfile from "../../methods/updateProfile";
 import {
   AccountFormFrame,

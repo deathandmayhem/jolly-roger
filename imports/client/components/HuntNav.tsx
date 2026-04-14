@@ -9,7 +9,7 @@ import { faUsers } from "@fortawesome/free-solid-svg-icons/faUsers";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Nav from "react-bootstrap/Nav";
 import { useTranslation } from "react-i18next";
-import { NavLink, useParams } from "react-router-dom";
+import { NavLink, useParams } from "react-router";
 import styled, { css } from "styled-components";
 import Hunts from "../../lib/models/Hunts";
 import { userMayWritePuzzlesForHunt } from "../../lib/permission_stubs";

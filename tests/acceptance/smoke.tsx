@@ -2,14 +2,14 @@ import { promisify } from "node:util";
 import { Meteor } from "meteor/meteor";
 import { act, render } from "@testing-library/react";
 import type React from "react";
-import type { Location, NavigateFunction, RouteObject } from "react-router-dom";
+import type { Location, NavigateFunction, RouteObject } from "react-router";
 import {
   MemoryRouter,
   Routes as ReactRouterRoutes,
   Route,
   useLocation,
   useNavigate,
-} from "react-router-dom";
+} from "react-router";
 import FixtureHunt from "../../imports/FixtureHunt";
 import Logger from "../../imports/Logger";
 import addHuntUser from "../../imports/methods/addHuntUser";
@@ -140,7 +140,7 @@ if (Meteor.isClient) {
           render(<TestApp />);
           await act(async () => {
             await stabilize();
-            navigate.current!(url);
+            await navigate.current!(url);
             await stabilize();
           });
         });
@@ -162,7 +162,7 @@ if (Meteor.isClient) {
           render(<TestApp />);
           await act(async () => {
             await stabilize();
-            navigate.current!(url);
+            await navigate.current!(url);
             await stabilize();
           });
         });

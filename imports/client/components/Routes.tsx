@@ -1,6 +1,6 @@
 import React, { Suspense, useEffect } from "react";
-import type { RouteObject } from "react-router-dom";
-import { Navigate, useRoutes } from "react-router-dom";
+import type { RouteObject } from "react-router";
+import { Navigate, useRoutes } from "react-router";
 import { ThemeProvider } from "styled-components";
 import { useMediaQuery } from "usehooks-ts";
 import { BreadcrumbsProvider } from "../hooks/breadcrumb";

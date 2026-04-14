@@ -6,7 +6,7 @@ import Alert from "react-bootstrap/Alert";
 import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import { useTranslation } from "react-i18next";
-import { useParams } from "react-router-dom";
+import { useParams } from "react-router";
 import ReactTextareaAutosize from "react-textarea-autosize";
 import styled from "styled-components";
 import Announcements from "../../lib/models/Announcements";

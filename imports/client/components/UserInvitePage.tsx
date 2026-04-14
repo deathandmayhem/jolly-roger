@@ -11,7 +11,7 @@ import FormGroup from "react-bootstrap/FormGroup";
 import FormLabel from "react-bootstrap/FormLabel";
 import Row from "react-bootstrap/Row";
 import { useTranslation } from "react-i18next";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router";
 import styled from "styled-components";
 import Hunts from "../../lib/models/Hunts";
 import { userMayBulkAddToHunt } from "../../lib/permission_stubs";
@@ -65,7 +65,7 @@ const UserInvitePage = () => {
         if (inviteError) {
           setError(inviteError);
         } else {
-          navigate(`/hunts/${huntId}`);
+          void navigate(`/hunts/${huntId}`);
         }
       });
     },
