@@ -3,14 +3,14 @@ import { Meteor } from "meteor/meteor";
 import { act, cleanup, render } from "@testing-library/react";
 import { assert } from "chai";
 import type React from "react";
-import type { Location, NavigateFunction } from "react-router-dom";
+import type { Location, NavigateFunction } from "react-router";
 import {
   MemoryRouter,
   Routes as ReactRouterRoutes,
   Route,
   useLocation,
   useNavigate,
-} from "react-router-dom";
+} from "react-router";
 import provisionFirstUser from "../../imports/methods/provisionFirstUser";
 import resetDatabase from "../lib/resetDatabase";
 import { stabilize, USER_EMAIL, USER_PASSWORD } from "./lib";
@@ -84,7 +84,7 @@ if (Meteor.isClient) {
 
         // Attempt to go to a specific authenticated page
         await act(async () => {
-          navigate.current!("/hunts");
+          await navigate.current!("/hunts");
           await stabilize();
         });
         assert.equal(
@@ -109,7 +109,7 @@ if (Meteor.isClient) {
         render(<TestApp />);
         await act(async () => {
           await stabilize();
-          navigate.current!("/login");
+          await navigate.current!("/login");
           await stabilize();
         });
         assert.equal(location.current?.pathname, "/hunts");
@@ -119,7 +119,7 @@ if (Meteor.isClient) {
         render(<TestApp />);
         await act(async () => {
           await stabilize();
-          navigate.current!("/hunts");
+          await navigate.current!("/hunts");
           await stabilize();
         });
         assert.equal(location.current?.pathname, "/hunts");

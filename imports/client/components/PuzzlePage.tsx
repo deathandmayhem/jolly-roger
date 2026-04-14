@@ -42,7 +42,7 @@ import Row from "react-bootstrap/Row";
 import Tooltip from "react-bootstrap/Tooltip";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router";
 import type { Descendant } from "slate";
 import styled, { css } from "styled-components";
 import {

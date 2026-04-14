@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import styled from "styled-components";
 import type { PuzzleType } from "../../lib/models/Puzzles";
 import type { Solvedness } from "../../lib/solvedness";

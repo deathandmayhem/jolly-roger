@@ -24,8 +24,8 @@ import NavLink from "react-bootstrap/NavLink";
 import type { FallbackProps } from "react-error-boundary";
 import { ErrorBoundary as ReactErrorBoundary } from "react-error-boundary";
 import { useTranslation } from "react-i18next";
+import { Link, useNavigate, useParams } from "react-router";
 import * as RRBS from "react-router-bootstrap";
-import { Link, useNavigate, useParams } from "react-router-dom";
 import type { StackFrame } from "stacktrace-js";
 import StackTrace from "stacktrace-js";
 import styled, { css, useTheme } from "styled-components";
@@ -133,7 +133,9 @@ const ErrorFallback = ({
   }, [error]);
 
   const navigate = useNavigate();
-  const goBack = useCallback(() => navigate(-1), [navigate]);
+  const goBack = useCallback(() => {
+    void navigate(-1);
+  }, [navigate]);
   return (
     <Container>
       <Alert variant="danger">
@@ -218,7 +220,9 @@ const AppNavbar = ({
   const navigate = useNavigate();
   const logout = useCallback(() => {
     // Logout, then immediately redirect to the login page
-    Meteor.logout(() => navigate("/login", { replace: true }));
+    Meteor.logout(() => {
+      void navigate("/login", { replace: true });
+    });
   }, [navigate]);
 
   const crumbs = useBreadcrumbItems();

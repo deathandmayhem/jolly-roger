@@ -7,7 +7,7 @@ import Button from "react-bootstrap/Button";
 import Col from "react-bootstrap/Col";
 import Form from "react-bootstrap/Form";
 import Row from "react-bootstrap/Row";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router";
 import type { LoginOptions } from "../../lib/loginOptions";
 import Hunts from "../../lib/models/Hunts";
 import InvitationCodes from "../../lib/models/InvitationCodes";
@@ -81,7 +81,7 @@ const JoinHunt = () => {
               setErrorMessage(err.reason ?? "Unknown error");
               setSubmitState(AccountFormSubmitState.FAILED);
             } else {
-              navigate(`/hunts/${acceptedHuntId}`);
+              void navigate(`/hunts/${acceptedHuntId}`);
             }
           },
         );
@@ -266,7 +266,7 @@ const JoinHunt = () => {
     // InvitationCode is for is already in our user's hunt list, just navigate
     // to the hunt page.
     if (loggedIn && isAlreadyInHunt) {
-      navigate(`/hunts/${huntId}`);
+      void navigate(`/hunts/${huntId}`);
     }
   }, [loggedIn, isAlreadyInHunt, navigate, huntId]);
 

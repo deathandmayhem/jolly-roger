@@ -1,7 +1,7 @@
 import { Meteor } from "meteor/meteor";
 import React from "react";
 import { createRoot } from "react-dom/client";
-import { BrowserRouter } from "react-router-dom";
+import { BrowserRouter } from "react-router";
 import { createGlobalStyle } from "styled-components";
 import Routes from "./components/Routes";
 import "./i18n";

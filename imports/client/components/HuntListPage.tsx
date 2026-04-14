@@ -17,8 +17,8 @@ import ButtonGroup from "react-bootstrap/ButtonGroup";
 import Modal from "react-bootstrap/Modal";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router";
 import { LinkContainer } from "react-router-bootstrap";
-import { Link } from "react-router-dom";
 import type { HuntType } from "../../lib/models/Hunts";
 import Hunts from "../../lib/models/Hunts";
 import {

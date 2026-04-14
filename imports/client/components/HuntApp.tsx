@@ -6,7 +6,7 @@ import Button from "react-bootstrap/Button";
 import ButtonToolbar from "react-bootstrap/ButtonToolbar";
 import Modal from "react-bootstrap/Modal";
 import { createPortal } from "react-dom";
-import { Outlet, useNavigate, useParams } from "react-router-dom";
+import { Outlet, useNavigate, useParams } from "react-router";
 import type { HuntType } from "../../lib/models/Hunts";
 import Hunts from "../../lib/models/Hunts";
 import { primaryEmail } from "../../lib/models/User";
@@ -41,7 +41,9 @@ const HuntDeletedError = React.memo(
     }, [canUndestroy, undestroy]);
 
     const navigate = useNavigate();
-    const goBack = useCallback(() => navigate(-1), [navigate]);
+    const goBack = useCallback(() => {
+      void navigate(-1);
+    }, [navigate]);
 
     return (
       <div>
@@ -87,7 +89,9 @@ const HuntMemberError = React.memo(
     }, [canJoin, join]);
 
     const navigate = useNavigate();
-    const goBack = useCallback(() => navigate(-1), [navigate]);
+    const goBack = useCallback(() => {
+      void navigate(-1);
+    }, [navigate]);
 
     return (
       <div>

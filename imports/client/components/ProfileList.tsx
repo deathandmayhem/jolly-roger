@@ -28,7 +28,7 @@ import ListGroupItem from "react-bootstrap/ListGroupItem";
 import Modal from "react-bootstrap/Modal";
 import { createPortal } from "react-dom";
 import { Trans, useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import styled from "styled-components";
 import { formatDiscordName } from "../../lib/discord";
 import isAdmin from "../../lib/isAdmin";

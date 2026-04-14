@@ -19,7 +19,7 @@ import Modal from "react-bootstrap/Modal";
 import Row from "react-bootstrap/Row";
 import { createPortal } from "react-dom";
 import { Trans, useTranslation } from "react-i18next";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router";
 import DiscordCache from "../../lib/models/DiscordCache";
 import type {
   EditableHuntType,
@@ -341,7 +341,7 @@ const HuntEditPage = () => {
         // If there's a result, that means we created a new hunt - redirect to it.
         // Otherwise stay on this page and let people navigate themselves
         if (newHuntId) {
-          navigate(`/hunts/${newHuntId}`);
+          void navigate(`/hunts/${newHuntId}`);
         }
       }
 

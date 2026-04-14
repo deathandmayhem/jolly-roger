@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Alert from "react-bootstrap/Alert";
 import Container from "react-bootstrap/Container";
 import { useTranslation } from "react-i18next";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router";
 
 const VerifyEmailPage = () => {
   const { t } = useTranslation();
@@ -21,7 +21,7 @@ const VerifyEmailPage = () => {
             : err.message,
         );
       } else {
-        navigate("/", { replace: true });
+        void navigate("/", { replace: true });
       }
     });
   }, [token, navigate]);
