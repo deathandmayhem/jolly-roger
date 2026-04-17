@@ -105,7 +105,7 @@
     "@types/react-sparklines": "^1.7.5",
     "@types/sinon": "^21.0.1",
     "@types/stylis": "^4.2.7",
-    "@typescript-eslint/utils": "^8.58.1",
+    "@typescript-eslint/utils": "^8.58.2",
     "@typescript/native-preview": "^7.0.0-dev.20260220.1",
     "chai": "^6.2.2",
     "chai-as-promised": "^8.0.2",
@@ -126,7 +126,7 @@
     "stylelint": "^17.8.0",
     "stylelint-config-standard": "^40.0.0",
     "stylelint-config-standard-scss": "^17.0.0",
-    "typescript-eslint": "^8.58.1"
+    "typescript-eslint": "^8.58.2"
   },
   "overrides": {
     "@sinonjs/fake-timers": "15.2.2"
