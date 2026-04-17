@@ -86,7 +86,7 @@
     "@biomejs/biome": "2.4.12",
     "@meteorjs/rspack": "^1.1.0-beta.34",
     "@rsdoctor/rspack-plugin": "^1.5.9",
-    "@rspack/cli": "^1.7.1",
+    "@rspack/cli": "^1.7.11",
     "@rspack/core": "^1.7.1",
     "@rspack/plugin-react-refresh": "^1.4.3",
     "@swc/plugin-styled-components": "^12.3.0",
