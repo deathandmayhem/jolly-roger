@@ -37,7 +37,7 @@
     "@googleapis/script": "^11.0.1",
     "@googleapis/sheets": "^13.0.1",
     "@popperjs/core": "^2.11.8",
-    "@swc/helpers": "^0.5.17",
+    "@swc/helpers": "^0.5.21",
     "aws4": "^1.13.2",
     "body-parser": "^2.2.2",
     "bootstrap": "^5.3.8",
