@@ -42,7 +42,7 @@
     "body-parser": "^2.2.2",
     "bootstrap": "^5.3.8",
     "classnames": "^2.5.1",
-    "discord.js": "^14.26.2",
+    "discord.js": "^14.26.3",
     "disposablestack": "^1.1.7",
     "dompurify": "^3.4.0",
     "entities": "^8.0.0",
