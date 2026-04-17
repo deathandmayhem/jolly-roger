@@ -57,7 +57,7 @@
     "logfmt": "^1.4.0",
     "marked": "^18.0.1",
     "mediasoup": "^3.19.19",
-    "mediasoup-client": "^3.18.7",
+    "mediasoup-client": "^3.19.0",
     "meteor-node-stubs": "^1.2.27",
     "mime-types": "^3.0.2",
     "mustache": "^4.2.0",
