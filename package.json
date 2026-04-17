@@ -83,7 +83,7 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.4.11",
+    "@biomejs/biome": "2.4.12",
     "@meteorjs/rspack": "^1.1.0-beta.34",
     "@rsdoctor/rspack-plugin": "^1.5.7",
     "@rspack/cli": "^1.7.1",
