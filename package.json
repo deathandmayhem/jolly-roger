@@ -51,7 +51,7 @@
     "gaxios": "^7.1.4",
     "glob": "^13.0.6",
     "http-proxy-3": "^1.23.2",
-    "i18next": "^26.0.5",
+    "i18next": "^26.0.7",
     "i18next-browser-languagedetector": "^8.2.1",
     "ip-address": "^10.1.0",
     "logfmt": "^1.4.0",
