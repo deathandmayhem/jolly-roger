@@ -1,4 +1,5 @@
 const { defineConfig } = require("@meteorjs/rspack");
+const { IgnorePlugin } = require("@rspack/core");
 
 /**
  * Rspack configuration for Meteor projects.
@@ -13,11 +14,6 @@ const { defineConfig } = require("@meteorjs/rspack");
 module.exports = defineConfig((Meteor) => {
   // winston tries to import path, so we need to stub it out here
   const fallbackClient = { path: require.resolve("path-browserify") };
-  const fallbackServer = {
-    bufferutil: false,
-    "zlib-sync": false,
-    "utf-8-validate": false,
-  };
 
   return {
     module: {
@@ -54,12 +50,23 @@ module.exports = defineConfig((Meteor) => {
       ],
     },
     resolve: {
-      fallback: Meteor.isClient ? fallbackClient : fallbackServer,
+      fallback: Meteor.isClient ? fallbackClient : {},
     },
     externals: {
       express: "commonjs express",
       mediasoup: "commonjs mediasoup",
       slate: "commonjs slate",
     },
+    // ws and discord.js dynamic-import these optional native deps and
+    // rely on a missing module throwing. resolve.fallback: false produces
+    // a truthy empty stub instead, which discord.js's `if (zlib)` check
+    // mistakes for a working zlib-sync.
+    plugins: Meteor.isServer
+      ? [
+          new IgnorePlugin({
+            resourceRegExp: /^(zlib-sync|bufferutil|utf-8-validate)$/,
+          }),
+        ]
+      : [],
   };
 });

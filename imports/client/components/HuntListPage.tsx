@@ -18,7 +18,6 @@ import Modal from "react-bootstrap/Modal";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
-import { LinkContainer } from "react-router-bootstrap";
 import type { HuntType } from "../../lib/models/Hunts";
 import Hunts from "../../lib/models/Hunts";
 import {
@@ -89,15 +88,13 @@ const Hunt = React.memo(({ hunt }: { hunt: HuntType }) => {
       <HuntPurgeModal ref={purgeModalRef} hunt={hunt} />
       <ButtonGroup size="sm">
         {canUpdate ? (
-          <LinkContainer to={`/hunts/${huntId}/edit`}>
-            <Button
-              as="a"
-              variant="outline-secondary"
-              title={`${t("huntList.edit.title", "Edit hunt")}...`}
-            >
-              <FontAwesomeIcon icon={faEdit} />
-            </Button>
-          </LinkContainer>
+          <Link
+            to={`/hunts/${huntId}/edit`}
+            className="btn btn-outline-secondary"
+            title={`${t("huntList.edit.title", "Edit hunt")}...`}
+          >
+            <FontAwesomeIcon icon={faEdit} />
+          </Link>
         ) : undefined}
         {canPurge ? (
           <Button
@@ -276,11 +273,9 @@ const HuntListPage = () => {
       <h1>{t("huntList.title", "Hunts")}</h1>
       {canAdd && (
         <>
-          <LinkContainer to="/hunts/new">
-            <Button as="a" variant="success" size="sm">
-              {t("huntList.newHunt", "New hunt")}...
-            </Button>
-          </LinkContainer>
+          <Link to="/hunts/new" className="btn btn-success btn-sm">
+            {t("huntList.newHunt", "New hunt")}...
+          </Link>
           {!loading && hunts.length === 0 && (
             <>
               {" "}
