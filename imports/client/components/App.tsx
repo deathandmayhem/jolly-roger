@@ -25,7 +25,6 @@ import type { FallbackProps } from "react-error-boundary";
 import { ErrorBoundary as ReactErrorBoundary } from "react-error-boundary";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams } from "react-router";
-import * as RRBS from "react-router-bootstrap";
 import type { StackFrame } from "stacktrace-js";
 import StackTrace from "stacktrace-js";
 import styled, { css, useTheme } from "styled-components";
@@ -301,11 +300,9 @@ const AppNavbar = ({
             <NavUsername>{displayName}</NavUsername>
           </DropdownToggle>
           <DropdownMenu align="end">
-            <RRBS.LinkContainer to={`/users/${userId}`}>
-              <DropdownItem eventKey="1">
-                {t("navigation.myProfile", "My profile")}
-              </DropdownItem>
-            </RRBS.LinkContainer>
+            <DropdownItem as={Link} to={`/users/${userId}`} eventKey="1">
+              {t("navigation.myProfile", "My profile")}
+            </DropdownItem>
             <DropdownItem
               eventKey="2"
               href="https://github.com/deathandmayhem/jolly-roger/issues"
@@ -315,11 +312,9 @@ const AppNavbar = ({
               {t("navigation.reportAnIssue", "Report an issue")}
             </DropdownItem>
             {userIsAdmin ? (
-              <RRBS.LinkContainer to="/setup">
-                <DropdownItem eventKey="4">
-                  {t("navigation.serverSetup", "Server setup")}
-                </DropdownItem>
-              </RRBS.LinkContainer>
+              <DropdownItem as={Link} to="/setup" eventKey="4">
+                {t("navigation.serverSetup", "Server setup")}
+              </DropdownItem>
             ) : undefined}
             <DropdownItem eventKey="3" onClick={logout}>
               {t("navigation.signOut", "Sign out")}
