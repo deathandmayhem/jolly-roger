@@ -99,6 +99,33 @@ Meteor.publish("enabledChatImage", async function () {
   this.ready();
 });
 
+/**
+ * Fix the endpoint URL to work around multilogin issues.
+ *
+ * When a user's browser is logged into multiple Google accounts, Google may redirect to a broken
+ * URL. See https://groups.google.com/g/google-apps-script-community/c/1xrlqlkGEQ0 for more context.
+ * Prefixing the path with "/a/~/" works around the issue. This isn't necessary for server-initiated
+ * calls since there are no login cookies that would cause redirects.
+ */
+function canonicalizeGoogleScriptEndpointUrl(
+  endpointUrl: string | undefined,
+): string | undefined {
+  if (!endpointUrl) return endpointUrl;
+  try {
+    const parsedUrl = new URL(endpointUrl);
+    if (
+      parsedUrl.hostname === "script.google.com" &&
+      !parsedUrl.pathname.startsWith("/a/~/")
+    ) {
+      parsedUrl.pathname = `/a/~${parsedUrl.pathname}`;
+      return parsedUrl.toString();
+    }
+  } catch {
+    // If the URL is malformed, return it as-is.
+  }
+  return endpointUrl;
+}
+
 Meteor.publish("googleScriptInfo", async function () {
   if (!this.userId) {
     return [];
@@ -110,15 +137,18 @@ Meteor.publish("googleScriptInfo", async function () {
   let tracked = false;
   const formatDoc = async (doc: SettingType & { name: "google.script" }) => {
     const configured = !!doc.value.scriptId && !!doc.value.endpointUrl;
+    const endpointUrl = canonicalizeGoogleScriptEndpointUrl(
+      doc.value.endpointUrl,
+    );
     if (admin) {
       const { contentHash } = await googleScriptContent(doc.value.sharedSecret);
       return {
         configured,
         outOfDate: doc.value.contentHash !== contentHash,
-        endpointUrl: doc.value.endpointUrl,
+        endpointUrl,
       };
     }
-    return { configured, endpointUrl: doc.value.endpointUrl };
+    return { configured, endpointUrl };
   };
   const handle: Meteor.LiveQueryHandle = await cursor.observeAsync({
     added: (doc) => {
