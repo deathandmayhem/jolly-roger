@@ -67,7 +67,7 @@
     "react-dom": "^19.2.6",
     "react-error-boundary": "^6.1.1",
     "react-i18next": "^17.0.7",
-    "react-router": "^7.14.2",
+    "react-router": "^7.15.0",
     "react-select": "^5.10.2",
     "react-sparklines": "^1.7.0",
     "react-textarea-autosize": "^8.5.9",
