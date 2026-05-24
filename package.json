@@ -73,7 +73,7 @@
     "react-textarea-autosize": "^8.5.9",
     "slate": "^0.124.1",
     "slate-history": "^0.113.1",
-    "slate-react": "^0.124.0",
+    "slate-react": "^0.124.2",
     "stacktrace-js": "^2.0.2",
     "styled-components": "^6.4.1",
     "usehooks-ts": "^3.1.1",
