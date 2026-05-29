@@ -65,7 +65,7 @@
     "react": "^19.2.6",
     "react-bootstrap": "^2.10.10",
     "react-dom": "^19.2.6",
-    "react-error-boundary": "^6.1.1",
+    "react-error-boundary": "^6.1.2",
     "react-i18next": "^17.0.8",
     "react-router": "^7.15.0",
     "react-select": "^5.10.2",
