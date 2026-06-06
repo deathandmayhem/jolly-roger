@@ -48,7 +48,7 @@
     "entities": "^8.0.0",
     "express": "^5.2.1",
     "form-data": "^4.0.5",
-    "gaxios": "^7.1.4",
+    "gaxios": "^7.1.5",
     "glob": "^13.0.6",
     "http-proxy-3": "^1.23.2",
     "i18next": "^26.3.0",
