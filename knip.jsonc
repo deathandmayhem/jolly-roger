@@ -17,7 +17,7 @@
   "swc": {},
   // Because we're using tsgo, knip will by default ignore our tsconfig.json
   "typescript": {},
-  "ignoreBinaries": ["meteor"],
+  "ignoreBinaries": ["meteor", "ffmpeg"],
   "ignoreDependencies": [
     // Detected and used by Meteor
     "@babel/runtime",
