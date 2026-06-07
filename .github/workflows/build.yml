@@ -120,7 +120,11 @@ jobs:
           cache-from: |
             type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.cache-tag }}-${{ steps.cache-ref.outputs.ref }}
             type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.cache-tag }}-main
-          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.cache-tag }}-${{ steps.cache-ref.outputs.ref }},mode=max
+          # With PRs from forks, the GITHUB_TOKEN gets downgraded to packages:
+          # read, so don't push to the build cache, since it will fail. (Note
+          # that github.event.pull_request is null for non-PR events, hence the
+          # dual check.)
+          cache-to: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && format('type=registry,ref={0}/{1}:{2}-{3},mode=max', env.REGISTRY, env.IMAGE_NAME, matrix.cache-tag, steps.cache-ref.outputs.ref) || '' }}
           build-args: |
             METEOR_GIT_COMMIT_HASH=${{ github.sha }}
       - name: Export digest
