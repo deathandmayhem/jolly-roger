@@ -311,6 +311,7 @@ const EmailSection = ({ user }: { user: Meteor.User }) => {
           variant="outline-primary"
           onClick={handleAddEmail}
           disabled={busy || !newEmail.trim()}
+          style={{ whiteSpace: "nowrap" }}
         >
           {t("profile.emails.add", "Add")}
         </Button>
