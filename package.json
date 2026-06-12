@@ -84,7 +84,7 @@
   "devDependencies": {
     "@biomejs/biome": "2.4.16",
     "@meteorjs/rspack": "^2.0.1",
-    "@rsdoctor/rspack-plugin": "^1.5.12",
+    "@rsdoctor/rspack-plugin": "^1.5.13",
     "@rspack/cli": "^1.7.11",
     "@rspack/core": "^1.7.11",
     "@rspack/plugin-react-refresh": "^1.4.3",
