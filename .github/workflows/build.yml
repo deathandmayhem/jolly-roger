@@ -120,7 +120,11 @@ jobs:
           cache-from: |
             type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.cache-tag }}-${{ steps.cache-ref.outputs.ref }}
             type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.cache-tag }}-main
-          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.cache-tag }}-${{ steps.cache-ref.outputs.ref }},mode=max
+          # With PRs from forks, the GITHUB_TOKEN gets downgraded to packages:
+          # read, so don't push to the build cache, since it will fail. (Note
+          # that github.event.pull_request is null for non-PR events, hence the
+          # dual check.)
+          cache-to: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && format('type=registry,ref={0}/{1}:{2}-{3},mode=max', env.REGISTRY, env.IMAGE_NAME, matrix.cache-tag, steps.cache-ref.outputs.ref) || '' }}
           build-args: |
             METEOR_GIT_COMMIT_HASH=${{ github.sha }}
       - name: Export digest
@@ -135,17 +139,35 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
+  # The merge check is a gate on the rest of CI passing. For PRs and non-main
+  # builds, it does virtually nothing, but fails if any of the dependencies
+  # fail. Since it's configured as a required status check, this makes PRs
+  # unmergeable.
+  #
+  # On main, it merges the platform-specific images into a single multi-arch
+  # manifest and pushes it. If the earlier CI steps fail, though, it fails
+  # before a potentially broken image can get pushed to the registry.
   merge:
     name: Merge Docker image manifests
     needs:
       - build
       # Don't merge if tests failed
       - test
+    if: ${{ always() }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
     steps:
+      - name: Require build and test to have succeeded
+        env:
+          BUILD: ${{ needs.build.result }}
+          TEST: ${{ needs.test.result }}
+        run: |
+          if [[ "$BUILD" != success || "$TEST" != success ]]; then
+            echo "::error::build=$BUILD test=$TEST; both must succeed to merge"
+            exit 1
+          fi
       - name: Download digests
         uses: actions/download-artifact@v8
         with:
