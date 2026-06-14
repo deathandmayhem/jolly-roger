@@ -22,7 +22,7 @@ export default async function runJob<
   }
   const controller = new AbortController();
   const run = async () => {
-    await handler.run(args, {
+    await handler.run(args as Record<string, unknown>, {
       jobId,
       signal: controller.signal,
       setResult:

@@ -1,12 +1,12 @@
 import util from "node:util";
 import { NpmModuleMongodb } from "meteor/npm-mongo";
 import Logger from "../Logger";
-import type { ModelIndexSpecification } from "../lib/models/Model";
 import {
-  AllModels,
+  type ModelIndexSpecification,
   normalizeIndexOptions,
   normalizeIndexSpecification,
-} from "../lib/models/Model";
+} from "../lib/typedModel/indexes";
+import { AllModels } from "../lib/typedModel/Model";
 import runIfLatestBuild from "./runIfLatestBuild";
 
 type CommandOperationOptions = NpmModuleMongodb.CommandOperationOptions;

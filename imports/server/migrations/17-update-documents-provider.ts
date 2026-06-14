@@ -11,10 +11,12 @@ Migrations.add({
       { multi: true },
     );
 
-    await Documents.updateAsync(
-      { type: "google-spreadsheet", "value.type": null },
-      { $set: { "value.type": "spreadsheet" }, $unset: { type: 1 } },
-      { multi: true, bypassSchema: true },
-    );
+    await Documents.collection
+      .rawCollection()
+      .updateMany(
+        { type: "google-spreadsheet", "value.type": null },
+        { $set: { "value.type": "spreadsheet" }, $unset: { type: 1 } },
+        { bypassDocumentValidation: true },
+      );
   },
 });

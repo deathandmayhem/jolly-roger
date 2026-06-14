@@ -1,8 +1,8 @@
 import { z } from "zod";
-import { foreignKey, nonEmptyString } from "../customTypes";
-import type { ModelType } from "../Model";
-import SoftDeletedModel from "../SoftDeletedModel";
-import withCommon from "../withCommon";
+import { foreignKey, nonEmptyString } from "../../typedModel/customTypes";
+import type { ModelType } from "../../typedModel/Model";
+import SoftDeletedModel from "../../typedModel/SoftDeletedModel";
+import withCommon from "../../typedModel/withCommon";
 
 const ProducerServer = withCommon(
   z.object({
@@ -12,7 +12,7 @@ const ProducerServer = withCommon(
     transport: foreignKey,
     producerClient: foreignKey,
     trackId: nonEmptyString, // client-generated GUID
-    producerId: z.string().uuid(),
+    producerId: z.uuid(),
   }),
 );
 

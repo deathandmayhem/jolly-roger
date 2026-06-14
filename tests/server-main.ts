@@ -18,7 +18,6 @@ if (!Meteor.isAppTest) {
 Accounts.removeDefaultRateLimit();
 
 import "./unit/imports/server/Flags";
-import "./unit/imports/server/generateJsonSchema";
 import "./unit/imports/server/MigrationRegistry";
 import "./unit/imports/server/Model";
 import "./unit/imports/server/publishJoinedQuery";

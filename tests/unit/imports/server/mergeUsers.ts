@@ -296,10 +296,10 @@ describe("user merge", function () {
     const updateStub = sinon.stub(MeteorUsers, "updateAsync").callThrough();
     updateStub
       .withArgs(sinon.match.any, sinon.match.hasNested("$unset.emails"))
-      .callsFake(async (...args) => {
+      .callsFake(async (...args: any[]) => {
         // Simulate a crash right after the source's emails are cleared but
         // before they're added to the target.
-        await updateStub.wrappedMethod.apply(MeteorUsers, args);
+        await updateStub.wrappedMethod.apply(MeteorUsers, args as [any, any]);
         throw new Error("Simulated crash");
       });
 
