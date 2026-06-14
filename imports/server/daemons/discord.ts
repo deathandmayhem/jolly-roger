@@ -256,9 +256,9 @@ const cacheGuild = async (
   }
 };
 
-const cacheAdd = async <T extends Discord.Base & { id: Discord.Snowflake }>(
+const cacheAdd = async (
   type: string,
-  obj: T,
+  obj: Discord.Base & { id: Discord.Snowflake },
   unseen?: Set<string>,
 ) => {
   if (unseen) {
@@ -279,9 +279,9 @@ const cacheAdd = async <T extends Discord.Base & { id: Discord.Snowflake }>(
   );
 };
 
-const cacheRemove = async <T extends Discord.Base & { id: Discord.Snowflake }>(
+const cacheRemove = async (
   type: string,
-  obj: T,
+  obj: Discord.Base & { id: Discord.Snowflake },
 ) => {
   await DiscordCache.removeAsync({
     type,

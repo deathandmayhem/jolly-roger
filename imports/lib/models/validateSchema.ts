@@ -1,8 +1,8 @@
 import { z } from "zod";
 import { allowedEmptyString } from "./customTypes";
 
-export default function validateSchema<T extends z.ZodFirstPartySchemaTypes>(
-  schema: T,
+export default function validateSchema(
+  schema: z.ZodFirstPartySchemaTypes,
   path: string[] = [],
 ) {
   const { _def: def } = schema;
