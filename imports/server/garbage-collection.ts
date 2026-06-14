@@ -97,6 +97,15 @@ function periodic() {
   });
 }
 
+function aborted() {
+  Logger.error("Server record unexpectedly marked for deletion", {
+    serverId,
+    pid: process.pid,
+    hostname: os.hostname(),
+  });
+  process.exit(1);
+}
+
 Meteor.startup(() => {
   // Defer the first run so that other startup hooks run first, but don't catch
   // this async function's errors, because if it fails we want the failure to
@@ -110,15 +119,6 @@ Meteor.startup(() => {
     });
 
     if (!Meteor.isAppTest) {
-      const aborted = () => {
-        Logger.error("Server record unexpectedly marked for deletion", {
-          serverId,
-          pid: process.pid,
-          hostname: os.hostname(),
-        });
-        process.exit(1);
-      };
-
       const handle = await Servers.find(serverId).observeChangesAsync({
         changed(_, fields) {
           if (fields.cleanupInProgressBy) {
