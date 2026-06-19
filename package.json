@@ -39,7 +39,7 @@
     "@popperjs/core": "^2.11.8",
     "@swc/helpers": "^0.5.23",
     "aws4": "^1.13.2",
-    "body-parser": "^2.2.2",
+    "body-parser": "^2.3.0",
     "bootstrap": "^5.3.8",
     "classnames": "^2.5.1",
     "discord.js": "^14.26.4",
