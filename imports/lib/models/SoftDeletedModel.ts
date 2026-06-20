@@ -88,12 +88,9 @@ class SoftDeletedModel<
     });
   }
 
-  find<
-    S extends Selector<ModelType<this>>,
-    O extends Omit<Mongo.Options<ModelType<this>>, "transform">,
-  >(
+  find<S extends Selector<ModelType<this>>>(
     selector?: S,
-    options?: O,
+    options?: Omit<Mongo.Options<ModelType<this>>, "transform">,
   ): Mongo.Cursor<SelectorToResultType<ModelType<this>, S>> {
     return super.find(
       injectQuery(selector, { deleted: false }) as any,
@@ -101,12 +98,9 @@ class SoftDeletedModel<
     ) as any;
   }
 
-  findOne<
-    S extends Selector<ModelType<this>>,
-    O extends Omit<Mongo.Options<ModelType<this>>, "limit" | "transform">,
-  >(
+  findOne<S extends Selector<ModelType<this>>>(
     selector?: S,
-    options?: O,
+    options?: Omit<Mongo.Options<ModelType<this>>, "limit" | "transform">,
   ): SelectorToResultType<ModelType<this>, S> | undefined {
     return super.findOne(
       injectQuery(selector, { deleted: false }) as any,
@@ -114,12 +108,9 @@ class SoftDeletedModel<
     ) as any;
   }
 
-  findOneAsync<
-    S extends Selector<ModelType<this>>,
-    O extends Omit<Mongo.Options<ModelType<this>>, "limit" | "transform">,
-  >(
+  findOneAsync<S extends Selector<ModelType<this>>>(
     selector?: S,
-    options?: O,
+    options?: Omit<Mongo.Options<ModelType<this>>, "limit" | "transform">,
   ): Promise<SelectorToResultType<ModelType<this>, S> | undefined> {
     return super.findOneAsync(
       injectQuery(selector, { deleted: false }) as any,
@@ -127,33 +118,30 @@ class SoftDeletedModel<
     ) as any;
   }
 
-  findAllowingDeleted<
-    S extends Selector<ModelType<this>>,
-    O extends Omit<Mongo.Options<ModelType<this>>, "transform">,
-  >(selector?: S, options?: O) {
+  findAllowingDeleted<S extends Selector<ModelType<this>>>(
+    selector?: S,
+    options?: Omit<Mongo.Options<ModelType<this>>, "transform">,
+  ) {
     return super.find(selector, injectOptions(options));
   }
 
-  findOneAllowingDeleted<
-    S extends Selector<ModelType<this>>,
-    O extends Omit<Mongo.Options<ModelType<this>>, "limit" | "transform">,
-  >(selector?: S, options?: O) {
+  findOneAllowingDeleted<S extends Selector<ModelType<this>>>(
+    selector?: S,
+    options?: Omit<Mongo.Options<ModelType<this>>, "limit" | "transform">,
+  ) {
     return super.findOne(selector, injectOptions(options));
   }
 
-  findOneAllowingDeletedAsync<
-    S extends Selector<ModelType<this>>,
-    O extends Omit<Mongo.Options<ModelType<this>>, "limit" | "transform">,
-  >(selector?: S, options?: O) {
+  findOneAllowingDeletedAsync<S extends Selector<ModelType<this>>>(
+    selector?: S,
+    options?: Omit<Mongo.Options<ModelType<this>>, "limit" | "transform">,
+  ) {
     return super.findOneAsync(selector, injectOptions(options));
   }
 
-  findDeleted<
-    S extends Selector<ModelType<this>>,
-    O extends Omit<Mongo.Options<ModelType<this>>, "transform">,
-  >(
+  findDeleted<S extends Selector<ModelType<this>>>(
     selector?: S,
-    options?: O,
+    options?: Omit<Mongo.Options<ModelType<this>>, "transform">,
   ): Mongo.Cursor<SelectorToResultType<ModelType<this>, S>> {
     return super.find(
       injectQuery(selector, { deleted: true }) as any,
@@ -161,12 +149,9 @@ class SoftDeletedModel<
     ) as any;
   }
 
-  findOneDeleted<
-    S extends Selector<ModelType<this>>,
-    O extends Omit<Mongo.Options<ModelType<this>>, "limit" | "transform">,
-  >(
+  findOneDeleted<S extends Selector<ModelType<this>>>(
     selector?: S,
-    options?: O,
+    options?: Omit<Mongo.Options<ModelType<this>>, "limit" | "transform">,
   ): SelectorToResultType<ModelType<this>, S> | undefined {
     return super.findOne(
       injectQuery(selector, { deleted: true }) as any,
@@ -174,12 +159,9 @@ class SoftDeletedModel<
     ) as any;
   }
 
-  findOneDeletedAsync<
-    S extends Selector<ModelType<this>>,
-    O extends Omit<Mongo.Options<ModelType<this>>, "limit" | "transform">,
-  >(
+  findOneDeletedAsync<S extends Selector<ModelType<this>>>(
     selector?: S,
-    options?: O,
+    options?: Omit<Mongo.Options<ModelType<this>>, "limit" | "transform">,
   ): Promise<SelectorToResultType<ModelType<this>, S> | undefined> {
     return super.findOneAsync(
       injectQuery(selector, { deleted: true }) as any,

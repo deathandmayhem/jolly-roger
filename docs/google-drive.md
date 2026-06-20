@@ -35,7 +35,7 @@ files:
   - imports/server/setup.ts
   - private/google-script/cookie-test.html
   - private/google-script/main.js
-updated: 2026-05-03T04:05:35Z
+updated: 2026-06-14T12:04:50Z
 ---
 
 # Google Drive Integration

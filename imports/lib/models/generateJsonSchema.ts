@@ -308,8 +308,8 @@ function discriminatedUnionToSchema(
 
 // Return anything that could potentially be a valid object on one half of an
 // intersection - we'll make sure it's allowed on the other half
-function potentialObjectKeys<T extends z.ZodFirstPartySchemaTypes>(
-  schema: T,
+function potentialObjectKeys(
+  schema: z.ZodFirstPartySchemaTypes,
 ): [keys: Set<string>, catchall: boolean] {
   const { _def: def } = schema;
   switch (def.typeName) {
@@ -497,8 +497,8 @@ function defaultToSchema(
 //
 // To work around that, we need to detect if one side of an intersection is
 // object-like, and push the properties it allows into the other side.
-export function schemaToJsonSchema<T extends z.ZodFirstPartySchemaTypes>(
-  schema: T,
+export function schemaToJsonSchema(
+  schema: z.ZodFirstPartySchemaTypes,
   allowedKeys: Set<string> = new Set(),
   catchall = false,
 ): Readonly<JsonSchema> {
@@ -559,8 +559,8 @@ export function schemaToJsonSchema<T extends z.ZodFirstPartySchemaTypes>(
   }
 }
 
-export function attachCustomJsonSchema<T extends z.ZodTypeAny>(
-  schema: T,
+export function attachCustomJsonSchema(
+  schema: z.ZodTypeAny,
   customSchema: JsonSchema,
   required = false,
 ) {
@@ -568,8 +568,8 @@ export function attachCustomJsonSchema<T extends z.ZodTypeAny>(
   (schema as any).customJsonSchemaRequired = required;
 }
 
-export default function generateJsonSchema<T extends MongoRecordZodType>(
-  schema: T,
+export default function generateJsonSchema(
+  schema: MongoRecordZodType,
 ): Readonly<JsonSchema> {
   return schemaToJsonSchema(schema);
 }

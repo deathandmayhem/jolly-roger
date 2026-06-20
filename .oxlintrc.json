@@ -90,6 +90,11 @@
     // We have existing failures in the codebase that are acceptable to us
     "no-shadow": "off",
 
+    // Dangling underscores are unavoidable here: Mongo's `_id`, plus Meteor,
+    // Accounts, and Zod internals (`_CurrentInvocation`, `_def`, etc.). Enabled
+    // by default via oxlint's "suspicious" category, but it's not a fit for us.
+    "no-underscore-dangle": "off",
+
     // ── React───────────────────────────────────────────────────────────
     "react/button-has-type": "error",
     "react/checked-requires-onchange-or-readonly": "error",
@@ -109,6 +114,12 @@
     // ── JSX-a11y ────────────────────────────────────────────────────────
     "jsx-a11y/alt-text": "error",
     "jsx-a11y/anchor-is-valid": "error",
+    // oxlint's implementation of this rule is buggy and over-fires: it flags
+    // <canvas>/<audio>, bare table <tr>/<td>/<th>, anchors whose content
+    // i18next <Trans> fills in at runtime, and even inputs that already have a
+    // matching <label htmlFor>. Enabled by default via the "correctness"
+    // category; too noisy to be worth it.
+    "jsx-a11y/control-has-associated-label": "off",
     "jsx-a11y/click-events-have-key-events": "error",
     "jsx-a11y/heading-has-content": "error",
     "jsx-a11y/html-has-lang": "error",

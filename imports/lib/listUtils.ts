@@ -21,9 +21,9 @@ export function difference<T>(universe: T[], removed: T[]): T[] {
   return universe.filter((item) => !index.has(item));
 }
 
-export function sortedBy<T extends object, U>(
+export function sortedBy<T extends object>(
   list: T[],
-  fn: (obj: T) => U,
+  fn: (obj: T) => unknown,
 ): T[] {
   // Returns a copy of the provided `list` sorted (ascending) by the result
   // of applying `fn` to each element in the list.

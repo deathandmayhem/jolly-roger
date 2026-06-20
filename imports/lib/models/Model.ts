@@ -99,9 +99,7 @@ export function relaxSchema(schema: z.ZodFirstPartySchemaTypes): z.ZodTypeAny {
   }
 }
 
-export function flattenSchemas<Schemas extends z.ZodTypeAny[]>(
-  schemas: Schemas,
-): z.ZodTypeAny {
+export function flattenSchemas(schemas: z.ZodTypeAny[]): z.ZodTypeAny {
   const [first, second, ...rest] = schemas.filter(
     (s) => !(s instanceof z.ZodNever),
   );
@@ -116,8 +114,8 @@ export function flattenSchemas<Schemas extends z.ZodTypeAny[]>(
   return z.union([first, second, ...rest]);
 }
 
-export function getSchemaForField<Schema extends z.ZodTypeAny>(
-  schema: Schema,
+export function getSchemaForField(
+  schema: z.ZodTypeAny,
   field: string,
 ): z.ZodTypeAny {
   const { _def: def } = schema;
@@ -130,13 +128,13 @@ export function getSchemaForField<Schema extends z.ZodTypeAny>(
     case z.ZodFirstPartyTypeKind.ZodUnion:
     case z.ZodFirstPartyTypeKind.ZodDiscriminatedUnion:
       return flattenSchemas(
-        def.options.flatMap(<T extends z.ZodTypeAny>(option: T) => {
+        def.options.flatMap((option: z.ZodTypeAny) => {
           return getSchemaForField(option, field);
         }),
       );
     case z.ZodFirstPartyTypeKind.ZodIntersection:
       return flattenSchemas(
-        [def.left, def.right].flatMap(<T extends z.ZodTypeAny>(option: T) => {
+        [def.left, def.right].flatMap((option: z.ZodTypeAny) => {
           return getSchemaForField(option, field);
         }),
       );
@@ -572,34 +570,34 @@ class Model<
   // For now, don't allow transforms on query methods. There's no fundamental
   // reason not to, but I wasn't able to get the types to work
 
-  find<
-    S extends Selector<z.output<this["schema"]>>,
-    O extends Omit<Mongo.Options<z.output<this["schema"]>>, "transform">,
-  >(selector?: S, options?: O) {
+  find<S extends Selector<z.output<this["schema"]>>>(
+    selector?: S,
+    options?: Omit<Mongo.Options<z.output<this["schema"]>>, "transform">,
+  ) {
     return this.collection.find(selector ?? {}, options) as Mongo.Cursor<
       SelectorToResultType<z.output<this["schema"]>, S>
     >;
   }
 
-  findOne<
-    S extends Selector<z.output<this["schema"]>>,
-    O extends Omit<
+  findOne<S extends Selector<z.output<this["schema"]>>>(
+    selector?: S,
+    options?: Omit<
       Mongo.Options<z.output<this["schema"]>>,
       "limit" | "transform"
     >,
-  >(selector?: S, options?: O) {
+  ) {
     return this.collection.findOne(selector ?? {}, options) as
       | SelectorToResultType<z.output<this["schema"]>, S>
       | undefined;
   }
 
-  findOneAsync<
-    S extends Selector<z.output<this["schema"]>>,
-    O extends Omit<
+  findOneAsync<S extends Selector<z.output<this["schema"]>>>(
+    selector?: S,
+    options?: Omit<
       Mongo.Options<z.output<this["schema"]>>,
       "limit" | "transform"
     >,
-  >(selector?: S, options?: O) {
+  ) {
     return this.collection.findOneAsync(selector ?? {}, options) as Promise<
       SelectorToResultType<z.output<this["schema"]>, S> | undefined
     >;

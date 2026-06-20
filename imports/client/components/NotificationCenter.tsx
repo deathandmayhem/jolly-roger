@@ -901,7 +901,7 @@ const NotificationCenter = () => {
     fetchPendingGuesses ? pendingGuessesForSelf : undefined,
   );
 
-  const [operatorActionsHidden = {}] = useOperatorActionsHidden();
+  const [operatorActionsHidden] = useOperatorActionsHidden();
   const activeOperatorHunts = operatorHunts.filter(
     (huntId) => !operatorActionsHidden[huntId],
   );
