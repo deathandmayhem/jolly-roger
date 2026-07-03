@@ -108,7 +108,7 @@
     "chai": "^6.2.2",
     "chai-as-promised": "^8.0.2",
     "concurrently": "^10.0.3",
-    "eslint": "^10.5.0",
+    "eslint": "^10.6.0",
     "gray-matter": "^4.0.3",
     "jiti": "^2.6.1",
     "knip": "^6.21.0",
