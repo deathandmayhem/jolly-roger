@@ -120,6 +120,11 @@ EOF
 
 # Install server dependencies
 WORKDIR /built_app/bundle/programs/server
+
+# Force node-gyp to use C++17 for legacy Meteor binary dependencies
+ENV CXXFLAGS="-std=c++17"
+ENV CFLAGS="-std=c++17"
+
 RUN --mount=type=cache,target=/root/.npm meteor npm install --omit=dev
 
 # Production image
