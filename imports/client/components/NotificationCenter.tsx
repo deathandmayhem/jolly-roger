@@ -781,24 +781,32 @@ const StyledToastContainer = styled(ToastContainer)`
 let cookieCheckCache: boolean | undefined;
 
 const useCookieCheck = (
-  endpointUrl: string | undefined,
-): boolean | undefined => {
+  urls: string[] | undefined,
+): { result: boolean | undefined; frames: React.ReactNode } => {
   // On mobile we show a link to the Google Doc rather than embedding it in an
   // iframe, so third-party cookie support doesn't matter.
   const isDesktop = useMediaQuery(desktopQuery);
   const [result, setResult] = useState(cookieCheckCache);
 
-  useEffect(() => {
-    if (!endpointUrl || !isDesktop || result !== undefined) return undefined;
+  // Use hasUrls to short-circuit and as a dependency for the effect so we don't
+  // have to worry about array identity.
+  const hasUrls = !!urls?.length;
 
+  useEffect(() => {
+    if (!hasUrls || !isDesktop || result !== undefined) return undefined;
     let timeout: ReturnType<typeof setTimeout> | undefined;
+    let settled = false;
 
     function resolve(ok: boolean) {
+      if (settled) return;
+      settled = true;
       if (timeout) clearTimeout(timeout);
       cookieCheckCache = ok;
       setResult(ok);
     }
 
+    // If any iframe successfully posts back, that means the code loaded and we
+    // get a trustworthy result.
     const onMessage = (event: MessageEvent) => {
       const data = event.data;
       if (data?.type === "jr-cookie-check" && typeof data.ok === "boolean") {
@@ -807,9 +815,9 @@ const useCookieCheck = (
     };
     window.addEventListener("message", onMessage);
 
-    // If the iframe never responds (e.g. an extension blocks the request
-    // entirely, or the page gets redirected to a login wall), treat it as
-    // cookies blocked — if the test iframe can't load, the Sheets embed
+    // If no frame ever responds (e.g. every candidate 404s, an extension blocks
+    // the requests, or a frame is redirected to a login wall), treat it as
+    // cookies blocked, since if the test iframes can't load, the Sheets embed
     // won't work either.
     timeout = setTimeout(() => resolve(false), 10000);
 
@@ -817,13 +825,23 @@ const useCookieCheck = (
       window.removeEventListener("message", onMessage);
       clearTimeout(timeout);
     };
-  }, [endpointUrl, isDesktop, result]);
+  }, [hasUrls, isDesktop, result]);
 
-  if (!isDesktop) return true;
-  if (!endpointUrl || result !== undefined) return result;
+  if (!isDesktop) return { result: true, frames: null };
+  if (result !== undefined || !urls?.length) return { result, frames: null };
 
-  // Return undefined (still loading) — the iframe will be rendered by the component
-  return undefined;
+  // Still checking: render one hidden iframe per candidate URL and let the
+  // client accept whichever one resolves.
+  const frames = urls.map((url) => (
+    // oxlint-disable-next-line react/iframe-missing-sandbox -- cross-origin cookie check needs unsandboxed access
+    <iframe
+      key={url}
+      src={url}
+      style={{ display: "none" }}
+      title="Cookie check"
+    />
+  ));
+  return { result: undefined, frames };
 };
 
 const CookieWarningMessage = ({ onDismiss }: { onDismiss: () => void }) => {
@@ -882,11 +900,12 @@ const NotificationCenter = () => {
       : false;
   }, [admin, needsGoogleScriptInfo]);
 
-  const cookieCheckEndpointUrl = useTracker(() => {
+  const cookieCheckUrls = useTracker(() => {
     if (!hasGoogleAccount || !needsGoogleScriptInfo) return undefined;
-    return GoogleScriptInfo.findOne()?.endpointUrl;
+    return GoogleScriptInfo.findOne()?.cookieCheckUrls;
   }, [hasGoogleAccount, needsGoogleScriptInfo]);
-  const cookieCheckResult = useCookieCheck(cookieCheckEndpointUrl);
+  const { result: cookieCheckResult, frames: cookieCheckFrames } =
+    useCookieCheck(cookieCheckUrls);
   const [hideCookieWarning, setHideCookieWarning] = useState(false);
   const onHideCookieWarning = useCallback(() => setHideCookieWarning(true), []);
 
@@ -1202,14 +1221,7 @@ const NotificationCenter = () => {
 
   return (
     <>
-      {cookieCheckEndpointUrl && cookieCheckResult === undefined && (
-        // oxlint-disable-next-line react/iframe-missing-sandbox -- cross-origin cookie check needs unsandboxed access
-        <iframe
-          src={cookieCheckEndpointUrl}
-          style={{ display: "none" }}
-          title="Cookie check"
-        />
-      )}
+      {cookieCheckFrames}
       <StyledToastContainer
         position="bottom-end"
         className="p-3 position-fixed"

@@ -35,7 +35,7 @@ files:
   - imports/server/setup.ts
   - private/google-script/cookie-test.html
   - private/google-script/main.js
-updated: 2026-06-14T12:04:50Z
+updated: 2026-07-17T05:54:51Z
 ---
 
 # Google Drive Integration
@@ -302,17 +302,18 @@ without credentials wouldn't send cookies at all.
 The result is posted back to the parent via `postMessage` with a message of type
 `jr-cookie-check`.
 
-On the client side, the `googleScriptInfo` publication (in
-`imports/server/setup.ts`) exposes the Apps Script `endpointUrl` to all
-authenticated users (not just admins). For users who have a linked Google
-account, `NotificationCenter` embeds the detection page in a hidden iframe and
-listens for the result. The result is cached in a module-level variable so the
-check is not re-run during SPA navigations, but does re-run on full page reload
-(so it picks up changes to tracking protection settings). If the check indicates
-cookies are blocked, a toast notification warns the user and provides
-browser-specific instructions for fixing the issue. On mobile-width screens
-(below `MinimumDesktopWidth` from `PuzzlePage`), the check is skipped entirely
-because we show a link to the Google Doc rather than embedding it in an iframe.
+We publish a set of URLs for the client to try in `googleScriptInfo`, and
+`NotificationCenter` races those URLs against each other in hidden iframes. We
+publish multiple due to some complexity in how Google Apps Script redirects
+based on whether the user is in a multi-login session, a Google Workspace domain
+session, etc. We don't care about which session they're in, just about whether
+or not we can see the cookies. The result is cached in a module-level variable
+so the check is not re-run during SPA navigations, but does re-run on full page
+reload (so it picks up changes to tracking protection settings). If cookies are
+blocked, a toast notification warns the user with browser-specific fix
+instructions. On mobile-width screens (below `MinimumDesktopWidth` from
+`PuzzlePage`), the check is skipped entirely because we show a link to the
+Google Doc rather than embedding it in an iframe.
 
 ## Utility Meteor methods
 
