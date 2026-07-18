@@ -56,7 +56,7 @@
     "ip-address": "^10.2.0",
     "logfmt": "^1.4.0",
     "marked": "^18.0.6",
-    "mediasoup": "^3.21.0",
+    "mediasoup": "^3.21.2",
     "mediasoup-client": "^3.21.0",
     "meteor-node-stubs": "^1.2.27",
     "mime-types": "^3.0.2",
