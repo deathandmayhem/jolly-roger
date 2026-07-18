@@ -120,7 +120,15 @@ EOF
 
 # Install server dependencies
 WORKDIR /built_app/bundle/programs/server
-RUN --mount=type=cache,target=/root/.npm meteor npm install --omit=dev
+RUN --mount=type=cache,target=/root/.npm <<'EOF'
+#!/bin/bash
+set -eux
+set -o pipefail
+# meteor prints junk about running as root to stdout, so capture this over stderr *sigh*
+NODE_PATH=$(cd /app && meteor node -e 'console.error(process.execPath);' 2>&1 1>/dev/null)
+export PATH="$(dirname "$NODE_PATH"):$PATH"
+npm install --omit=dev
+EOF
 
 # Production image
 # (Be careful about creating as few layers as possible)
