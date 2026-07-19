@@ -40,10 +40,14 @@ import {
   cleanupDeadServer,
   registerPeriodicCleanupHook,
 } from "./garbage-collection";
-import ignoringDuplicateKeyErrors from "./ignoringDuplicateKeyErrors";
+import { isDuplicateKeyError } from "./ignoringDuplicateKeyErrors";
 import CallActivities from "./models/CallActivities";
 import onExit from "./onExit";
+import recordCallPresence from "./recordCallPresence";
 import serverId from "./serverId";
+
+// Clamp the sweep interval so we don't hammer the database too much in dev mode
+const presenceSweepInterval = Math.max(2500, ACTIVITY_GRANULARITY / 5);
 
 const mediaCodecs: types.RouterRtpCodecCapability[] = [
   {
@@ -248,6 +252,8 @@ class SFU {
 
   public monitorConnectAcksHandle?: Meteor.LiveQueryHandle;
 
+  public presenceSweepHandle?: number;
+
   private constructor(
     ips: [ListenIp, ...ListenIp[]],
     worker: types.Worker,
@@ -266,7 +272,7 @@ class SFU {
     this.onMonitorRouterCreated(this.monitorRouter);
   }
 
-  async setupDBWatches() {
+  async setup() {
     this.peersHandle = await Peers.find({}).observeChangesAsync({
       // Use this as an opportunity to cleanup data created as part of the
       // transport negotiation
@@ -420,6 +426,12 @@ class SFU {
         });
       },
     });
+
+    this.presenceSweepHandle = Meteor.setInterval(() => {
+      this.sweepCallPresence().catch((error) => {
+        Logger.error("mediasoup sweepCallPresence failed", { error });
+      });
+    }, presenceSweepInterval);
   }
 
   static async create(ips: [ListenIp, ...ListenIp[]]) {
@@ -466,7 +478,7 @@ class SFU {
       heartbeatDirectTransport,
       heartbeatDataProducer,
     );
-    await sfu.setupDBWatches();
+    await sfu.setup();
     return sfu;
   }
 
@@ -482,6 +494,9 @@ class SFU {
     this.transportRequestsHandle?.stop();
     this.localRoomsHandle?.stop();
     this.peersHandle?.stop();
+    if (this.presenceSweepHandle !== undefined) {
+      Meteor.clearInterval(this.presenceSweepHandle);
+    }
     this.worker.close();
 
     // Make a best effort to clean up after ourselves
@@ -502,6 +517,32 @@ class SFU {
     await TransportRequests.removeAsync({ createdServer: serverId });
 
     await Routers.removeAsync({ createdServer: serverId });
+  }
+
+  async sweepCallPresence() {
+    // Sweep all peers, not just the ones assigned to this server. Slight write
+    // amplification, but it's easy and the unique index will protect the data
+    // integrity.
+    const ts = roundedTime(ACTIVITY_GRANULARITY);
+    const peers = await Peers.find({}).fetchAsync();
+    for (const peer of peers) {
+      if (!peer.createdBy) {
+        continue;
+      }
+      try {
+        await recordCallPresence({
+          hunt: peer.hunt,
+          call: peer.call,
+          user: peer.createdBy,
+          ts,
+        });
+      } catch (error) {
+        Logger.error("mediasoup recordCallPresence failed", {
+          error,
+          peer: peer._id,
+        });
+      }
+    }
   }
 
   async createConsumer(
@@ -685,14 +726,23 @@ class SFU {
         const lastWrite = lastWriteByUser.get(user) ?? 0;
         if (lastWrite < Date.now() - 1000) {
           lastWriteByUser.set(user, Date.now());
-          await ignoringDuplicateKeyErrors(async () => {
-            await CallActivities.insertAsync({
-              hunt: observerAppData.hunt,
-              call: observerAppData.call,
-              user,
-              ts: roundedTime(ACTIVITY_GRANULARITY),
+          // Upgrade a presence record to speaking, or insert a fresh speaking
+          // record. If we lose the insert race to a concurrent presence write
+          // (the sweep, or the join in mediasoup-api.ts), the row exists now, so
+          // fall back to a plain update.
+          const ts = roundedTime(ACTIVITY_GRANULARITY);
+          const selector = { call: observerAppData.call, user, ts };
+          try {
+            await CallActivities.upsertAsync(selector, {
+              $set: { speaking: true },
+              $setOnInsert: { hunt: observerAppData.hunt },
             });
-          });
+          } catch (e) {
+            if (!isDuplicateKeyError(e)) throw e;
+            await CallActivities.updateAsync(selector, {
+              $set: { speaking: true },
+            });
+          }
         }
       }
     };

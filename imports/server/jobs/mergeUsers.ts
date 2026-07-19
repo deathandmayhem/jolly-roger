@@ -245,6 +245,16 @@ const ADDITIONAL_FK_UPDATES = new Map<{ name: string }, FKUpdateFn>([
         source,
         target,
         signal,
+        // speaking is sticky per bucket: if the source spoke, keep the merged
+        // record speaking rather than letting the collision delete downgrade it.
+        async (doc, raw) => {
+          if (doc.speaking) {
+            await raw.updateOne(
+              { ts: doc.ts, call: doc.call, user: target },
+              { $set: { speaking: true } },
+            );
+          }
+        },
       );
     },
   ],
@@ -318,6 +328,10 @@ async function reassignUniqueFK(
   sourceUser: string,
   targetUser: string,
   signal: AbortSignal,
+  // On a unique-key collision the source's row is always deleted (the source
+  // user is going away); this runs first so the caller can fold anything worth
+  // keeping from it into the surviving target row.
+  mergeIntoTarget?: (sourceDoc: any, raw: any) => Promise<void>,
 ) {
   const raw = collection.rawCollection();
   const cursor = raw.find({ [field]: sourceUser });
@@ -327,8 +341,9 @@ async function reassignUniqueFK(
       await raw.updateOne({ _id: doc._id }, { $set: { [field]: targetUser } });
     } catch (e) {
       if (!isDuplicateKeyError(e)) throw e;
-      // The target already has an equivalent record — the source's is
-      // redundant, so delete it.
+      // The target already has a record for this unique key, so the source's is
+      // redundant. Let the caller salvage from it first, then drop it.
+      await mergeIntoTarget?.(doc, raw);
       await raw.deleteOne({ _id: doc._id });
     }
   }

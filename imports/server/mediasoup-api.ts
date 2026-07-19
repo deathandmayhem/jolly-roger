@@ -23,6 +23,7 @@ import Servers from "../lib/models/Servers";
 import { checkAdmin, userMayJoinCallsForHunt } from "../lib/permission_stubs";
 import { registerPeriodicCleanupHook } from "./garbage-collection";
 import ignoringDuplicateKeyErrors from "./ignoringDuplicateKeyErrors";
+import recordCallPresence from "./recordCallPresence";
 import serverId from "./serverId";
 import withLock from "./withLock";
 
@@ -111,6 +112,7 @@ Meteor.publish("mediasoup:join", async function (hunt, call, tab) {
   if (!this.userId) {
     throw new Meteor.Error(401, "Not logged in");
   }
+  const userId = this.userId;
 
   if (
     !userMayJoinCallsForHunt(
@@ -216,6 +218,14 @@ Meteor.publish("mediasoup:join", async function (hunt, call, tab) {
       }
     });
   });
+
+  // Record presence immediately so that tracking updates before the periodic
+  // sweep (mediasoup.ts) next runs
+  try {
+    await recordCallPresence({ hunt, call, user: userId });
+  } catch (error) {
+    Logger.error("mediasoup recordCallPresence failed", { error, call });
+  }
 
   return [Rooms.find({ call }), Routers.find({ call }), Peers.find({ call })];
 });
