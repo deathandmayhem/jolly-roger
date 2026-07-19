@@ -100,30 +100,40 @@ Meteor.publish("enabledChatImage", async function () {
 });
 
 /**
- * Fix the endpoint URL to work around multilogin issues.
+ * Build the candidate URLs to try for browser-side third-party cookie
+ * detection.
  *
- * When a user's browser is logged into multiple Google accounts, Google may redirect to a broken
- * URL. See https://groups.google.com/g/google-apps-script-community/c/1xrlqlkGEQ0 for more context.
- * Prefixing the path with "/a/~/" works around the issue. This isn't necessary for server-initiated
- * calls since there are no login cookies that would cause redirects.
+ * We extract the deployment ID from the configured URL and build two additional
+ * derived URLs for clients to try. The basic URL should match the configured
+ * URL (but we rebuild it just in case). The URL with "/a/~/" is a workaround
+ * for users who are logged in to a multi-login session (taken from
+ * https://groups.google.com/g/google-apps-script-community/c/1xrlqlkGEQ0). But
+ * we need both because the /a/~/ URL doesn't work with Google Workspace domain
+ * accounts (it redirects to /a/<domain>/a/~/ which 404s).
  */
-function canonicalizeGoogleScriptEndpointUrl(
+function googleScriptCookieCheckUrls(
   endpointUrl: string | undefined,
-): string | undefined {
-  if (!endpointUrl) return endpointUrl;
+): string[] | undefined {
+  if (!endpointUrl) return undefined;
+  let parsedUrl: URL;
   try {
-    const parsedUrl = new URL(endpointUrl);
-    if (
-      parsedUrl.hostname === "script.google.com" &&
-      !parsedUrl.pathname.startsWith("/a/~/")
-    ) {
-      parsedUrl.pathname = `/a/~${parsedUrl.pathname}`;
-      return parsedUrl.toString();
-    }
+    parsedUrl = new URL(endpointUrl);
   } catch {
-    // If the URL is malformed, return it as-is.
+    // Unparseable URL: hand it back as-is and let the client try to load it.
+    return [endpointUrl];
   }
-  return endpointUrl;
+  // Always try the configured URL itself, then additionally construct our two
+  // redirect-workaround variants.
+  const candidates = [parsedUrl.toString()];
+  const match = /\/s\/([^/]+)\/exec(?:\/|$)/.exec(parsedUrl.pathname);
+  if (parsedUrl.hostname === "script.google.com" && match) {
+    const deploymentId = match[1];
+    candidates.push(
+      `${parsedUrl.origin}/macros/s/${deploymentId}/exec`,
+      `${parsedUrl.origin}/a/~/macros/s/${deploymentId}/exec`,
+    );
+  }
+  return [...new Set(candidates)];
 }
 
 Meteor.publish("googleScriptInfo", async function () {
@@ -137,18 +147,16 @@ Meteor.publish("googleScriptInfo", async function () {
   let tracked = false;
   const formatDoc = async (doc: SettingType & { name: "google.script" }) => {
     const configured = !!doc.value.scriptId && !!doc.value.endpointUrl;
-    const endpointUrl = canonicalizeGoogleScriptEndpointUrl(
-      doc.value.endpointUrl,
-    );
+    const cookieCheckUrls = googleScriptCookieCheckUrls(doc.value.endpointUrl);
     if (admin) {
       const { contentHash } = await googleScriptContent(doc.value.sharedSecret);
       return {
         configured,
         outOfDate: doc.value.contentHash !== contentHash,
-        endpointUrl,
+        cookieCheckUrls,
       };
     }
-    return { configured, endpointUrl };
+    return { configured, cookieCheckUrls };
   };
   const handle: Meteor.LiveQueryHandle = await cursor.observeAsync({
     added: (doc) => {
