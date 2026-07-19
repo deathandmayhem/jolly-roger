@@ -8,6 +8,7 @@ const CallActivity = z.object({
   hunt: foreignKey,
   call: foreignKey,
   user: foreignKey,
+  speaking: z.boolean(),
 });
 
 const CallActivities = new Model("jr_call_activities", CallActivity);

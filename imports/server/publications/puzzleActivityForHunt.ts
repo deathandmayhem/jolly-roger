@@ -59,8 +59,9 @@ class HuntActivityAggregator {
     const cutoff = new Date(
       Date.now() - ACTIVITY_GRANULARITY * ACTIVITY_SEGMENTS,
     );
-    // All of these are sufficiently immutable that we don't need to observe
-    // changes or removes
+    // We only need to observe adds: doc and chat records are immutable, and a
+    // call record can only ever flip into the speaking: true filter (never out
+    // of it), which also arrives as an add.
     this.initializing = true;
     this.documentActivityPromise = DocumentActivities.find({
       hunt: this.hunt,
@@ -84,6 +85,7 @@ class HuntActivityAggregator {
     this.callActivityPromise = CallActivities.find({
       hunt: this.hunt,
       ts: { $gte: cutoff },
+      speaking: true,
     }).observeChangesAsync({
       added: (_, fields) => {
         const { call: puzzle, ts, user } = fields;
