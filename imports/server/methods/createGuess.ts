@@ -5,6 +5,7 @@ import Guesses from "../../lib/models/Guesses";
 import Hunts from "../../lib/models/Hunts";
 import Puzzles from "../../lib/models/Puzzles";
 import createGuess from "../../methods/createGuess";
+import { answerify } from "../../model-helpers";
 import sendChatMessageInternal from "../sendChatMessageInternal";
 import defineMethod from "./defineMethod";
 
@@ -19,8 +20,13 @@ defineMethod(createGuess, {
     return arg;
   },
 
-  async run({ puzzleId, guess, direction, confidence }) {
+  async run({ puzzleId, guess: rawGuess, direction, confidence }) {
     check(this.userId, String);
+
+    // Normalize up front so the insert, log line, and chat message all use
+    // the same canonical form. (The client uppercases as you type, but
+    // that's a courtesy, not a guarantee.)
+    const guess = answerify(rawGuess);
 
     const puzzle = await Puzzles.findOneAsync(puzzleId);
 
