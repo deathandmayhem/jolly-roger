@@ -20,8 +20,8 @@ Migrations.add({
         { hunt: null },
       ],
     })) {
-      await ChatMessages.updateAsync(
-        m._id,
+      await ChatMessages.collection.rawCollection().updateOne(
+        { _id: m._id },
         {
           $set: {
             deleted: m.deleted === undefined ? false : m.deleted,
@@ -35,7 +35,7 @@ Migrations.add({
           },
         },
         {
-          bypassSchema: true,
+          bypassDocumentValidation: true,
         },
       );
     }
