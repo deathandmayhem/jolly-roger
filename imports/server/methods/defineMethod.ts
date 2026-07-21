@@ -1,64 +1,49 @@
+import { check, Match } from "meteor/check";
 import { EJSON } from "meteor/ejson";
 import { Meteor } from "meteor/meteor";
 import Bugsnag from "@bugsnag/js";
+import type z from "zod";
+import { ZodError } from "zod";
 import type TypedMethod from "../../methods/TypedMethod";
-import type {
-  TypedMethodArgs,
-  TypedMethodParam,
-} from "../../methods/TypedMethod";
 
-type TypedMethodValidator<Arg extends TypedMethodArgs> = (
-  this: Meteor.MethodThisType,
-  arg0: unknown,
-) => Arg;
-type TypedMethodRun<
-  Arg extends TypedMethodArgs,
-  Return extends TypedMethodParam | void,
-> = Arg extends void
-  ? (this: Meteor.MethodThisType) => Return | Promise<Return>
-  : (this: Meteor.MethodThisType, arg0: Arg) => Return | Promise<Return>;
-
-const voidValidator = () => {
-  /* noop */
-};
-
-// Supporting methods with no (void) arguments is a bit messy, but comes up
-// often enough that it's worth doing properly. With no arguments, the type
-// system doesn't accept a validator. However, there's no way to access type
-// information at runtime, so when no validator is provided, we substitute
-// `voidValidator` at runtime (which explicitly discards any arguments, ensuring
-// that they aren't passed through to the `run` implementation).
-//
-// Ideally we'd declare the `validate` method in a way that it is absent for
-// void and present for non-void and subsequently check for the presence/absence
-// to hint to the type system whether or not we were dealing with a void method,
-// but I wasn't able to get the type system to make inference in that direction
-// (that the absence of a validate method implied void arguments), which just
-// made everything more awkward.
 export default function defineMethod<
-  Args extends TypedMethodArgs,
-  Return extends TypedMethodParam | void,
+  Args extends z.AnyZodTuple,
+  Return extends z.ZodTypeAny,
 >(
   method: TypedMethod<Args, Return>,
   {
-    validate,
     run,
   }: {
-    run: TypedMethodRun<Args, Return>;
-  } & (Args extends void
-    ? { validate?: undefined }
-    : { validate: TypedMethodValidator<Args> }),
+    run: (
+      this: Meteor.MethodThisType,
+      ...args: z.output<Args>
+    ) => z.input<Return> | Promise<z.input<Return>>;
+  },
 ) {
-  const validator = (validate ?? voidValidator) as TypedMethodValidator<Args>;
-
   Meteor.methods({
-    async [method.name](arg0: Args) {
+    async [method.name](...args: unknown[]) {
+      // Silence audit-argument-checks; we'll do our own validation below.
+      check(args, [Match.Any]);
+
       try {
-        // In the case of no arguments, the type system will track the return
-        // value from `validate` as `void`, but because it's a function that
-        // doesn't return anything, it will in practice be `undefined`.
-        const validatedArgs = validator.bind(this)(arg0) as any;
-        return await run.bind(this)(validatedArgs);
+        const validatedArgs = await method.args
+          .parseAsync(args)
+          .catch((error: unknown) => {
+            // Attach a sanitized error to get serialized over DDP, but keep the
+            // original error for server-side reporting.
+            if (error instanceof ZodError) {
+              (
+                error as ZodError & { sanitizedError?: Meteor.Error }
+              ).sanitizedError = new Meteor.Error(
+                400,
+                `Invalid arguments to method ${method.name}`,
+              );
+            }
+            throw error;
+          });
+        const result = await run.apply(this, validatedArgs);
+        // (Don't sanitize - a badly formatted return value is a server bug)
+        return await method.return.parseAsync(result);
       } catch (error) {
         if (error instanceof Error && Bugsnag.isStarted()) {
           // Attempt to classify severity based on the following rules:
@@ -80,7 +65,7 @@ export default function defineMethod<
             event.context = method.name;
             event.severity = severity;
             event.addMetadata("method", {
-              arguments: EJSON.stringify(arg0 ?? {}),
+              arguments: EJSON.stringify({ args }),
             });
           });
         }

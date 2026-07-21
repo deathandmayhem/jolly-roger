@@ -1,11 +1,10 @@
 import { useSubscribe } from "meteor/react-meteor-data";
+import type z from "zod";
 import type TypedPublication from "../../lib/publications/TypedPublication";
-import type { TypedPublicationArgs } from "../../lib/publications/TypedPublication";
-import type { TypedMethodSubscribeArgs } from "../typedSubscribe";
 
-export default function useTypedSubscribe<T, Arg extends TypedPublicationArgs>(
-  publication: TypedPublication<Arg> | undefined,
-  ...args: TypedMethodSubscribeArgs<T, Arg>
+export default function useTypedSubscribe<Args extends z.AnyZodTuple>(
+  publication: TypedPublication<Args> | undefined,
+  ...args: z.input<Args>
 ) {
   return useSubscribe(publication?.name ?? undefined, ...args);
 }
