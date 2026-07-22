@@ -46,6 +46,7 @@ import Loading from "./Loading";
 import NotificationCenter from "./NotificationCenter";
 import { NavBarHeight } from "./styling/constants";
 import { mediaBreakpointDown } from "./styling/responsive";
+import UnsupportedBrowserNotice from "./UnsupportedBrowserNotice";
 
 const Breadcrumb = styled.nav`
   display: flex;
@@ -408,6 +409,7 @@ const App = ({ children }: { children: React.ReactNode }) => {
       ref={scopeRef}
     >
       <BootstrapScopeProvider value={scopeRef}>
+        <UnsupportedBrowserNotice />
         <NotificationCenter />
         <AppNavbar appTheme={appTheme ?? "light"} setAppTheme={setAppTheme} />
         <ConnectionStatus />
