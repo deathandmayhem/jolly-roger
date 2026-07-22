@@ -1,4 +1,3 @@
-import { setImmediate } from "node:timers/promises";
 import type { Meteor, Subscription } from "meteor/meteor";
 import { Random } from "meteor/random";
 import { assert } from "chai";
@@ -8,6 +7,8 @@ import Tags from "../../../../imports/lib/models/Tags";
 import makeFixtureHunt from "../../../../imports/server/makeFixtureHunt";
 import publishJoinedQuery from "../../../../imports/server/publishJoinedQuery";
 import resetDatabase from "../../../lib/resetDatabase";
+import waitForAssertion from "../../../lib/waitForAssertion";
+import withWriteFence from "../../../lib/withWriteFence";
 
 class StubSubscription implements Subscription {
   stopHooks: (() => void)[] = [];
@@ -76,6 +77,17 @@ class StubSubscription implements Subscription {
 }
 
 describe("publishJoinedQuery", function () {
+  // Stop observers per-test: a leftover observer would share its multiplexer
+  // with a later test's identical query, seeding it from a cache that can lag
+  // the beforeEach writes rather than from a fresh fetch.
+  let stopFns: (() => void)[] = [];
+  afterEach(function () {
+    stopFns.forEach((fn) => {
+      fn();
+    });
+    stopFns = [];
+  });
+
   beforeEach(async function () {
     await resetDatabase("publishJoinedQuery");
     await makeFixtureHunt(Random.id());
@@ -83,7 +95,7 @@ describe("publishJoinedQuery", function () {
 
   it("can follow a string foreign key", async function () {
     const sub = new StubSubscription();
-    after(() => sub.stop());
+    stopFns.push(() => sub.stop());
 
     const guessId = "obeeKs3ZEkBe3ykeg";
     const puzzleId = "fXchzrh8X9EoSZu6k";
@@ -115,7 +127,7 @@ describe("publishJoinedQuery", function () {
 
   it("can follow an array foreign key", async function () {
     const sub = new StubSubscription();
-    after(() => sub.stop());
+    stopFns.push(() => sub.stop());
 
     const puzzleId = "fXchzrh8X9EoSZu6k";
     const tagIds = ["o5JdfTizW4tGwhRnP", "QeJLufdCqv7rMSSbS"];
@@ -147,7 +159,7 @@ describe("publishJoinedQuery", function () {
 
   it("updates if foreign keys change", async function () {
     const sub = new StubSubscription();
-    after(() => sub.stop());
+    stopFns.push(() => sub.stop());
 
     const puzzleId = "fXchzrh8X9EoSZu6k";
     const newTagIds = ["NwhNGo64jRs384HwN", "27YauwyRpL6yMsCef"];
@@ -168,28 +180,9 @@ describe("publishJoinedQuery", function () {
       { _id: puzzleId },
     );
 
-    const updatePropagated = new Promise<void>((resolve, reject) => {
-      let handleThunk: Meteor.LiveQueryHandle | undefined;
-      Puzzles.find(puzzleId)
-        .observeChangesAsync({
-          changed: () => {
-            if (handleThunk) {
-              handleThunk.stop();
-              handleThunk = undefined;
-              resolve();
-            }
-          },
-        })
-        .then((handle) => {
-          handleThunk = handle;
-        })
-        .catch(reject);
-      after(() => handleThunk?.stop());
+    await withWriteFence(async () => {
+      await Puzzles.updateAsync(puzzleId, { $set: { tags: newTagIds } });
     });
-
-    await Puzzles.updateAsync(puzzleId, { $set: { tags: newTagIds } });
-    // make sure the update has propagated to oplog watchers
-    await updatePropagated;
 
     assert.sameMembers([...sub.data.keys()], [Puzzles.name, Tags.name]);
 
@@ -198,24 +191,11 @@ describe("publishJoinedQuery", function () {
 
     const tagCollection = sub.data.get(Tags.name)!;
 
-    // Give the sub an additional while to process the updated foreign keys,
-    // since we wind up with a bunch of chained promises that have to be
-    // awaited within JoinedObjectObserver to ensure we emit updates in the
-    // right order, and that has to do some async mongo queries.  In local
-    // testing, this generally completes within 10 turns and 2ms.
-    for (let i = 0; i < 1000; i++) {
-      // console.log(`tick ${i}`);
-      await setImmediate();
-      // Exit early if condition is satisfied
-      const observed = [...tagCollection.keys()];
-      const newSortedTagIds = newTagIds.toSorted();
-      if (
-        observed.length === newTagIds.length &&
-        observed.toSorted().every((val, j) => val === newSortedTagIds[j])
-      ) {
-        break;
-      }
-    }
-    assert.sameMembers([...tagCollection.keys()], newTagIds);
+    // The fence guarantees our observer saw the update, but the sub picks up
+    // the new foreign keys through promise chains that run their own mongo
+    // queries, so poll until the join converges.
+    await waitForAssertion(() => {
+      assert.sameMembers([...tagCollection.keys()], newTagIds);
+    });
   });
 });
