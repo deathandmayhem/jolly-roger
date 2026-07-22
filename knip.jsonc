@@ -2,7 +2,6 @@
   "$schema": "https://unpkg.com/knip@5/schema-jsonc.json",
   "entry": [
     "{client,server,tests}/main.ts",
-    "client/**/*.scss",
     "private/google-script/main.js",
     // knip can't follow dynamic imports
     "tests/**"
@@ -25,8 +24,9 @@
     "@rsdoctor/rspack-plugin",
     "@rspack/plugin-react-refresh",
     "react-refresh",
-    // Detected and used by fourseven:scss
-    "sass",
+    // Referenced by name from rspack.config.js, which knip can't follow
+    "postcss-loader",
+    "sass-loader",
     // Detected and used by mongodb
     "aws4",
     // Needed by styled-components' .d.ts files (dropped from its production deps in 6.4.0)

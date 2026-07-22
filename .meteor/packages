@@ -31,6 +31,6 @@ hot-module-replacement@0.6.0
 zodern:standard-minifier-js
 fetch@0.1.6
 zodern:types
-fourseven:scss@5.0.0-beta.1
 npm-mongo@6.16.1
 rspack@1.1.0
+static-html

@@ -40,7 +40,6 @@ import Modal from "react-bootstrap/Modal";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Row from "react-bootstrap/Row";
 import Tooltip from "react-bootstrap/Tooltip";
-import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { Link, useParams } from "react-router";
 import type { Descendant } from "slate";
@@ -96,6 +95,7 @@ import useTypedSubscribe from "../hooks/useTypedSubscribe";
 import indexedDisplayNames from "../indexedDisplayNames";
 import { trace } from "../tracing";
 import BookmarkButton from "./BookmarkButton";
+import { useBootstrapContainer } from "./BootstrapScopeContext";
 import ChatMessage from "./ChatMessage";
 import ChatPeople from "./ChatPeople";
 import CopyToClipboardButton from "./CopyToClipboardButton";
@@ -635,6 +635,7 @@ const ChatInput = React.memo(
     // We want to have hunt profile data around so we can autocomplete from multiple fields.
     const profilesLoadingFunc = useSubscribe("huntProfiles", huntId);
     const profilesLoading = profilesLoadingFunc();
+    const container = useBootstrapContainer();
     const [uploadImageError, setUploadImageError] = useState<string>();
     const clearUploadImageError = useCallback(
       () => setUploadImageError(undefined),
@@ -836,7 +837,7 @@ const ChatInput = React.memo(
     );
 
     const errorModal = (
-      <Modal show onHide={clearUploadImageError}>
+      <Modal show onHide={clearUploadImageError} container={container}>
         <Modal.Header closeButton>Error uploading image to chat</Modal.Header>
         <Modal.Body>
           <p>
@@ -852,7 +853,7 @@ const ChatInput = React.memo(
 
     return (
       <ChatInputRow>
-        {uploadImageError && createPortal(errorModal, document.body)}
+        {uploadImageError && errorModal}
         <InputGroup>
           <StyledFancyEditor
             ref={fancyEditorRef}
@@ -1141,6 +1142,7 @@ const PuzzlePageMetadata = ({
       <DocumentDisplay document={document} displayMode="link" user={selfUser} />
     ) : null;
 
+  const container = useBootstrapContainer();
   const { t } = useTranslation();
 
   const editButton = canUpdate ? (
@@ -1190,6 +1192,7 @@ const PuzzlePageMetadata = ({
 
   const minimizeMetadataButton = (
     <OverlayTrigger
+      container={container}
       placement="bottom"
       overlay={
         <Tooltip id={`${idPrefix}-hide-puzzle-info`}>
@@ -1440,6 +1443,7 @@ const PuzzleGuessModal = ({
   const [submitError, setSubmitError] = useState("");
   const formRef = useRef<React.ComponentRef<typeof ModalForm>>(null);
 
+  const container = useBootstrapContainer();
   const { t, i18n } = useTranslation();
 
   useImperativeHandle(ref, () => ({
@@ -1627,7 +1631,11 @@ const PuzzleGuessModal = ({
         </FormLabel>
         <Col xs={9}>
           <ValidatedSliderContainer>
-            <OverlayTrigger placement="top" overlay={directionTooltip}>
+            <OverlayTrigger
+              container={container}
+              placement="top"
+              overlay={directionTooltip}
+            >
               <GuessSliderContainer>
                 <GuessSliderLeftLabel>
                   <FontAwesomeIcon icon={faArrowLeft} />
@@ -1678,7 +1686,11 @@ const PuzzleGuessModal = ({
         </FormLabel>
         <Col xs={9}>
           <ValidatedSliderContainer>
-            <OverlayTrigger placement="top" overlay={confidenceTooltip}>
+            <OverlayTrigger
+              container={container}
+              placement="top"
+              overlay={confidenceTooltip}
+            >
               <GuessSliderContainer>
                 <GuessSliderLeftLabel>0%</GuessSliderLeftLabel>
                 <GuessSlider
@@ -2019,9 +2031,15 @@ const PuzzleDeletedModal = ({
   }, [puzzleId, hide]);
 
   const { t } = useTranslation();
+  const bootstrapContainer = useBootstrapContainer();
 
   const modal = (
-    <Modal show={show} onHide={hide} backdrop="static">
+    <Modal
+      show={show}
+      onHide={hide}
+      backdrop="static"
+      container={bootstrapContainer}
+    >
       <Modal.Header closeButton>
         <Modal.Title>
           {t(
@@ -2079,7 +2097,7 @@ const PuzzleDeletedModal = ({
     </Modal>
   );
 
-  return createPortal(modal, document.body);
+  return modal;
 };
 
 const PuzzlePage = React.memo(() => {
@@ -2181,6 +2199,7 @@ const PuzzlePage = React.memo(() => {
 
   const selfUser = useTracker(() => Meteor.user()!, []);
 
+  const container = useBootstrapContainer();
   const { t } = useTranslation();
 
   const puzzleTitle = activePuzzle
@@ -2405,6 +2424,7 @@ const PuzzlePage = React.memo(() => {
 
   const showMetadataButton = isMetadataMinimized ? (
     <OverlayTrigger
+      container={container}
       placement="bottom-end"
       overlay={
         <Tooltip id={`${idPrefix}-show-puzzle-info`}>
@@ -2437,6 +2457,7 @@ const PuzzlePage = React.memo(() => {
             />
           ) : (
             <OverlayTrigger
+              container={container}
               placement="right"
               overlay={
                 <Tooltip id={`${idPrefix}-hide-chat`}>

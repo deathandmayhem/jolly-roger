@@ -47,6 +47,22 @@ module.exports = defineConfig((Meteor) => {
           },
           type: "javascript/auto",
         },
+        // Only the CSS needs PostCSS: scope-tailwind acts on the base,
+        // components, and utilities layers, and Bootstrap sits in its own.
+        ...(Meteor.isClient
+          ? [
+              {
+                test: /\.css$/,
+                use: ["postcss-loader"],
+                type: "css",
+              },
+              {
+                test: /\.scss$/,
+                use: ["sass-loader"],
+                type: "css",
+              },
+            ]
+          : []),
       ],
     },
     resolve: {

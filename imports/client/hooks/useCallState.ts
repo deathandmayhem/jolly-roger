@@ -26,8 +26,9 @@ import mediasoupAckPeerRemoteMute from "../../methods/mediasoupAckPeerRemoteMute
 import mediasoupConnectTransport from "../../methods/mediasoupConnectTransport";
 import mediasoupSetPeerState from "../../methods/mediasoupSetPeerState";
 import mediasoupSetProducerPaused from "../../methods/mediasoupSetProducerPaused";
-import { PREFERRED_AUDIO_DEVICE_STORAGE_KEY } from "../components/AudioConfig";
-import getAudioStream from "../getAudioStream";
+import getAudioStream, {
+  PREFERRED_AUDIO_DEVICE_STORAGE_KEY,
+} from "../getAudioStream";
 import { trace } from "../tracing";
 import useBlockUpdate from "./useBlockUpdate";
 
