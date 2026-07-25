@@ -1,4 +1,3 @@
-import { check } from "meteor/check";
 import Hunts from "../../lib/models/Hunts";
 import InvitationCodes from "../../lib/models/InvitationCodes";
 import MeteorUsers from "../../lib/models/MeteorUsers";
@@ -7,13 +6,6 @@ import invitationCodesForHunt from "../../lib/publications/invitationCodesForHun
 import definePublication from "./definePublication";
 
 definePublication(invitationCodesForHunt, {
-  validate(arg) {
-    check(arg, {
-      huntId: String,
-    });
-    return arg;
-  },
-
   async run({ huntId }) {
     if (!this.userId) {
       return [];

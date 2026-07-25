@@ -1,4 +1,3 @@
-import { check } from "meteor/check";
 import Guesses from "../../lib/models/Guesses";
 import Hunts from "../../lib/models/Hunts";
 import MeteorUsers from "../../lib/models/MeteorUsers";
@@ -8,13 +7,6 @@ import publishJoinedQuery from "../publishJoinedQuery";
 import definePublication from "./definePublication";
 
 definePublication(guessesForGuessQueue, {
-  validate(arg) {
-    check(arg, {
-      huntId: String,
-    });
-    return arg;
-  },
-
   async run({ huntId }) {
     if (!this.userId) {
       return [];
