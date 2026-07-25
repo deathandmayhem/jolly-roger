@@ -5,7 +5,7 @@ Migrations.add({
   version: 21,
   name: "Remove older answer field from puzzles",
   async up() {
-    await Puzzles.updateAsync(
+    await Puzzles.collection.rawCollection().updateMany(
       {},
       {
         $unset: {
@@ -13,7 +13,7 @@ Migrations.add({
         },
       },
       {
-        bypassSchema: true,
+        bypassDocumentValidation: true,
       },
     );
   },

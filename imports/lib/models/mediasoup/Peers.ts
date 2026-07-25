@@ -1,9 +1,9 @@
 import { z } from "zod";
-import { foreignKey } from "../customTypes";
-import type { ModelType } from "../Model";
-import { Id } from "../regexes";
-import SoftDeletedModel from "../SoftDeletedModel";
-import withCommon from "../withCommon";
+import { foreignKey } from "../../typedModel/customTypes";
+import type { ModelType } from "../../typedModel/Model";
+import { Id } from "../../typedModel/regexes";
+import SoftDeletedModel from "../../typedModel/SoftDeletedModel";
+import withCommon from "../../typedModel/withCommon";
 
 // Peer tracks room membership. When the first peer for a call is created,
 // create a corresponding Room on the same server.

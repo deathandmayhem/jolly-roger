@@ -1,8 +1,8 @@
 import { z } from "zod";
-import { nonEmptyString } from "../../lib/models/customTypes";
-import type { ModelType } from "../../lib/models/Model";
-import Model from "../../lib/models/Model";
-import withTimestamps from "../../lib/models/withTimestamps";
+import { nonEmptyString } from "../../lib/typedModel/customTypes";
+import type { ModelType } from "../../lib/typedModel/Model";
+import Model from "../../lib/typedModel/Model";
+import withTimestamps from "../../lib/typedModel/withTimestamps";
 
 // LatestDeploymentTimestamp captures the most recent build timestamp that we've
 // observed, and is used to prevent older builds from accidentally warring over

@@ -1,8 +1,8 @@
 import { z } from "zod";
-import { foreignKey, nonEmptyString } from "../customTypes";
-import type { ModelType } from "../Model";
-import SoftDeletedModel from "../SoftDeletedModel";
-import withCommon from "../withCommon";
+import { foreignKey, nonEmptyString } from "../../typedModel/customTypes";
+import type { ModelType } from "../../typedModel/Model";
+import SoftDeletedModel from "../../typedModel/SoftDeletedModel";
+import withCommon from "../../typedModel/withCommon";
 
 const Transport = withCommon(
   z.object({
@@ -14,7 +14,7 @@ const Transport = withCommon(
     // client-to-server (i.e. producers); "recv" is server to client (i.e.
     // consumers)
     direction: z.enum(["send", "recv"]),
-    transportId: z.string().uuid(), // mediasoup identifier
+    transportId: z.uuid(), // mediasoup identifier
     iceParameters: nonEmptyString, // JSON-encoded
     iceCandidates: nonEmptyString, // JSON-encoded
     dtlsParameters: nonEmptyString, // JSON-encoded

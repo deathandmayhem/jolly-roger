@@ -1,7 +1,7 @@
 import { z } from "zod";
-import type { ModelType } from "./Model";
-import SoftDeletedModel from "./SoftDeletedModel";
-import withCommon from "./withCommon";
+import type { ModelType } from "../typedModel/Model";
+import SoftDeletedModel from "../typedModel/SoftDeletedModel";
+import withCommon from "../typedModel/withCommon";
 
 export const FlagNames = [
   "disable.dingwords",

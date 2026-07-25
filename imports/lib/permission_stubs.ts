@@ -3,8 +3,8 @@ import type z from "zod";
 import isAdmin, { GLOBAL_SCOPE } from "./isAdmin";
 import type { HuntType } from "./models/Hunts";
 import MeteorUsers from "./models/MeteorUsers";
-import type { Selector } from "./models/Model";
 import type { User } from "./models/User";
+import type { Selector } from "./typedModel/Model";
 
 function isOperatorForHunt(
   user: Pick<Meteor.User, "roles">,

@@ -1,6 +1,6 @@
 import { z } from "zod";
-import type { ModelType } from "../../lib/models/Model";
-import Model from "../../lib/models/Model";
+import type { ModelType } from "../../lib/typedModel/Model";
+import Model from "../../lib/typedModel/Model";
 
 // DriveActivityLatest captures the most recent timestamp we've seen from the
 // Google Drive Activity API. It is a singleton collection, with _id "default"
