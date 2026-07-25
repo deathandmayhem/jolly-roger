@@ -1,23 +1,20 @@
 import { Meteor } from "meteor/meteor";
+import type z from "zod";
 import type TypedPublication from "../lib/publications/TypedPublication";
-import type { TypedPublicationArgs } from "../lib/publications/TypedPublication";
-import type ValidateShape from "../lib/ValidateShape";
+import type { ExactCallArgs } from "../lib/ValidateShape";
 
-export type TypedMethodSubscribeArgs<
-  T,
-  Arg extends TypedPublicationArgs,
-> = Arg extends void ? [] : [ValidateShape<T, Arg>];
-
-const typedSubscribe = <T, Args extends TypedPublicationArgs>(
+// oxlint-disable-next-line typescript/no-unnecessary-type-parameters -- T must remain independently inferred so ExactCallArgs can reject excess properties
+const typedSubscribe = <Args extends z.ZodTuple, T extends z.input<Args>>(
   publication: TypedPublication<Args>,
-  ...args: TypedMethodSubscribeArgs<T, Args>
+  ...args: ExactCallArgs<T, z.input<Args>>
 ) => {
   return Meteor.subscribe(publication.name, ...args);
 };
 
-typedSubscribe.async = <T, Args extends TypedPublicationArgs>(
+// oxlint-disable-next-line typescript/no-unnecessary-type-parameters -- T must remain independently inferred so ExactCallArgs can reject excess properties
+typedSubscribe.async = <Args extends z.ZodTuple, T extends z.input<Args>>(
   publication: TypedPublication<Args>,
-  ...args: TypedMethodSubscribeArgs<T, Args>
+  ...args: ExactCallArgs<T, z.input<Args>>
 ) => {
   return new Promise<Meteor.SubscriptionHandle>((resolve, reject) => {
     const handle = Meteor.subscribe(publication.name, ...args, {
