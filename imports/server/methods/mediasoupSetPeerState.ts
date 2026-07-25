@@ -1,22 +1,10 @@
-import { check, Match } from "meteor/check";
 import { Meteor } from "meteor/meteor";
 import Flags from "../../Flags";
 import Peers from "../../lib/models/mediasoup/Peers";
-import mediasoupSetPeerState, {
-  ALLOWED_STATES,
-} from "../../methods/mediasoupSetPeerState";
+import mediasoupSetPeerState from "../../methods/mediasoupSetPeerState";
 import defineMethod from "./defineMethod";
 
 defineMethod(mediasoupSetPeerState, {
-  validate(arg) {
-    check(arg, {
-      peerId: String,
-      state: Match.OneOf(...ALLOWED_STATES),
-    });
-
-    return arg;
-  },
-
   async run({ peerId, state }) {
     if (!this.userId) {
       throw new Meteor.Error(401, "Not logged in");

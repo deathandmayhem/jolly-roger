@@ -1,4 +1,4 @@
-import { check, Match } from "meteor/check";
+import { check } from "meteor/check";
 import { Meteor } from "meteor/meteor";
 import { ServiceConfiguration } from "meteor/service-configuration";
 import Logger from "../../Logger";
@@ -8,14 +8,6 @@ import configureGoogleOAuthClient from "../../methods/configureGoogleOAuthClient
 import defineMethod from "./defineMethod";
 
 defineMethod(configureGoogleOAuthClient, {
-  validate(arg) {
-    check(arg, {
-      clientId: Match.Optional(String),
-      secret: Match.Optional(String),
-    });
-    return arg;
-  },
-
   async run({ clientId, secret }) {
     check(this.userId, String);
 

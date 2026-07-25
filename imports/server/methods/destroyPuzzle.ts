@@ -1,4 +1,4 @@
-import { check, Match } from "meteor/check";
+import { check } from "meteor/check";
 import { Meteor } from "meteor/meteor";
 import Flags from "../../Flags";
 import Documents from "../../lib/models/Documents";
@@ -11,15 +11,6 @@ import { copySheets, makeReadOnly } from "../gdrive";
 import defineMethod from "./defineMethod";
 
 defineMethod(destroyPuzzle, {
-  validate(arg) {
-    check(arg, {
-      puzzleId: String,
-      replacedBy: Match.Optional(String),
-      copySheetsToReplacement: Boolean,
-    });
-    return arg;
-  },
-
   async run({ puzzleId, replacedBy, copySheetsToReplacement }) {
     check(this.userId, String);
 

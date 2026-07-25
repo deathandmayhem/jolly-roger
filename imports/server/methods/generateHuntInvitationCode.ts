@@ -11,13 +11,6 @@ import defineMethod from "./defineMethod";
 
 // Generate (or regenerate) an invitation code for the given hunt.
 defineMethod(generateHuntInvitationCode, {
-  validate(arg) {
-    check(arg, {
-      huntId: String,
-    });
-    return arg;
-  },
-
   async run({ huntId }) {
     check(this.userId, String);
 

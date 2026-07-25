@@ -1,5 +1,4 @@
 import { Accounts } from "meteor/accounts-base";
-import { check } from "meteor/check";
 import { Meteor } from "meteor/meteor";
 import { GLOBAL_SCOPE } from "../../lib/isAdmin";
 import MeteorUsers from "../../lib/models/MeteorUsers";
@@ -8,14 +7,6 @@ import provisionFirstUser from "../../methods/provisionFirstUser";
 import defineMethod from "./defineMethod";
 
 defineMethod(provisionFirstUser, {
-  validate(args) {
-    check(args, {
-      email: String,
-      password: String,
-    });
-    return args;
-  },
-
   async run({ email, password }) {
     // Refuse to create the user if any users already exist
     // This is theoretically racy but is probably fine in practice

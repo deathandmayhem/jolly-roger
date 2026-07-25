@@ -1,4 +1,3 @@
-import { check } from "meteor/check";
 import { Meteor } from "meteor/meteor";
 import Flags from "../../Flags";
 import ConnectRequests from "../../lib/models/mediasoup/ConnectRequests";
@@ -8,14 +7,6 @@ import serverId from "../serverId";
 import defineMethod from "./defineMethod";
 
 defineMethod(mediasoupConnectTransport, {
-  validate(arg) {
-    check(arg, {
-      transportId: String,
-      dtlsParameters: String,
-    });
-    return arg;
-  },
-
   async run({ transportId, dtlsParameters }) {
     if (!this.userId) {
       throw new Meteor.Error(401, "Not logged in");

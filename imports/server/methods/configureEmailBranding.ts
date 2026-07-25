@@ -1,4 +1,4 @@
-import { check, Match } from "meteor/check";
+import { check } from "meteor/check";
 import { Meteor } from "meteor/meteor";
 import MeteorUsers from "../../lib/models/MeteorUsers";
 import Settings from "../../lib/models/Settings";
@@ -7,17 +7,6 @@ import configureEmailBranding from "../../methods/configureEmailBranding";
 import defineMethod from "./defineMethod";
 
 defineMethod(configureEmailBranding, {
-  validate(arg) {
-    check(arg, {
-      from: Match.Optional(String),
-      enrollSubject: Match.Optional(String),
-      enrollMessage: Match.Optional(String),
-      joinSubject: Match.Optional(String),
-      joinMessage: Match.Optional(String),
-    });
-    return arg;
-  },
-
   async run({ from, enrollSubject, enrollMessage, joinSubject, joinMessage }) {
     check(this.userId, String);
     if (

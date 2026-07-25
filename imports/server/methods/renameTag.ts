@@ -5,15 +5,6 @@ import renameTag from "../../methods/renameTag";
 import defineMethod from "./defineMethod";
 
 defineMethod(renameTag, {
-  validate(arg) {
-    check(arg, {
-      tagId: String,
-      name: String,
-    });
-
-    return arg;
-  },
-
   async run({ tagId, name }) {
     check(this.userId, String);
 

@@ -1,4 +1,4 @@
-import { check, Match } from "meteor/check";
+import { check } from "meteor/check";
 import { Meteor } from "meteor/meteor";
 import APIKeys from "../../lib/models/APIKeys";
 import destroyAPIKey from "../../methods/destroyAPIKey";
@@ -6,11 +6,6 @@ import userForKeyOperation from "../userForKeyOperation";
 import defineMethod from "./defineMethod";
 
 defineMethod(destroyAPIKey, {
-  validate(arg) {
-    check(arg, { apiKeyId: String, forUser: Match.Optional(String) });
-    return arg;
-  },
-
   async run({ apiKeyId, forUser }) {
     check(this.userId, String);
 

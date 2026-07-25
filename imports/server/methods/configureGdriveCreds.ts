@@ -9,14 +9,6 @@ import configureGdriveCreds from "../../methods/configureGdriveCreds";
 import defineMethod from "./defineMethod";
 
 defineMethod(configureGdriveCreds, {
-  validate(arg) {
-    check(arg, {
-      key: String,
-      secret: String,
-    });
-    return arg;
-  },
-
   async run({ key, secret }) {
     check(this.userId, String);
 
