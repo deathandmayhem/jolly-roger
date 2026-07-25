@@ -1,4 +1,4 @@
-import { check } from "meteor/check";
+import { check, Match } from "meteor/check";
 import { Meteor } from "meteor/meteor";
 import APIKeys from "../../lib/models/APIKeys";
 import destroyAPIKey from "../../methods/destroyAPIKey";
@@ -7,7 +7,7 @@ import defineMethod from "./defineMethod";
 
 defineMethod(destroyAPIKey, {
   validate(arg) {
-    check(arg, { apiKeyId: String });
+    check(arg, { apiKeyId: String, forUser: Match.Optional(String) });
     return arg;
   },
 
