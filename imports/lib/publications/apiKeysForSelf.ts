@@ -1,3 +1,7 @@
+import z from "zod";
 import TypedPublication from "./TypedPublication";
 
-export default new TypedPublication<void>("APIKeys.publications.forSelf");
+export default new TypedPublication(
+  "APIKeys.publications.forSelf",
+  z.tuple([]),
+);
