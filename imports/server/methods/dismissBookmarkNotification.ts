@@ -4,12 +4,6 @@ import dismissBookmarkNotification from "../../methods/dismissBookmarkNotificati
 import defineMethod from "./defineMethod";
 
 defineMethod(dismissBookmarkNotification, {
-  validate(arg) {
-    check(arg, { bookmarkNotificationId: String });
-
-    return arg;
-  },
-
   async run({ bookmarkNotificationId }) {
     check(this.userId, String);
 

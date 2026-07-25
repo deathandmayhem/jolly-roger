@@ -1,4 +1,3 @@
-import { check } from "meteor/check";
 import { Meteor } from "meteor/meteor";
 import Flags from "../../Flags";
 import Peers from "../../lib/models/mediasoup/Peers";
@@ -8,14 +7,6 @@ import mediasoupSetProducerPaused from "../../methods/mediasoupSetProducerPaused
 import defineMethod from "./defineMethod";
 
 defineMethod(mediasoupSetProducerPaused, {
-  validate(arg) {
-    check(arg, {
-      mediasoupProducerId: String,
-      paused: Boolean,
-    });
-    return arg;
-  },
-
   async run({ mediasoupProducerId, paused }) {
     if (!this.userId) {
       throw new Meteor.Error(401, "Not logged in");

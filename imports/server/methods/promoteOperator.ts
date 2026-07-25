@@ -11,14 +11,6 @@ import promoteOperator from "../../methods/promoteOperator";
 import defineMethod from "./defineMethod";
 
 defineMethod(promoteOperator, {
-  validate(arg) {
-    check(arg, {
-      targetUserId: String,
-      huntId: String,
-    });
-    return arg;
-  },
-
   async run({ targetUserId, huntId }) {
     check(this.userId, String);
 

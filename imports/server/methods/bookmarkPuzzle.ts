@@ -7,14 +7,6 @@ import ignoringDuplicateKeyErrors from "../ignoringDuplicateKeyErrors";
 import defineMethod from "./defineMethod";
 
 defineMethod(bookmarkPuzzle, {
-  validate(arg) {
-    check(arg, {
-      puzzleId: String,
-      bookmark: Boolean,
-    });
-    return arg;
-  },
-
   async run({ puzzleId, bookmark }) {
     check(this.userId, String);
 

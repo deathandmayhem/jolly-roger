@@ -6,11 +6,6 @@ import checkVerificationEmailCooldown from "../checkVerificationEmailCooldown";
 import defineMethod from "./defineMethod";
 
 defineMethod(sendUserVerificationEmail, {
-  validate(arg) {
-    check(arg, { email: String });
-    return arg;
-  },
-
   async run({ email }) {
     check(this.userId, String);
 

@@ -8,14 +8,6 @@ import addUserToHunt from "../addUserToHunt";
 import defineMethod from "./defineMethod";
 
 defineMethod(bulkAddHuntUsers, {
-  validate(arg) {
-    check(arg, {
-      huntId: String,
-      emails: [String],
-    });
-    return arg;
-  },
-
   async run({ huntId, emails }) {
     const { userId } = this;
     check(userId, String);

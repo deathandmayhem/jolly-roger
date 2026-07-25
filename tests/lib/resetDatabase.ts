@@ -1,11 +1,13 @@
 import { promisify } from "node:util";
-import { check } from "meteor/check";
 import { Meteor } from "meteor/meteor";
 import { MongoInternals } from "meteor/mongo";
+import z from "zod";
 import TypedMethod from "../../imports/methods/TypedMethod";
 
-const resetDatabaseMethod = new TypedMethod<{ testName: string }, void>(
+const resetDatabaseMethod = new TypedMethod(
   "test.methods.resetDatabase",
+  z.tuple([z.strictObject({ testName: z.string() })]),
+  z.void(),
 );
 
 let resetDatabase: (testName: string) => Promise<void>;
@@ -67,11 +69,6 @@ if (Meteor.isServer) {
   };
 
   defineMethod(resetDatabaseMethod, {
-    validate(arg: unknown) {
-      check(arg, { testName: String });
-
-      return arg;
-    },
     run({ testName }) {
       return resetDatabase(testName);
     },

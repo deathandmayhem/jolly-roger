@@ -1,4 +1,4 @@
-import { check, Match } from "meteor/check";
+import { check } from "meteor/check";
 import { fetch } from "meteor/fetch";
 import { Meteor } from "meteor/meteor";
 import Documents from "../../lib/models/Documents";
@@ -38,26 +38,6 @@ async function validateImageLink(link: string) {
 }
 
 defineMethod(insertDocumentImage, {
-  validate(arg) {
-    check(arg, {
-      documentId: String,
-      sheetId: Number,
-      image: Match.OneOf(
-        {
-          source: Match.OneOf("upload"),
-          filename: String,
-          contents: String,
-        },
-        {
-          source: Match.OneOf("link"),
-          url: String,
-        },
-      ),
-    });
-
-    return arg;
-  },
-
   async run({ documentId, sheetId, image }) {
     check(this.userId, String);
 

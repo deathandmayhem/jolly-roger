@@ -7,11 +7,6 @@ import enqueueJob from "../jobs/framework/enqueueJob";
 import defineMethod from "./defineMethod";
 
 defineMethod(purgeHuntMethod, {
-  validate(arg) {
-    check(arg, { huntId: String });
-    return arg;
-  },
-
   async run({ huntId }) {
     check(this.userId, String);
     checkAdmin(await MeteorUsers.findOneAsync(this.userId));

@@ -7,13 +7,6 @@ import configureServerLanguage from "../../methods/configureServerLanguage";
 import defineMethod from "./defineMethod";
 
 defineMethod(configureServerLanguage, {
-  validate(arg) {
-    check(arg, {
-      language: String,
-    });
-    return arg;
-  },
-
   async run({ language }) {
     check(this.userId, String);
     if (
