@@ -100,7 +100,7 @@
     "@types/mustache": "^4.2.6",
     "@types/node": "^22.20.1",
     "@types/react": "^19.2.17",
-    "@types/react-dom": "^19.2.3",
+    "@types/react-dom": "^19.2.4",
     "@types/react-sparklines": "^1.7.5",
     "@types/sinon": "^22.0.0",
     "@types/stylis": "^4.2.7",
