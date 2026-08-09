@@ -29,6 +29,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          # Full history so tests/check_docs.mts can see when documented files changed.
+          fetch-depth: 0
       - name: Fetch PR merge base
         if: github.event_name == 'pull_request'
         run: git fetch --no-tags origin ${{ github.event.pull_request.base.sha }} --depth=1
