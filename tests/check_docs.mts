@@ -2,12 +2,12 @@
  * Require that documentation is kept up to date as the referenced files change.
  *
  * To do this, for each file in the docs directory, we look at the set of files
- * listed in the front matter and check when each of them last changed. If any
- * of them is more recent than the last commit to the doc file, then the doc is
- * out of date. (If the files have changed but the documentation doesn't require
+ * listed in the front matter and compare each one's content between the doc's
+ * last commit and HEAD. If any of them has changed, then the doc is out of
+ * date. (If the files have changed but the documentation doesn't require
  * changing, then you can update the "updated" date in the documentation, which
- * will bring the latest commit to the doc up to date with the changes to the
- * files it documents)
+ * commits a new revision of the doc and brings it up to date with the changes
+ * to the files it documents.)
  */
 import child from "node:child_process";
 import { promises as fs } from "node:fs";
@@ -132,22 +132,35 @@ const checkDoc = async (
 
   const errors: DocError[] = [];
 
-  // Check committed history: are any referenced files newer than the doc?
+  // Has any referenced file's content changed since the doc's last commit?
   const fileChecks = await Promise.all(
     files.map(async (file) => {
+      let changed: boolean;
+      try {
+        await execFile("git", [
+          "diff",
+          "--quiet",
+          docRevision,
+          "HEAD",
+          "--",
+          file,
+        ]);
+        changed = false;
+      } catch {
+        // git diff --quiet exits non-zero when the content differs.
+        changed = true;
+      }
+      if (!changed) return undefined;
+
+      // Point the reader at the most recent commit that touched the file.
       const { stdout: updated } = await execFile("git", [
         "rev-list",
         "-1",
-        "HEAD",
-        `^${docRevision}`,
+        `${docRevision}..HEAD`,
         "--",
         file,
       ]);
-      if (updated.trim().length > 0) {
-        return { file, commit: updated.trim() };
-      }
-
-      return undefined;
+      return { file, commit: updated.trim() };
     }),
   );
   const newerFiles = fileChecks.filter(
