@@ -51,6 +51,8 @@ import Tags from "../../lib/models/Tags";
 import type Model from "../../lib/typedModel/Model";
 import { AllModels } from "../../lib/typedModel/Model";
 import { deleteDocument } from "../gdrive";
+import AttentionStates from "../models/AttentionStates";
+import AttentionTransitions from "../models/AttentionTransitions";
 import Blobs from "../models/Blobs";
 import CallActivities from "../models/CallActivities";
 import DriveActivityLatests from "../models/DriveActivityLatests";
@@ -77,6 +79,7 @@ const COLLECTIONS_TO_PURGE = [
   PendingAnnouncements,
   Announcements,
   DocumentActivities,
+  AttentionTransitions,
   Documents,
   Guesses,
   BookmarkNotifications,
@@ -90,6 +93,13 @@ const COLLECTIONS_TO_PURGE = [
 const COLLECTIONS_EXPLICITLY_LEFT_UNTOUCHED = [
   // References hunt and should be left alone
   InvitationCodes,
+
+  // If the user has a puzzle page loaded, they will navigate off once the
+  // puzzle gets deleted. Otherwise, since we're not deleting the hunt, if the
+  // user is on a hunt page, we continue showing them on the hunt site until
+  // they navigate away or close the tab. Either way, this gets cleaned up
+  // appropriately.
+  AttentionStates,
 
   // Doesn't reference hunt but it was easier to write this enforcement around
   APIKeys,
@@ -144,6 +154,17 @@ Meteor.startup(() => {
     }
   }
 });
+
+// Keep any context events for the hunt, so that other signals (without embedded
+// context) continue to be correctly attributed, but erase the references that
+// are getting purged so they look like generic site navigation.
+async function purgeAttentionTransitions(huntId: string): Promise<void> {
+  await AttentionTransitions.updateAsync(
+    { hunt: huntId },
+    { $unset: { hunt: "", puzzle: "" } },
+    { multi: true },
+  );
+}
 
 const DAYS_MSEC = 24 * 60 * 60 * 1000;
 
@@ -260,10 +281,14 @@ defineJob(purgeHunt, {
       Logger.info("purgeHunt: removing from collection", {
         collection: collection.name,
       });
-      const castCollection = collection as unknown as Model<
-        z.ZodObject<{ hunt: z.ZodString }>
-      >;
-      await castCollection.removeAsync({ hunt: args.huntId });
+      if (collection === AttentionTransitions) {
+        await purgeAttentionTransitions(args.huntId);
+      } else {
+        const castCollection = collection as unknown as Model<
+          z.ZodObject<{ hunt: z.ZodString }>
+        >;
+        await castCollection.removeAsync({ hunt: args.huntId });
+      }
       itemsCompleted += 1;
       await setResult({
         itemsTotal,
