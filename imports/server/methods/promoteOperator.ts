@@ -5,7 +5,7 @@ import Hunts from "../../lib/models/Hunts";
 import MeteorUsers from "../../lib/models/MeteorUsers";
 import {
   addUserToRole,
-  userMayMakeOperatorForHunt,
+  checkUserHasPermissionForAction,
 } from "../../lib/permission_stubs";
 import promoteOperator from "../../methods/promoteOperator";
 import defineMethod from "./defineMethod";
@@ -22,17 +22,11 @@ defineMethod(promoteOperator, {
   async run({ targetUserId, huntId }) {
     check(this.userId, String);
 
-    if (
-      !userMayMakeOperatorForHunt(
-        await MeteorUsers.findOneAsync(this.userId),
-        await Hunts.findOneAsync(huntId),
-      )
-    ) {
-      throw new Meteor.Error(
-        401,
-        "Must be operator or inactive operator to make operator",
-      );
-    }
+    checkUserHasPermissionForAction(
+      await MeteorUsers.findOneAsync(this.userId),
+      await Hunts.findOneAsync(huntId),
+      "manageOperators",
+    );
 
     const targetUser = await MeteorUsers.findOneAsync(targetUserId);
     if (!targetUser) {

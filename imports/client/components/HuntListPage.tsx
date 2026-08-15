@@ -21,8 +21,8 @@ import { Link } from "react-router";
 import type { HuntType } from "../../lib/models/Hunts";
 import Hunts from "../../lib/models/Hunts";
 import {
+  userHasPermissionForAction,
   userMayCreateHunt,
-  userMayPurgeHunt,
   userMayUpdateHunt,
 } from "../../lib/permission_stubs";
 import huntsAll from "../../lib/publications/huntsAll";
@@ -43,7 +43,7 @@ const Hunt = React.memo(({ hunt }: { hunt: HuntType }) => {
       // Because we delete by setting the deleted flag, you only need
       // update to "remove" something
       canDestroy: userMayUpdateHunt(Meteor.user(), hunt),
-      canPurge: userMayPurgeHunt(Meteor.user(), hunt),
+      canPurge: userHasPermissionForAction(Meteor.user(), hunt, "purgeHunt"),
     };
   }, [hunt]);
 
@@ -244,7 +244,7 @@ const HuntListPage = () => {
         <div key="nomyhunts">
           {t(
             "huntList.notInAnyHunt",
-            "You're not a member of any hunts yet. Consider joining one, or asking an operator to invite you.",
+            "You're not a member of any hunts yet. Try asking someone to invite you.",
           )}
         </div>,
       );

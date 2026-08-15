@@ -76,7 +76,7 @@ const FirstUserForm = () => {
   return (
     <form onSubmit={onSubmit}>
       <h1>Create first user</h1>
-      <p>This user will have server admin and operator privileges.</p>
+      <p>This user will have server admin privileges.</p>
       {submitState === SubmitState.SUBMITTING ? (
         <Alert variant="info">Creating first user...</Alert>
       ) : null}

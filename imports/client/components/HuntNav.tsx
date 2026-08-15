@@ -12,7 +12,7 @@ import { useTranslation } from "react-i18next";
 import { NavLink, useParams } from "react-router";
 import styled, { css } from "styled-components";
 import Hunts from "../../lib/models/Hunts";
-import { userMayWritePuzzlesForHunt } from "../../lib/permission_stubs";
+import { userHasPermissionForAction } from "../../lib/permission_stubs";
 import { mediaBreakpointDown } from "./styling/responsive";
 
 const JRLinkList = styled(Nav)`
@@ -142,7 +142,7 @@ const HuntNav = () => {
   const hunt = useTracker(() => Hunts.findOne(huntId)!, [huntId]);
   const { canUpdate } = useTracker(() => {
     return {
-      canUpdate: userMayWritePuzzlesForHunt(Meteor.user(), hunt),
+      canUpdate: userHasPermissionForAction(Meteor.user(), hunt, "editPuzzles"),
     };
   }, [hunt]);
   const { t } = useTranslation();
@@ -209,7 +209,7 @@ const HuntNav = () => {
           </StyledPuzzleListLinkLabel>
         </StyledPuzzleListLinkAnchor>
 
-        {/* Show firehose link only to operators */}
+        {/* Show firehose link only to users that may update puzzles */}
         {canUpdate && (
           <StyledPuzzleListLinkAnchor
             to={`/hunts/${huntId}/firehose`}

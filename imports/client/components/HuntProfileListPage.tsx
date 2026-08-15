@@ -6,9 +6,7 @@ import InvitationCodes from "../../lib/models/InvitationCodes";
 import MeteorUsers from "../../lib/models/MeteorUsers";
 import {
   listAllRolesForHunt,
-  userMayAddUsersToHunt,
-  userMayMakeOperatorForHunt,
-  userMayUpdateHuntInvitationCode,
+  userHasPermissionForAction,
   userMayUseDiscordBotAPIs,
 } from "../../lib/permission_stubs";
 import invitationCodesForHunt from "../../lib/publications/invitationCodesForHunt";
@@ -44,13 +42,19 @@ const HuntProfileListPage = () => {
     canMakeOperator,
     canUpdateHuntInvitationCode,
   } = useTracker(() => {
+    const user = Meteor.user();
     return {
-      canInvite: userMayAddUsersToHunt(Meteor.user(), hunt),
-      canSyncDiscord: userMayUseDiscordBotAPIs(Meteor.user()),
-      canMakeOperator: userMayMakeOperatorForHunt(Meteor.user(), hunt),
-      canUpdateHuntInvitationCode: userMayUpdateHuntInvitationCode(
-        Meteor.user(),
+      canInvite: userHasPermissionForAction(user, hunt, "inviteUsers"),
+      canSyncDiscord: userMayUseDiscordBotAPIs(user),
+      canMakeOperator: userHasPermissionForAction(
+        user,
         hunt,
+        "manageOperators",
+      ),
+      canUpdateHuntInvitationCode: userHasPermissionForAction(
+        user,
+        hunt,
+        "manageInvitationLink",
       ),
     };
   }, [hunt]);
