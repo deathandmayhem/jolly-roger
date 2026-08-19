@@ -25,6 +25,7 @@ before(async function () {
   await startupHooksComplete;
 });
 
+import "./unit/imports/server/attentionLog";
 import "./unit/imports/server/Flags";
 import "./unit/imports/server/MigrationRegistry";
 import "./unit/imports/server/Model";
