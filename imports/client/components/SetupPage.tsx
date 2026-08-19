@@ -2626,6 +2626,23 @@ const CircuitBreakerSection = () => {
           notifications will be generated or displayed.
         </p>
       </CircuitBreakerControl>
+      <CircuitBreakerControl
+        title="Attention reporting"
+        flagName="disable.attention_reporting"
+      >
+        <p>
+          Every open Jolly Roger tab reports which hunt and puzzle it&apos;s on,
+          and whether it&apos;s visible and focused. Each report is a method
+          call and a write to a log that we keep for later analysis, and tabs
+          report every time the user switches between tabs or windows.
+        </p>
+        <p>
+          Disabling this feature stops that attention reporting (and cleans up
+          any open records by explicitly treating them as closed). When
+          it&apos;s re-enabled, open tabs report their current state again, but
+          anything that happened while it was disabled is lost.
+        </p>
+      </CircuitBreakerControl>
     </Section>
   );
 };
