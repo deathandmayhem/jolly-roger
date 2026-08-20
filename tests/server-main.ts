@@ -2,6 +2,7 @@ import { Accounts } from "meteor/accounts-base";
 import { Meteor } from "meteor/meteor";
 import * as chai from "chai";
 import chaiAsPromised from "chai-as-promised";
+import { startupHooksComplete } from "../imports/server/runIfLatestBuild";
 
 chai.use(chaiAsPromised);
 
@@ -16,6 +17,13 @@ if (!Meteor.isAppTest) {
 }
 
 Accounts.removeDefaultRateLimit();
+
+// The mocha driver runs the suite concurrently with Meteor's startup hooks, so
+// wait for schema/index/migration setup before any test hits the database.
+before(async function () {
+  this.timeout(60000);
+  await startupHooksComplete;
+});
 
 import "./unit/imports/server/Flags";
 import "./unit/imports/server/MigrationRegistry";

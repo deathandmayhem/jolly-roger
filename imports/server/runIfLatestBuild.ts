@@ -6,6 +6,11 @@ import LatestDeploymentTimestamps from "./models/LatestDeploymentTimestamps";
 
 export const hooks = new Set<() => Promise<void>>();
 
+const startupHooks = Promise.withResolvers<void>();
+// Resolves once the startup hooks below have run to completion (or been
+// skipped). Tests await this to keep from racing the setup they perform.
+export const startupHooksComplete = startupHooks.promise;
+
 // runIfLatestBuild registers a hook which runs on server startup, but only if
 // this is the most recent build timestamp that we've observed (otherwise the
 // hook is skipped)
@@ -16,42 +21,45 @@ export default function runIfLatestBuild(fn: () => Promise<void>) {
 Meteor.startup(async () => {
   // Meteor async startup hooks will block startup until they resolve, which is
   // what we want here - if this fails, we want to crash the application.
+  try {
+    const stat = await fs.stat(process.argv[1]!);
+    const buildTimestamp = stat.mtime;
 
-  const stat = await fs.stat(process.argv[1]!);
-  const buildTimestamp = stat.mtime;
-
-  const previousLatest =
-    await LatestDeploymentTimestamps.findOneAsync("default");
-  if (previousLatest && previousLatest.buildTimestamp > buildTimestamp) {
-    Logger.warn("Skipping startup hooks because we are not the latest", {
-      previousTimestamp: previousLatest.buildTimestamp,
-      previousRevision: previousLatest.gitRevision,
-      buildTimestamp,
-    });
-  } else {
-    for (const fn of hooks) {
-      await fn();
-    }
-
-    await ignoringDuplicateKeyErrors(async () => {
-      await LatestDeploymentTimestamps.insertAsync({
-        _id: "default",
+    const previousLatest =
+      await LatestDeploymentTimestamps.findOneAsync("default");
+    if (previousLatest && previousLatest.buildTimestamp > buildTimestamp) {
+      Logger.warn("Skipping startup hooks because we are not the latest", {
+        previousTimestamp: previousLatest.buildTimestamp,
+        previousRevision: previousLatest.gitRevision,
         buildTimestamp,
-        gitRevision: Meteor.gitCommitHash!,
       });
-    });
+    } else {
+      for (const fn of hooks) {
+        await fn();
+      }
 
-    await LatestDeploymentTimestamps.updateAsync(
-      {
-        _id: "default",
-        buildTimestamp: { $lt: buildTimestamp },
-      },
-      {
-        $set: {
+      await ignoringDuplicateKeyErrors(async () => {
+        await LatestDeploymentTimestamps.insertAsync({
+          _id: "default",
           buildTimestamp,
           gitRevision: Meteor.gitCommitHash!,
+        });
+      });
+
+      await LatestDeploymentTimestamps.updateAsync(
+        {
+          _id: "default",
+          buildTimestamp: { $lt: buildTimestamp },
         },
-      },
-    );
+        {
+          $set: {
+            buildTimestamp,
+            gitRevision: Meteor.gitCommitHash!,
+          },
+        },
+      );
+    }
+  } finally {
+    startupHooks.resolve();
   }
 });
