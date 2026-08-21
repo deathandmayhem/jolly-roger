@@ -1,4 +1,4 @@
-import { check, Match } from "meteor/check";
+import { check } from "meteor/check";
 import { Meteor } from "meteor/meteor";
 import MeteorUsers from "../../lib/models/MeteorUsers";
 import Settings from "../../lib/models/Settings";
@@ -7,14 +7,6 @@ import configureGdriveTemplates from "../../methods/configureGdriveTemplates";
 import defineMethod from "./defineMethod";
 
 defineMethod(configureGdriveTemplates, {
-  validate(arg) {
-    check(arg, {
-      spreadsheetTemplate: Match.Optional(String),
-      documentTemplate: Match.Optional(String),
-    });
-    return arg;
-  },
-
   async run({ spreadsheetTemplate, documentTemplate }) {
     check(this.userId, String);
 

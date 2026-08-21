@@ -1,4 +1,3 @@
-import { check } from "meteor/check";
 import Bookmarks from "../../lib/models/Bookmarks";
 import Documents from "../../lib/models/Documents";
 import Guesses from "../../lib/models/Guesses";
@@ -12,14 +11,6 @@ import definePublication from "./definePublication";
 import publishCursor from "./publishCursor";
 
 definePublication(puzzleForPuzzlePage, {
-  validate(arg) {
-    check(arg, {
-      puzzleId: String,
-      huntId: String,
-    });
-    return arg;
-  },
-
   async run({ puzzleId, huntId }) {
     if (!this.userId) {
       return [];

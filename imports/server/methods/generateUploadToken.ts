@@ -7,14 +7,6 @@ import UploadTokens from "../models/UploadTokens";
 import defineMethod from "./defineMethod";
 
 defineMethod(generateUploadToken, {
-  validate(arg) {
-    check(arg, {
-      assetName: String,
-      assetMimeType: String,
-    });
-    return arg;
-  },
-
   async run({ assetName, assetMimeType }) {
     check(this.userId, String);
     if (!userMayConfigureAssets(await MeteorUsers.findOneAsync(this.userId))) {

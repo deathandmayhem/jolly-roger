@@ -1,3 +1,12 @@
+import z from "zod";
 import TypedMethod from "./TypedMethod";
 
-export default new TypedMethod<{ huntId: string }, void>("Hunts.methods.purge");
+export default new TypedMethod(
+  "Hunts.methods.purge",
+  z.tuple([
+    z.strictObject({
+      huntId: z.string(),
+    }),
+  ]),
+  z.void(),
+);

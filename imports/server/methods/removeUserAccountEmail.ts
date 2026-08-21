@@ -7,11 +7,6 @@ import removeUserAccountEmail from "../../methods/removeUserAccountEmail";
 import defineMethod from "./defineMethod";
 
 defineMethod(removeUserAccountEmail, {
-  validate(arg) {
-    check(arg, { email: String });
-    return arg;
-  },
-
   async run({ email }) {
     check(this.userId, String);
 

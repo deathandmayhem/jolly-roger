@@ -334,7 +334,7 @@ const APIKeysSection = ({ apiKeys }: { apiKeys?: APIKeyType[] }) => {
   const [createError, setCreateError] = useState<string | undefined>(undefined);
   const createKey = useCallback(() => {
     setCreateState("requesting");
-    createAPIKey.call({}, (error, _newKey) => {
+    createAPIKey.call((error, _newKey) => {
       if (error) {
         setCreateState("error");
         setCreateError(error.message);

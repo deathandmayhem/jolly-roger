@@ -8,14 +8,6 @@ import transitionGuess from "../transitionGuess";
 import defineMethod from "./defineMethod";
 
 defineMethod(removePuzzleAnswer, {
-  validate(arg) {
-    check(arg, {
-      puzzleId: String,
-      guessId: String,
-    });
-    return arg;
-  },
-
   async run({ puzzleId, guessId }) {
     check(this.userId, String);
 

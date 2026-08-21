@@ -1,11 +1,15 @@
-import type { GuessType } from "../lib/models/Guesses";
+import z from "zod";
+import { GuessStates } from "../lib/models/Guesses";
 import TypedMethod from "./TypedMethod";
 
-export default new TypedMethod<
-  {
-    guessId: string;
-    state: GuessType["state"];
-    additionalNotes?: string;
-  },
-  void
->("Guesses.methods.setState");
+export default new TypedMethod(
+  "Guesses.methods.setState",
+  z.tuple([
+    z.strictObject({
+      guessId: z.string(),
+      state: GuessStates,
+      additionalNotes: z.string().optional(),
+    }),
+  ]),
+  z.void(),
+);

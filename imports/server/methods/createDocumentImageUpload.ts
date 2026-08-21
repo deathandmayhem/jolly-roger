@@ -8,16 +8,6 @@ import getS3UploadParams from "../getS3UploadParams";
 import defineMethod from "./defineMethod";
 
 defineMethod(createDocumentImageUpload, {
-  validate(arg) {
-    check(arg, {
-      documentId: String,
-      filename: String,
-      mimeType: String,
-    });
-
-    return arg;
-  },
-
   async run({ documentId, filename, mimeType }) {
     check(this.userId, String);
     const user = (await MeteorUsers.findOneAsync(this.userId))!;

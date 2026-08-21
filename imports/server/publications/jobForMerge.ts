@@ -1,4 +1,3 @@
-import { check } from "meteor/check";
 import isAdmin from "../../lib/isAdmin";
 import Jobs from "../../lib/models/Jobs";
 import MeteorUsers from "../../lib/models/MeteorUsers";
@@ -6,11 +5,6 @@ import jobForMerge from "../../lib/publications/jobForMerge";
 import definePublication from "./definePublication";
 
 definePublication(jobForMerge, {
-  validate(arg) {
-    check(arg, { jobId: String });
-    return arg;
-  },
-
   async run({ jobId }) {
     if (!this.userId) {
       return [];

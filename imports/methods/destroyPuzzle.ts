@@ -1,10 +1,14 @@
+import z from "zod";
 import TypedMethod from "./TypedMethod";
 
-export default new TypedMethod<
-  {
-    puzzleId: string;
-    replacedBy?: string;
-    copySheetsToReplacement: boolean;
-  },
-  void
->("Puzzles.methods.destroy");
+export default new TypedMethod(
+  "Puzzles.methods.destroy",
+  z.tuple([
+    z.strictObject({
+      puzzleId: z.string(),
+      replacedBy: z.string().optional(),
+      copySheetsToReplacement: z.boolean(),
+    }),
+  ]),
+  z.void(),
+);

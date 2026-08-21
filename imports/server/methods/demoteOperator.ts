@@ -11,14 +11,6 @@ import demoteOperator from "../../methods/demoteOperator";
 import defineMethod from "./defineMethod";
 
 defineMethod(demoteOperator, {
-  validate(arg) {
-    check(arg, {
-      targetUserId: String,
-      huntId: String,
-    });
-    return arg;
-  },
-
   async run({ targetUserId, huntId }) {
     check(this.userId, String);
 

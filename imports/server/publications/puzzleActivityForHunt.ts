@@ -1,4 +1,3 @@
-import { check } from "meteor/check";
 import type { Subscription } from "meteor/meteor";
 import { Meteor } from "meteor/meteor";
 import type { PublishedBucket } from "../../lib/config/activityTracking";
@@ -270,11 +269,6 @@ class HuntActivityAggregator {
 }
 
 definePublication(puzzleActivityForHunt, {
-  validate(arg) {
-    check(arg, { huntId: String });
-    return arg;
-  },
-
   async run({ huntId }) {
     const aggregator = await HuntActivityAggregator.get(huntId);
     aggregator.addSubscription(this);

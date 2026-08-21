@@ -49,15 +49,20 @@ function validateSchemaInner(raw: $ZodType) {
       validateSchemaInner(def.element);
       break;
 
-    case "object":
+    case "object": {
       for (const [, field] of Object.entries(def.shape)) {
         if (field === undefined) continue;
         validateSchemaInner(field);
       }
-      if (def.catchall) {
-        validateSchemaInner(def.catchall);
+      const { catchall } = def;
+      if (catchall && catchall._zod.def.type !== "never") {
+        // A never catchall (z.strictObject) serializes to
+        // additionalProperties: false rather than a value schema, so there is
+        // nothing further to validate.
+        validateSchemaInner(catchall);
       }
       break;
+    }
 
     case "record":
       validateSchemaInner(def.valueType);

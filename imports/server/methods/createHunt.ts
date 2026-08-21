@@ -1,7 +1,7 @@
 import { check } from "meteor/check";
 import { Meteor } from "meteor/meteor";
 import Logger from "../../Logger";
-import Hunts, { HuntPattern } from "../../lib/models/Hunts";
+import Hunts from "../../lib/models/Hunts";
 import MeteorUsers from "../../lib/models/MeteorUsers";
 import { addUserToRole, checkAdmin } from "../../lib/permission_stubs";
 import createHunt from "../../methods/createHunt";
@@ -24,11 +24,6 @@ const DEFAULT_TAGS = [
 ];
 
 defineMethod(createHunt, {
-  validate(arg) {
-    check(arg, HuntPattern);
-    return arg;
-  },
-
   async run(arg) {
     check(this.userId, String);
     checkAdmin(await MeteorUsers.findOneAsync(this.userId));

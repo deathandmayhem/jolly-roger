@@ -1,4 +1,4 @@
-import { check, Match } from "meteor/check";
+import { check } from "meteor/check";
 import { Meteor } from "meteor/meteor";
 import { ServiceConfiguration } from "meteor/service-configuration";
 import Logger from "../../Logger";
@@ -9,14 +9,6 @@ import configureDiscordOAuthClient from "../../methods/configureDiscordOAuthClie
 import defineMethod from "./defineMethod";
 
 defineMethod(configureDiscordOAuthClient, {
-  validate(arg) {
-    check(arg, {
-      clientId: Match.Optional(String),
-      clientSecret: Match.Optional(String),
-    });
-    return arg;
-  },
-
   async run({ clientId, clientSecret }) {
     check(this.userId, String);
 

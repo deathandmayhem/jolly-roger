@@ -1,3 +1,4 @@
+import z from "zod";
 import TypedPublication from "./TypedPublication";
 
-export default new TypedPublication<void>("Jobs.publications.all");
+export default new TypedPublication("Jobs.publications.all", z.tuple([]));
