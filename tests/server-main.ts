@@ -26,6 +26,7 @@ before(async function () {
 });
 
 import "./unit/imports/server/attentionLog";
+import "./unit/imports/server/attentionReducer";
 import "./unit/imports/server/Flags";
 import "./unit/imports/server/MigrationRegistry";
 import "./unit/imports/server/Model";
