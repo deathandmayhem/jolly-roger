@@ -7,11 +7,15 @@ import { faSkullCrossbones } from "@fortawesome/free-solid-svg-icons/faSkullCros
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { useCallback, useId, useRef } from "react";
 import Button from "react-bootstrap/Button";
+import ButtonToolbar from "react-bootstrap/ButtonToolbar";
 import type { FormControlProps } from "react-bootstrap/FormControl";
 import FormControl from "react-bootstrap/FormControl";
 import FormGroup from "react-bootstrap/FormGroup";
+import FormLabel from "react-bootstrap/FormLabel";
 import InputGroup from "react-bootstrap/InputGroup";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
+import ToggleButton from "react-bootstrap/ToggleButton";
+import ToggleButtonGroup from "react-bootstrap/ToggleButtonGroup";
 import Tooltip from "react-bootstrap/Tooltip";
 import { useTranslation } from "react-i18next";
 import { Link, useParams, useSearchParams } from "react-router";
@@ -24,11 +28,12 @@ import type { HuntType } from "../../lib/models/Hunts";
 import Hunts from "../../lib/models/Hunts";
 import type { PuzzleType } from "../../lib/models/Puzzles";
 import Puzzles from "../../lib/models/Puzzles";
-import { userMayUpdateGuessesForHunt } from "../../lib/permission_stubs";
+import { userHasPermissionForAction } from "../../lib/permission_stubs";
 import guessesForGuessQueue from "../../lib/publications/guessesForGuessQueue";
 import setGuessState from "../../methods/setGuessState";
 import { guessURL } from "../../model-helpers";
 import { useBreadcrumb } from "../hooks/breadcrumb";
+import { useGuessQueueHiddenForHunt } from "../hooks/persisted-state";
 import useFocusRefOnFindHotkey from "../hooks/useFocusRefOnFindHotkey";
 import useTypedSubscribe from "../hooks/useTypedSubscribe";
 import indexedDisplayNames from "../indexedDisplayNames";
@@ -88,7 +93,8 @@ const StyledHeader = styled.div`
 const StyledRow = styled.div<{ $state: GuessType["state"] }>`
   display: contents;
   margin-bottom: 8px;
-  background-color: ${({ theme, $state }) => theme.colors.guess[$state].background};
+  background-color: ${({ theme, $state }) =>
+    theme.colors.guess[$state].background};
 
   &::before {
     content: " ";
@@ -349,6 +355,13 @@ const GuessBlock = React.memo(
   },
 );
 
+const HeaderRow = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+`;
+
 const GuessQueuePage = () => {
   const huntId = useParams<"huntId">().huntId!;
   const [searchParams, setSearchParams] = useSearchParams();
@@ -358,6 +371,15 @@ const GuessQueuePage = () => {
   const loading = guessesLoading();
 
   const hunt = useTracker(() => Hunts.findOne({ _id: huntId }), [huntId]);
+
+  const [guessQueueHidden, setGuessQueueHidden] =
+    useGuessQueueHiddenForHunt(huntId);
+  const setGuessQueueHiddenString = useCallback(
+    (value: string) => {
+      setGuessQueueHidden(value === "hide");
+    },
+    [setGuessQueueHidden],
+  );
 
   const { t } = useTranslation();
 
@@ -372,6 +394,10 @@ const GuessQueuePage = () => {
   }, [hunt, loading, t]);
 
   useBreadcrumb({ title: pageTitle, path: `/hunts/${huntId}/guesses` });
+
+  const canOperateQueue = useTracker(() => {
+    return userHasPermissionForAction(Meteor.user(), hunt, "operateGuessQueue");
+  }, [hunt]);
 
   const guesses = useTracker(
     () =>
@@ -392,7 +418,7 @@ const GuessQueuePage = () => {
     [loading],
   );
   const canEdit = useTracker(
-    () => userMayUpdateGuessesForHunt(Meteor.user(), hunt),
+    () => userHasPermissionForAction(Meteor.user(), hunt, "operateGuessQueue"),
     [hunt],
   );
 
@@ -475,8 +501,45 @@ const GuessQueuePage = () => {
 
   return (
     <div>
-      <h1>{pageTitle}</h1>
-      <FormGroup className="mb-3" controlId={`${idPrefix}-guess-search`}>
+      <HeaderRow>
+        <h1>{pageTitle}</h1>
+        {canOperateQueue ? (
+          <FormGroup className="mb-3">
+            <FormLabel>
+              {t("guessQueue.notifications", "Guess queue notifications")}
+            </FormLabel>
+            <ButtonToolbar>
+              <ToggleButtonGroup
+                type="radio"
+                name="guess-queue-shown"
+                defaultValue="show"
+                value={guessQueueHidden ? "hide" : "show"}
+                onChange={setGuessQueueHiddenString}
+              >
+                <ToggleButton
+                  id={`${idPrefix}-guess-queue-shown-hide-button`}
+                  variant="outline-info"
+                  value="hide"
+                >
+                  {t("common.off", "Off")}
+                </ToggleButton>
+                <ToggleButton
+                  id={`${idPrefix}-guess-queue-shown-show-button`}
+                  variant="outline-info"
+                  value="show"
+                >
+                  {t("common.on", "On")}
+                </ToggleButton>
+              </ToggleButtonGroup>
+            </ButtonToolbar>
+          </FormGroup>
+        ) : undefined}
+      </HeaderRow>
+      <FormGroup
+        className="mb-3"
+        controlId={`${idPrefix}-guess-search`}
+        style={{ flex: "1" }}
+      >
         <InputGroup>
           <FormControl
             as="input"

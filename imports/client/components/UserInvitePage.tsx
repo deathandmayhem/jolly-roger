@@ -14,7 +14,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router";
 import styled from "styled-components";
 import Hunts from "../../lib/models/Hunts";
-import { userMayBulkAddToHunt } from "../../lib/permission_stubs";
+import { userHasPermissionForAction } from "../../lib/permission_stubs";
 import addHuntUser from "../../methods/addHuntUser";
 import bulkAddHuntUsers from "../../methods/bulkAddHuntUsers";
 import { useBreadcrumb } from "../hooks/breadcrumb";
@@ -40,9 +40,20 @@ const UserInvitePage = () => {
     undefined,
   );
 
-  const canBulkInvite = useTracker(() => {
-    return userMayBulkAddToHunt(Meteor.user(), Hunts.findOne(huntId));
+  const user = useTracker(() => {
+    return Meteor.user();
+  }, []);
+  const hunt = useTracker(() => {
+    return Hunts.findOne(huntId);
   }, [huntId]);
+
+  const canDirectInvite = useMemo(() => {
+    return userHasPermissionForAction(user, hunt, "inviteUsers");
+  }, [user, hunt]);
+
+  const canBulkInvite = useMemo(() => {
+    return userHasPermissionForAction(user, hunt, "bulkInviteUsers");
+  }, [user, hunt]);
 
   const onEmailChanged: NonNullable<FormControlProps["onChange"]> = useCallback(
     (e) => {
@@ -97,35 +108,37 @@ const UserInvitePage = () => {
 
   const bulkInvite = useMemo(() => {
     return canBulkInvite ? (
-      <div>
-        <h2>{t("invite.bulkInvite", "Bulk invite")}</h2>
+      <Row>
+        <Col md={8}>
+          <h2>{t("invite.bulkInvite", "Bulk invite")}</h2>
 
-        {bulkError ? (
-          <Alert variant="danger">
-            <BulkError>{bulkError.reason}</BulkError>
-          </Alert>
-        ) : undefined}
+          {bulkError ? (
+            <Alert variant="danger">
+              <BulkError>{bulkError.reason}</BulkError>
+            </Alert>
+          ) : undefined}
 
-        <form onSubmit={onBulkSubmit} className="form-horizontal">
-          <FormGroup className="mb-3" controlId={`${idPrefix}-invite-bulk`}>
-            <FormLabel>
-              {t("invite.bulkInstruction", "Email addresses (one per line)")}
-            </FormLabel>
-            <FormControl
-              as="textarea"
-              rows={10}
-              value={bulkEmails}
-              onChange={onBulkEmailsChanged}
-            />
-          </FormGroup>
+          <form onSubmit={onBulkSubmit} className="form-horizontal">
+            <FormGroup className="mb-3" controlId={`${idPrefix}-invite-bulk`}>
+              <FormLabel>
+                {t("invite.bulkInstruction", "Email addresses (one per line)")}
+              </FormLabel>
+              <FormControl
+                as="textarea"
+                rows={10}
+                value={bulkEmails}
+                onChange={onBulkEmailsChanged}
+              />
+            </FormGroup>
 
-          <FormGroup className="mb-3">
-            <Button type="submit" variant="primary" disabled={submitting}>
-              {t("invite.sendBulkInvites", "Send bulk invites")}
-            </Button>
-          </FormGroup>
-        </form>
-      </div>
+            <FormGroup className="mb-3">
+              <Button type="submit" variant="primary" disabled={submitting}>
+                {t("invite.sendBulkInvites", "Send bulk invites")}
+              </Button>
+            </FormGroup>
+          </form>
+        </Col>
+      </Row>
     ) : undefined;
   }, [
     idPrefix,
@@ -140,55 +153,62 @@ const UserInvitePage = () => {
 
   return (
     <div>
-      <h1>{t("invite.title", "Send an invite")}</h1>
+      {canDirectInvite ? (
+        <div>
+          <h1>{t("invite.title", "Send an invite")}</h1>
 
-      <p>
-        {t(
-          "invite.instruction",
-          `Invite someone to join this hunt. They'll get an email with
-          instructions (even if they already have a Jolly Roger account)`,
-        )}
-      </p>
+          <p>
+            {t(
+              "invite.instruction",
+              `Invite someone to join this hunt. They'll get an email with
+              instructions (even if they already have a Jolly Roger account)`,
+            )}
+          </p>
 
-      <Row>
-        <Col md={8}>
-          {error ? (
-            <Alert variant="danger">
-              <p>{error.reason}</p>
-            </Alert>
-          ) : undefined}
+          <Row>
+            <Col md={8}>
+              {error ? (
+                <Alert variant="danger">
+                  <p>{error.reason}</p>
+                </Alert>
+              ) : undefined}
 
-          <form onSubmit={onSubmit} className="form-horizontal">
-            <FormGroup
-              as={Row}
-              className="mb-3"
-              controlId={`${idPrefix}-email`}
-            >
-              <FormLabel column md={3}>
-                {t("common.email", "Email address")}
-              </FormLabel>
-              <Col md={9}>
-                <FormControl
-                  type="email"
-                  value={email}
-                  onChange={onEmailChanged}
-                  disabled={submitting}
-                />
-              </Col>
-            </FormGroup>
+              <form onSubmit={onSubmit} className="form-horizontal">
+                <FormGroup
+                  as={Row}
+                  className="mb-3"
+                  controlId={`${idPrefix}-email`}
+                >
+                  <FormLabel column md={3}>
+                    {t("common.email", "Email address")}
+                  </FormLabel>
+                  <Col md={9}>
+                    <FormControl
+                      type="email"
+                      value={email}
+                      onChange={onEmailChanged}
+                      disabled={submitting}
+                    />
+                  </Col>
+                </FormGroup>
 
-            <FormGroup className="mb-3">
-              <Col md={{ offset: 3, span: 9 }}>
-                <Button type="submit" variant="primary" disabled={submitting}>
-                  {t("invite.sendInvite", "Send invite")}
-                </Button>
-              </Col>
-            </FormGroup>
-          </form>
-
-          {bulkInvite}
-        </Col>
-      </Row>
+                <FormGroup className="mb-3">
+                  <Col md={{ offset: 3, span: 9 }}>
+                    <Button
+                      type="submit"
+                      variant="primary"
+                      disabled={submitting}
+                    >
+                      {t("invite.sendInvite", "Send invite")}
+                    </Button>
+                  </Col>
+                </FormGroup>
+              </form>
+            </Col>
+          </Row>
+        </div>
+      ) : undefined}
+      {bulkInvite}
     </div>
   );
 };

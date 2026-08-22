@@ -39,6 +39,32 @@ export const useOperatorActionsHiddenForHunt = (huntId: string) => {
   ] as const;
 };
 
+export type GuessQueueHiddenState = Record<string /* huntId */, boolean>;
+export const useGuessQueueHidden = () => {
+  return useLocalStorage<GuessQueueHiddenState>("guessQueueHidden", {});
+};
+export const useGuessQueueHiddenForHunt = (huntId: string) => {
+  const [guessQueueHidden, setGuessQueueHidden] = useGuessQueueHidden();
+  return [
+    guessQueueHidden?.[huntId] ?? false,
+    useCallback(
+      (update: SetStateAction<boolean>) => {
+        setGuessQueueHidden((prevHidden) => {
+          const newHidden = {
+            ...prevHidden,
+            [huntId]:
+              typeof update === "function"
+                ? update(prevHidden?.[huntId] ?? false)
+                : update,
+          };
+          return newHidden;
+        });
+      },
+      [setGuessQueueHidden, huntId],
+    ),
+  ] as const;
+};
+
 export type PuzzleListState = {
   displayMode: "group" | "unlock";
   showSolved: boolean;

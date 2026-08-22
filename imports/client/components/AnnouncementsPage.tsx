@@ -11,7 +11,7 @@ import ReactTextareaAutosize from "react-textarea-autosize";
 import styled from "styled-components";
 import Announcements from "../../lib/models/Announcements";
 import Hunts from "../../lib/models/Hunts";
-import { userMayAddAnnouncementToHunt } from "../../lib/permission_stubs";
+import { userHasPermissionForAction } from "../../lib/permission_stubs";
 import announcementsForAnnouncementsPage from "../../lib/publications/announcementsForAnnouncementsPage";
 import postAnnouncement from "../../methods/postAnnouncement";
 import { useBreadcrumb } from "../hooks/breadcrumb";
@@ -149,7 +149,11 @@ const AnnouncementsPage = () => {
     [loading],
   );
   const canCreateAnnouncements = useTracker(() => {
-    return userMayAddAnnouncementToHunt(Meteor.user(), Hunts.findOne(huntId));
+    return userHasPermissionForAction(
+      Meteor.user(),
+      Hunts.findOne(huntId),
+      "sendAnnouncements",
+    );
   }, [huntId]);
   const selfDisplayName = useTracker(
     () => Meteor.user()?.displayName ?? "???",
