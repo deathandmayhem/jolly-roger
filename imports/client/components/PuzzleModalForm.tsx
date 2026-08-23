@@ -10,6 +10,7 @@ import React, {
   useState,
 } from "react";
 import Alert from "react-bootstrap/Alert";
+import Button from "react-bootstrap/Button";
 import Col from "react-bootstrap/Col";
 import FormCheck from "react-bootstrap/FormCheck";
 import type { FormControlProps } from "react-bootstrap/FormControl";
@@ -23,6 +24,7 @@ import { useTheme } from "styled-components";
 import type { GdriveMimeTypesType } from "../../lib/GdriveMimeTypes";
 import type { PuzzleType } from "../../lib/models/Puzzles";
 import type { TagType } from "../../lib/models/Tags";
+import { useAddPuzzleHuntRecentTags } from "../hooks/persisted-state";
 import LabelledRadioGroup from "./LabelledRadioGroup";
 import Loading from "./Loading";
 import type { ModalFormHandle } from "./ModalForm";
@@ -116,6 +118,9 @@ const PuzzleModalForm = ({
     setConsiderCompletedWithNoAnswerDirty,
   ] = useState(false);
 
+  const [recentTags, addPuzzleHuntRecentTags] =
+    useAddPuzzleHuntRecentTags(huntId);
+
   const formRef = useRef<ModalFormHandle>(null);
 
   const onTitleChange: NonNullable<FormControlProps["onChange"]> = useCallback(
@@ -158,6 +163,14 @@ const PuzzleModalForm = ({
     },
     [],
   );
+
+  const addTag = useCallback((tag: string) => {
+    setTags((prev) => {
+      if (prev.includes(tag)) return prev;
+      setTagsDirty(true);
+      return [...prev, tag];
+    });
+  }, []);
 
   const onDocTypeChange = useCallback((newValue: string) => {
     setDocType(newValue as GdriveMimeTypesType);
@@ -242,6 +255,7 @@ const PuzzleModalForm = ({
           setConsiderCompletedWithNoAnswerDirty(false);
           setConfirmingDuplicateUrl(false);
           setAllowDuplicateUrls(false);
+          addPuzzleHuntRecentTags(tags);
           callback();
         }
       });
@@ -256,6 +270,7 @@ const PuzzleModalForm = ({
       docType,
       allowDuplicateUrls,
       considerCompletedWithNoAnswer,
+      addPuzzleHuntRecentTags,
       t,
     ],
   );
@@ -342,6 +357,11 @@ const PuzzleModalForm = ({
     .map((t) => {
       return { value: t, label: t };
     });
+
+  const unselectedRecentTags = useMemo(
+    () => recentTags.filter((rt) => !currentTags.includes(rt)),
+    [recentTags, currentTags],
+  );
 
   const idPrefix = useId();
 
@@ -470,6 +490,26 @@ const PuzzleModalForm = ({
                 return { label: t, value: t };
               })}
             />
+            {unselectedRecentTags.length > 0 && (
+              <div className="mt-1 d-flex flex-wrap gap-1 align-items-center">
+                <small className="text-muted me-1">
+                  {t("puzzle.edit.recentTags", "Recent:")}
+                </small>
+                {unselectedRecentTags.map((recentTag) => (
+                  <Button
+                    key={recentTag}
+                    variant="outline-secondary"
+                    size="sm"
+                    className="py-0 px-1"
+                    style={{ fontSize: "0.8rem" }}
+                    disabled={disableForm}
+                    onClick={() => addTag(recentTag)}
+                  >
+                    +{recentTag}
+                  </Button>
+                ))}
+              </div>
+            )}
           </Col>
         </FormGroup>
 
