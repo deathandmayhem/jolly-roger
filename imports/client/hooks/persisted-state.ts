@@ -170,3 +170,34 @@ export const useHuntPuzzleListCollapseGroup = (
     ),
   ] as const;
 };
+
+const ADD_PUZZLE_RECENT_TAGS_LIMIT = 10;
+
+export const useAddPuzzleHuntRecentTags = (huntId?: string) => {
+  const [allRecentTags, setAllRecentTags] = useLocalStorage<
+    Record<string /* huntId */, string[]>
+  >("huntRecentTags", {});
+
+  const recentTags = (huntId ? allRecentTags?.[huntId] : undefined) ?? [];
+
+  const addPuzzleHuntRecentTags = useCallback(
+    (newTags: string[]) => {
+      if (!huntId || newTags.length === 0) return;
+      setAllRecentTags((prev) => {
+        const prevHuntTags = prev?.[huntId] ?? [];
+        // Newly added tags at the beginning, followed by previous tags excluding new ones, truncated to limit
+        const combined = [
+          ...newTags,
+          ...prevHuntTags.filter((t) => !newTags.includes(t)),
+        ].slice(0, ADD_PUZZLE_RECENT_TAGS_LIMIT);
+        return {
+          ...prev,
+          [huntId]: combined,
+        };
+      });
+    },
+    [setAllRecentTags, huntId],
+  );
+
+  return [recentTags, addPuzzleHuntRecentTags] as const;
+};
