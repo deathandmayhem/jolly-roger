@@ -7,6 +7,7 @@ import { BreadcrumbsProvider } from "../hooks/breadcrumb";
 import { useAppThemeState } from "../hooks/persisted-state";
 import useDocumentTitle from "../hooks/useDocumentTitle";
 import { darkTheme, lightTheme } from "../theme";
+import AddPuzzlePage from "./AddPuzzlePage";
 import AllProfileListPage from "./AllProfileListPage";
 import AnnouncementsPage from "./AnnouncementsPage";
 import { AuthenticatedPage, UnauthenticatedPage } from "./authentication";
@@ -43,6 +44,7 @@ export const AuthenticatedRouteList: RouteObject[] = [
     path: "/hunts",
     element: <HuntListApp />,
     children: [
+      { path: "addpuzzle", element: <AddPuzzlePage /> },
       {
         path: ":huntId",
         element: <HuntApp />,

@@ -171,6 +171,13 @@ export const useHuntPuzzleListCollapseGroup = (
   ] as const;
 };
 
+export const useAddPuzzleLastSelectedHuntId = () => {
+  return useLocalStorage<string | undefined>(
+    "addPuzzleLastSelectedHuntId",
+    undefined,
+  );
+};
+
 const ADD_PUZZLE_RECENT_TAGS_LIMIT = 10;
 
 export const useAddPuzzleHuntRecentTags = (huntId?: string) => {

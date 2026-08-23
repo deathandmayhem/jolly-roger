@@ -7,6 +7,7 @@ import { startupHooksComplete } from "../imports/server/runIfLatestBuild";
 chai.use(chaiAsPromised);
 
 import "./unit/imports/lib/calendarTimeFormat";
+import "./unit/imports/lib/inferPuzzleTitle";
 import "./unit/imports/lib/puzzle-sort-and-group";
 import "./unit/imports/lib/relativeTimeFormat";
 import "./unit/imports/lib/ValidateShape";

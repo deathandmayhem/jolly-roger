@@ -17,11 +17,13 @@ import type { FormControlProps } from "react-bootstrap/FormControl";
 import FormControl from "react-bootstrap/FormControl";
 import FormGroup from "react-bootstrap/FormGroup";
 import FormLabel from "react-bootstrap/FormLabel";
+import FormSelect from "react-bootstrap/FormSelect";
 import Row from "react-bootstrap/Row";
 import { useTranslation } from "react-i18next";
 import type { ActionMeta } from "react-select";
 import { useTheme } from "styled-components";
 import type { GdriveMimeTypesType } from "../../lib/GdriveMimeTypes";
+import type { HuntType } from "../../lib/models/Hunts";
 import type { PuzzleType } from "../../lib/models/Puzzles";
 import type { TagType } from "../../lib/models/Tags";
 import { useAddPuzzleHuntRecentTags } from "../hooks/persisted-state";
@@ -59,14 +61,7 @@ export type PuzzleModalFormHandle = {
   show: () => void;
 };
 
-const PuzzleModalForm = ({
-  huntId,
-  puzzle,
-  tags: propsTags,
-  onSubmit,
-  showOnMount,
-  ref,
-}: {
+export interface PuzzleModalFormProps {
   huntId: string;
   puzzle?: PuzzleType;
   // All known tags for this hunt
@@ -76,8 +71,30 @@ const PuzzleModalForm = ({
     callback: (error?: Error) => void,
   ) => void;
   showOnMount?: boolean;
+  /** When true, renders as a full-page form instead of inside a modal dialog. */
+  inline?: boolean;
+  initialTitle?: string;
+  initialUrl?: string;
+  hunts?: HuntType[];
+  onHuntChange?: (huntId: string) => void;
+  onHide?: () => void;
   ref: React.Ref<PuzzleModalFormHandle>;
-}) => {
+}
+
+const PuzzleModalForm = ({
+  huntId,
+  puzzle,
+  tags: propsTags,
+  onSubmit,
+  showOnMount,
+  inline,
+  initialTitle,
+  initialUrl,
+  hunts,
+  onHuntChange,
+  onHide,
+  ref,
+}: PuzzleModalFormProps) => {
   const tagNamesForIds = useCallback(
     (tagIds: string[]) => {
       const tagNames: Record<string, string> = {};
@@ -89,8 +106,8 @@ const PuzzleModalForm = ({
     [propsTags],
   );
 
-  const [title, setTitle] = useState(puzzle?.title ?? "");
-  const [url, setUrl] = useState(puzzle?.url ?? "");
+  const [title, setTitle] = useState(puzzle?.title ?? initialTitle ?? "");
+  const [url, setUrl] = useState(puzzle?.url ?? initialUrl ?? "");
   const [tags, setTags] = useState(puzzle ? tagNamesForIds(puzzle.tags) : []);
   const [docType, setDocType] = useState<GdriveMimeTypesType | undefined>(
     puzzle ? undefined : "spreadsheet",
@@ -208,7 +225,7 @@ const PuzzleModalForm = ({
   const { t } = useTranslation();
 
   const onFormSubmit = useCallback(
-    (callback: () => void) => {
+    (callback?: () => void) => {
       setSubmitState(PuzzleModalFormSubmitState.SUBMITTING);
       const payload: PuzzleModalFormSubmitPayload = {
         huntId,
@@ -256,7 +273,7 @@ const PuzzleModalForm = ({
           setConfirmingDuplicateUrl(false);
           setAllowDuplicateUrls(false);
           addPuzzleHuntRecentTags(tags);
-          callback();
+          callback?.();
         }
       });
     },
@@ -282,12 +299,15 @@ const PuzzleModalForm = ({
   }, []);
 
   const reset = useCallback(() => {
-    setTitle("");
-    setUrl("");
+    setTitle(initialTitle ?? "");
+    setUrl(initialUrl ?? "");
     setTags([]);
     setExpectedAnswerCount(1);
     setDocType("spreadsheet");
-  }, []);
+    setTitleDirty(false);
+    setUrlDirty(false);
+    setTagsDirty(false);
+  }, [initialTitle, initialUrl]);
 
   const currentTitle = useMemo(() => {
     if (!titleDirty && puzzle) {
@@ -414,6 +434,169 @@ const PuzzleModalForm = ({
 
   const theme = useTheme();
 
+  const formTitle = puzzle
+    ? t("puzzle.edit.editPuzzle", "Edit puzzle")
+    : t("puzzle.edit.addPuzzle", "Add puzzle");
+
+  const formFields = (
+    <>
+      {hunts && hunts.length > 1 && onHuntChange && (
+        <FormGroup
+          as={Row}
+          className="mb-3"
+          controlId={`${idPrefix}-hunt-select`}
+        >
+          <FormLabel column xs={3}>
+            {t("puzzle.edit.hunt", "Hunt")}
+          </FormLabel>
+          <Col xs={9}>
+            <FormSelect
+              value={huntId}
+              disabled={disableForm}
+              onChange={(e) => onHuntChange(e.currentTarget.value)}
+            >
+              {hunts.map((h) => (
+                <option key={h._id} value={h._id}>
+                  {h.name}
+                </option>
+              ))}
+            </FormSelect>
+          </Col>
+        </FormGroup>
+      )}
+
+      <FormGroup
+        as={Row}
+        className="mb-3"
+        controlId={`${idPrefix}-new-puzzle-title`}
+      >
+        <FormLabel column xs={3}>
+          {t("puzzle.edit.title", "Title")}
+        </FormLabel>
+        <Col xs={9}>
+          <FormControl
+            type="text"
+            autoFocus
+            disabled={disableForm}
+            onChange={onTitleChange}
+            value={currentTitle}
+          />
+        </Col>
+      </FormGroup>
+
+      <FormGroup
+        as={Row}
+        className="mb-3"
+        controlId={`${idPrefix}-new-puzzle-url`}
+      >
+        <FormLabel column xs={3}>
+          {t("puzzle.edit.url", "URL")}
+        </FormLabel>
+        <Col xs={9}>
+          <FormControl
+            type="text"
+            disabled={disableForm}
+            onChange={onUrlChange}
+            value={currentUrl}
+          />
+          {allowDuplicateUrlsCheckbox}
+        </Col>
+      </FormGroup>
+
+      <FormGroup
+        as={Row}
+        className="mb-3"
+        controlId={`${idPrefix}-new-puzzle-tags`}
+      >
+        <FormLabel column xs={3}>
+          {t("puzzle.edit.tags", "Tags")}
+        </FormLabel>
+        <Col xs={9}>
+          <Creatable
+            id={`${idPrefix}-new-puzzle-tags`}
+            theme={theme.reactSelectTheme}
+            options={selectOptions}
+            isMulti
+            isDisabled={disableForm}
+            onChange={onTagsChange}
+            value={currentTags.map((t) => {
+              return { label: t, value: t };
+            })}
+          />
+          {unselectedRecentTags.length > 0 && (
+            <div className="mt-1 d-flex flex-wrap gap-1 align-items-center">
+              <small className="text-muted me-1">
+                {t("puzzle.edit.recentTags", "Recent:")}
+              </small>
+              {unselectedRecentTags.map((recentTag) => (
+                <Button
+                  key={recentTag}
+                  variant="outline-secondary"
+                  size="sm"
+                  className="py-0 px-1"
+                  style={{ fontSize: "0.8rem" }}
+                  disabled={disableForm}
+                  onClick={() => addTag(recentTag)}
+                >
+                  +{recentTag}
+                </Button>
+              ))}
+            </div>
+          )}
+        </Col>
+      </FormGroup>
+
+      {docTypeSelector}
+
+      <FormGroup
+        as={Row}
+        className="mb-3"
+        controlId={`${idPrefix}-new-puzzle-expected-answer-count`}
+      >
+        <FormLabel column xs={3}>
+          {t("puzzle.edit.answerCount", "Expected # of answers")}
+        </FormLabel>
+        <Col xs={9}>
+          <FormControl
+            type="number"
+            disabled={disableForm}
+            onChange={onExpectedAnswerCountChange}
+            value={currentExpectedAnswerCount}
+            min={0}
+            step={1}
+          />
+        </Col>
+      </FormGroup>
+
+      {currentExpectedAnswerCount === 0 ? (
+        <FormCheck
+          id={`${idPrefix}-solved-with-no-answers`}
+          label={t(
+            "puzzle.edit.considerSolvedWithNoAnswer",
+            "Consider solved with no answers",
+          )}
+          type="checkbox"
+          checked={currentConsiderCompletedWithNoAnswer}
+          disabled={disableForm}
+          onChange={onConsiderSolvedWithNoAnswerChange}
+          className="mt-1"
+        />
+      ) : undefined}
+
+      {submitState === PuzzleModalFormSubmitState.FAILED && (
+        <Alert variant="danger">{errorMessage}</Alert>
+      )}
+    </>
+  );
+
+  const inlineSubmit = useCallback(
+    (e: React.SubmitEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      onFormSubmit();
+    },
+    [onFormSubmit],
+  );
+
   return (
     <Suspense
       fallback={
@@ -422,138 +605,32 @@ const PuzzleModalForm = ({
         </div>
       }
     >
-      <ModalForm
-        ref={formRef}
-        title={
-          puzzle
-            ? t("puzzle.edit.editPuzzle", "Edit puzzle")
-            : t("puzzle.edit.addPuzzle", "Add puzzle")
-        }
-        onSubmit={onFormSubmit}
-        submitDisabled={disableForm}
-      >
-        <FormGroup
-          as={Row}
-          className="mb-3"
-          controlId={`${idPrefix}-new-puzzle-title`}
-        >
-          <FormLabel column xs={3}>
-            {t("puzzle.edit.title", "Title")}
-          </FormLabel>
-          <Col xs={9}>
-            <FormControl
-              type="text"
-              autoFocus
-              disabled={disableForm}
-              onChange={onTitleChange}
-              value={currentTitle}
-            />
-          </Col>
-        </FormGroup>
-
-        <FormGroup
-          as={Row}
-          className="mb-3"
-          controlId={`${idPrefix}-new-puzzle-url`}
-        >
-          <FormLabel column xs={3}>
-            {t("puzzle.edit.url", "URL")}
-          </FormLabel>
-          <Col xs={9}>
-            <FormControl
-              type="text"
-              disabled={disableForm}
-              onChange={onUrlChange}
-              value={currentUrl}
-            />
-            {allowDuplicateUrlsCheckbox}
-          </Col>
-        </FormGroup>
-
-        <FormGroup
-          as={Row}
-          className="mb-3"
-          controlId={`${idPrefix}-new-puzzle-tags`}
-        >
-          <FormLabel column xs={3}>
-            {t("puzzle.edit.tags", "Tags")}
-          </FormLabel>
-          <Col xs={9}>
-            <Creatable
-              id={`${idPrefix}-new-puzzle-tags`}
-              theme={theme.reactSelectTheme}
-              options={selectOptions}
-              isMulti
-              isDisabled={disableForm}
-              onChange={onTagsChange}
-              value={currentTags.map((t) => {
-                return { label: t, value: t };
-              })}
-            />
-            {unselectedRecentTags.length > 0 && (
-              <div className="mt-1 d-flex flex-wrap gap-1 align-items-center">
-                <small className="text-muted me-1">
-                  {t("puzzle.edit.recentTags", "Recent:")}
-                </small>
-                {unselectedRecentTags.map((recentTag) => (
-                  <Button
-                    key={recentTag}
-                    variant="outline-secondary"
-                    size="sm"
-                    className="py-0 px-1"
-                    style={{ fontSize: "0.8rem" }}
-                    disabled={disableForm}
-                    onClick={() => addTag(recentTag)}
-                  >
-                    +{recentTag}
-                  </Button>
-                ))}
-              </div>
+      {inline ? (
+        <form className="form-horizontal" onSubmit={inlineSubmit}>
+          <h4 className="mb-3">{formTitle}</h4>
+          {formFields}
+          <div className="d-flex justify-content-end gap-2 mt-3">
+            {onHide && (
+              <Button variant="light" onClick={onHide} disabled={disableForm}>
+                {t("common.close", "Close")}
+              </Button>
             )}
-          </Col>
-        </FormGroup>
-
-        {docTypeSelector}
-
-        <FormGroup
-          as={Row}
-          className="mb-3"
-          controlId={`${idPrefix}-new-puzzle-expected-answer-count`}
+            <Button variant="primary" type="submit" disabled={disableForm}>
+              {t("common.save", "Save")}
+            </Button>
+          </div>
+        </form>
+      ) : (
+        <ModalForm
+          ref={formRef}
+          title={formTitle}
+          onSubmit={onFormSubmit}
+          onHide={onHide}
+          submitDisabled={disableForm}
         >
-          <FormLabel column xs={3}>
-            {t("puzzle.edit.answerCount", "Expected # of answers")}
-          </FormLabel>
-          <Col xs={9}>
-            <FormControl
-              type="number"
-              disabled={disableForm}
-              onChange={onExpectedAnswerCountChange}
-              value={currentExpectedAnswerCount}
-              min={0}
-              step={1}
-            />
-          </Col>
-        </FormGroup>
-
-        {currentExpectedAnswerCount === 0 ? (
-          <FormCheck
-            id={`${idPrefix}-solved-with-no-answers`}
-            label={t(
-              "puzzle.edit.considerSolvedWithNoAnswer",
-              "Consider solved with no answers",
-            )}
-            type="checkbox"
-            checked={currentConsiderCompletedWithNoAnswer}
-            disabled={disableForm}
-            onChange={onConsiderSolvedWithNoAnswerChange}
-            className="mt-1"
-          />
-        ) : undefined}
-
-        {submitState === PuzzleModalFormSubmitState.FAILED && (
-          <Alert variant="danger">{errorMessage}</Alert>
-        )}
-      </ModalForm>
+          {formFields}
+        </ModalForm>
+      )}
     </Suspense>
   );
 };

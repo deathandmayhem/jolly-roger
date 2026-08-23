@@ -2,6 +2,7 @@ import { Meteor } from "meteor/meteor";
 import { OAuth } from "meteor/oauth";
 import { useTracker } from "meteor/react-meteor-data";
 import { ServiceConfiguration } from "meteor/service-configuration";
+import { faBookmark } from "@fortawesome/free-solid-svg-icons/faBookmark";
 import { faPencil } from "@fortawesome/free-solid-svg-icons/faPencil";
 import { faSpinner } from "@fortawesome/free-solid-svg-icons/faSpinner";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -524,6 +525,71 @@ const AvatarSection = ({ initialUser }: { initialUser: Meteor.User }) => {
   );
 };
 
+const BookmarkletSection = () => {
+  const { t } = useTranslation();
+  const origin = window.location.origin;
+  const bookmarkletHref = useMemo(() => {
+    const code = `
+      (function () {
+        const title = encodeURIComponent(document.title);
+        const url = encodeURIComponent(window.location.href);
+        const target = "${origin}/hunts/addpuzzle?url=" + url + "&title=" + title;
+        window.open(target, "jr_addpuzzle", "width=550,height=700,scrollbars=yes");
+      })();
+    `;
+    return `javascript:${code.replaceAll(/\s+/g, " ").trim()}`;
+  }, [origin]);
+
+  // React blocks javascript: URLs in href attributes as a security precaution.
+  // We set the href directly on the DOM element via a ref to bypass this.
+  const linkRef = useRef<HTMLAnchorElement | null>(null);
+  const setLinkRef = useCallback(
+    (node: HTMLAnchorElement | null) => {
+      linkRef.current = node;
+      if (node) {
+        node.setAttribute("href", bookmarkletHref);
+      }
+    },
+    [bookmarkletHref],
+  );
+
+  const preventClick = useCallback(
+    (e: React.SyntheticEvent) => e.preventDefault(),
+    [],
+  );
+
+  return (
+    <section className="mb-4">
+      <h3>{t("profile.bookmarklet.title", "Add Puzzle Bookmarklet")}</h3>
+      <p>
+        {t(
+          "profile.bookmarklet.help",
+          "Drag this button to your bookmarks bar. When viewing a puzzle on an external site, click the bookmarklet to quickly add it to Jolly Roger with the title and URL prepopulated.",
+        )}
+      </p>
+      <div>
+        {/* The href is set via ref to bypass React's javascript: URL blocking.
+            We keep href="#" here so the <a> is valid for a11y linting. */}
+        {/* oxlint-disable-next-line jsx-a11y/anchor-is-valid -- must be an <a> with href for bookmarklet drag-to-bookmarks-bar; onClick only prevents in-page navigation */}
+        <a
+          ref={setLinkRef}
+          href="#"
+          className="btn btn-outline-primary"
+          onClick={preventClick}
+          onKeyDown={preventClick}
+          title={t(
+            "profile.bookmarklet.dragHelp",
+            "Drag me to your bookmarks bar!",
+          )}
+        >
+          <FontAwesomeIcon icon={faBookmark} className="me-2" />
+          {t("profile.bookmarklet.button", "+ Jolly Roger Puzzle")}
+        </a>
+      </div>
+    </section>
+  );
+};
+
 const OwnProfilePage = ({
   initialUser,
   apiKeys,
@@ -695,6 +761,7 @@ const OwnProfilePage = ({
 
       <section className="mt-3">
         <h2>{t("profile.advanced", "Advanced")}</h2>
+        <BookmarkletSection />
         <APIKeysSection apiKeys={apiKeys} />
       </section>
     </Container>
