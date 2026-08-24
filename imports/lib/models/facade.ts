@@ -1,6 +1,7 @@
 import Announcements from "./Announcements";
 import BlobMappings from "./BlobMappings";
 import Bookmarks from "./Bookmarks";
+import ChatMessageRevisions from "./ChatMessageRevisions";
 import ChatMessages from "./ChatMessages";
 import ChatNotifications from "./ChatNotifications";
 import DiscordCache from "./DiscordCache";
@@ -36,6 +37,7 @@ const Models = {
   Announcements,
   BlobMappings,
   Bookmarks,
+  ChatMessageRevisions,
   ChatMessages,
   ChatNotifications,
   DiscordCache,

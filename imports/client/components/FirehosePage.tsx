@@ -1,6 +1,7 @@
 import { useTracker } from "meteor/react-meteor-data";
 import { faEraser } from "@fortawesome/free-solid-svg-icons/faEraser";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import type { TFunction } from "i18next";
 import React, {
   useCallback,
   useEffect,
@@ -63,20 +64,25 @@ const PreWrapSpan = styled.span`
 function asFlatString(
   chatMessage: ChatMessageType,
   displayNames: Map<string, string>,
+  t: TFunction,
 ): string {
-  return chatMessage.content.children
+  if (!chatMessage.content) {
+    return t("chat.deleted", "(message deleted)");
+  }
+  const text = chatMessage.content.children
     .map((child) => {
       if (nodeIsMention(child)) {
         return ` @${displayNames.get(child.userId) ?? "???"} `;
       } else if (nodeIsRoleMention(child)) {
         return ` @${child.roleId} `;
       } else if (nodeIsImage(child)) {
-        return `[image]`;
+        return t("chat.image", "[image]");
       } else {
         return child.text;
       }
     })
     .join(" ");
+  return chatMessage.edited ? `${text} ${t("chat.edited", "(edited)")}` : text;
 }
 
 const Message = React.memo(({ msg, displayNames, puzzle }: MessageProps) => {
@@ -85,7 +91,7 @@ const Message = React.memo(({ msg, displayNames, puzzle }: MessageProps) => {
   const displayName = msg.sender
     ? (displayNames.get(msg.sender) ?? "???")
     : "jolly-roger";
-  const messageText = asFlatString(msg, displayNames);
+  const messageText = asFlatString(msg, displayNames, t);
   const hasNewline = messageText.includes("\n");
   return (
     <div>
@@ -133,6 +139,7 @@ function compileChatMessageMatcher(
   puzzles: Map<string, PuzzleType>,
   displayNames: Map<string, string>,
   searchKeys: string[],
+  t: TFunction,
 ): (c: ChatMessageType) => boolean {
   // Given a set of puzzles, display names, and search keys,
   // compileChatMessageMatcher returns a function that, given a chat message,
@@ -143,6 +150,7 @@ function compileChatMessageMatcher(
     const haystackString = asFlatString(
       chatMessage,
       displayNames,
+      t,
     ).toLowerCase();
     const senderDisplayName = (
       chatMessage.sender
@@ -253,13 +261,14 @@ const FirehosePage = () => {
           puzzles,
           displayNames,
           searchKeysWithEmptyKeysRemoved,
+          t,
         );
         interestingChatMessages = allChatMessages.filter(isInteresting);
       }
 
       return interestingChatMessages;
     },
-    [searchString, puzzles, displayNames],
+    [searchString, puzzles, displayNames, t],
   );
 
   const [shouldScrollBottom, setShouldScrollBottom] = useState(true);

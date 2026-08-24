@@ -23,8 +23,11 @@ const ChatNotificationHooks: Hookset = {
     // Dingwords can be disabled (they're comparatively expensive, since they do big-O(users) work),
     // but @-mentions cannot (they're cheap, doing big-O(message components) work).
 
-    const chatMessage = (await ChatMessages.findOneAsync(chatMessageId))!;
-    const { sender } = chatMessage;
+    const chatMessage = await ChatMessages.findOneAsync(chatMessageId);
+    if (!chatMessage?.content) {
+      return;
+    }
+    const { sender, content } = chatMessage;
 
     // Collect users to notify into a set, and then create notifications at the end.
     const usersToNotify = new Set<string>();
@@ -35,7 +38,7 @@ const ChatNotificationHooks: Hookset = {
 
     // Notify for @-mentions in message.
     await Promise.all(
-      chatMessage.content.children.map(async (child) => {
+      content.children.map(async (child) => {
         if (nodeIsMention(child)) {
           const mentionedUserId = child.userId;
           // Don't have messages notify yourself.
@@ -119,7 +122,7 @@ const ChatNotificationHooks: Hookset = {
           sender,
           puzzle: chatMessage.puzzle,
           hunt: chatMessage.hunt,
-          content: chatMessage.content,
+          content,
           timestamp: chatMessage.timestamp,
         });
       }),
