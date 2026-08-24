@@ -677,7 +677,7 @@ const Portal = ({ children }: { children: React.ReactNode }) => {
 
 export interface FancyEditorHandle {
   clearInput: () => void;
-  focus: () => void;
+  focus: (toEnd?: boolean) => void;
   insertImage: (url: string, id: string, status: ImageStatus) => void;
   replaceImage: (url: string, id: string, status: ImageStatus) => void;
 }
@@ -801,9 +801,15 @@ const FancyEditor = ({
       undos: [],
     };
   }, [editor]);
-  const focus = useCallback(() => {
-    ReactEditor.focus(editor);
-  }, [editor]);
+  const focus = useCallback(
+    (toEnd?: boolean) => {
+      ReactEditor.focus(editor);
+      if (toEnd) {
+        Transforms.select(editor, Editor.end(editor, []));
+      }
+    },
+    [editor],
+  );
   useImperativeHandle(ref, () => ({
     clearInput,
     focus,

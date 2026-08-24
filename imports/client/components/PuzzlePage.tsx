@@ -12,8 +12,10 @@ import { faEdit } from "@fortawesome/free-solid-svg-icons/faEdit";
 import { faImage } from "@fortawesome/free-solid-svg-icons/faImage";
 import { faKey } from "@fortawesome/free-solid-svg-icons/faKey";
 import { faPaperPlane } from "@fortawesome/free-solid-svg-icons/faPaperPlane";
+import { faPencil } from "@fortawesome/free-solid-svg-icons/faPencil";
 import { faPuzzlePiece } from "@fortawesome/free-solid-svg-icons/faPuzzlePiece";
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes";
+import { faTrash } from "@fortawesome/free-solid-svg-icons/faTrash";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import type { ComponentPropsWithRef, FC } from "react";
 import React, {
@@ -52,7 +54,10 @@ import {
 import { messageDingsUser } from "../../lib/dingwordLogic";
 import { indexedById, sortedBy } from "../../lib/listUtils";
 import Bookmarks from "../../lib/models/Bookmarks";
-import type { ChatMessageType } from "../../lib/models/ChatMessages";
+import type {
+  ChatMessageContentType,
+  ChatMessageType,
+} from "../../lib/models/ChatMessages";
 import ChatMessages from "../../lib/models/ChatMessages";
 import type { DocumentType } from "../../lib/models/Documents";
 import Documents from "../../lib/models/Documents";
@@ -79,6 +84,8 @@ import addPuzzleAnswer from "../../methods/addPuzzleAnswer";
 import addPuzzleTag from "../../methods/addPuzzleTag";
 import createChatImageUpload from "../../methods/createChatImageUpload";
 import createGuess from "../../methods/createGuess";
+import deleteChatMessage from "../../methods/deleteChatMessage";
+import editChatMessage from "../../methods/editChatMessage";
 import ensurePuzzleDocument from "../../methods/ensurePuzzleDocument";
 import removePuzzleAnswer from "../../methods/removePuzzleAnswer";
 import removePuzzleTag from "../../methods/removePuzzleTag";
@@ -99,6 +106,7 @@ import BookmarkButton from "./BookmarkButton";
 import ChatMessage from "./ChatMessage";
 import ChatPeople from "./ChatPeople";
 import CopyToClipboardButton from "./CopyToClipboardButton";
+import DeleteChatMessageModal from "./DeleteChatMessageModal";
 import DocumentDisplay, { DocumentMessage } from "./DocumentDisplay";
 import type { FancyEditorHandle, MessageElement } from "./FancyEditor";
 import FancyEditor from "./FancyEditor";
@@ -203,7 +211,9 @@ const PUZZLE_PAGE_PADDING = 8;
 const ChatMessageDiv = styled.div<{
   $isSystemMessage: boolean;
   $isHighlighted: boolean;
+  $isOwnMessage: boolean;
 }>`
+  position: relative;
   padding: 0 ${PUZZLE_PAGE_PADDING}px 2px;
   overflow-wrap: break-word;
   font-size: 14px;
@@ -221,6 +231,16 @@ const ChatMessageDiv = styled.div<{
       background-color: ${({ theme }) =>
         theme.colors.systemChatMessageBackground};
     `}
+
+  ${({ $isOwnMessage, $isHighlighted }) =>
+    $isOwnMessage &&
+    !$isHighlighted &&
+    css`
+      &:hover {
+        background-color: ${({ theme }) =>
+          theme.colors.hoverChatMessageBackground};
+      }
+    `}
 `;
 
 const ChatInputRow = styled.div`
@@ -236,6 +256,80 @@ const ChatMessageTimestamp = styled.span`
   font-style: italic;
   font-size: 12px;
   color: #666;
+`;
+
+const ChatMessageActions = styled.span<{ $suppressSender?: boolean }>`
+  position: absolute;
+  top: ${({ $suppressSender }) => ($suppressSender ? "2px" : "20px")};
+  right: ${PUZZLE_PAGE_PADDING}px;
+  display: none;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 6px;
+  background-color: ${({ theme }) => theme.colors.background};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: 4px;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 8%);
+  z-index: 2;
+
+  ${ChatMessageDiv}:hover &,
+  ${ChatMessageDiv}:focus-within & {
+    display: inline-flex;
+  }
+`;
+
+const ActionIconButton = styled.button`
+  background: none;
+  border: none;
+  padding: 0 2px;
+  margin: 0;
+  cursor: pointer;
+  color: #888;
+  font-size: 12px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover,
+  &:focus {
+    outline: none;
+    color: ${({ theme }) => theme.colors.text};
+  }
+`;
+
+const DeleteIconButton = styled(ActionIconButton)`
+  &:hover,
+  &:focus {
+    color: #d9534f;
+  }
+`;
+
+const InlineEditContainer = styled.div`
+  margin-top: 4px;
+  margin-bottom: 4px;
+`;
+
+const InlineEditButtons = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+`;
+
+const StyledInlineFancyEditor = styled(FancyEditor)`
+  display: block;
+  background-color: ${({ theme }) => theme.colors.fancyEditorBackground};
+  max-height: 200px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  white-space: pre-wrap;
+  line-height: 20px;
+  padding: 6px 8px;
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: 4px;
+  resize: none;
 `;
 
 const ChatSectionDiv = styled.div`
@@ -353,6 +447,273 @@ const AnswerFormControl = styled(FormControl)`
   font-weight: 400;
 `;
 
+function hasNonTrivialContent(content: Descendant[]): boolean {
+  return (
+    content.length > 0 &&
+    (content[0]! as MessageElement).children.some((child) => {
+      return (
+        nodeIsImage(child) ||
+        nodeIsMention(child) ||
+        nodeIsRoleMention(child) ||
+        (nodeIsText(child) && child.text.trim().length > 0)
+      );
+    })
+  );
+}
+
+function hasLoadingImage(content: Descendant[]): boolean {
+  return (
+    content.length > 0 &&
+    (content[0]! as MessageElement).children.some((child) => {
+      return nodeIsImage(child) && child.status === "loading";
+    })
+  );
+}
+
+function slateToMessageContent(content: Descendant[]): ChatMessageContentType {
+  // Take only the first Descendant; we normalize the input to a single
+  // block with type "message".
+  const message = content[0]! as MessageElement;
+  // Strip out children from mention elements. We only need the type and
+  // userId for display purposes.
+  const { type, children } = message;
+  return {
+    type,
+    children: children
+      .filter((child) => {
+        if (nodeIsMention(child) || nodeIsRoleMention(child)) {
+          return true;
+        }
+        if (nodeIsImage(child) && child.status !== "success") {
+          return false;
+        }
+        if (nodeIsText(child) && child.text === "") {
+          return false;
+        }
+        return true;
+      })
+      .map((child) => {
+        if (nodeIsMention(child)) {
+          return {
+            type: child.type,
+            userId: child.userId,
+          };
+        } else if (nodeIsRoleMention(child)) {
+          return {
+            type: child.type,
+            roleId: child.roleId,
+          };
+        } else if (nodeIsImage(child)) {
+          return {
+            type: child.type,
+            url: child.url,
+          };
+        } else {
+          return child;
+        }
+      }),
+  };
+}
+
+function messageContentToSlate(content: ChatMessageContentType): Descendant[] {
+  return [
+    {
+      type: "message",
+      children: content.children.map((child) => {
+        if (nodeIsMention(child)) {
+          return {
+            type: "mention" as const,
+            userId: child.userId,
+            children: [{ text: "" }],
+          };
+        } else if (nodeIsRoleMention(child)) {
+          return {
+            type: "role-mention" as const,
+            roleId: child.roleId,
+            children: [{ text: "" }],
+          };
+        } else if (nodeIsImage(child)) {
+          return {
+            type: "image" as const,
+            url: child.url,
+            tempId: Random.id(),
+            status: "success" as const,
+            children: [{ text: "" }],
+          };
+        } else {
+          return {
+            text: child.text,
+          };
+        }
+      }),
+    },
+  ];
+}
+
+function useChatImageUpload({
+  puzzleId,
+  fancyEditorRef,
+}: {
+  puzzleId: string;
+  fancyEditorRef: React.RefObject<FancyEditorHandle | null>;
+}) {
+  const [uploadImageError, setUploadImageError] = useState<string>();
+  const clearUploadImageError = useCallback(
+    () => setUploadImageError(undefined),
+    [],
+  );
+
+  const uploadImageFile = useCallback(
+    (file: File) => {
+      const tempId = Random.id();
+      fancyEditorRef.current?.insertImage("", tempId, "loading");
+
+      createChatImageUpload.call(
+        {
+          puzzleId,
+          mimeType: file.type,
+        },
+        (err, upload) => {
+          if (err || !upload) {
+            fancyEditorRef.current?.replaceImage("", tempId, "error");
+            setUploadImageError(
+              err?.message ??
+                "S3 presignedPost creation failed, check server settings to ensure S3 image bucket is configured correctly.",
+            );
+          } else {
+            const { publicUrl, uploadUrl, fields } = upload;
+            const formData = new FormData();
+            for (const [key, value] of Object.entries(fields)) {
+              formData.append(key, value);
+            }
+            formData.append("file", file);
+            fetch(uploadUrl, {
+              method: "POST",
+              mode: "no-cors",
+              body: formData,
+            })
+              .then(() => {
+                fancyEditorRef.current?.replaceImage(
+                  publicUrl,
+                  tempId,
+                  "success",
+                );
+              })
+              .catch((uploadErr) => {
+                fancyEditorRef.current?.replaceImage("", tempId, "error");
+                setUploadImageError(`S3 upload failed: ${uploadErr.message}`);
+              });
+          }
+        },
+      );
+    },
+    [puzzleId, fancyEditorRef],
+  );
+
+  const renderUploadErrorModal = useCallback(() => {
+    if (!uploadImageError) {
+      return null;
+    }
+    return createPortal(
+      <Modal show onHide={clearUploadImageError}>
+        <Modal.Header closeButton>Error uploading image to chat</Modal.Header>
+        <Modal.Body>
+          <p>
+            Something went wrong while uploading images to the chat. Contact
+            admin with the error message for help.
+          </p>
+          <p>Error message: {uploadImageError}</p>
+        </Modal.Body>
+      </Modal>,
+      document.body,
+    );
+  }, [uploadImageError, clearUploadImageError]);
+
+  return {
+    uploadImageFile,
+    uploadImageError,
+    clearUploadImageError,
+    setUploadImageError,
+    renderUploadErrorModal,
+  };
+}
+
+const InlineChatEditor = ({
+  puzzleId,
+  initialContent,
+  users,
+  onSave,
+  onCancel,
+}: {
+  puzzleId: string;
+  initialContent: Descendant[];
+  users: Meteor.User[];
+  onSave: (content: Descendant[]) => void;
+  onCancel: () => void;
+}) => {
+  const { t } = useTranslation();
+  const [content, setContent] = useState<Descendant[]>(initialContent);
+  const fancyEditorRef = useRef<FancyEditorHandle | null>(null);
+
+  const { uploadImageFile, renderUploadErrorModal } = useChatImageUpload({
+    puzzleId,
+    fancyEditorRef,
+  });
+
+  useEffect(() => {
+    fancyEditorRef.current?.focus(true);
+  }, []);
+
+  const canSave = useMemo(() => {
+    return hasNonTrivialContent(content) && !hasLoadingImage(content);
+  }, [content]);
+
+  const handleSubmit = useCallback(() => {
+    if (!canSave) {
+      return false;
+    }
+    onSave(content);
+    return true;
+  }, [canSave, onSave, content]);
+
+  const handleKeyDown: React.KeyboardEventHandler<HTMLDivElement> = useCallback(
+    (e) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        onCancel();
+      }
+    },
+    [onCancel],
+  );
+
+  return (
+    <InlineEditContainer onKeyDown={handleKeyDown}>
+      {renderUploadErrorModal()}
+      <StyledInlineFancyEditor
+        ref={fancyEditorRef}
+        initialContent={initialContent}
+        onContentChange={setContent}
+        onSubmit={handleSubmit}
+        uploadImageFile={uploadImageFile}
+        users={users}
+      />
+      <InlineEditButtons>
+        <Button variant="secondary" size="sm" onClick={onCancel}>
+          {t("chat.edit.cancel", "Cancel")}
+        </Button>
+        <Button
+          variant="primary"
+          size="sm"
+          onClick={handleSubmit}
+          disabled={!canSave}
+        >
+          {t("chat.edit.save", "Save")}
+        </Button>
+      </InlineEditButtons>
+    </InlineEditContainer>
+  );
+};
+
 const ChatHistoryMessage = React.memo(
   ({
     message,
@@ -362,7 +723,13 @@ const ChatHistoryMessage = React.memo(
     suppressSender,
     selfUserId,
     roles,
+    users,
+    isEditing,
     imageOnLoad,
+    onEdit,
+    onDelete,
+    onSaveEdit,
+    onCancelEdit,
   }: {
     message: FilteredChatMessageType;
     displayNames: Map<string, string>;
@@ -371,7 +738,13 @@ const ChatHistoryMessage = React.memo(
     suppressSender: boolean;
     selfUserId: string;
     roles: string[];
+    users: Meteor.User[];
+    isEditing?: boolean;
     imageOnLoad: () => void;
+    onEdit?: (message: FilteredChatMessageType) => void;
+    onDelete?: (message: FilteredChatMessageType) => void;
+    onSaveEdit?: (messageId: string, content: Descendant[]) => void;
+    onCancelEdit?: () => void;
   }) => {
     const { t, i18n } = useTranslation();
     const ts = shortCalendarTimeFormat(message.timestamp, t, i18n.language);
@@ -380,20 +753,72 @@ const ChatHistoryMessage = React.memo(
       message.sender !== undefined
         ? (displayNames.get(message.sender) ?? "???")
         : "jolly-roger";
+
+    const isOwnMessage =
+      message.sender !== undefined && message.sender === selfUserId;
+
+    const handleEdit = useCallback(() => {
+      onEdit?.(message);
+    }, [onEdit, message]);
+
+    const handleDelete = useCallback(() => {
+      onDelete?.(message);
+    }, [onDelete, message]);
+
+    const handleSave = useCallback(
+      (newContent: Descendant[]) => {
+        onSaveEdit?.(message._id, newContent);
+      },
+      [onSaveEdit, message._id],
+    );
+
+    const handleCancel = useCallback(() => {
+      onCancelEdit?.();
+    }, [onCancelEdit]);
+
     return (
       <ChatMessageDiv
         $isSystemMessage={isSystemMessage}
         $isHighlighted={isHighlighted && !isSystemMessage}
+        $isOwnMessage={isOwnMessage}
       >
+        {isOwnMessage && !isEditing && (
+          <ChatMessageActions $suppressSender={suppressSender}>
+            <ActionIconButton
+              type="button"
+              title={t("chat.actions.edit", "Edit message")}
+              onClick={handleEdit}
+            >
+              <FontAwesomeIcon icon={faPencil} />
+            </ActionIconButton>
+            <DeleteIconButton
+              type="button"
+              title={t("chat.actions.delete", "Delete message")}
+              onClick={handleDelete}
+            >
+              <FontAwesomeIcon icon={faTrash} />
+            </DeleteIconButton>
+          </ChatMessageActions>
+        )}
         {!suppressSender && <ChatMessageTimestamp>{ts}</ChatMessageTimestamp>}
         {!suppressSender && <strong>{senderDisplayName}</strong>}
-        <ChatMessage
-          message={message.content}
-          displayNames={displayNames}
-          selfUserId={selfUserId}
-          roles={roles}
-          imageOnLoad={imageOnLoad}
-        />
+        {isEditing ? (
+          <InlineChatEditor
+            puzzleId={message.puzzle}
+            initialContent={messageContentToSlate(message.content)}
+            users={users}
+            onSave={handleSave}
+            onCancel={handleCancel}
+          />
+        ) : (
+          <ChatMessage
+            message={message.content}
+            displayNames={displayNames}
+            selfUserId={selfUserId}
+            roles={roles}
+            imageOnLoad={imageOnLoad}
+          />
+        )}
       </ChatMessageDiv>
     );
   },
@@ -411,12 +836,14 @@ const ChatHistory = React.memo(
     puzzleId,
     displayNames,
     selfUser,
+    users,
     ref,
   }: {
     huntId: string;
     puzzleId: string;
     displayNames: Map<string, string>;
     selfUser: Meteor.User;
+    users: Meteor.User[];
     ref: React.Ref<ChatHistoryHandle>;
   }) => {
     // TODO: consider using useFind once fixed upstream
@@ -552,14 +979,76 @@ const ChatHistory = React.memo(
 
     const { t } = useTranslation();
 
+    const [deleteTargetMessage, setDeleteTargetMessage] = useState<
+      FilteredChatMessageType | undefined
+    >();
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+    const [editingMessageId, setEditingMessageId] = useState<
+      string | undefined
+    >();
+
+    const handleDelete = useCallback((msg: FilteredChatMessageType) => {
+      setDeleteTargetMessage(msg);
+      setShowDeleteModal(true);
+    }, []);
+
+    const handleHideDeleteModal = useCallback(() => {
+      setShowDeleteModal(false);
+      setDeleteTargetMessage(undefined);
+    }, []);
+
+    const handleConfirmDelete = useCallback(() => {
+      if (deleteTargetMessage) {
+        deleteChatMessage.call({
+          chatMessageId: deleteTargetMessage._id,
+        });
+      }
+      setShowDeleteModal(false);
+      setDeleteTargetMessage(undefined);
+    }, [deleteTargetMessage]);
+
+    const handleEdit = useCallback((msg: FilteredChatMessageType) => {
+      setEditingMessageId(msg._id);
+    }, []);
+
+    const handleCancelEdit = useCallback(() => {
+      setEditingMessageId(undefined);
+    }, []);
+
+    const handleSaveEdit = useCallback(
+      (messageId: string, newContent: Descendant[]) => {
+        if (!hasNonTrivialContent(newContent) || hasLoadingImage(newContent)) {
+          return;
+        }
+        const cleanedMessage = slateToMessageContent(newContent);
+        editChatMessage.call({
+          chatMessageId: messageId,
+          content: JSON.stringify(cleanedMessage),
+        });
+        setEditingMessageId(undefined);
+      },
+      [],
+    );
+
     trace("ChatHistory render", { messageCount: chatMessages.length });
     return (
       <ChatHistoryDiv ref={historyRef} onScroll={onScrollObserved}>
+        <DeleteChatMessageModal
+          show={showDeleteModal}
+          messageContent={deleteTargetMessage?.content}
+          displayNames={displayNames}
+          selfUserId={selfUser._id}
+          roles={roles}
+          onHide={handleHideDeleteModal}
+          onConfirm={handleConfirmDelete}
+        />
         {chatMessages.length === 0 ? (
           <ChatMessageDiv
             key="no-message"
             $isSystemMessage={false}
             $isHighlighted={false}
+            $isOwnMessage={false}
           >
             <span>{t("chat.noChatter", "No chatter yet. Say something?")}</span>
           </ChatMessageDiv>
@@ -585,7 +1074,13 @@ const ChatHistory = React.memo(
               suppressSender={suppressSender}
               selfUserId={selfUser._id}
               roles={roles}
+              users={users}
+              isEditing={editingMessageId === msg._id}
               imageOnLoad={scrollChat}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              onSaveEdit={handleSaveEdit}
+              onCancelEdit={handleCancelEdit}
             />
           );
         })}
@@ -622,32 +1117,23 @@ const ChatInput = React.memo(
   ({
     onHeightChange,
     onMessageSent,
-    huntId,
     puzzleId,
     disabled,
+    users,
   }: {
     onHeightChange: () => void;
     onMessageSent: () => void;
-    huntId: string;
     puzzleId: string;
     disabled: boolean;
+    users: Meteor.User[];
   }) => {
-    // We want to have hunt profile data around so we can autocomplete from multiple fields.
-    const profilesLoadingFunc = useSubscribe("huntProfiles", huntId);
-    const profilesLoading = profilesLoadingFunc();
-    const [uploadImageError, setUploadImageError] = useState<string>();
-    const clearUploadImageError = useCallback(
-      () => setUploadImageError(undefined),
-      [],
-    );
-    const users = useTracker(() => {
-      return profilesLoading
-        ? []
-        : MeteorUsers.find({
-            hunts: huntId,
-            displayName: { $ne: undefined }, // no point completing a user with an unset displayName
-          }).fetch();
-    }, [huntId, profilesLoading]);
+    const [content, setContent] = useState(initialValue);
+    const fancyEditorRef = useRef<FancyEditorHandle | null>(null);
+    const { uploadImageFile, setUploadImageError, renderUploadErrorModal } =
+      useChatImageUpload({
+        puzzleId,
+        fancyEditorRef,
+      });
 
     const onHeightChangeCb = useCallback(
       (newHeight: number) => {
@@ -659,8 +1145,6 @@ const ChatInput = React.memo(
       [onHeightChange],
     );
 
-    const [content, setContent] = useState(initialValue);
-    const fancyEditorRef = useRef<FancyEditorHandle | null>(null);
     const onContentChange = useCallback(
       (newContent: Descendant[]) => {
         setContent(newContent);
@@ -668,75 +1152,19 @@ const ChatInput = React.memo(
       },
       [onHeightChangeCb],
     );
-    const hasNonTrivialContent = useMemo(() => {
-      return (
-        content.length > 0 &&
-        (content[0]! as MessageElement).children.some((child) => {
-          return (
-            nodeIsImage(child) ||
-            nodeIsMention(child) ||
-            nodeIsRoleMention(child) ||
-            (nodeIsText(child) && child.text.trim().length > 0)
-          );
-        })
-      );
+    const isContentNonTrivial = useMemo(() => {
+      return hasNonTrivialContent(content);
     }, [content]);
 
-    const hasLoadingImage = useMemo(() => {
-      return (
-        content.length > 0 &&
-        (content[0]! as MessageElement).children.some((child) => {
-          return nodeIsImage(child) && child.status === "loading";
-        })
-      );
+    const isImageLoading = useMemo(() => {
+      return hasLoadingImage(content);
     }, [content]);
 
     const sendContentMessage = useCallback(() => {
-      if (hasNonTrivialContent && !hasLoadingImage) {
+      if (isContentNonTrivial && !isImageLoading) {
         // Prepare to send message to server.
 
-        // Take only the first Descendant; we normalize the input to a single
-        // block with type "message".
-        const message = content[0]! as MessageElement;
-        // Strip out children from mention elements.  We only need the type and
-        // userId for display purposes.
-        const { type, children } = message;
-        const cleanedMessage = {
-          type,
-          children: children
-            .filter((child) => {
-              if (nodeIsMention(child) || nodeIsRoleMention(child)) {
-                return true;
-              }
-              if (nodeIsImage(child) && child.status !== "success") {
-                return false;
-              }
-              if (nodeIsText(child) && child.text === "") {
-                return false;
-              }
-              return true;
-            })
-            .map((child) => {
-              if (nodeIsMention(child)) {
-                return {
-                  type: child.type,
-                  userId: child.userId,
-                };
-              } else if (nodeIsRoleMention(child)) {
-                return {
-                  type: child.type,
-                  roleId: child.roleId,
-                };
-              } else if (nodeIsImage(child)) {
-                return {
-                  type: child.type,
-                  url: child.url,
-                };
-              } else {
-                return child;
-              }
-            }),
-        };
+        const cleanedMessage = slateToMessageContent(content);
 
         // Send chat message.
         sendChatMessage.call({
@@ -752,16 +1180,10 @@ const ChatInput = React.memo(
         return true;
       }
       return false;
-    }, [
-      hasNonTrivialContent,
-      hasLoadingImage,
-      content,
-      puzzleId,
-      onMessageSent,
-    ]);
+    }, [isContentNonTrivial, isImageLoading, content, puzzleId, onMessageSent]);
 
     useBlockUpdate(
-      hasNonTrivialContent
+      isContentNonTrivial
         ? "You're in the middle of typing a message."
         : undefined,
     );
@@ -772,53 +1194,6 @@ const ChatInput = React.memo(
       fileInputRef.current?.click();
     }, []);
 
-    const uploadImageFile = useCallback(
-      (file: File) => {
-        const tempId = Random.id();
-        fancyEditorRef.current?.insertImage("", tempId, "loading");
-
-        createChatImageUpload.call(
-          {
-            puzzleId,
-            mimeType: file.type,
-          },
-          (err, upload) => {
-            if (err || !upload) {
-              fancyEditorRef.current?.replaceImage("", tempId, "error");
-              setUploadImageError(
-                err?.message ??
-                  "S3 presignedPost creation failed, check server settings to ensure S3 image bucket is configured correctly.",
-              );
-            } else {
-              const { publicUrl, uploadUrl, fields } = upload;
-              const formData = new FormData();
-              for (const [key, value] of Object.entries(fields)) {
-                formData.append(key, value);
-              }
-              formData.append("file", file);
-              fetch(uploadUrl, {
-                method: "POST",
-                mode: "no-cors",
-                body: formData,
-              })
-                .then(() => {
-                  fancyEditorRef.current?.replaceImage(
-                    publicUrl,
-                    tempId,
-                    "success",
-                  );
-                })
-                .catch((uploadErr) => {
-                  fancyEditorRef.current?.replaceImage("", tempId, "error");
-                  setUploadImageError(`S3 upload failed: ${uploadErr.message}`);
-                });
-            }
-          },
-        );
-      },
-      [puzzleId],
-    );
-
     function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
       const file = e.target.files?.[0];
       if (!file) return;
@@ -827,6 +1202,7 @@ const ChatInput = React.memo(
         return;
       }
       uploadImageFile(file);
+      e.target.value = "";
     }
 
     useSubscribe("enabledChatImage");
@@ -835,24 +1211,11 @@ const ChatInput = React.memo(
       [],
     );
 
-    const errorModal = (
-      <Modal show onHide={clearUploadImageError}>
-        <Modal.Header closeButton>Error uploading image to chat</Modal.Header>
-        <Modal.Body>
-          <p>
-            Something went wrong while uploading images to the chat. Contact
-            admin with the error message for help.
-          </p>
-          <p>Error message: {uploadImageError}</p>
-        </Modal.Body>
-      </Modal>
-    );
-
     const { t } = useTranslation();
 
     return (
       <ChatInputRow>
-        {uploadImageError && createPortal(errorModal, document.body)}
+        {renderUploadErrorModal()}
         <InputGroup>
           <StyledFancyEditor
             ref={fancyEditorRef}
@@ -868,7 +1231,7 @@ const ChatInput = React.memo(
           <Button
             variant="secondary"
             onClick={sendContentMessage}
-            disabled={disabled || !hasNonTrivialContent || hasLoadingImage}
+            disabled={disabled || !isContentNonTrivial || isImageLoading}
           >
             <FontAwesomeIcon icon={faPaperPlane} />
           </Button>
@@ -962,6 +1325,18 @@ const ChatSection = React.memo(
       }
     });
 
+    // We want to have hunt profile data around so we can autocomplete from multiple fields.
+    const profilesLoadingFunc = useSubscribe("huntProfiles", huntId);
+    const profilesLoading = profilesLoadingFunc();
+    const users = useTracker(() => {
+      return profilesLoading
+        ? []
+        : MeteorUsers.find({
+            hunts: huntId,
+            displayName: { $ne: undefined }, // no point completing a user with an unset displayName
+          }).fetch();
+    }, [huntId, profilesLoading]);
+
     trace("ChatSection render", { chatDataLoading });
 
     if (chatDataLoading) {
@@ -985,11 +1360,12 @@ const ChatSection = React.memo(
           displayNames={displayNames}
           selfUser={selfUser}
           huntId={huntId}
+          users={users}
         />
         <ChatInput
-          huntId={huntId}
           puzzleId={puzzleId}
           disabled={disabled}
+          users={users}
           onHeightChange={scrollHistoryToTarget}
           onMessageSent={onMessageSent}
         />

@@ -9,6 +9,7 @@ import "./unit/imports/lib/relativeTimeFormat";
 import "./unit/imports/lib/ValidateShape";
 
 import "./acceptance/authentication";
+import "./acceptance/chatActions";
 import "./acceptance/chatHooks";
 import "./acceptance/emails";
 import "./acceptance/profiles";
