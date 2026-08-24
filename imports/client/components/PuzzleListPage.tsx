@@ -187,12 +187,21 @@ const PuzzleListView = ({
     return new Set(bookmarks);
   }, [huntId]);
 
+  const [operatorActionsHidden, setOperatorActionsHidden] =
+    useOperatorActionsHiddenForHunt(huntId);
+  const setOperatorActionsHiddenString = useCallback(
+    (value: string) => {
+      setOperatorActionsHidden(value === "hide");
+    },
+    [setOperatorActionsHidden],
+  );
+
   const deletedPuzzles = useTracker(
     () =>
-      !canUpdate || loading
+      !canUpdate || loading || operatorActionsHidden
         ? undefined
         : Puzzles.findDeleted({ hunt: huntId }).fetch(),
-    [canUpdate, huntId, loading],
+    [canUpdate, huntId, loading, operatorActionsHidden],
   );
 
   const [searchParams, setSearchParams] = useSearchParams();
@@ -209,15 +218,6 @@ const PuzzleListView = ({
   const canExpandAllGroups =
     displayMode === "group" &&
     Object.values(huntPuzzleListCollapseGroups).some(Boolean);
-
-  const [operatorActionsHidden, setOperatorActionsHidden] =
-    useOperatorActionsHiddenForHunt(huntId);
-  const setOperatorActionsHiddenString = useCallback(
-    (value: string) => {
-      setOperatorActionsHidden(value === "hide");
-    },
-    [setOperatorActionsHidden],
-  );
 
   useFocusRefOnFindHotkey(searchBarRef);
 
@@ -510,12 +510,14 @@ const PuzzleListView = ({
           </StyledToggleButtonGroup>
         </ButtonToolbar>
       </OperatorActionsFormGroup>
-      <AddPuzzleFormGroup>
-        <StyledButton variant="primary" onClick={showAddModal}>
-          <FontAwesomeIcon icon={faPlus} />{" "}
-          {t("puzzle.edit.addPuzzle", "Add a puzzle")}
-        </StyledButton>
-      </AddPuzzleFormGroup>
+      {!operatorActionsHidden && (
+        <AddPuzzleFormGroup>
+          <StyledButton variant="primary" onClick={showAddModal}>
+            <FontAwesomeIcon icon={faPlus} />{" "}
+            {t("puzzle.edit.addPuzzle", "Add a puzzle")}
+          </StyledButton>
+        </AddPuzzleFormGroup>
+      )}
     </>
   );
 
