@@ -120,7 +120,7 @@
     "postcss-scss": "^4.0.9",
     "postcss-styled-syntax": "^0.7.2",
     "react-refresh": "^0.18.0",
-    "sass": "^1.102.0",
+    "sass": "^1.103.1",
     "sinon": "^22.1.0",
     "stylelint": "^17.14.1",
     "stylelint-config-standard": "^40.0.0",
