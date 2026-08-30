@@ -32,9 +32,11 @@ const ModalForm = (props: {
   submitDisabled?: boolean;
   closeDisabled?: boolean;
   onSubmit: (callback: () => void) => void;
+  onHide?: () => void;
   children: React.ReactNode;
   ref: React.Ref<ModalFormHandle>;
 }) => {
+  const { onHide, onSubmit } = props;
   const [isShown, setIsShown] = useState(false);
   const dontTryToHide = useRef(false);
 
@@ -44,7 +46,8 @@ const ModalForm = (props: {
 
   const hide = useCallback(() => {
     setIsShown(false);
-  }, []);
+    onHide?.();
+  }, [onHide]);
 
   useImperativeHandle(props.ref, () => ({
     show,
@@ -58,7 +61,6 @@ const ModalForm = (props: {
     };
   }, []);
 
-  const { onSubmit } = props;
   const submit = useCallback(
     (e: React.SubmitEvent<HTMLFormElement>) => {
       e.preventDefault();
