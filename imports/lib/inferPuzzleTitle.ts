@@ -27,7 +27,8 @@ export default function inferPuzzleTitle(
   const pathname = parsedUrl.pathname.toLowerCase();
 
   if (
-    hostname.includes("pandamagazine.com") &&
+    (hostname === "pandamagazine.com" ||
+      hostname.endsWith(".pandamagazine.com")) &&
     pathname.includes("island") &&
     trimmedTitle.includes(" | ")
   ) {
@@ -36,7 +37,8 @@ export default function inferPuzzleTitle(
   }
 
   if (
-    hostname.includes("puzzlehunt.azurewebsites.net") &&
+    (hostname === "puzzlehunt.azurewebsites.net" ||
+      hostname.endsWith(".puzzlehunt.azurewebsites.net")) &&
     trimmedTitle.includes(" - ")
   ) {
     // Microsoft Puzzle Server: e.g. "Puzzle Title - Microsoft Puzzle Server" -> "Puzzle Title"

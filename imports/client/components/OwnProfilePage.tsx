@@ -23,6 +23,7 @@ import styled from "styled-components";
 import Flags from "../../Flags";
 import { formatDiscordName } from "../../lib/discord";
 import type { APIKeyType } from "../../lib/models/APIKeys";
+import { userMayWritePuzzlesForAnyHunt } from "../../lib/permission_stubs";
 import addUserAccountEmail from "../../methods/addUserAccountEmail";
 import createAPIKey from "../../methods/createAPIKey";
 import linkUserDiscordAccount from "../../methods/linkUserDiscordAccount";
@@ -527,25 +528,27 @@ const AvatarSection = ({ initialUser }: { initialUser: Meteor.User }) => {
 
 const BookmarkletSection = () => {
   const { t } = useTranslation();
-  const origin = window.location.origin;
+  const canUseBookmarklet = useTracker(() => {
+    return userMayWritePuzzlesForAnyHunt(Meteor.user());
+  }, []);
+
   const bookmarkletHref = useMemo(() => {
+    const targetUrl = Meteor.absoluteUrl("/hunts/addpuzzle");
     const code = `
       (function () {
         const title = encodeURIComponent(document.title);
         const url = encodeURIComponent(window.location.href);
-        const target = "${origin}/hunts/addpuzzle?url=" + url + "&title=" + title;
+        const target = "${targetUrl}?popup=1&url=" + url + "&title=" + title;
         window.open(target, "jr_addpuzzle", "width=550,height=700,scrollbars=yes");
       })();
     `;
-    return `javascript:${code.replaceAll(/\s+/g, " ").trim()}`;
-  }, [origin]);
+    return `javascript:${encodeURIComponent(code)}`;
+  }, []);
 
   // React blocks javascript: URLs in href attributes as a security precaution.
-  // We set the href directly on the DOM element via a ref to bypass this.
-  const linkRef = useRef<HTMLAnchorElement | null>(null);
+  // We set the href directly on the DOM element via a ref callback to bypass this.
   const setLinkRef = useCallback(
     (node: HTMLAnchorElement | null) => {
-      linkRef.current = node;
       if (node) {
         node.setAttribute("href", bookmarkletHref);
       }
@@ -554,9 +557,13 @@ const BookmarkletSection = () => {
   );
 
   const preventClick = useCallback(
-    (e: React.SyntheticEvent) => e.preventDefault(),
+    (e: React.MouseEvent<HTMLAnchorElement>) => e.preventDefault(),
     [],
   );
+
+  if (!canUseBookmarklet) {
+    return null;
+  }
 
   return (
     <section className="mb-4">
@@ -568,7 +575,7 @@ const BookmarkletSection = () => {
         )}
       </p>
       <div>
-        {/* The href is set via ref to bypass React's javascript: URL blocking.
+        {/* The href is set via ref callback to bypass React's javascript: URL blocking.
             We keep href="#" here so the <a> is valid for a11y linting. */}
         {/* oxlint-disable-next-line jsx-a11y/anchor-is-valid -- must be an <a> with href for bookmarklet drag-to-bookmarks-bar; onClick only prevents in-page navigation */}
         <a
@@ -576,7 +583,6 @@ const BookmarkletSection = () => {
           href="#"
           className="btn btn-outline-primary"
           onClick={preventClick}
-          onKeyDown={preventClick}
           title={t(
             "profile.bookmarklet.dragHelp",
             "Drag me to your bookmarks bar!",

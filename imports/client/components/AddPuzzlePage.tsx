@@ -1,8 +1,14 @@
 import { Meteor } from "meteor/meteor";
 import { useTracker } from "meteor/react-meteor-data";
-import { useCallback, useMemo, useRef } from "react";
+import { Suspense, useCallback, useMemo } from "react";
 import Alert from "react-bootstrap/Alert";
+import Button from "react-bootstrap/Button";
+import Col from "react-bootstrap/Col";
 import Container from "react-bootstrap/Container";
+import FormGroup from "react-bootstrap/FormGroup";
+import FormLabel from "react-bootstrap/FormLabel";
+import FormSelect from "react-bootstrap/FormSelect";
+import Row from "react-bootstrap/Row";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router";
 import inferPuzzleTitle from "../../lib/inferPuzzleTitle";
@@ -17,11 +23,8 @@ import { useAddPuzzleLastSelectedHuntId } from "../hooks/persisted-state";
 import useDocumentTitle from "../hooks/useDocumentTitle";
 import useTypedSubscribe from "../hooks/useTypedSubscribe";
 import Loading from "./Loading";
-import type {
-  PuzzleModalFormHandle,
-  PuzzleModalFormSubmitPayload,
-} from "./PuzzleModalForm";
-import PuzzleModalForm from "./PuzzleModalForm";
+import type { PuzzleModalFormSubmitPayload } from "./PuzzleFormHelpers";
+import { usePuzzleForm } from "./PuzzleFormHelpers";
 
 /**
  * Standalone page for adding a puzzle to a hunt, designed for use with
@@ -39,6 +42,8 @@ const AddPuzzlePage = () => {
     () => inferPuzzleTitle(titleParam, urlParam),
     [titleParam, urlParam],
   );
+
+  const isPopup = searchParams.get("popup") === "1" || Boolean(window.opener);
 
   const [lastSelectedHuntId, setLastSelectedHuntId] =
     useAddPuzzleLastSelectedHuntId();
@@ -72,29 +77,30 @@ const AddPuzzlePage = () => {
     [setLastSelectedHuntId],
   );
 
-  const tagsLoading = useTypedSubscribe(tagsForHunt, {
+  useTypedSubscribe(tagsForHunt, {
     huntId: selectedHuntId ?? "",
   });
-  const loadingTags = Boolean(selectedHuntId && tagsLoading());
 
   const huntTags = useTracker(() => {
-    if (!selectedHuntId || loadingTags) {
+    if (!selectedHuntId) {
       return [];
     }
     return Tags.find({ hunt: selectedHuntId }).fetch();
-  }, [selectedHuntId, loadingTags]);
+  }, [selectedHuntId]);
 
-  const addModalRef = useRef<PuzzleModalFormHandle>(null);
-
-  const isPopup = Boolean(window.opener);
-
-  const closePopup = useCallback(() => {
-    // Defer closing until the next tick so Meteor's in-flight method queue
-    // settles, preventing close.ts from triggering an uncommitted changes alert.
-    Meteor.defer(() => {
-      window.close();
-    });
-  }, []);
+  const closePopup = useCallback(
+    (huntId?: string) => {
+      // Defer closing until the next tick so Meteor's in-flight method queue
+      // settles, preventing close.ts from triggering an uncommitted changes alert.
+      Meteor.defer(() => {
+        window.close();
+        if (!window.closed && huntId) {
+          void navigate(`/hunts/${huntId}/puzzles`);
+        }
+      });
+    },
+    [navigate],
+  );
 
   const onSubmit = useCallback(
     (
@@ -111,7 +117,7 @@ const AddPuzzlePage = () => {
         callback(error);
         if (!error) {
           if (isPopup) {
-            closePopup();
+            closePopup(payload.huntId);
           } else if (payload.huntId) {
             void navigate(`/hunts/${payload.huntId}/puzzles`);
           }
@@ -123,7 +129,7 @@ const AddPuzzlePage = () => {
 
   const onHide = useCallback(() => {
     if (isPopup) {
-      closePopup();
+      closePopup(selectedHuntId);
     } else if (window.history.length > 1) {
       void navigate(-1);
     } else if (selectedHuntId) {
@@ -131,7 +137,25 @@ const AddPuzzlePage = () => {
     } else {
       void navigate("/hunts");
     }
-  }, [navigate, selectedHuntId, isPopup, closePopup]);
+  }, [isPopup, closePopup, selectedHuntId, navigate]);
+
+  const { title, fields, submit, disabled } = usePuzzleForm({
+    huntId: selectedHuntId ?? "",
+    tags: huntTags,
+    onSubmit,
+    defaults: {
+      title: inferredTitle,
+      url: urlParam,
+    },
+  });
+
+  const onFormSubmit = useCallback(
+    (e: React.SubmitEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      submit();
+    },
+    [submit],
+  );
 
   useBreadcrumb({
     title: t("puzzle.edit.addPuzzle", "Add puzzle"),
@@ -159,24 +183,56 @@ const AddPuzzlePage = () => {
     );
   }
 
-  if (!selectedHuntId || loadingTags) {
+  if (!selectedHuntId) {
     return <Loading />;
   }
 
   return (
     <Container className="p-3">
-      <PuzzleModalForm
-        ref={addModalRef}
-        huntId={selectedHuntId}
-        tags={huntTags}
-        initialTitle={inferredTitle}
-        initialUrl={urlParam}
-        hunts={writableHunts}
-        onHuntChange={onHuntChange}
-        onSubmit={onSubmit}
-        onHide={onHide}
-        inline
-      />
+      <Suspense
+        fallback={
+          <div>
+            <Loading />
+          </div>
+        }
+      >
+        <form className="form-horizontal" onSubmit={onFormSubmit}>
+          <h4 className="mb-3">{title}</h4>
+          {writableHunts.length > 1 && (
+            <FormGroup
+              as={Row}
+              className="mb-3"
+              controlId="add-puzzle-hunt-select"
+            >
+              <FormLabel column xs={3}>
+                {t("puzzle.edit.hunt", "Hunt")}
+              </FormLabel>
+              <Col xs={9}>
+                <FormSelect
+                  value={selectedHuntId}
+                  disabled={disabled}
+                  onChange={(e) => onHuntChange(e.currentTarget.value)}
+                >
+                  {writableHunts.map((h) => (
+                    <option key={h._id} value={h._id}>
+                      {h.name}
+                    </option>
+                  ))}
+                </FormSelect>
+              </Col>
+            </FormGroup>
+          )}
+          {fields}
+          <div className="d-flex justify-content-end gap-2 mt-3">
+            <Button variant="light" onClick={onHide} disabled={disabled}>
+              {t("common.close", "Close")}
+            </Button>
+            <Button variant="primary" type="submit" disabled={disabled}>
+              {t("common.save", "Save")}
+            </Button>
+          </div>
+        </form>
+      </Suspense>
     </Container>
   );
 };
