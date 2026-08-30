@@ -1,3 +1,4 @@
+import z from "zod";
 import TypedMethod from "./TypedMethod";
 
 // The three participant states permitted by setMediasoupPeerState fan out to two
@@ -11,7 +12,13 @@ import TypedMethod from "./TypedMethod";
 // --------+--------+-------+----------+
 export const ALLOWED_STATES = ["active", "muted", "deafened"] as const;
 
-export default new TypedMethod<
-  { peerId: string; state: (typeof ALLOWED_STATES)[number] },
-  void
->("Mediasoup.Peers.methods.setState");
+export default new TypedMethod(
+  "Mediasoup.Peers.methods.setState",
+  z.tuple([
+    z.strictObject({
+      peerId: z.string(),
+      state: z.enum(ALLOWED_STATES),
+    }),
+  ]),
+  z.void(),
+);

@@ -1,4 +1,4 @@
-import { check, Match } from "meteor/check";
+import { check } from "meteor/check";
 import { Meteor } from "meteor/meteor";
 import Logger from "../../Logger";
 import MeteorUsers from "../../lib/models/MeteorUsers";
@@ -6,17 +6,6 @@ import updateProfile from "../../methods/updateProfile";
 import defineMethod from "./defineMethod";
 
 defineMethod(updateProfile, {
-  validate(arg) {
-    check(arg, {
-      displayName: String,
-      phoneNumber: Match.Optional(String),
-      dingwords: [String],
-      enrollmentToken: Match.Optional(String),
-    });
-
-    return arg;
-  },
-
   async run({ displayName, phoneNumber, dingwords, enrollmentToken }) {
     let userId: string;
     if (enrollmentToken) {

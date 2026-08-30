@@ -6,11 +6,6 @@ import destroyHunt from "../../methods/destroyHunt";
 import defineMethod from "./defineMethod";
 
 defineMethod(destroyHunt, {
-  validate(arg) {
-    check(arg, { huntId: String });
-    return arg;
-  },
-
   async run({ huntId }) {
     check(this.userId, String);
     checkAdmin(await MeteorUsers.findOneAsync(this.userId));

@@ -1,7 +1,7 @@
-import { check, Match } from "meteor/check";
+import { check } from "meteor/check";
 import { Meteor } from "meteor/meteor";
 import Logger from "../../Logger";
-import Guesses, { GuessStates } from "../../lib/models/Guesses";
+import Guesses from "../../lib/models/Guesses";
 import Hunts from "../../lib/models/Hunts";
 import MeteorUsers from "../../lib/models/MeteorUsers";
 import Puzzles from "../../lib/models/Puzzles";
@@ -11,15 +11,6 @@ import transitionGuess from "../transitionGuess";
 import defineMethod from "./defineMethod";
 
 defineMethod(setGuessState, {
-  validate(arg) {
-    check(arg, {
-      guessId: String,
-      state: Match.OneOf(...GuessStates.options),
-      additionalNotes: Match.Optional(String),
-    });
-    return arg;
-  },
-
   async run({ guessId, state, additionalNotes }) {
     check(this.userId, String);
 

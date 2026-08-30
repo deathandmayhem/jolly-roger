@@ -8,14 +8,6 @@ import addUserToHunt from "../addUserToHunt";
 import defineMethod from "./defineMethod";
 
 defineMethod(addHuntUser, {
-  validate(arg) {
-    check(arg, {
-      huntId: String,
-      email: String,
-    });
-    return arg;
-  },
-
   async run({ huntId, email }) {
     check(this.userId, String);
 

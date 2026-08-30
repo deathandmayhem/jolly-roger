@@ -10,13 +10,6 @@ import defineMethod from "./defineMethod";
 
 // Clear the invitation code for the given hunt.
 defineMethod(clearHuntInvitationCode, {
-  validate(arg) {
-    check(arg, {
-      huntId: String,
-    });
-    return arg;
-  },
-
   async run({ huntId }) {
     check(this.userId, String);
 

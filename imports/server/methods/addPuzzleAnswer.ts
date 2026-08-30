@@ -14,14 +14,6 @@ import sendChatMessageInternal from "../sendChatMessageInternal";
 import defineMethod from "./defineMethod";
 
 defineMethod(addPuzzleAnswer, {
-  validate(arg) {
-    check(arg, {
-      puzzleId: String,
-      answer: String,
-    });
-    return arg;
-  },
-
   async run({ puzzleId, answer: rawAnswer }) {
     check(this.userId, String);
 

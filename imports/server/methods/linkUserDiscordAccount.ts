@@ -10,14 +10,6 @@ import { DiscordAPIClient, DiscordBot } from "../discord";
 import defineMethod from "./defineMethod";
 
 defineMethod(linkUserDiscordAccount, {
-  validate(arg) {
-    check(arg, {
-      key: String,
-      secret: String,
-    });
-    return arg;
-  },
-
   async run({ key, secret }) {
     check(this.userId, String);
 

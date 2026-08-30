@@ -1,119 +1,106 @@
 import { check } from "meteor/check";
-import type { EJSONable, EJSONableProperty } from "meteor/ejson";
 import { EJSON } from "meteor/ejson";
 import { Meteor } from "meteor/meteor";
 import Bugsnag from "@bugsnag/js";
+import type z from "zod";
 import Logger from "../Logger";
-import type ValidateShape from "../lib/ValidateShape";
+import type {
+  ValidateEJSONableArgs,
+  ValidateEJSONableReturn,
+} from "../lib/ValidateEJSONable";
+import type { ExactCallArgs } from "../lib/ValidateShape";
 
-export type TypedMethodParam = EJSONable | EJSONableProperty;
-export type TypedMethodArgs = Record<string, TypedMethodParam> | void;
-type TypedMethodCallback<Return extends TypedMethodParam | void> =
-  Return extends void
-    ? (error?: Meteor.Error) => void
-    : <Error extends true | false>(
-        error: Error extends true ? Meteor.Error : undefined,
-        result: Error extends false ? Return : undefined,
+type TypedMethodCallback<Return extends z.ZodType> =
+  z.output<Return> extends void
+    ? (error: Meteor.Error | undefined) => void
+    : (
+        error: Meteor.Error | undefined,
+        result: z.output<Return> | undefined,
       ) => void;
-type TypedMethodCallArgs<
-  T,
-  Arg extends TypedMethodArgs,
-  Return extends TypedMethodParam | void,
-> = Arg extends void
-  ? [TypedMethodCallback<Return>] | []
-  :
-      | [ValidateShape<T, Arg>, TypedMethodCallback<Return>]
-      | [ValidateShape<T, Arg>];
-type TypedMethodCallPromiseArgs<
-  T,
-  Arg extends TypedMethodArgs,
-> = Arg extends void ? [] : [ValidateShape<T, Arg>];
 
-class TypedMethod<
-  Args extends TypedMethodArgs,
-  Return extends TypedMethodParam | void,
-> {
+// EJSON.stringify only accepts objects, so wrap rather than passing the array.
+const describeArgs = (args: unknown[]) => EJSON.stringify({ args });
+
+const severityFor = (error: unknown) =>
+  error instanceof Meteor.Error &&
+  typeof error.error === "number" &&
+  error.error >= 400 &&
+  error.error < 500
+    ? "info"
+    : "error";
+
+class TypedMethod<Args extends z.ZodTuple, Return extends z.ZodType> {
   name: string;
+  args: Args;
+  return: Return;
 
-  constructor(name: string) {
+  constructor(
+    name: string,
+    args: ValidateEJSONableArgs<Args>,
+    returnType: ValidateEJSONableReturn<Return>,
+  ) {
     check(name, String);
 
     this.name = name;
+    this.args = args;
+    this.return = returnType;
   }
 
-  call<T>(...args: TypedMethodCallArgs<T, Args, Return>): void {
+  private breadcrumb(args: unknown[]) {
+    if (Bugsnag.isStarted()) {
+      Bugsnag.leaveBreadcrumb(
+        "Meteor method call",
+        { method: this.name, arguments: describeArgs(args) },
+        "request",
+      );
+    }
+  }
+
+  private logError(error: unknown, args: unknown[]) {
+    Logger[severityFor(error)](`Meteor method call failed: ${this.name}`, {
+      error,
+      method: this.name,
+      arguments: describeArgs(args),
+    });
+  }
+
+  // oxlint-disable-next-line typescript/no-unnecessary-type-parameters -- T must remain independently inferred so ExactCallArgs can reject excess properties
+  call<T extends z.input<Args>>(
+    ...args: [
+      ...ExactCallArgs<T, z.input<Args>>,
+      callback?: TypedMethodCallback<Return>,
+    ]
+  ): void {
     let callback: TypedMethodCallback<Return> | undefined;
     if (typeof args.at(-1) === "function") {
       callback = args.pop() as TypedMethodCallback<Return>;
     }
 
-    if (Bugsnag.isStarted()) {
-      Bugsnag.leaveBreadcrumb(
-        "Meteor method call",
-        {
-          method: this.name,
-          arguments:
-            typeof args[0] === "object" ? EJSON.stringify(args[0]) : undefined,
-        },
-        "request",
-      );
-    }
+    this.breadcrumb(args);
 
-    Meteor.call(this.name, ...args, (error: Meteor.Error, result: Return) => {
-      if (error) {
-        const severity =
-          error instanceof Meteor.Error &&
-          typeof error.error === "number" &&
-          error.error >= 400 &&
-          error.error < 500
-            ? "info"
-            : "error";
-        Logger[severity](`Meteor method call failed: ${this.name}`, {
-          error,
-          method: this.name,
-          arguments:
-            typeof args[0] === "object" ? EJSON.stringify(args[0]) : undefined,
-        });
-      }
-      callback?.(error, result as any);
-    });
+    Meteor.call(
+      this.name,
+      ...args,
+      (error: Meteor.Error | undefined, result: z.output<Return>) => {
+        if (error) {
+          this.logError(error, args);
+        }
+        callback?.(error, result);
+      },
+    );
   }
 
-  async callPromise<T>(
-    ...args: TypedMethodCallPromiseArgs<T, Args>
-  ): Promise<Return> {
+  // oxlint-disable-next-line typescript/no-unnecessary-type-parameters -- T must remain independently inferred so ExactCallArgs can reject excess properties
+  async callPromise<T extends z.input<Args>>(
+    ...args: ExactCallArgs<T, z.input<Args>>
+  ): Promise<z.output<Return>> {
+    this.breadcrumb(args);
+
     try {
-      if (Bugsnag.isStarted()) {
-        Bugsnag.leaveBreadcrumb(
-          "Meteor method call",
-          {
-            method: this.name,
-            arguments:
-              typeof args[0] === "object"
-                ? EJSON.stringify(args[0])
-                : undefined,
-          },
-          "request",
-        );
-      }
       const result = await Meteor.callAsync(this.name, ...args);
-      return result as Return;
+      return result as z.output<Return>;
     } catch (error) {
-      if (error) {
-        const severity =
-          error instanceof Meteor.Error &&
-          typeof error.error === "number" &&
-          error.error >= 400 &&
-          error.error < 500
-            ? "info"
-            : "error";
-        Logger[severity](`Meteor method call failed: ${this.name}`, {
-          error,
-          method: this.name,
-          arguments:
-            typeof args[0] === "object" ? EJSON.stringify(args[0]) : undefined,
-        });
-      }
+      this.logError(error, args);
       throw error;
     }
   }

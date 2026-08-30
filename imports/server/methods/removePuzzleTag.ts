@@ -5,15 +5,6 @@ import removePuzzleTag from "../../methods/removePuzzleTag";
 import defineMethod from "./defineMethod";
 
 defineMethod(removePuzzleTag, {
-  validate(arg) {
-    check(arg, {
-      puzzleId: String,
-      tagId: String,
-    });
-
-    return arg;
-  },
-
   async run({ puzzleId, tagId }) {
     check(this.userId, String);
 

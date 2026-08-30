@@ -1,4 +1,3 @@
-import { check } from "meteor/check";
 import { Meteor } from "meteor/meteor";
 import Flags from "../../Flags";
 import Peers from "../../lib/models/mediasoup/Peers";
@@ -6,13 +5,6 @@ import mediasoupAckPeerRemoteMute from "../../methods/mediasoupAckPeerRemoteMute
 import defineMethod from "./defineMethod";
 
 defineMethod(mediasoupAckPeerRemoteMute, {
-  validate(arg) {
-    check(arg, {
-      peerId: String,
-    });
-    return arg;
-  },
-
   async run({ peerId }) {
     if (!this.userId) {
       throw new Meteor.Error(401, "Not logged in");

@@ -1,4 +1,4 @@
-import { check, Match } from "meteor/check";
+import { check } from "meteor/check";
 import { Meteor } from "meteor/meteor";
 import Logger from "../../Logger";
 import MeteorUsers from "../../lib/models/MeteorUsers";
@@ -8,16 +8,6 @@ import configureDiscordBotGuild from "../../methods/configureDiscordBotGuild";
 import defineMethod from "./defineMethod";
 
 defineMethod(configureDiscordBotGuild, {
-  validate(arg) {
-    check(arg, {
-      guild: Match.Optional({
-        id: String,
-        name: String,
-      }),
-    });
-    return arg;
-  },
-
   async run({ guild }) {
     check(this.userId, String);
 

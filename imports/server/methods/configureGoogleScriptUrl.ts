@@ -1,4 +1,4 @@
-import { check, Match } from "meteor/check";
+import { check } from "meteor/check";
 import { Meteor } from "meteor/meteor";
 import Logger from "../../Logger";
 import MeteorUsers from "../../lib/models/MeteorUsers";
@@ -8,13 +8,6 @@ import configureGoogleScriptUrl from "../../methods/configureGoogleScriptUrl";
 import defineMethod from "./defineMethod";
 
 defineMethod(configureGoogleScriptUrl, {
-  validate(arg) {
-    check(arg, {
-      url: Match.Optional(String),
-    });
-    return arg;
-  },
-
   async run({ url }) {
     check(this.userId, String);
     checkAdmin(await MeteorUsers.findOneAsync(this.userId));

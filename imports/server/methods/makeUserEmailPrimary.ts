@@ -6,11 +6,6 @@ import makeUserEmailPrimary from "../../methods/makeUserEmailPrimary";
 import defineMethod from "./defineMethod";
 
 defineMethod(makeUserEmailPrimary, {
-  validate(arg) {
-    check(arg, { email: String });
-    return arg;
-  },
-
   async run({ email }) {
     check(this.userId, String);
 
