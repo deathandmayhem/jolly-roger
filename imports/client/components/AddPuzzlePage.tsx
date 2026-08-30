@@ -1,8 +1,13 @@
 import { Meteor } from "meteor/meteor";
 import { useTracker } from "meteor/react-meteor-data";
-import { useCallback, useMemo, useRef } from "react";
+import { useCallback, useMemo } from "react";
 import Alert from "react-bootstrap/Alert";
+import Col from "react-bootstrap/Col";
 import Container from "react-bootstrap/Container";
+import FormGroup from "react-bootstrap/FormGroup";
+import FormLabel from "react-bootstrap/FormLabel";
+import FormSelect from "react-bootstrap/FormSelect";
+import Row from "react-bootstrap/Row";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router";
 import inferPuzzleTitle from "../../lib/inferPuzzleTitle";
@@ -17,10 +22,7 @@ import { useAddPuzzleLastSelectedHuntId } from "../hooks/persisted-state";
 import useDocumentTitle from "../hooks/useDocumentTitle";
 import useTypedSubscribe from "../hooks/useTypedSubscribe";
 import Loading from "./Loading";
-import type {
-  PuzzleModalFormHandle,
-  PuzzleModalFormSubmitPayload,
-} from "./PuzzleModalForm";
+import type { PuzzleModalFormSubmitPayload } from "./PuzzleModalForm";
 import PuzzleModalForm from "./PuzzleModalForm";
 
 /**
@@ -83,8 +85,6 @@ const AddPuzzlePage = () => {
     }
     return Tags.find({ hunt: selectedHuntId }).fetch();
   }, [selectedHuntId, loadingTags]);
-
-  const addModalRef = useRef<PuzzleModalFormHandle>(null);
 
   const isPopup = Boolean(window.opener);
 
@@ -166,17 +166,38 @@ const AddPuzzlePage = () => {
   return (
     <Container className="p-3">
       <PuzzleModalForm
-        ref={addModalRef}
         huntId={selectedHuntId}
         tags={huntTags}
         initialTitle={inferredTitle}
         initialUrl={urlParam}
-        hunts={writableHunts}
-        onHuntChange={onHuntChange}
         onSubmit={onSubmit}
         onHide={onHide}
         inline
-      />
+      >
+        {writableHunts.length > 1 && (
+          <FormGroup
+            as={Row}
+            className="mb-3"
+            controlId="add-puzzle-hunt-select"
+          >
+            <FormLabel column xs={3}>
+              {t("puzzle.edit.hunt", "Hunt")}
+            </FormLabel>
+            <Col xs={9}>
+              <FormSelect
+                value={selectedHuntId}
+                onChange={(e) => onHuntChange(e.currentTarget.value)}
+              >
+                {writableHunts.map((h) => (
+                  <option key={h._id} value={h._id}>
+                    {h.name}
+                  </option>
+                ))}
+              </FormSelect>
+            </Col>
+          </FormGroup>
+        )}
+      </PuzzleModalForm>
     </Container>
   );
 };

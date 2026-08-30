@@ -17,13 +17,11 @@ import type { FormControlProps } from "react-bootstrap/FormControl";
 import FormControl from "react-bootstrap/FormControl";
 import FormGroup from "react-bootstrap/FormGroup";
 import FormLabel from "react-bootstrap/FormLabel";
-import FormSelect from "react-bootstrap/FormSelect";
 import Row from "react-bootstrap/Row";
 import { useTranslation } from "react-i18next";
 import type { ActionMeta } from "react-select";
 import { useTheme } from "styled-components";
 import type { GdriveMimeTypesType } from "../../lib/GdriveMimeTypes";
-import type { HuntType } from "../../lib/models/Hunts";
 import type { PuzzleType } from "../../lib/models/Puzzles";
 import type { TagType } from "../../lib/models/Tags";
 import { useAddPuzzleHuntRecentTags } from "../hooks/persisted-state";
@@ -75,10 +73,9 @@ export interface PuzzleModalFormProps {
   inline?: boolean;
   initialTitle?: string;
   initialUrl?: string;
-  hunts?: HuntType[];
-  onHuntChange?: (huntId: string) => void;
   onHide?: () => void;
-  ref: React.Ref<PuzzleModalFormHandle>;
+  ref?: React.Ref<PuzzleModalFormHandle>;
+  children?: React.ReactNode;
 }
 
 const PuzzleModalForm = ({
@@ -90,10 +87,9 @@ const PuzzleModalForm = ({
   inline,
   initialTitle,
   initialUrl,
-  hunts,
-  onHuntChange,
   onHide,
   ref,
+  children,
 }: PuzzleModalFormProps) => {
   const tagNamesForIds = useCallback(
     (tagIds: string[]) => {
@@ -272,13 +268,16 @@ const PuzzleModalForm = ({
           setConsiderCompletedWithNoAnswerDirty(false);
           setConfirmingDuplicateUrl(false);
           setAllowDuplicateUrls(false);
-          addPuzzleHuntRecentTags(tags);
+          if (!puzzle) {
+            addPuzzleHuntRecentTags(tags);
+          }
           callback?.();
         }
       });
     },
     [
       onSubmit,
+      puzzle,
       huntId,
       title,
       url,
@@ -440,31 +439,6 @@ const PuzzleModalForm = ({
 
   const formFields = (
     <>
-      {hunts && hunts.length > 1 && onHuntChange && (
-        <FormGroup
-          as={Row}
-          className="mb-3"
-          controlId={`${idPrefix}-hunt-select`}
-        >
-          <FormLabel column xs={3}>
-            {t("puzzle.edit.hunt", "Hunt")}
-          </FormLabel>
-          <Col xs={9}>
-            <FormSelect
-              value={huntId}
-              disabled={disableForm}
-              onChange={(e) => onHuntChange(e.currentTarget.value)}
-            >
-              {hunts.map((h) => (
-                <option key={h._id} value={h._id}>
-                  {h.name}
-                </option>
-              ))}
-            </FormSelect>
-          </Col>
-        </FormGroup>
-      )}
-
       <FormGroup
         as={Row}
         className="mb-3"
@@ -608,6 +582,7 @@ const PuzzleModalForm = ({
       {inline ? (
         <form className="form-horizontal" onSubmit={inlineSubmit}>
           <h4 className="mb-3">{formTitle}</h4>
+          {children}
           {formFields}
           <div className="d-flex justify-content-end gap-2 mt-3">
             {onHide && (
@@ -628,6 +603,7 @@ const PuzzleModalForm = ({
           onHide={onHide}
           submitDisabled={disableForm}
         >
+          {children}
           {formFields}
         </ModalForm>
       )}

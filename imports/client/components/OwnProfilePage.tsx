@@ -384,18 +384,18 @@ const APIKeysSection = ({ apiKeys }: { apiKeys?: APIKeyType[] }) => {
 
 const BookmarkletSection = () => {
   const { t } = useTranslation();
-  const origin = window.location.origin;
   const bookmarkletHref = useMemo(() => {
+    const targetUrl = Meteor.absoluteUrl("/hunts/addpuzzle");
     const code = `
       (function () {
         const title = encodeURIComponent(document.title);
         const url = encodeURIComponent(window.location.href);
-        const target = "${origin}/hunts/addpuzzle?url=" + url + "&title=" + title;
+        const target = "${targetUrl}?url=" + url + "&title=" + title;
         window.open(target, "jr_addpuzzle", "width=550,height=700,scrollbars=yes");
       })();
     `;
-    return `javascript:${code.replaceAll(/\s+/g, " ").trim()}`;
-  }, [origin]);
+    return `javascript:${encodeURIComponent(code)}`;
+  }, []);
 
   // React blocks javascript: URLs in href attributes as a security precaution.
   // We set the href directly on the DOM element via a ref to bypass this.
@@ -411,7 +411,7 @@ const BookmarkletSection = () => {
   );
 
   const preventClick = useCallback(
-    (e: React.SyntheticEvent) => e.preventDefault(),
+    (e: React.MouseEvent<HTMLAnchorElement>) => e.preventDefault(),
     [],
   );
 
@@ -433,7 +433,6 @@ const BookmarkletSection = () => {
           href="#"
           className="btn btn-outline-primary"
           onClick={preventClick}
-          onKeyDown={preventClick}
           title={t(
             "profile.bookmarklet.dragHelp",
             "Drag me to your bookmarks bar!",
