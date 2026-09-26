@@ -20,9 +20,8 @@ import { Subscribers } from "../subscribers";
 
 const MinimizedChatInfoContainer = styled.div`
   position: absolute;
-  top: calc(50% - 65px);
-  left: 1px;
-  transform: translateY(-50%);
+  top: 6px;
+  left: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
