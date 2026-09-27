@@ -2,12 +2,35 @@ import React from "react";
 import styled from "styled-components";
 import { getAvatarCdnUrl } from "../../lib/discord";
 import type { DiscordAccountType } from "../../lib/models/DiscordAccount";
+import { getCustomAvatarUrl } from "../avatarUtils";
+import useS3ImageBucketConfigured from "../hooks/useS3ImageBucketConfigured";
 
 const AvatarImg = styled.img`
   display: block;
   width: 100%;
   height: 100%;
+  object-fit: cover;
 `;
+
+const CustomAvatarInner = ({
+  displayName,
+  url,
+  fallback,
+}: {
+  displayName?: string;
+  url: string;
+  fallback: React.ReactNode;
+}) => {
+  const [failed, setFailed] = React.useState(false);
+  const onError = React.useCallback(() => setFailed(true), []);
+
+  if (failed) {
+    return fallback;
+  }
+
+  const alt = `${displayName ?? "Anonymous user"}'s avatar`;
+  return <AvatarImg alt={alt} src={url} onError={onError} />;
+};
 
 const DiscordAvatarInner = ({
   size,
@@ -107,6 +130,7 @@ const Avatar = React.memo(
     _id,
     displayName,
     discordAccount,
+    customAvatar,
     className,
     isSelf = false,
   }: {
@@ -115,10 +139,14 @@ const Avatar = React.memo(
     _id?: string; // hashed to produce a globally consistant background color for the fallback avatar
     displayName?: string;
     discordAccount?: DiscordAccountType;
+    customAvatar?: string;
     className?: string;
     isSelf?: boolean;
   }) => {
-    const content =
+    const { urlPrefix } = useS3ImageBucketConfigured();
+    const customAvatarUrl = getCustomAvatarUrl(urlPrefix, _id, customAvatar);
+
+    const defaultContent =
       discordAccount && getAvatarCdnUrl(discordAccount) ? (
         <DiscordAvatarInner
           size={size}
@@ -128,6 +156,17 @@ const Avatar = React.memo(
       ) : (
         <DefaultAvatarInner _id={_id} displayName={displayName} />
       );
+
+    const content = customAvatarUrl ? (
+      <CustomAvatarInner
+        displayName={displayName}
+        url={customAvatarUrl}
+        fallback={defaultContent}
+      />
+    ) : (
+      defaultContent
+    );
+
     return (
       <AvatarContainer
         className={className}

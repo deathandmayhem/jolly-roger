@@ -5,6 +5,7 @@ import isAdmin from "../lib/isAdmin";
 import MeteorUsers from "../lib/models/MeteorUsers";
 import type { SettingType } from "../lib/models/Settings";
 import Settings from "../lib/models/Settings";
+import { s3BucketUrl } from "../lib/s3";
 import googleScriptContent from "./googleScriptContent";
 import UploadTokens from "./models/UploadTokens";
 
@@ -89,6 +90,40 @@ Meteor.publish("enabledChatImage", async function () {
     removed: () => {
       if (tracked) {
         this.removed("enabledChatImage", "enabledChatImage");
+      }
+    },
+  });
+  this.onStop(() => {
+    handle.stop();
+  });
+
+  this.ready();
+});
+
+Meteor.publish("s3ImageBucketConfigured", async function () {
+  const cursor = Settings.find({ name: "s3.image_bucket" });
+  let tracked = false;
+  const handle: Meteor.LiveQueryHandle = await cursor.observeAsync({
+    added: (doc) => {
+      tracked = true;
+      this.added("s3ImageBucketConfigured", "s3ImageBucketConfigured", {
+        configured: doc.value.bucketName !== undefined,
+        urlPrefix: doc.value.bucketName
+          ? s3BucketUrl(doc.value.bucketRegion, doc.value.bucketName)
+          : undefined,
+      });
+    },
+    changed: (newDoc) => {
+      this.changed("s3ImageBucketConfigured", "s3ImageBucketConfigured", {
+        configured: newDoc.value.bucketName !== undefined,
+        urlPrefix: newDoc.value.bucketName
+          ? s3BucketUrl(newDoc.value.bucketRegion, newDoc.value.bucketName)
+          : undefined,
+      });
+    },
+    removed: () => {
+      if (tracked) {
+        this.removed("s3ImageBucketConfigured", "s3ImageBucketConfigured");
       }
     },
   });

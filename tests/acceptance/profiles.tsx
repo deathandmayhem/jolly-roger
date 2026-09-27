@@ -29,6 +29,10 @@ const createHunt = new TypedMethod<{ name: string }, string>(
 const joinHunt = new TypedMethod<{ huntId: string; userId: string }, void>(
   "test.methods.profiles.joinHunt",
 );
+const setUserCustomAvatar = new TypedMethod<
+  { userId: string; customAvatar: string },
+  void
+>("test.methods.profiles.setUserCustomAvatar");
 
 if (Meteor.isServer) {
   const defineMethod: typeof import("../../imports/server/methods/defineMethod").default =
@@ -116,6 +120,25 @@ if (Meteor.isServer) {
       });
     },
   });
+
+  defineMethod(setUserCustomAvatar, {
+    validate(arg: unknown) {
+      check(arg, {
+        userId: String,
+        customAvatar: String,
+      });
+
+      return arg;
+    },
+
+    async run({ userId, customAvatar }) {
+      if (!Meteor.isAppTest) {
+        throw new Meteor.Error(500, "This code must not run in production");
+      }
+
+      await MeteorUsers.updateAsync(userId, { $set: { customAvatar } });
+    },
+  });
 }
 
 if (Meteor.isClient) {
@@ -192,6 +215,112 @@ if (Meteor.isClient) {
             { projection: { displayName: 1 } },
           ).mapAsync((u) => u.displayName),
           ["U1", "U3"],
+          "Should update when hunt membership changes",
+        );
+      });
+    });
+
+    describe("avatars", function () {
+      it("publishes customAvatar correctly", async function () {
+        await resetDatabase("user profile publishes avatars");
+
+        const userId: string = await createUser.callPromise({
+          email: "jolly-roger@deathandmayhem.com",
+          password: "password",
+          displayName: "U1",
+        });
+        const sameHuntUserId: string = await createUser.callPromise({
+          email: "jolly-roger+same-hunt@deathandmayhem.com",
+          password: "password",
+          displayName: "U2",
+        });
+        const differentHuntUserId: string = await createUser.callPromise({
+          email: "jolly-roger+different-hunt@deathandmayhem.com",
+          password: "password",
+          displayName: "U3",
+        });
+
+        const avatarHash1 = `${"1".repeat(64)}.png`;
+        const avatarHash2 = `${"2".repeat(64)}.png`;
+        const avatarHash3 = `${"3".repeat(64)}.png`;
+
+        await setUserCustomAvatar.callPromise({
+          userId,
+          customAvatar: avatarHash1,
+        });
+        await setUserCustomAvatar.callPromise({
+          userId: sameHuntUserId,
+          customAvatar: avatarHash2,
+        });
+        await setUserCustomAvatar.callPromise({
+          userId: differentHuntUserId,
+          customAvatar: avatarHash3,
+        });
+
+        const huntId: string = await createHunt.callPromise({
+          name: "Test Hunt",
+        });
+        const otherHuntId: string = await createHunt.callPromise({
+          name: "Other Hunt",
+        });
+
+        await joinHunt.callPromise({ huntId, userId });
+        await joinHunt.callPromise({ huntId, userId: sameHuntUserId });
+        await joinHunt.callPromise({
+          huntId: otherHuntId,
+          userId: differentHuntUserId,
+        });
+
+        await promisify(Meteor.loginWithPassword)(
+          "jolly-roger@deathandmayhem.com",
+          "password",
+        );
+
+        let huntSub = await subscribeAsync("avatars", huntId);
+
+        assert.sameMembers(
+          (
+            await MeteorUsers.find(
+              {},
+              { projection: { customAvatar: 1 } },
+            ).fetchAsync()
+          )
+            .map((u) => u.customAvatar)
+            .filter(Boolean),
+          [avatarHash1, avatarHash2],
+          "Should publish customAvatar for users in the same hunt",
+        );
+
+        huntSub.stop();
+        await stabilize();
+        huntSub = await subscribeAsync("avatars", otherHuntId);
+
+        assert.sameMembers(
+          (
+            await MeteorUsers.find(
+              {},
+              { projection: { customAvatar: 1 } },
+            ).fetchAsync()
+          )
+            .map((u) => u.customAvatar)
+            .filter(Boolean),
+          [avatarHash1],
+          "Should not show avatars of users in other hunt when not a member",
+        );
+
+        await joinHunt.callPromise({ huntId: otherHuntId, userId });
+        await stabilize();
+
+        assert.sameMembers(
+          (
+            await MeteorUsers.find(
+              {},
+              { projection: { customAvatar: 1 } },
+            ).fetchAsync()
+          )
+            .map((u) => u.customAvatar)
+            .filter(Boolean),
+          [avatarHash1, avatarHash3],
           "Should update when hunt membership changes",
         );
       });

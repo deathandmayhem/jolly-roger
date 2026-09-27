@@ -135,12 +135,13 @@ const SelfBox = ({
   popperBoundaryRef: React.RefObject<HTMLElement | null>;
 }) => {
   const spectraDisabled = useTracker(() => Flags.active("disable.spectra"));
-  const { userId, name, discordAccount } = useTracker(() => {
+  const { userId, name, discordAccount, customAvatar } = useTracker(() => {
     const user = Meteor.user()!;
     return {
       userId: user._id,
       name: user.displayName,
       discordAccount: user.discordAccount,
+      customAvatar: user.customAvatar,
     };
   });
 
@@ -190,6 +191,7 @@ const SelfBox = ({
           _id={userId}
           displayName={name}
           discordAccount={discordAccount}
+          customAvatar={customAvatar}
           size={44}
           isSelf
         />
@@ -368,12 +370,13 @@ const PeerBox = ({
 }) => {
   const spectraDisabled = useTracker(() => Flags.active("disable.spectra"));
   const audioRef = React.createRef<HTMLAudioElement>();
-  const { userId, name, discordAccount } = useTracker(() => {
+  const { userId, name, discordAccount, customAvatar } = useTracker(() => {
     const user = MeteorUsers.findOne(peer.createdBy);
     return {
       userId: user?._id,
       name: user?.displayName,
       discordAccount: user?.discordAccount,
+      customAvatar: user?.customAvatar,
     };
   }, [peer.createdBy]);
   useEffect(() => {
@@ -475,6 +478,7 @@ const PeerBox = ({
             _id={userId}
             displayName={name}
             discordAccount={discordAccount}
+            customAvatar={customAvatar}
             size={44}
           />
           <div>
