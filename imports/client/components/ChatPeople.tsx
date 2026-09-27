@@ -45,6 +45,7 @@ interface ViewerSubscriber {
   user: string;
   name: string | undefined;
   discordAccount: DiscordAccountType | undefined;
+  customAvatar: string | undefined;
   tab: string | undefined;
 }
 
@@ -57,6 +58,7 @@ const ViewerPersonBox = ({
   user,
   name,
   discordAccount,
+  customAvatar,
   children,
   popperBoundaryRef,
 }: PersonBoxProps) => {
@@ -84,6 +86,7 @@ const ViewerPersonBox = ({
           _id={user}
           displayName={name}
           discordAccount={discordAccount}
+          customAvatar={customAvatar}
           size={44}
         />
         {children}
@@ -209,6 +212,7 @@ const ChatPeople = ({
         user: user._id,
         name: user.displayName,
         discordAccount: user.discordAccount,
+        customAvatar: user.customAvatar,
         tab: p.tab,
       });
       rtcViewerIndex[user._id] = true;
@@ -230,6 +234,7 @@ const ChatPeople = ({
         user: s.user,
         name: user.displayName,
         discordAccount: user.discordAccount,
+        customAvatar: user.customAvatar,
         tab: undefined,
       });
     });

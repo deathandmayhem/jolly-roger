@@ -29,6 +29,21 @@ type TypedMethodCallPromiseArgs<
   Arg extends TypedMethodArgs,
 > = Arg extends void ? [] : [ValidateShape<T, Arg>];
 
+export function stringifyMethodArgs(arg: unknown): string | undefined {
+  if (typeof arg !== "object" || !arg) {
+    return undefined;
+  }
+  return JSON.stringify(EJSON.toJSONValue(arg as EJSONable), (_key, value) =>
+    typeof value?.$binary === "string"
+      ? {
+          $binary: `<${Math.floor(
+            (value.$binary.replace(/=+$/, "").length * 3) / 4,
+          )} bytes>`,
+        }
+      : value,
+  );
+}
+
 class TypedMethod<
   Args extends TypedMethodArgs,
   Return extends TypedMethodParam | void,
@@ -53,8 +68,7 @@ class TypedMethod<
         "Meteor method call",
         {
           method: this.name,
-          arguments:
-            typeof args[0] === "object" ? EJSON.stringify(args[0]) : undefined,
+          arguments: stringifyMethodArgs(args[0]),
         },
         "request",
       );
@@ -73,8 +87,7 @@ class TypedMethod<
         Logger[severity](`Meteor method call failed: ${this.name}`, {
           error,
           method: this.name,
-          arguments:
-            typeof args[0] === "object" ? EJSON.stringify(args[0]) : undefined,
+          arguments: stringifyMethodArgs(args[0]),
         });
       }
       callback?.(error, result as any);
@@ -90,10 +103,7 @@ class TypedMethod<
           "Meteor method call",
           {
             method: this.name,
-            arguments:
-              typeof args[0] === "object"
-                ? EJSON.stringify(args[0])
-                : undefined,
+            arguments: stringifyMethodArgs(args[0]),
           },
           "request",
         );
@@ -112,8 +122,7 @@ class TypedMethod<
         Logger[severity](`Meteor method call failed: ${this.name}`, {
           error,
           method: this.name,
-          arguments:
-            typeof args[0] === "object" ? EJSON.stringify(args[0]) : undefined,
+          arguments: stringifyMethodArgs(args[0]),
         });
       }
       throw error;

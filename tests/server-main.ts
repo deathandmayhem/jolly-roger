@@ -10,6 +10,7 @@ import "./unit/imports/lib/calendarTimeFormat";
 import "./unit/imports/lib/puzzle-sort-and-group";
 import "./unit/imports/lib/relativeTimeFormat";
 import "./unit/imports/lib/ValidateShape";
+import "./unit/imports/methods/TypedMethod";
 
 // Disable rate limiting
 if (!Meteor.isAppTest) {
