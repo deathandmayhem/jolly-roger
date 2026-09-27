@@ -35,7 +35,7 @@ files:
   - imports/server/setup.ts
   - private/google-script/cookie-test.html
   - private/google-script/main.js
-updated: 2026-10-11
+updated: 2026-10-24
 ---
 
 # Google Drive Integration
@@ -260,7 +260,11 @@ service), and the bucket to use is configured by `configureS3ImageBucket`.
 Assuming that's configured, the `createDocumentImageUpload` Meteor method
 generates a pre-signed AWS URL that can be used to upload images, which are then
 inserted by URL. The `InsertImage` client-side flow still has fallback logic to
-upload directly in the event that S3 is not configured.
+upload directly in the event that S3 is not configured. Additionally, Google Apps
+Script only supports PNG, JPEG, and GIF images; the `InsertImage` flow automatically
+converts other browser-renderable image formats (such as WebP, AVIF, or SVG)
+to PNG via `<canvas>` prior to upload. Image uploads are capped at 20 MiB to
+prevent large images from slowing down puzzle document loading.
 
 ## Third-party cookie detection
 
