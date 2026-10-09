@@ -3,7 +3,7 @@ import { createLogger } from "winston";
 import Transport from "winston-transport";
 
 class BugsnagTransport extends Transport {
-  public declare levels: Record<string, number>;
+  declare public levels: Record<string, number>;
 
   public log(
     {
