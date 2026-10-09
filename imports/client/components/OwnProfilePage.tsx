@@ -2,7 +2,10 @@ import { Meteor } from "meteor/meteor";
 import { OAuth } from "meteor/oauth";
 import { useTracker } from "meteor/react-meteor-data";
 import { ServiceConfiguration } from "meteor/service-configuration";
-import { useCallback, useId, useMemo, useState } from "react";
+import { faPencil } from "@fortawesome/free-solid-svg-icons/faPencil";
+import { faSpinner } from "@fortawesome/free-solid-svg-icons/faSpinner";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useCallback, useId, useMemo, useRef, useState } from "react";
 import Alert from "react-bootstrap/Alert";
 import Badge from "react-bootstrap/Badge";
 import Button from "react-bootstrap/Button";
@@ -15,6 +18,7 @@ import FormText from "react-bootstrap/FormText";
 import ListGroup from "react-bootstrap/ListGroup";
 import ListGroupItem from "react-bootstrap/ListGroupItem";
 import { useTranslation } from "react-i18next";
+import styled from "styled-components";
 import Flags from "../../Flags";
 import { formatDiscordName } from "../../lib/discord";
 import type { APIKeyType } from "../../lib/models/APIKeys";
@@ -22,11 +26,15 @@ import addUserAccountEmail from "../../methods/addUserAccountEmail";
 import createAPIKey from "../../methods/createAPIKey";
 import linkUserDiscordAccount from "../../methods/linkUserDiscordAccount";
 import makeUserEmailPrimary from "../../methods/makeUserEmailPrimary";
+import removeCustomAvatar from "../../methods/removeCustomAvatar";
 import removeUserAccountEmail from "../../methods/removeUserAccountEmail";
 import sendUserVerificationEmail from "../../methods/sendUserVerificationEmail";
 import unlinkUserDiscordAccount from "../../methods/unlinkUserDiscordAccount";
 import updateProfile from "../../methods/updateProfile";
+import uploadCustomAvatar from "../../methods/uploadCustomAvatar";
+import { processAvatarFile } from "../avatarUtils";
 import { requestDiscordCredential } from "../discord";
+import useS3ImageBucketConfigured from "../hooks/useS3ImageBucketConfigured";
 import useTeamName from "../hooks/useTeamName";
 import ActionButtonRow from "./ActionButtonRow";
 import APIKeysTable from "./APIKeysTable";
@@ -380,6 +388,142 @@ const APIKeysSection = ({ apiKeys }: { apiKeys?: APIKeyType[] }) => {
   );
 };
 
+const AvatarButton = styled.button<{ $interactive: boolean }>`
+  position: relative;
+  display: inline-block;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: ${({ $interactive }) => ($interactive ? "pointer" : "default")};
+  line-height: 0;
+
+  &:hover .avatar-overlay,
+  &:focus-visible .avatar-overlay {
+    opacity: ${({ $interactive }) => ($interactive ? 1 : 0)};
+  }
+`;
+
+const AvatarOverlay = styled.div<{ $visible?: boolean }>`
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgb(0 0 0 / 45%);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  opacity: ${({ $visible }) => ($visible ? 1 : 0)};
+  transition: opacity 0.15s ease-in-out;
+  pointer-events: none;
+`;
+
+const AvatarSection = ({ initialUser }: { initialUser: Meteor.User }) => {
+  const user = useTracker(() => Meteor.user() ?? initialUser, [initialUser]);
+  const { configured: s3Configured } = useS3ImageBucketConfigured();
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState<string | undefined>(undefined);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { t } = useTranslation();
+
+  const onUploadClick = useCallback(() => {
+    fileInputRef.current?.click();
+  }, []);
+
+  const onFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+
+    setUploading(true);
+    setError(undefined);
+    void (async () => {
+      try {
+        const data = await processAvatarFile(file);
+        await uploadCustomAvatar.callPromise({ data, mimeType: "image/png" });
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : "Failed to upload avatar",
+        );
+      } finally {
+        setUploading(false);
+      }
+    })();
+  }, []);
+
+  const onRemove = useCallback(() => {
+    setUploading(true);
+    setError(undefined);
+    void (async () => {
+      try {
+        await removeCustomAvatar.callPromise();
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : "Failed to remove avatar",
+        );
+      } finally {
+        setUploading(false);
+      }
+    })();
+  }, []);
+
+  return (
+    <div className="mb-3">
+      {error && (
+        <Alert variant="danger" dismissible onClose={() => setError(undefined)}>
+          {error}
+        </Alert>
+      )}
+      <div className="d-flex align-items-center">
+        {s3Configured ? (
+          <>
+            <input
+              type="file"
+              ref={fileInputRef}
+              style={{ display: "none" }}
+              accept="image/png,image/jpeg,image/gif,image/webp,image/avif,image/bmp,image/svg+xml,.png,.jpg,.jpeg,.gif,.webp,.avif,.bmp,.svg"
+              onChange={onFileChange}
+            />
+            <AvatarButton
+              type="button"
+              $interactive={!uploading}
+              onClick={uploading ? undefined : onUploadClick}
+              disabled={uploading}
+              aria-label={t("profile.avatar.upload", "Change avatar")}
+              title={t("profile.avatar.upload", "Change avatar")}
+            >
+              <Avatar {...user} size={64} />
+              <AvatarOverlay className="avatar-overlay" $visible={uploading}>
+                {uploading ? (
+                  <FontAwesomeIcon icon={faSpinner} spin />
+                ) : (
+                  <FontAwesomeIcon icon={faPencil} />
+                )}
+              </AvatarOverlay>
+            </AvatarButton>
+            {user.customAvatar && (
+              <div className="ms-3">
+                <Button
+                  variant="outline-danger"
+                  size="sm"
+                  onClick={onRemove}
+                  disabled={uploading}
+                >
+                  {t("profile.avatar.remove", "Remove custom avatar")}
+                </Button>
+              </div>
+            )}
+          </>
+        ) : (
+          <Avatar {...user} size={64} />
+        )}
+      </div>
+    </div>
+  );
+};
+
 const OwnProfilePage = ({
   initialUser,
   apiKeys,
@@ -458,7 +602,7 @@ const OwnProfilePage = ({
   return (
     <Container>
       <h1>{t("profile.ownProfileTitle", "Account information")}</h1>
-      <Avatar {...initialUser} size={64} />
+      <AvatarSection initialUser={initialUser} />
       <EmailSection user={initialUser} />
       {submitState === OwnProfilePageSubmitState.SUBMITTING ? (
         <Alert variant="info">{t("common.saving", "Saving")}...</Alert>

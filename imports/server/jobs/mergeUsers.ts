@@ -1,4 +1,9 @@
 import { Meteor } from "meteor/meteor";
+import {
+  CopyObjectCommand,
+  DeleteObjectCommand,
+  S3Client,
+} from "@aws-sdk/client-s3";
 import Logger from "../../Logger";
 import mergeUsers from "../../lib/jobs/mergeUsers";
 import Announcements from "../../lib/models/Announcements";
@@ -41,6 +46,7 @@ import Puzzles from "../../lib/models/Puzzles";
 import Servers from "../../lib/models/Servers";
 import Settings from "../../lib/models/Settings";
 import Tags from "../../lib/models/Tags";
+import { userAvatarKey } from "../../lib/s3";
 import { AllModels } from "../../lib/typedModel/Model";
 import addUsersToDiscordRole from "../addUsersToDiscordRole";
 import { ensureHuntFolderPermission } from "../gdrive";
@@ -637,6 +643,36 @@ defineJob(mergeUsers, {
         { $set: { displayName: source.displayName } },
       );
     }
+    if (source.customAvatar) {
+      const targetUserDoc = await MeteorUsers.findOneAsync(targetUser);
+      if (!targetUserDoc?.customAvatar) {
+        const s3BucketSettings = await Settings.findOneAsync({
+          name: "s3.image_bucket",
+        });
+        if (s3BucketSettings?.value) {
+          try {
+            const s3 = new S3Client({
+              region: s3BucketSettings.value.bucketRegion,
+            });
+            await s3.send(
+              new CopyObjectCommand({
+                Bucket: s3BucketSettings.value.bucketName,
+                CopySource: `${s3BucketSettings.value.bucketName}/${userAvatarKey(sourceUser, source.customAvatar)}`,
+                Key: userAvatarKey(targetUser, source.customAvatar),
+              }),
+            );
+            await MeteorUsers.updateAsync(
+              { _id: targetUser, customAvatar: { $exists: false } },
+              { $set: { customAvatar: source.customAvatar } },
+            );
+          } catch (err) {
+            Logger.warn("Failed to copy avatar in S3 during user merge", {
+              error: err,
+            });
+          }
+        }
+      }
+    }
 
     // Discord OAuth credentials (access token, refresh token, etc.)
     const discordServiceData = source.services?.discord;
@@ -741,6 +777,33 @@ defineJob(mergeUsers, {
     });
 
     // Finalize — delete source user and mark complete.
+    if (source.customAvatar) {
+      const s3BucketSettings = await Settings.findOneAsync({
+        name: "s3.image_bucket",
+      });
+      if (s3BucketSettings?.value) {
+        try {
+          const s3 = new S3Client({
+            region: s3BucketSettings.value.bucketRegion,
+          });
+          await s3.send(
+            new DeleteObjectCommand({
+              Bucket: s3BucketSettings.value.bucketName,
+              Key: userAvatarKey(sourceUser, source.customAvatar),
+            }),
+          );
+        } catch (e) {
+          Logger.warn(
+            "Failed to delete source user avatar from S3 during merge",
+            {
+              sourceUser,
+              error: e,
+            },
+          );
+        }
+      }
+    }
+
     await MeteorUsers.removeAsync(sourceUser);
     await MergeOperations.updateAsync(moId, {
       $set: { completedAt: new Date() },

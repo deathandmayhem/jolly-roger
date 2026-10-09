@@ -10,6 +10,7 @@ import Logger from "../../Logger";
 import MeteorUsers from "../../lib/models/MeteorUsers";
 import Settings from "../../lib/models/Settings";
 import { userMayConfigureAWS } from "../../lib/permission_stubs";
+import { s3ObjectUrl } from "../../lib/s3";
 import configureS3ImageBucket from "../../methods/configureS3ImageBucket";
 import defineMethod from "./defineMethod";
 
@@ -71,7 +72,7 @@ defineMethod(configureS3ImageBucket, {
     }
 
     // Make sure we can fetch the object we just wrote publicly
-    const url = `https://s3.${region}.amazonaws.com/${bucketName}/__test__`;
+    const url = s3ObjectUrl(region, bucketName, "__test__");
     let text;
     try {
       const response = await fetch(url);

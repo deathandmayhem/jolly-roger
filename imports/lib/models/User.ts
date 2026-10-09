@@ -31,6 +31,12 @@ declare module "meteor/meteor" {
       phoneNumber?: string;
       dingwords?: string[];
       mergedInto?: string;
+      /**
+       * The filename of the user's custom avatar stored in S3, formatted as `<contenthash>.png` (where `<contenthash>`
+       * is the hex-encoded SHA-256 hash of the image data). The full S3 object key is
+       * `users/${user._id}/${user.customAvatar}`.
+       */
+      customAvatar?: string;
     }
   }
 }
@@ -64,6 +70,10 @@ export const User = z.object({
   phoneNumber: nonEmptyString.optional(),
   dingwords: nonEmptyString.array().optional(),
   mergedInto: foreignKey.optional(),
+  customAvatar: z
+    .string()
+    .regex(/^[a-f0-9]{64}\.png$/)
+    .optional(),
 });
 validateSchema(User);
 
@@ -78,4 +88,5 @@ export type ProfileFields =
   | "googleAccount"
   | "discordAccount"
   | "phoneNumber"
-  | "dingwords";
+  | "dingwords"
+  | "customAvatar";
