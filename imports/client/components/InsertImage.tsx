@@ -41,7 +41,70 @@ enum InsertImageSubmitState {
   ERROR,
 }
 
-class InvalidImage extends Error {}
+export class InvalidImage extends Error {}
+
+const DIRECTLY_SUPPORTED_MIME_TYPES = new Set([
+  "image/png",
+  "image/jpeg",
+  "image/gif",
+]);
+
+const DIRECTLY_SUPPORTED_EXTENSIONS = new Set(["png", "jpg", "jpeg", "gif"]);
+
+export const isDirectlySupported = (file: File): boolean => {
+  if (file.type) {
+    return DIRECTLY_SUPPORTED_MIME_TYPES.has(file.type.toLowerCase());
+  }
+  const ext = file.name.split(".").pop()?.toLowerCase();
+  return DIRECTLY_SUPPORTED_EXTENSIONS.has(ext ?? "");
+};
+
+export const convertImageToPng = async (file: File): Promise<File> => {
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const image = new Image();
+      image.addEventListener("load", () => resolve(image));
+      image.addEventListener("error", () =>
+        reject(
+          new InvalidImage(
+            "This image format is not supported by your browser for conversion. Please use PNG, JPG, or GIF.",
+          ),
+        ),
+      );
+      image.src = url;
+    });
+
+    if (img.naturalWidth === 0 || img.naturalHeight === 0) {
+      throw new InvalidImage("Image dimensions must be greater than zero.");
+    }
+
+    const canvas = document.createElement("canvas");
+    canvas.width = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) {
+      throw new InvalidImage("Failed to get canvas 2D context.");
+    }
+    ctx.drawImage(img, 0, 0);
+
+    const blob = await new Promise<Blob>((resolve, reject) => {
+      canvas.toBlob((b) => {
+        if (b) {
+          resolve(b);
+        } else {
+          reject(new InvalidImage("Failed to convert image to PNG."));
+        }
+      }, "image/png");
+    });
+
+    const baseName = file.name.replace(/\.[^./\\]+$/, "");
+    const newFilename = `${baseName}.png`;
+    return new File([blob], newFilename, { type: "image/png" });
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+};
 
 export const validateImageForDirectUpload = async (
   file: File,
@@ -97,18 +160,22 @@ const makeImageSource = async ({
     throw new Error("No file provided");
   }
 
+  const uploadFile = isDirectlySupported(file)
+    ? file
+    : await convertImageToPng(file);
+
   const upload = await createDocumentImageUpload.callPromise({
     documentId,
-    filename: file.name,
-    mimeType: file.type,
+    filename: uploadFile.name,
+    mimeType: uploadFile.type,
   });
   // If we don't get an upload spec back, then S3 isn't configured and we can
   // fall back to blob inserts
   if (!upload) {
-    const validatedContents = await validateImageForDirectUpload(file);
+    const validatedContents = await validateImageForDirectUpload(uploadFile);
     return {
       source: "upload",
-      filename: file.name,
+      filename: uploadFile.name,
       contents: validatedContents,
     };
   }
@@ -118,7 +185,7 @@ const makeImageSource = async ({
   for (const [key, value] of Object.entries(fields)) {
     formData.append(key, value);
   }
-  formData.append("file", file);
+  formData.append("file", uploadFile);
   await fetch(uploadUrl, {
     method: "POST",
     mode: "no-cors",
@@ -267,7 +334,7 @@ const InsertImageModal = ({
                 isInvalid={fileInvalid}
                 required={imageSource === "upload"}
                 ref={fileRef}
-                accept=".png,.jpg,.jpeg,.gif"
+                accept="image/png,image/jpeg,image/gif,image/webp,image/avif,image/bmp,image/svg+xml,.png,.jpg,.jpeg,.gif,.webp,.avif,.bmp,.svg"
               />
             </Tab>
             <Tab eventKey="link" title={t("puzzle.insertImage.link", "Link")}>
