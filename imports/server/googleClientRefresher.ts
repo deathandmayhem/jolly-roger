@@ -13,9 +13,12 @@ import type { script_v1 } from "@googleapis/script";
 import { script } from "@googleapis/script";
 import type { sheets_v4 } from "@googleapis/sheets";
 import { sheets } from "@googleapis/sheets";
-import type { RetryConfig } from "gaxios";
 import type { SettingType } from "../lib/models/Settings";
 import Settings from "../lib/models/Settings";
+
+const retryConfig = {
+  httpMethodsToRetry: ["GET", "PUT", "HEAD", "OPTIONS", "DELETE", "POST"],
+};
 
 class GoogleClientRefresher {
   public drive?: drive_v3.Drive;
@@ -38,18 +41,11 @@ class GoogleClientRefresher {
 
   private oauthCredentialCursor: Mongo.Cursor<SettingType>;
 
-  private retryConfig: RetryConfig;
-
   constructor() {
     this.drive = undefined;
     this.oauthClient = undefined;
     this.oauthConfig = undefined;
     this.oauthRefreshToken = undefined;
-
-    this.retryConfig = {
-      // Retry POST failures as well, since most APIs use POST requests under the covers.
-      httpMethodsToRetry: ["GET", "PUT", "HEAD", "OPTIONS", "DELETE", "POST"],
-    };
 
     this.oauthConfigCursor = ServiceConfiguration.configurations.find({
       service: "google",
@@ -116,27 +112,27 @@ class GoogleClientRefresher {
     this.drive = drive({
       version: "v3",
       auth: this.oauthClient,
-      retryConfig: this.retryConfig,
+      retryConfig,
     });
     this.driveactivity = driveactivity({
       version: "v2",
       auth: this.oauthClient,
-      retryConfig: this.retryConfig,
+      retryConfig,
     });
     this.script = script({
       version: "v1",
       auth: this.oauthClient,
-      retryConfig: this.retryConfig,
+      retryConfig,
     });
     this.people = people({
       version: "v1",
       auth: this.oauthClient,
-      retryConfig: this.retryConfig,
+      retryConfig,
     });
     this.sheets = sheets({
       version: "v4",
       auth: this.oauthClient,
-      retryConfig: this.retryConfig,
+      retryConfig,
     });
   }
 }
