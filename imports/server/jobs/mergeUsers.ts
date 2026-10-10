@@ -47,6 +47,7 @@ import { ensureHuntFolderPermission } from "../gdrive";
 import ignoringDuplicateKeyErrors, {
   isDuplicateKeyError,
 } from "../ignoringDuplicateKeyErrors";
+import AttentionReducerCheckpoints from "../models/AttentionReducerCheckpoints";
 import AttentionStates from "../models/AttentionStates";
 import AttentionTransitions from "../models/AttentionTransitions";
 import Blobs from "../models/Blobs";
@@ -100,6 +101,7 @@ const MODELS_WITH_COMMON: { collection: { rawCollection(): any } }[] = [
 
 // Models with no user foreign keys (or with non-user FKs we skip).
 const MODELS_EXPLICITLY_SKIPPED = [
+  AttentionReducerCheckpoints,
   BlobMappings,
   Blobs,
   CallHistories,

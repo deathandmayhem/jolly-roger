@@ -51,6 +51,7 @@ import Tags from "../../lib/models/Tags";
 import type Model from "../../lib/typedModel/Model";
 import { AllModels } from "../../lib/typedModel/Model";
 import { deleteDocument } from "../gdrive";
+import AttentionReducerCheckpoints from "../models/AttentionReducerCheckpoints";
 import AttentionStates from "../models/AttentionStates";
 import AttentionTransitions from "../models/AttentionTransitions";
 import Blobs from "../models/Blobs";
@@ -101,6 +102,7 @@ const COLLECTIONS_EXPLICITLY_LEFT_UNTOUCHED = [
 
   // Doesn't reference hunt but it was easier to write this enforcement around
   APIKeys,
+  AttentionReducerCheckpoints,
   BlobMappings,
   Blobs,
   DiscordCache,

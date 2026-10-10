@@ -2643,6 +2643,24 @@ const CircuitBreakerSection = () => {
           anything that happened while it was disabled is lost.
         </p>
       </CircuitBreakerControl>
+      <CircuitBreakerControl
+        title="Live attention presence"
+        flagName="disable.attention_reducer"
+      >
+        <p>
+          Jolly Roger records which tabs a user has open and what they&apos;re
+          focused on as a raw event stream, and a background reducer folds that
+          log into the live per-tab presence used for real-time displays. The
+          reducer runs on a single elected server; if it misbehaves it can be
+          paused here.
+        </p>
+        <p>
+          Disabling this feature pauses the reducer, so live attention presence
+          stops updating and remains stale until it is re-enabled. Raw activity
+          is still recorded, and re-enabling replays everything captured while
+          it was off, so no history is lost.
+        </p>
+      </CircuitBreakerControl>
     </Section>
   );
 };
