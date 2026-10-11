@@ -8,6 +8,7 @@ import "./unit/imports/lib/puzzle-sort-and-group";
 import "./unit/imports/lib/relativeTimeFormat";
 import "./unit/imports/lib/ValidateShape";
 
+import "./acceptance/attentionReporting";
 import "./acceptance/authentication";
 import "./acceptance/chatHooks";
 import "./acceptance/emails";
