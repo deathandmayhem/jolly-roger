@@ -9,10 +9,7 @@ export const PREEMPT_TIMEOUT = 10000;
 
 function tryAcquire(name: string) {
   return ignoringDuplicateKeyErrors(() => {
-    // Because the Mongo.Collection doesn't know about SimpleSchema
-    // autovalues, it doesn't know which fields are actually required. Cast to
-    // any since this is known safe
-    return Locks.insertAsync(<any>{ name });
+    return Locks.insertAsync({ name });
   });
 }
 

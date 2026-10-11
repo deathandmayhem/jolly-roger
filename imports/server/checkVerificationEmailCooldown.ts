@@ -7,7 +7,7 @@ export default async function checkVerificationEmailCooldown(
   userId: string,
 ): Promise<void> {
   const user = await MeteorUsers.findOneAsync(userId, {
-    fields: { "services.email.verificationTokens": 1 },
+    projection: { "services.email.verificationTokens": 1 },
   });
 
   const tokens = user?.services?.email?.verificationTokens;

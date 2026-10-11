@@ -75,12 +75,12 @@ const MinimizedChatInfo = ({
   const { callers, viewers } = useTracker(() => {
     const callerIds = Peers.find(
       { hunt: huntId, call: puzzleId },
-      { fields: { _id: 1 } },
+      { projection: { _id: 1 } },
     ).map((peer) => peer._id);
 
     const viewerIds = Subscribers.find(
       { name: subscriberTopic },
-      { fields: { user: 1 } },
+      { projection: { user: 1 } },
     ).map((sub) => sub.user);
 
     const uniqueCallers = new Set(callerIds);

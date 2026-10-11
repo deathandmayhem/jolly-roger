@@ -135,7 +135,6 @@ async function processJob(job: JobType, signal: AbortSignal) {
 
 // Wait for a wake event, abort signal, or poll timeout, cleaning up all
 // listeners when any one fires.
-/* oxlint-disable promise/no-multiple-resolved -- done() is only called once; the multiple sources (timer, wake, abort) all converge on the same callback */
 function waitForWork(signal: AbortSignal): Promise<void> {
   return new Promise<void>((resolve) => {
     if (signal.aborted) {
@@ -153,7 +152,6 @@ function waitForWork(signal: AbortSignal): Promise<void> {
     signal.addEventListener("abort", done, { once: true });
   });
 }
-/* oxlint-enable promise/no-multiple-resolved */
 
 async function runWorker(signal: AbortSignal) {
   // Observe new pending jobs for immediate wakeup

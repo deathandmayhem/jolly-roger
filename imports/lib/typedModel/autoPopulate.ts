@@ -76,7 +76,7 @@ export const collectSchemaMetadata = (schema: $ZodType): SchemaMetadata => {
       case "object":
         for (const [shapeKey, field] of Object.entries(def.shape)) {
           if (field === undefined) continue;
-          inner(field as z.ZodType, shapeKey, depth + 1);
+          inner(field, shapeKey, depth + 1);
         }
         break;
 

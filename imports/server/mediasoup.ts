@@ -1670,7 +1670,6 @@ const getLocalIPAddresses = (): ListenAddress[] => {
       const ipv6 = filtered
         .toReversed()
         .find((address) => address.family === "IPv6");
-      // oxlint-disable-next-line unicorn/prefer-native-coercion-functions -- type predicate needed for TypeScript narrowing
       return [ipv4?.address, ipv6?.address].filter<string>((v): v is string =>
         Boolean(v),
       );

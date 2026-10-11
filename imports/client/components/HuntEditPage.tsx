@@ -92,10 +92,10 @@ const DiscordSelector = ({
   const formOptions = useCallback((): SavedDiscordObjectType[] => {
     // List of the options.  Be sure to include the saved option if it's (for
     // some reason) not present in the channel list.
-    const noneOption = {
+    const noneOption: SavedDiscordObjectType = {
       id: "empty",
       name: "disabled",
-    } as SavedDiscordObjectType;
+    };
 
     if (value && !options.some((opt) => opt.id === value.id)) {
       return [noneOption, value, ...options];

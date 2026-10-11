@@ -8,11 +8,11 @@ import styled from "styled-components";
 import Logger from "../../Logger";
 
 const WaitingAlert = ({
-  retryTime = Date.now(),
+  retryTime,
 }: {
   retryTime: DDP.DDPStatus["retryTime"];
 }) => {
-  const [lastUpdated, setLastUpdated] = useState(Date.now());
+  const [lastUpdated, setLastUpdated] = useState(() => Date.now());
 
   useEffect(() => {
     const timer = window.setInterval(() => {
@@ -24,7 +24,8 @@ const WaitingAlert = ({
     };
   }, []);
 
-  const timeToRetry = Math.ceil((retryTime - lastUpdated) / 1000);
+  const timeToRetry =
+    retryTime === undefined ? 0 : Math.ceil((retryTime - lastUpdated) / 1000);
   return (
     <Alert variant="warning">
       We can&apos;t connect to Jolly Roger right now. We&apos;ll try again in{" "}

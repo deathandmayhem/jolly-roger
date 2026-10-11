@@ -71,19 +71,15 @@ class SoftDeletedModel<Schema extends z.ZodType> extends Model<
   }
 
   destroyAsync(selector: Selector<SDModelType<Schema>>): Promise<number> {
-    return this.updateAsync(
-      selector as any,
-      { $set: { deleted: true } } as any,
-      { multi: true },
-    );
+    return this.updateAsync(selector, { $set: { deleted: true } } as any, {
+      multi: true,
+    });
   }
 
   undestroyAsync(selector: Selector<SDModelType<Schema>>): Promise<number> {
-    return this.updateAsync(
-      selector as any,
-      { $set: { deleted: false } } as any,
-      { multi: true },
-    );
+    return this.updateAsync(selector, { $set: { deleted: false } } as any, {
+      multi: true,
+    });
   }
 
   find<S extends Selector<SDModelType<Schema>>>(

@@ -111,6 +111,14 @@
     "react/rules-of-hooks": "error",
     "react/self-closing-comp": "error",
 
+    // React Compiler rules (enabled via our categories) with existing failures
+    // in the codebase
+    "react/exhaustive-effect-dependencies": "off",
+    "react/immutability": "off",
+    "react/memo-dependencies": "off",
+    "react/refs": "off",
+    "react/set-state-in-effect": "off",
+
     // ── JSX-a11y ────────────────────────────────────────────────────────
     "jsx-a11y/alt-text": "error",
     "jsx-a11y/anchor-is-valid": "error",

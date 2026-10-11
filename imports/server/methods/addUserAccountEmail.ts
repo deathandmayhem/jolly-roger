@@ -23,7 +23,7 @@ defineMethod(addUserAccountEmail, {
     // means we'll show a less-good error message.
     const existingUser = await MeteorUsers.findOneAsync(
       { "emails.address": email },
-      { fields: { _id: 1 } },
+      { projection: { _id: 1 } },
     );
     if (existingUser && existingUser._id !== this.userId) {
       throw new Meteor.Error(

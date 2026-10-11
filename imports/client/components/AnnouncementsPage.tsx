@@ -85,6 +85,7 @@ const AnnouncementFormInput = ({
           className="mb-2"
           displayName={`${selfDisplayName} (preview)`}
           message={message}
+          // oxlint-disable-next-line react/purity -- the preview is stamped with the current time
           createdAt={new Date()}
         />
       )}
