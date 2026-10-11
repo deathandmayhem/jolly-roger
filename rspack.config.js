@@ -13,7 +13,11 @@ const { IgnorePlugin } = require("@rspack/core");
  */
 module.exports = defineConfig((Meteor) => {
   // winston tries to import path, so we need to stub it out here
-  const fallbackClient = { path: require.resolve("path-browserify") };
+  const fallbackClient = {
+    events: require.resolve("meteor-node-stubs/node_modules/events/events.js"),
+    path: require.resolve("path-browserify"),
+    util: require.resolve("meteor-node-stubs/node_modules/util/util.js"),
+  };
 
   return {
     module: {
