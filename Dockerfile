@@ -76,7 +76,6 @@ EOF
 
 # Install app deps
 COPY package.json package-lock.json tsconfig.json /app/
-COPY eslint /app/eslint/
 RUN --mount=type=cache,target=/root/.npm <<'EOF'
 #!/bin/bash
 set -eux

@@ -11,7 +11,7 @@
     "typescript",
     "oxc"
   ],
-  "ignorePatterns": ["eslint/**", "private/**"],
+  "ignorePatterns": ["private/**"],
   "categories": {
     "correctness": "error",
     "suspicious": "error"
@@ -249,7 +249,7 @@
     "typescript/no-base-to-string": "error",
     "typescript/no-confusing-non-null-assertion": "error",
     "typescript/no-confusing-void-expression": "off",
-    "typescript/no-deprecated": ["error", { "allow": ["findOne"] }],
+    "typescript/no-deprecated": "error",
     "typescript/no-empty-interface": "error",
     "typescript/no-extraneous-class": "error",
     "typescript/no-floating-promises": "error",
@@ -324,6 +324,55 @@
       "rules": {
         "typescript/no-empty-interface": "off",
         "unicorn/require-module-specifiers": "off"
+      }
+    },
+    {
+      // Synchronous Minimongo access and fire-and-forget method calls are fine
+      // on the client, even though they're deprecated on the server
+      "files": ["**/client/**"],
+      "rules": {
+        "typescript/no-deprecated": [
+          "error",
+          {
+            "allow": [
+              {
+                "from": "package",
+                "package": "package-types",
+                "name": "findOne"
+              },
+              {
+                "from": "file",
+                "path": "types/meteor/mongo.d.ts",
+                "name": ["count", "fetch", "forEach", "map"]
+              },
+              {
+                "from": "file",
+                "path": "types/meteor/meteor.d.ts",
+                "name": ["user", "call", "apply"]
+              },
+              {
+                "from": "file",
+                "path": "imports/lib/typedModel/Model.ts",
+                "name": "findOne"
+              },
+              {
+                "from": "file",
+                "path": "imports/lib/typedModel/SoftDeletedModel.ts",
+                "name": ["findOne", "findOneAllowingDeleted", "findOneDeleted"]
+              },
+              {
+                "from": "file",
+                "path": "imports/Flags.ts",
+                "name": "active"
+              },
+              {
+                "from": "file",
+                "path": "imports/methods/TypedMethod.ts",
+                "name": "call"
+              }
+            ]
+          }
+        ]
       }
     }
   ]

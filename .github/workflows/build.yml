@@ -62,7 +62,6 @@ jobs:
       - name: Enable problem matchers
         run: |
           echo "::add-matcher::${{ github.workspace }}/.github/problem-matchers/tsc.json"
-          echo "::add-matcher::${{ github.workspace }}/.github/problem-matchers/eslint.json"
           echo "::add-matcher::${{ github.workspace }}/.github/problem-matchers/stylelint.json"
       - name: Run tests
         run: |

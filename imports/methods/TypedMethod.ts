@@ -41,6 +41,7 @@ class TypedMethod<
     this.name = name;
   }
 
+  /** @deprecated Use callPromise on the server */
   call<T>(...args: TypedMethodCallArgs<T, Args, Return>): void {
     let callback: TypedMethodCallback<Return> | undefined;
     if (typeof args.at(-1) === "function") {
@@ -59,6 +60,7 @@ class TypedMethod<
       );
     }
 
+    // oxlint-disable-next-line typescript/no-deprecated -- the sync variant is for client code
     Meteor.call(this.name, ...args, (error: Meteor.Error, result: Return) => {
       if (error) {
         const severity =

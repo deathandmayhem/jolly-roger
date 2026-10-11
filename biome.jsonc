@@ -6,14 +6,7 @@
     "useIgnoreFile": true
   },
   "files": {
-    "includes": [
-      "**",
-      "!**/node_modules",
-      "!**/.git",
-      "!**/.meteor",
-      "!eslint",
-      "!eslint.config.mts"
-    ]
+    "includes": ["**", "!**/node_modules", "!**/.git", "!**/.meteor"]
   },
   "formatter": {
     "enabled": true,

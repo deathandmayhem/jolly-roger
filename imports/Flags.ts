@@ -18,9 +18,11 @@ function flagIsActive(flag: Pick<FeatureFlagType, "type"> | undefined) {
 }
 
 const Flags = {
+  /** @deprecated Use activeAsync on the server */
   active(name: (typeof FlagNames)[number]) {
     check(name, Match.OneOf(...FlagNames));
 
+    // oxlint-disable-next-line typescript/no-deprecated -- the sync variant is for client code
     const flag = FeatureFlags.findOne({ name });
     return flagIsActive(flag);
   },
