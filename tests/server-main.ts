@@ -35,6 +35,7 @@ import "./unit/imports/server/publishJoinedQuery";
 import "./unit/imports/server/validateSchema";
 import "./unit/imports/server/mergeUsers";
 
+import "./acceptance/attentionReporting";
 import "./acceptance/authentication";
 import "./acceptance/chatHooks";
 import "./acceptance/emails";
