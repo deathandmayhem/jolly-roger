@@ -17,6 +17,7 @@ import addHuntUser from "../../imports/methods/addHuntUser";
 import createFixtureHunt from "../../imports/methods/createFixtureHunt";
 import provisionFirstUser from "../../imports/methods/provisionFirstUser";
 import reportAttentionContext from "../../imports/methods/reportAttentionContext";
+import reportAttentionTransition from "../../imports/methods/reportAttentionTransition";
 import setFeatureFlag from "../../imports/methods/setFeatureFlag";
 import TypedMethod from "../../imports/methods/TypedMethod";
 import resetDatabase from "../lib/resetDatabase";
@@ -42,6 +43,13 @@ if (Meteor.isServer) {
 if (Meteor.isClient) {
   const Routes: typeof import("../../imports/client/components/Routes").default =
     require("../../imports/client/components/Routes").default;
+  const {
+    default: AttentionReporter,
+    useAttentionReady,
+  }: typeof import("../../imports/client/components/AttentionReporter") =
+    require("../../imports/client/components/AttentionReporter");
+  const useAttentionSignal: typeof import("../../imports/client/hooks/useAttentionSignal").default =
+    require("../../imports/client/hooks/useAttentionSignal").default;
 
   const navigate: React.RefObject<NavigateFunction | null> = {
     current: null,
@@ -106,6 +114,18 @@ if (Meteor.isClient) {
 
     const lastContextReport = () => contextReports().at(-1);
 
+    // Context reports and signal names, in the order they were sent
+    const reports = () =>
+      callSpy.getCalls().flatMap((call) => {
+        if (call.args[0] === reportAttentionContext.name) {
+          return ["context"];
+        }
+        if (call.args[0] === reportAttentionTransition.name) {
+          return [call.args[1].signal];
+        }
+        return [];
+      });
+
     before(async function () {
       await resetDatabase("attention reporting");
       await provisionFirstUser.callPromise({
@@ -153,10 +173,32 @@ if (Meteor.isClient) {
       });
     });
 
+    it("reports a descendant's signals after the context", function () {
+      const SignalProbe = () => {
+        useAttentionSignal("iframeFocused", true, useAttentionReady());
+        return null;
+      };
+      render(
+        <MemoryRouter>
+          <AttentionReporter>
+            <SignalProbe />
+          </AttentionReporter>
+        </MemoryRouter>,
+      );
+
+      const sent = reports();
+      assert.equal(sent[0], "context");
+      assert.sameMembers(sent.slice(1), [
+        "iframeFocused",
+        "tabVisible",
+        "windowFocused",
+      ]);
+    });
+
     it("reports again after a reconnect", async function () {
       render(<TestApp />);
       await visit(puzzleUrl);
-      const reportsBefore = contextReports().length;
+      const reportsBefore = reports().length;
 
       // Separate acts, so React renders the disconnected state before the
       // reconnect
@@ -170,7 +212,9 @@ if (Meteor.isClient) {
         await afterFlush();
       });
 
-      assert.isAbove(contextReports().length, reportsBefore);
+      const sent = reports().slice(reportsBefore);
+      assert.equal(sent[0], "context");
+      assert.includeMembers(sent, ["tabVisible", "windowFocused"]);
       assert.deepEqual(lastContextReport(), {
         huntId: fixtureHunt,
         puzzleId: fixturePuzzle,
@@ -182,14 +226,18 @@ if (Meteor.isClient) {
       await visit(puzzleUrl);
 
       await setReportingDisabled(true);
-      const reportsBefore = contextReports().length;
+      const reportsBefore = reports().length;
       await visit(`/hunts/${fixtureHunt}/puzzles`);
-      assert.lengthOf(contextReports(), reportsBefore);
+      assert.lengthOf(reports(), reportsBefore);
 
       await setReportingDisabled(false);
-      assert.deepEqual(contextReports().slice(reportsBefore), [
-        { huntId: fixtureHunt, puzzleId: undefined },
-      ]);
+      const sent = reports().slice(reportsBefore);
+      assert.equal(sent[0], "context");
+      assert.includeMembers(sent, ["tabVisible", "windowFocused"]);
+      assert.deepEqual(lastContextReport(), {
+        huntId: fixtureHunt,
+        puzzleId: undefined,
+      });
     });
   });
 }
