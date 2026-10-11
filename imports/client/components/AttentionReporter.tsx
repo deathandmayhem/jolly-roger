@@ -2,12 +2,42 @@ import { Meteor } from "meteor/meteor";
 import { Random } from "meteor/random";
 import { useTracker } from "meteor/react-meteor-data";
 import type { ReactNode } from "react";
-import { useLayoutEffect } from "react";
+import {
+  createContext,
+  useContext,
+  useLayoutEffect,
+  useSyncExternalStore,
+} from "react";
 import { useMatch } from "react-router";
 import Flags from "../../Flags";
 import { Id } from "../../lib/typedModel/regexes";
 import reportAttentionContext from "../../methods/reportAttentionContext";
+import useAttentionSignal from "../hooks/useAttentionSignal";
 import tabId from "../tabId";
+
+const AttentionReadyContext = createContext<string | undefined>(undefined);
+
+export const useAttentionReady = () => useContext(AttentionReadyContext);
+
+const subscribeVisibility = (onChange: () => void) => {
+  document.addEventListener("visibilitychange", onChange);
+  return () => document.removeEventListener("visibilitychange", onChange);
+};
+const getTabVisible = () => document.visibilityState === "visible";
+
+export const subscribeWindowFocus = (onChange: () => void) => {
+  window.addEventListener("focus", onChange);
+  window.addEventListener("blur", onChange);
+  // The top-level window gets no event when the browser goes to the background
+  // while focus is inside a cross-origin iframe
+  const interval = setInterval(onChange, 1000);
+  return () => {
+    window.removeEventListener("focus", onChange);
+    window.removeEventListener("blur", onChange);
+    clearInterval(interval);
+  };
+};
+const getWindowFocused = () => document.hasFocus();
 
 const AttentionReporter = ({ children }: { children: ReactNode }) => {
   const userId = useTracker(() => Meteor.userId(), []);
@@ -54,7 +84,17 @@ const AttentionReporter = ({ children }: { children: ReactNode }) => {
     });
   }, [readyFor, huntId, puzzleId]);
 
-  return children;
+  const tabVisible = useSyncExternalStore(subscribeVisibility, getTabVisible);
+  const windowFocused = useSyncExternalStore(
+    subscribeWindowFocus,
+    getWindowFocused,
+  );
+  useAttentionSignal("tabVisible", tabVisible, readyFor);
+  useAttentionSignal("windowFocused", windowFocused, readyFor);
+
+  return (
+    <AttentionReadyContext value={readyFor}>{children}</AttentionReadyContext>
+  );
 };
 
 export default AttentionReporter;
