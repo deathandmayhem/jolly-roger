@@ -59,10 +59,6 @@ updates:
         patterns:
           - "oxlint"
           - "oxlint-tsgolint"
-      typescript-eslint:
-        patterns:
-          - "typescript-eslint"
-          - "@typescript-eslint/*"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:

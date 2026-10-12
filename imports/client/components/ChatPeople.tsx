@@ -347,7 +347,7 @@ const ChatPeople = ({
       case CallJoinState.STREAM_ERROR:
         return <div>{`ERROR GETTING MIC: ${callState.error?.message}`}</div>;
       default:
-        // Unreachable.  TypeScript knows this, but eslint doesn't.
+        // Unreachable.  TypeScript knows this, but oxlint doesn't.
         return <div />;
     }
   })();

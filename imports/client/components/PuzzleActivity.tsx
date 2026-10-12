@@ -201,8 +201,11 @@ const PuzzleActivity = ({
           {/* Don't need to use RelativeTime here because this duration doesn't change, even as now
             does */}
           {relativeTimeFormat(
-            new Date(Date.now() - ACTIVITY_GRANULARITY * ACTIVITY_SEGMENTS),
+            new Date(
+              finalBucket.getTime() - ACTIVITY_GRANULARITY * ACTIVITY_SEGMENTS,
+            ),
             t,
+            { now: finalBucket },
           )}
         </div>
         <div>{t("datetime.now", "now")}</div>

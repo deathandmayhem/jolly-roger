@@ -1,5 +1,5 @@
 # On Windows, checkout JS/TS files with LF line endings - it still works fine
-# and prevents eslint from getting angry
+# and prevents biome from getting angry
 *.ts text eol=lf
 *.js text eol=lf
 *.tsx text eol=lf

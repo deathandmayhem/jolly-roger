@@ -173,22 +173,31 @@ class Watchdog extends EventEmitter {
   }
 }
 
-// This type, previously called `TransportListenIp`, is deprecated on the mediasoup side, but
-// remains a reasonable internal representation of addresses, so we still store ips in SFU like this
-// and adapt them to the new `TransportListenInfo` on demand where needed.
-type ListenIp = {
+type ListenAddress = {
   // listening IPv4 or IPv6 address
   ip: string;
   // external announced address (v4 or v6 or hostname)
-  announcedIp?: string;
+  announcedAddress?: string;
 };
+
+// Must match the "Mediasoup RTC ports" ingress rules in cloudformation/jolly-roger.yaml
+const rtcPortRange: types.TransportPortRange = { min: 50000, max: 65535 };
+
+const toListenInfo = (
+  address: ListenAddress,
+  protocol: types.TransportProtocol,
+): types.TransportListenInfo => ({
+  ...address,
+  protocol,
+  portRange: rtcPortRange,
+});
 
 const isAudioLevelObserver = (
   t: types.RtpObserver,
 ): t is types.AudioLevelObserver => t.type === "audiolevel";
 
 class SFU {
-  public ips: [ListenIp, ...ListenIp[]];
+  public ips: [ListenAddress, ...ListenAddress[]];
 
   public worker: types.Worker;
 
@@ -255,7 +264,7 @@ class SFU {
   public presenceSweepHandle?: number;
 
   private constructor(
-    ips: [ListenIp, ...ListenIp[]],
+    ips: [ListenAddress, ...ListenAddress[]],
     worker: types.Worker,
     monitorRouter: types.Router,
     heartbeatDirectTransport: types.DirectTransport,
@@ -434,12 +443,9 @@ class SFU {
     }, presenceSweepInterval);
   }
 
-  static async create(ips: [ListenIp, ...ListenIp[]]) {
+  static async create(ips: [ListenAddress, ...ListenAddress[]]) {
     process.env.DEBUG = "mediasoup:WARN:* mediasoup:ERROR:*";
-    const worker = await createWorker({
-      rtcMinPort: 50000,
-      rtcMaxPort: 65535,
-    });
+    const worker = await createWorker();
     const monitorRouter = await worker.createRouter({
       mediaCodecs,
       appData: {
@@ -1263,18 +1269,10 @@ class SFU {
           direction,
         };
         return router.createWebRtcTransport({
-          listenInfos: this.ips.flatMap((listenIp) => {
-            return [
-              {
-                ...listenIp,
-                protocol: "udp",
-              },
-              {
-                ...listenIp,
-                protocol: "tcp",
-              },
-            ];
-          }),
+          listenInfos: this.ips.flatMap((address) => [
+            toListenInfo(address, "udp"),
+            toListenInfo(address, "tcp"),
+          ]),
           enableUdp: true,
           enableTcp: true,
           preferUdp: true,
@@ -1463,7 +1461,7 @@ class SFU {
     };
 
     const transport = this.monitorRouter.createPipeTransport({
-      listenInfo: { ...this.ips[0], protocol: "udp" },
+      listenInfo: toListenInfo(this.ips[0], "udp"),
       enableRtx: true,
       enableSrtp: true,
       enableSctp: true /* Enable SCTP so we can use DataChannels. */,
@@ -1513,7 +1511,7 @@ class SFU {
     };
 
     const transport = this.monitorRouter.createPipeTransport({
-      listenInfo: { ...this.ips[0], protocol: "udp" },
+      listenInfo: toListenInfo(this.ips[0], "udp"),
       enableRtx: true,
       enableSrtp: true,
       enableSctp: true /* Enable SCTP so we can use DataChannels. */,
@@ -1627,22 +1625,22 @@ const lookupIPSources = async (ipv: "v4" | "v6") => {
   return [...new Set(ips.flat())];
 };
 
-const getPublicIPAddresses = async (): Promise<ListenIp[]> => {
+const getPublicIPAddresses = async (): Promise<ListenAddress[]> => {
   const [ipv4, ipv6] = await Promise.all([
     lookupIPSources("v4"),
     lookupIPSources("v6"),
   ]);
   return [
     ipv4.map((a) => {
-      return { ip: "0.0.0.0", announcedIp: a };
+      return { ip: "0.0.0.0", announcedAddress: a };
     }),
     ipv6.map((a) => {
-      return { ip: "::", announcedIp: a };
+      return { ip: "::", announcedAddress: a };
     }),
   ].flat();
 };
 
-const getLocalIPAddresses = (): ListenIp[] => {
+const getLocalIPAddresses = (): ListenAddress[] => {
   return Object.values(networkInterfaces())
     .flatMap((addresses) => {
       if (!addresses) {
@@ -1672,7 +1670,6 @@ const getLocalIPAddresses = (): ListenIp[] => {
       const ipv6 = filtered
         .toReversed()
         .find((address) => address.family === "IPv6");
-      // oxlint-disable-next-line unicorn/prefer-native-coercion-functions -- type predicate needed for TypeScript narrowing
       return [ipv4?.address, ipv6?.address].filter<string>((v): v is string =>
         Boolean(v),
       );
@@ -1718,7 +1715,7 @@ Meteor.startup(async () => {
     ? getLocalIPAddresses()
     : await getPublicIPAddresses();
   Logger.verbose("Discovered announceable IPs", {
-    ips: ips.map((ip) => ip.announcedIp ?? ip.ip),
+    ips: ips.map((ip) => ip.announcedAddress ?? ip.ip),
   });
   const [primaryIp, ...otherIps] = ips;
   if (!primaryIp) {

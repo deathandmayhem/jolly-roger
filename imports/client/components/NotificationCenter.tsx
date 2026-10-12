@@ -989,7 +989,7 @@ const NotificationCenter = () => {
   );
 
   const [recentGuessEpoch, setRecentGuessEpoch] = useState(
-    Date.now() - LINGER_PERIOD,
+    () => Date.now() - LINGER_PERIOD,
   );
   const guesses = useTracker(
     () =>

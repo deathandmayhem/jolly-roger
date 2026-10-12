@@ -71,19 +71,15 @@ class SoftDeletedModel<Schema extends z.ZodType> extends Model<
   }
 
   destroyAsync(selector: Selector<SDModelType<Schema>>): Promise<number> {
-    return this.updateAsync(
-      selector as any,
-      { $set: { deleted: true } } as any,
-      { multi: true },
-    );
+    return this.updateAsync(selector, { $set: { deleted: true } } as any, {
+      multi: true,
+    });
   }
 
   undestroyAsync(selector: Selector<SDModelType<Schema>>): Promise<number> {
-    return this.updateAsync(
-      selector as any,
-      { $set: { deleted: false } } as any,
-      { multi: true },
-    );
+    return this.updateAsync(selector, { $set: { deleted: false } } as any, {
+      multi: true,
+    });
   }
 
   find<S extends Selector<SDModelType<Schema>>>(
@@ -96,10 +92,12 @@ class SoftDeletedModel<Schema extends z.ZodType> extends Model<
     ) as any;
   }
 
+  /** @deprecated Use findOneAsync on the server */
   findOne<S extends Selector<SDModelType<Schema>>>(
     selector?: S,
     options?: Omit<Mongo.Options<any>, "transform">,
   ): SelectorToResultType<SDModelType<Schema>, S> | undefined {
+    // oxlint-disable-next-line typescript/no-deprecated -- the sync variant is for client code
     return super.findOne(
       injectQuery(selector, { deleted: false }) as any,
       injectOptions(options),
@@ -123,10 +121,12 @@ class SoftDeletedModel<Schema extends z.ZodType> extends Model<
     return super.find(selector as any, injectOptions(options)) as any;
   }
 
+  /** @deprecated Use findOneAllowingDeletedAsync on the server */
   findOneAllowingDeleted<S extends Selector<SDModelType<Schema>>>(
     selector?: S,
     options?: Omit<Mongo.Options<any>, "transform">,
   ): SelectorToResultType<SDModelType<Schema>, S> | undefined {
+    // oxlint-disable-next-line typescript/no-deprecated -- the sync variant is for client code
     return super.findOne(selector as any, injectOptions(options)) as any;
   }
 
@@ -147,10 +147,12 @@ class SoftDeletedModel<Schema extends z.ZodType> extends Model<
     ) as any;
   }
 
+  /** @deprecated Use findOneDeletedAsync on the server */
   findOneDeleted<S extends Selector<SDModelType<Schema>>>(
     selector?: S,
     options?: Omit<Mongo.Options<any>, "transform">,
   ): SelectorToResultType<SDModelType<Schema>, S> | undefined {
+    // oxlint-disable-next-line typescript/no-deprecated -- the sync variant is for client code
     return super.findOne(
       injectQuery(selector, { deleted: true }) as any,
       injectOptions(options),

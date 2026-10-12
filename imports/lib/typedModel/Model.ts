@@ -349,12 +349,14 @@ class Model<
     >;
   }
 
+  /** @deprecated Use findOneAsync on the server */
   findOne<const S extends Selector<output<SchemaWithId<Schema, IdSchema>>>>(
     selector?: S,
     options?: Omit<Mongo.Options<any>, "transform">,
   ):
     | SelectorToResultType<output<SchemaWithId<Schema, IdSchema>>, S>
     | undefined {
+    // oxlint-disable-next-line typescript/no-deprecated -- the sync variant is for client code
     return this.collection.findOne(selector ?? {}, options) as
       | SelectorToResultType<output<SchemaWithId<Schema, IdSchema>>, S>
       | undefined;

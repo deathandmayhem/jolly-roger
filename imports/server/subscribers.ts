@@ -38,7 +38,7 @@ Meteor.publish("subscribers.inc", async function (name, context) {
     return [];
   }
 
-  const doc = await Subscribers.insertAsync(<any>{
+  const doc = await Subscribers.insertAsync({
     server: serverId,
     connection: this.connection.id,
     user: this.userId,

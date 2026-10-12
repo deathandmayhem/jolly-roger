@@ -108,7 +108,7 @@ const RenameTagSection = ({ huntId }: { huntId: string }) => {
         .map((t) => {
           return { value: t._id, label: t.name };
         })
-        .sort((a, b) =>
+        .toSorted((a, b) =>
           a.label.toLowerCase().localeCompare(b.label.toLowerCase()),
         ),
     [allTags],
@@ -453,7 +453,7 @@ const BulkAddRemoveSection = ({
         .map((t) => {
           return { value: t._id, label: t.name };
         })
-        .sort((a, b) =>
+        .toSorted((a, b) =>
           a.label.toLowerCase().localeCompare(b.label.toLowerCase()),
         ),
     [allTags],

@@ -35,7 +35,7 @@ defineMethod(updateProfile, {
       // making enrollment resilient to method retries on connection drops.
       const user = await MeteorUsers.findOneAsync(
         { "services.password.enroll.token": enrollmentToken },
-        { fields: { _id: 1 } },
+        { projection: { _id: 1 } },
       );
       if (!user) {
         throw new Meteor.Error(403, "Token expired");

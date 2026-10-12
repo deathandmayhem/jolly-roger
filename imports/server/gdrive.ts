@@ -296,9 +296,7 @@ export async function ensureHuntFolder(hunt: { _id: string; name: string }) {
           huntId: hunt._id,
         });
 
-        const root = (await Settings.findOneAsync({ name: "gdrive.root" })) as
-          | undefined
-          | (SettingType & { name: "gdrive.root" });
+        const root = await Settings.findOneAsync({ name: "gdrive.root" });
         const folderId = await createFolder(
           await huntFolderName(hunt.name),
           root?.value.id,

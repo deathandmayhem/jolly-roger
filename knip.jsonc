@@ -7,7 +7,7 @@
     // knip can't follow dynamic imports
     "tests/**"
   ],
-  "project": ["**/*", "!.meteor/local/**", "!eslint/dist/**"],
+  "project": ["**/*", "!.meteor/local/**"],
   "rules": {
     // TODO: We may want to enable these later, as they're potentially indicative of dead code
     "exports": "off",
@@ -15,8 +15,6 @@
   },
   // We're using SWC, but we don't depend on it directly because it's provided by meteor
   "swc": {},
-  // Because we're using tsgo, knip will by default ignore our tsconfig.json
-  "typescript": {},
   "ignoreBinaries": ["meteor", "ffmpeg"],
   "ignoreDependencies": [
     // Detected and used by Meteor
