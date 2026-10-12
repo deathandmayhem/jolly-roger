@@ -53,6 +53,25 @@
 #   "mongo.oplog" --value "<path>"` (e.g. if you're using regular username/
 #   password credentials as part of the URLs).
 #
+# - Signup for a Grafana Cloud account (the free tier includes 50 GB/month of
+#   logs with 14-day retention and 10,000 active Prometheus metric series with
+#   13-month retention). In the Grafana Cloud portal:
+#
+#   - Under "Loki", copy the URL (e.g. https://logs-prod-042.grafana.net)
+#     and User ID (e.g. 123456) to configure GrafanaCloudLokiUrl and GrafanaCloudLokiUser.
+#
+#   - Under "Prometheus", copy the URL
+#     (e.g. https://prometheus-prod-66-prod-us-east-3.grafana.net/api/prom)
+#     and Username / Instance ID (e.g. 654321) to configure
+#     GrafanaCloudPrometheusUrl and GrafanaCloudPrometheusUser.
+#
+#   - Generate a Cloud Access Policy token with `metrics:write` and `logs:write`
+#     scopes and set it as GrafanaCloudApiKey.
+#
+#   - Set EnableGrafanaCloud to "Yes" to enable monitoring. Setting it to "No"
+#     disables remote logging and metrics collection without needing to clear the
+#     stored API key or endpoints.
+#
 # - Signup for a Mailgun account (or any mail provider that supports SMTP
 #   submission), and add an SMTP URL with the SMTP credentials from your mailgun
 #   account. The URL format should be something like:
@@ -100,8 +119,29 @@ Parameters:
     Description: Docker package containing the app to deploy
     Type: String
     Default: "ghcr.io/deathandmayhem/jolly-roger"
-  PapertrailHost:
-    Description: Log host for Papertrail
+  EnableGrafanaCloud:
+    Description: Enable remote logging and metrics collection to Grafana Cloud.
+    Type: String
+    Default: "No"
+    AllowedValues: ["Yes", "No"]
+  GrafanaCloudLokiUrl:
+    Description: Grafana Cloud Loki endpoint URL (e.g. https://logs-prod-042.grafana.net)
+    Type: String
+    Default: ""
+  GrafanaCloudLokiUser:
+    Description: Grafana Cloud Loki user ID / instance ID
+    Type: String
+    Default: ""
+  GrafanaCloudPrometheusUrl:
+    Description: Grafana Cloud Prometheus endpoint URL (e.g. https://prometheus-prod-66-prod-us-east-3.grafana.net/api/prom)
+    Type: String
+    Default: ""
+  GrafanaCloudPrometheusUser:
+    Description: Grafana Cloud Prometheus user ID / instance ID
+    Type: String
+    Default: ""
+  GrafanaCloudApiKey:
+    Description: Grafana Cloud API / Access Policy token with metrics:write and logs:write permissions
     Type: String
     Default: ""
     NoEcho: true
@@ -118,11 +158,6 @@ Parameters:
     Description: MONGO_OPLOG_URL to use with Meteor. Can leave unset and use "mongo.oplog" key in SSM if using username/password authentication.
     Type: String
     Default: ""
-  CloudWatchMode:
-    Description: Mode to use with CloudWatch. "None" disables CloudWatch. "Minimal" only captures memory and swap metrics to keep costs down (note that total CPU is a built-in metric). "Detailed" also captures disk, network, and detailed CPU metrics.
-    Type: String
-    Default: "Detailed"
-    AllowedValues: ["Detailed", "Minimal", "None"]
   SshUsers:
     Description: Comma-separated list of SSH users, each of the form <username>=<ssh_import_id>
     Type: String
@@ -155,9 +190,9 @@ Parameters:
     AllowedValues: ["Yes", "No"]
 
 Conditions:
-  HavePapertrail: !Not [!Equals [!Ref PapertrailHost, ""]]
-  HaveCloudWatch: !Not [!Equals [!Ref CloudWatchMode, "None"]]
-  HaveCloudWatchDetailed: !Equals [!Ref CloudWatchMode, "Detailed"]
+  HaveGrafanaCloud: !And
+    - !Equals [!Ref EnableGrafanaCloud, "Yes"]
+    - !Not [!Equals [!Ref GrafanaCloudApiKey, ""]]
   HaveServing: !Not [!Equals [!Ref ServingMode, "None"]]
   HaveLoadBalancing: !Equals [!Ref ServingMode, "NLB"]
   HaveSingleInstance: !Equals [!Ref ServingMode, "SingleInstance"]
@@ -399,8 +434,6 @@ Resources:
             Principal:
               Service: [ec2.amazonaws.com]
             Action: ["sts:AssumeRole"]
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy
       Policies:
         - PolicyName: ssm-download
           PolicyDocument:
@@ -644,8 +677,6 @@ Resources:
                 - python3-certbot-dns-route53
                 - socat
 
-              ${PapertrailRsyslogConfig}
-
               write_files:
                 - path: /etc/cron.hourly/docker-cleanup
                   content: |
@@ -870,18 +901,69 @@ Resources:
                       mode http
                       server app 127.0.0.1:3000
                       errorfile 503 /usr/local/etc/haproxy/errors/503.http
-                - path: /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+                - path: /etc/alloy/config.alloy
                   content: |
-                    {
-                      "metrics": {
-                        "append_dimensions": {
-                          "AutoScalingGroupName": "${!aws:AutoScalingGroupName}",
-                          "ImageId": "${!aws:ImageId}",
-                          "InstanceId": "${!aws:InstanceId}",
-                          "InstanceType": "${!aws:InstanceType}"
-                        },
-                        "metrics_collected": {
-                          ${CloudWatchMetrics}
+                    prometheus.exporter.unix "default" {
+                      procfs_path = "/proc"
+                      sysfs_path  = "/sys"
+                      rootfs_path = "/rootfs"
+                      disable_collectors = ["processes"]
+                    }
+
+                    prometheus.scrape "node" {
+                      targets    = prometheus.exporter.unix.default.targets
+                      forward_to = [prometheus.remote_write.grafanacloud.receiver]
+                      scrape_interval = "60s"
+                    }
+
+                    prometheus.remote_write "grafanacloud" {
+                      endpoint {
+                        url = "${GrafanaCloudPrometheusUrl}/push"
+                        basic_auth {
+                          username = "${GrafanaCloudPrometheusUser}"
+                          password = "${GrafanaCloudApiKey}"
+                        }
+                      }
+                    }
+
+                    discovery.docker "local" {
+                      host = "unix:///var/run/docker.sock"
+                    }
+
+                    discovery.relabel "docker_logs" {
+                      targets = discovery.docker.local.targets
+                      rule {
+                        source_labels = ["__meta_docker_container_name"]
+                        regex         = "/(.*)"
+                        target_label  = "container"
+                      }
+                    }
+
+                    loki.source.docker "docker" {
+                      host       = "unix:///var/run/docker.sock"
+                      targets    = discovery.relabel.docker_logs.output
+                      forward_to = [loki.write.grafanacloud.receiver]
+                    }
+
+                    local.file_match "syslog" {
+                      path_targets = [
+                        { "__path__" = "/var/log/syslog", "job" = "syslog", "service_name" = "syslog" },
+                        { "__path__" = "/var/log/cloud-init.log", "job" = "cloud-init", "service_name" = "cloud-init" },
+                        { "__path__" = "/var/log/cloud-init-output.log", "job" = "cloud-init", "service_name" = "cloud-init" },
+                      ]
+                    }
+
+                    loki.source.file "syslog" {
+                      targets    = local.file_match.syslog.targets
+                      forward_to = [loki.write.grafanacloud.receiver]
+                    }
+
+                    loki.write "grafanacloud" {
+                      endpoint {
+                        url = "${GrafanaCloudLokiUrl}/loki/api/v1/push"
+                        basic_auth {
+                          username = "${GrafanaCloudLokiUser}"
+                          password = "${GrafanaCloudApiKey}"
                         }
                       }
                     }
@@ -904,8 +986,7 @@ Resources:
 
                 - export AWS_DEFAULT_REGION=${AWS::Region}
 
-                ${CloudWatchAgentConfig}
-                ${PapertrailDockerConfig}
+                ${GrafanaAlloyDockerConfig}
                 ${SingleInstanceCertConfig}
 
                 - docker run --name coturn -d --restart=unless-stopped --network=host -e DETECT_EXTERNAL_IP=yes coturn/coturn -v --min-port=40000 --max-port=49999 --log-file=stdout --realm=${AppUrl} --use-auth-secret --static-auth-secret=${TurnSecret}
@@ -914,63 +995,10 @@ Resources:
                 - docker run --name haproxy -d --restart=unless-stopped --user root --network=host -v /var/run/haproxy:/var/run/haproxy -v /etc/haproxy:/usr/local/etc/haproxy:ro haproxy
 
                 ${SingleInstanceEipAssociation}
-            - PapertrailRsyslogConfig: !If
-                - HavePapertrail
-                - !Sub |
-                  rsyslog:
-                    remotes:
-                      papertrail: ${PapertrailHost}
+            - GrafanaAlloyDockerConfig: !If
+                - HaveGrafanaCloud
+                - "- docker run --name alloy -d --restart=unless-stopped --network=host --pid=host -v /var/run/docker.sock:/var/run/docker.sock -v /etc/alloy:/etc/alloy:ro -v /var/log:/var/log:ro -v /:/rootfs:ro -v /sys:/sys:ro -v /proc:/proc:ro grafana/alloy:latest run --server.http.listen-addr=127.0.0.1:12345 /etc/alloy/config.alloy"
                 - ""
-              PapertrailDockerConfig: !If
-                - HavePapertrail
-                - !Sub '- docker run --name logspout -d --restart=unless-stopped -v /var/run/docker.sock:/tmp/docker.sock -e "SYSLOG_HOSTNAME=$(hostname){{.Container.Name}}" gliderlabs/logspout:master syslog://${PapertrailHost}'
-                - ""
-              CloudWatchAgentConfig: !If
-                - HaveCloudWatch
-                - !Sub |2
-                  # Observability
-                    - curl -O https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/${ArchitectureLookup.Architecture}/latest/amazon-cloudwatch-agent.deb
-                    - dpkg -i ./amazon-cloudwatch-agent.deb
-                    - rm amazon-cloudwatch-agent.deb
-                    - sudo systemctl start amazon-cloudwatch-agent
-                - ""
-              CloudWatchMetrics: !If
-                - HaveCloudWatchDetailed
-                - '"mem": {
-                  "measurement": ["mem_used_percent"]
-                  },
-                  "swap": {
-                  "measurement": ["swap_used_percent"]
-                  },
-                  "cpu": {
-                  "measurement": [
-                  "cpu_usage_idle",
-                  "cpu_usage_iowait",
-                  "cpu_usage_user",
-                  "cpu_usage_system"
-                  ]
-                  },
-                  "diskio": {
-                  "measurement": [
-                  "io_time",
-                  "write_bytes",
-                  "read_bytes",
-                  "writes",
-                  "reads"
-                  ]
-                  },
-                  "netstat": {
-                  "measurement": [
-                  "tcp_established",
-                  "tcp_time_wait"
-                  ]
-                  }'
-                - '"mem": {
-                  "measurement": ["mem_used_percent"]
-                  },
-                  "swap": {
-                  "measurement": ["swap_used_percent"]
-                  }'
               CertBucket: !Ref CertificateStorageBucket
               SshUsersConfig: !GetAtt SshUsersParsing.Output
               SingleInstanceCertConfig: !If
