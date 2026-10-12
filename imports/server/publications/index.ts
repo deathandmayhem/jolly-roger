@@ -24,3 +24,4 @@ import "./puzzlesForHunt";
 import "./puzzlesForPuzzleList";
 import "./settingsAll";
 import "./settingsByName";
+import "./tagsForHunt";
