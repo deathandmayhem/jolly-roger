@@ -113,7 +113,7 @@
     "oxlint-tsgolint": "^7.0.2004",
     "playwright": "^1.64.0",
     "postcss-scss": "^4.0.9",
-    "postcss-styled-syntax": "^0.7.2",
+    "postcss-styled-syntax": "^0.7.3",
     "react-refresh": "^0.19.0",
     "sass": "^1.105.1",
     "sinon": "^22.1.0",
