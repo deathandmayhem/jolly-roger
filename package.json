@@ -35,7 +35,7 @@
     "@googleapis/driveactivity": "^11.0.1",
     "@googleapis/people": "^12.0.1",
     "@googleapis/script": "^16.0.1",
-    "@googleapis/sheets": "^18.1.0",
+    "@googleapis/sheets": "^18.1.1",
     "@popperjs/core": "^2.11.8",
     "@swc/helpers": "^0.5.23",
     "aws4": "^1.13.2",
