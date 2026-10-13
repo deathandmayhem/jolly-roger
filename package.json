@@ -4,7 +4,7 @@
   "description": "A website for organizing puzzle hunters",
   "author": "Evan Broder, Drew Fisher, Grant Elliott",
   "license": "MIT",
-  "packageManager": "npm@10.9.4",
+  "packageManager": "npm@11.12.1",
   "repository": {
     "type": "git",
     "url": "https://github.com/deathandmayhem/jolly-roger"
