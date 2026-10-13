@@ -33,6 +33,7 @@ import useFocusRefOnFindHotkey from "../hooks/useFocusRefOnFindHotkey";
 import useTypedSubscribe from "../hooks/useTypedSubscribe";
 import indexedDisplayNames from "../indexedDisplayNames";
 import { compileGuessMatcher } from "../search";
+import { useBootstrapContainer } from "./BootstrapScopeContext";
 import CopyToClipboardButton from "./CopyToClipboardButton";
 import GuessState from "./GuessState";
 import {
@@ -251,6 +252,7 @@ const GuessBlock = React.memo(
     createdByDisplayName: string;
     puzzle: PuzzleType;
   }) => {
+    const container = useBootstrapContainer();
     const markPending = useCallback(() => {
       setGuessState.call({ guessId: guess._id, state: "pending" });
     }, [guess._id]);
@@ -280,7 +282,11 @@ const GuessBlock = React.memo(
           </StyledCell>
         </StyledPuzzleTimestampAndSubmitter>
         <StyledPuzzleCell>
-          <OverlayTrigger placement="top" overlay={puzzleTooltip}>
+          <OverlayTrigger
+            placement="top"
+            overlay={puzzleTooltip}
+            container={container}
+          >
             <a
               href={guessURL(hunt, puzzle)}
               target="_blank"
@@ -290,7 +296,11 @@ const GuessBlock = React.memo(
               <FontAwesomeIcon icon={faPuzzlePiece} />
             </a>
           </OverlayTrigger>{" "}
-          <OverlayTrigger placement="top" overlay={discussionTooltip}>
+          <OverlayTrigger
+            placement="top"
+            overlay={discussionTooltip}
+            container={container}
+          >
             <Link to={`/hunts/${puzzle.hunt}/puzzles/${puzzle._id}`}>
               <FontAwesomeIcon icon={faSkullCrossbones} />
             </Link>
@@ -350,6 +360,7 @@ const GuessBlock = React.memo(
 );
 
 const GuessQueuePage = () => {
+  const container = useBootstrapContainer();
   const huntId = useParams<"huntId">().huntId!;
   const [searchParams, setSearchParams] = useSearchParams();
   const searchString = searchParams.get("q") ?? "";
@@ -507,12 +518,20 @@ const GuessQueuePage = () => {
           </StyledHeader>
           {hunt.hasGuessQueue && (
             <>
-              <OverlayTrigger placement="top" overlay={directionTooltip}>
+              <OverlayTrigger
+                placement="top"
+                overlay={directionTooltip}
+                container={container}
+              >
                 <StyledHeader>
                   {t("guessQueue.tableHeader.direction", "Direction")}
                 </StyledHeader>
               </OverlayTrigger>
-              <OverlayTrigger placement="top" overlay={confidenceTooltip}>
+              <OverlayTrigger
+                placement="top"
+                overlay={confidenceTooltip}
+                container={container}
+              >
                 <StyledHeader>
                   {t("guessQueue.tableHeader.confidence", "Confidence")}
                 </StyledHeader>

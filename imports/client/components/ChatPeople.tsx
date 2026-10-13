@@ -30,6 +30,7 @@ import useSubscribeAvatars from "../hooks/useSubscribeAvatars";
 import { Subscribers } from "../subscribers";
 import { trace } from "../tracing";
 import Avatar from "./Avatar";
+import { useBootstrapContainer } from "./BootstrapScopeContext";
 import CallSection from "./CallSection";
 import { PuzzlePagePadding } from "./styling/constants";
 import {
@@ -60,11 +61,13 @@ const ViewerPersonBox = ({
   children,
   popperBoundaryRef,
 }: PersonBoxProps) => {
+  const container = useBootstrapContainer();
   const id = useId();
 
   return (
     <OverlayTrigger
       placement="bottom"
+      container={container}
       popperConfig={{
         modifiers: [
           {

@@ -17,6 +17,7 @@ import Peers from "../../lib/models/mediasoup/Peers";
 import type { Action, CallState } from "../hooks/useCallState";
 import { CallJoinState } from "../hooks/useCallState";
 import { Subscribers } from "../subscribers";
+import { useBootstrapContainer } from "./BootstrapScopeContext";
 
 const MinimizedChatInfoContainer = styled.div`
   position: absolute;
@@ -121,12 +122,14 @@ const MinimizedChatInfo = ({
   }, [rtcDisabled, callers, viewers, t]);
 
   const idPrefix = useId();
+  const container = useBootstrapContainer();
 
   const callButtons =
     callState.callState === CallJoinState.IN_CALL ? (
       <>
         <OverlayTrigger
           placement="right"
+          container={container}
           overlay={
             <Tooltip id={`${idPrefix}-mini-mute`}>
               {muted
@@ -145,6 +148,7 @@ const MinimizedChatInfo = ({
 
         <OverlayTrigger
           placement="right"
+          container={container}
           overlay={
             <Tooltip id={`${idPrefix}-mini-leave-call`}>
               {t("audio.leave", "Leave call")}
@@ -159,6 +163,7 @@ const MinimizedChatInfo = ({
     ) : (
       <OverlayTrigger
         placement="right"
+        container={container}
         overlay={
           <Tooltip id={`${idPrefix}-mini-join-call`}>
             {callers > 0
@@ -185,6 +190,7 @@ const MinimizedChatInfo = ({
     <MinimizedChatInfoContainer>
       <OverlayTrigger
         placement="right"
+        container={container}
         overlay={
           <Tooltip id={`${idPrefix}-mini-restore`}>
             {t("chat.restoreChat", "Restore Chat")}
@@ -197,6 +203,7 @@ const MinimizedChatInfo = ({
       </OverlayTrigger>
       <OverlayTrigger
         placement="right"
+        container={container}
         overlay={<Tooltip id={`${idPrefix}-mini-call`}>{tooltipText}</Tooltip>}
       >
         <div>
