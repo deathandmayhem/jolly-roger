@@ -7,11 +7,6 @@ import addUsersToDiscordRole from "../addUsersToDiscordRole";
 import defineMethod from "./defineMethod";
 
 defineMethod(syncHuntDiscordRole, {
-  validate(arg) {
-    check(arg, { huntId: String });
-    return arg;
-  },
-
   async run({ huntId }) {
     check(this.userId, String);
 

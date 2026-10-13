@@ -18,7 +18,9 @@ defineMethod(configureListS3Buckets, {
     try {
       const s3 = new S3Client();
       const buckets = await s3.send(new ListBucketsCommand({}));
-      return buckets.Buckets?.map((b) => b.Name) ?? [];
+      return (
+        buckets.Buckets?.map((b) => b.Name).filter((n) => n !== undefined) ?? []
+      );
     } catch (e) {
       // This probably means something is wrong with our AWS credentials
       Logger.warn("Unable to list S3 buckets", { error: e });

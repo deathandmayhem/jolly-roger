@@ -1,8 +1,8 @@
 import { promisify } from "node:util";
 import { Accounts } from "meteor/accounts-base";
-import { check } from "meteor/check";
 import { Meteor } from "meteor/meteor";
 import { assert } from "chai";
+import z from "zod";
 import Hunts from "../../imports/lib/models/Hunts";
 import MeteorUsers from "../../imports/lib/models/MeteorUsers";
 import addUserAccountEmail from "../../imports/methods/addUserAccountEmail";
@@ -14,31 +14,38 @@ import resetDatabase from "../lib/resetDatabase";
 import { subscribeAsync } from "./lib";
 
 // Test-only helper methods
-const createUser = new TypedMethod<
-  { email: string; password: string; displayName: string },
-  string
->("test.methods.emails.createUser");
-const createHunt = new TypedMethod<{ name: string }, string>(
+const createUser = new TypedMethod(
+  "test.methods.emails.createUser",
+  z.tuple([
+    z.strictObject({
+      email: z.string(),
+      password: z.string(),
+      displayName: z.string(),
+    }),
+  ]),
+  z.string(),
+);
+const createHunt = new TypedMethod(
   "test.methods.emails.createHunt",
+  z.tuple([z.strictObject({ name: z.string() })]),
+  z.string(),
 );
-const joinHunt = new TypedMethod<{ huntId: string; userId: string }, void>(
+const joinHunt = new TypedMethod(
   "test.methods.emails.joinHunt",
+  z.tuple([z.strictObject({ huntId: z.string(), userId: z.string() })]),
+  z.void(),
 );
-const verifyUserEmail = new TypedMethod<
-  { userId: string; email: string },
-  void
->("test.methods.emails.verifyUserEmail");
+const verifyUserEmail = new TypedMethod(
+  "test.methods.emails.verifyUserEmail",
+  z.tuple([z.strictObject({ userId: z.string(), email: z.string() })]),
+  z.void(),
+);
 
 if (Meteor.isServer) {
   const defineMethod: typeof import("../../imports/server/methods/defineMethod").default =
     require("../../imports/server/methods/defineMethod").default;
 
   defineMethod(createUser, {
-    validate(arg: unknown) {
-      check(arg, { email: String, password: String, displayName: String });
-      return arg;
-    },
-
     async run({ email, password, displayName }) {
       if (!Meteor.isAppTest) {
         throw new Meteor.Error(500, "This code must not run in production");
@@ -51,11 +58,6 @@ if (Meteor.isServer) {
   });
 
   defineMethod(createHunt, {
-    validate(arg: unknown) {
-      check(arg, { name: String });
-      return arg;
-    },
-
     async run({ name }) {
       if (!Meteor.isAppTest) {
         throw new Meteor.Error(500, "This code must not run in production");
@@ -71,11 +73,6 @@ if (Meteor.isServer) {
   });
 
   defineMethod(joinHunt, {
-    validate(arg: unknown) {
-      check(arg, { huntId: String, userId: String });
-      return arg;
-    },
-
     async run({ huntId, userId }) {
       if (!Meteor.isAppTest) {
         throw new Meteor.Error(500, "This code must not run in production");
@@ -88,11 +85,6 @@ if (Meteor.isServer) {
   });
 
   defineMethod(verifyUserEmail, {
-    validate(arg: unknown) {
-      check(arg, { userId: String, email: String });
-      return arg;
-    },
-
     async run({ userId, email }) {
       if (!Meteor.isAppTest) {
         throw new Meteor.Error(500, "This code must not run in production");

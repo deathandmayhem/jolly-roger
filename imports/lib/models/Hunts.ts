@@ -1,4 +1,3 @@
-import { Match } from "meteor/check";
 import { z } from "zod";
 import { nonEmptyString, snowflake } from "../typedModel/customTypes";
 import type { ModelType } from "../typedModel/Model";
@@ -6,14 +5,14 @@ import { Url } from "../typedModel/regexes";
 import SoftDeletedModel from "../typedModel/SoftDeletedModel";
 import withCommon from "../typedModel/withCommon";
 
-export const SavedDiscordObjectFields = z.object({
+export const SavedDiscordObjectFields = z.strictObject({
   id: snowflake,
   name: nonEmptyString,
 });
 
 export type SavedDiscordObjectType = z.infer<typeof SavedDiscordObjectFields>;
 
-const EditableHunt = z.object({
+const BaseHunt = z.strictObject({
   name: nonEmptyString,
   // Everyone that joins the hunt will be added to these mailing lists
   mailingLists: nonEmptyString.array().default([]),
@@ -51,28 +50,15 @@ const EditableHunt = z.object({
   // profile will be added to this role.
   memberDiscordRole: SavedDiscordObjectFields.optional(),
 });
+// Fields with document-construction defaults stay required for RPC callers;
+// otherwise they would get re-set to their defaults when the update RPC parses
+// the input.
+export const EditableHunt = BaseHunt.required({
+  mailingLists: true,
+  openSignups: true,
+});
 export type EditableHuntType = z.infer<typeof EditableHunt>;
-const Hunt = withCommon(EditableHunt);
-
-const SavedDiscordObjectPattern = {
-  id: String,
-  name: String,
-};
-
-export const HuntPattern = {
-  name: String,
-  mailingLists: [String] as [StringConstructor],
-  signupMessage: Match.Optional(String),
-  openSignups: Boolean,
-  hasGuessQueue: Boolean,
-  termsOfUse: Match.Optional(String),
-  submitTemplate: Match.Optional(String),
-  homepageUrl: Match.Optional(String),
-  announcementDiscordChannel: Match.Optional(SavedDiscordObjectPattern),
-  puzzleHooksDiscordChannel: Match.Optional(SavedDiscordObjectPattern),
-  firehoseDiscordChannel: Match.Optional(SavedDiscordObjectPattern),
-  memberDiscordRole: Match.Optional(SavedDiscordObjectPattern),
-};
+const Hunt = withCommon(BaseHunt);
 
 const Hunts = new SoftDeletedModel("jr_hunts", Hunt);
 export type HuntType = ModelType<typeof Hunts>;

@@ -11,15 +11,6 @@ import GlobalHooks from "../GlobalHooks";
 import defineMethod from "./defineMethod";
 
 defineMethod(postAnnouncement, {
-  validate(arg) {
-    check(arg, {
-      huntId: String,
-      message: String,
-    });
-
-    return arg;
-  },
-
   async run({ huntId, message }) {
     check(this.userId, String);
 

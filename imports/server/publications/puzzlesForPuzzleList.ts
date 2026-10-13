@@ -1,4 +1,3 @@
-import { check, Match } from "meteor/check";
 import Bookmarks from "../../lib/models/Bookmarks";
 import MeteorUsers from "../../lib/models/MeteorUsers";
 import Puzzles from "../../lib/models/Puzzles";
@@ -7,14 +6,6 @@ import puzzlesForPuzzleList from "../../lib/publications/puzzlesForPuzzleList";
 import definePublication from "./definePublication";
 
 definePublication(puzzlesForPuzzleList, {
-  validate(arg) {
-    check(arg, {
-      huntId: String,
-      includeDeleted: Match.Optional(Boolean),
-    });
-    return arg;
-  },
-
   async run({ huntId, includeDeleted = false }) {
     if (!this.userId) {
       return [];

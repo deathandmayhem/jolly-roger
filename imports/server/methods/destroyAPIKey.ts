@@ -6,11 +6,6 @@ import userForKeyOperation from "../userForKeyOperation";
 import defineMethod from "./defineMethod";
 
 defineMethod(destroyAPIKey, {
-  validate(arg) {
-    check(arg, { apiKeyId: String });
-    return arg;
-  },
-
   async run({ apiKeyId, forUser }) {
     check(this.userId, String);
 

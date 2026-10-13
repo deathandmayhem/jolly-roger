@@ -1,3 +1,4 @@
+import z from "zod";
 import TypedPublication from "./TypedPublication";
 
 // Publish pending guesses enriched with puzzle and hunt. This is a dedicated
@@ -12,6 +13,7 @@ import TypedPublication from "./TypedPublication";
 // subscription. Doing this on the client means we can make it a reactive
 // computation, whereas if we used a permissions check on the server to
 // short-circuit the sub, we could not.
-export default new TypedPublication<void>(
+export default new TypedPublication(
   "Guesses.publications.pendingForSelf",
+  z.tuple([]),
 );

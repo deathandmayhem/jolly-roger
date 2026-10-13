@@ -10,16 +10,6 @@ import sendChatMessageInternal from "../sendChatMessageInternal";
 import defineMethod from "./defineMethod";
 
 defineMethod(createGuess, {
-  validate(arg) {
-    check(arg, {
-      puzzleId: String,
-      guess: String,
-      direction: Number,
-      confidence: Number,
-    });
-    return arg;
-  },
-
   async run({ puzzleId, guess: rawGuess, direction, confidence }) {
     check(this.userId, String);
 

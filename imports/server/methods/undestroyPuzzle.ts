@@ -11,13 +11,6 @@ import { makeReadWrite } from "../gdrive";
 import defineMethod from "./defineMethod";
 
 defineMethod(undestroyPuzzle, {
-  validate(arg) {
-    check(arg, {
-      puzzleId: String,
-    });
-    return arg;
-  },
-
   async run({ puzzleId }) {
     check(this.userId, String);
 

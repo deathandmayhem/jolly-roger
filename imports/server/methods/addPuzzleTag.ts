@@ -7,15 +7,6 @@ import getOrCreateTagByName from "../getOrCreateTagByName";
 import defineMethod from "./defineMethod";
 
 defineMethod(addPuzzleTag, {
-  validate(arg) {
-    check(arg, {
-      puzzleId: String,
-      tagName: String,
-    });
-
-    return arg;
-  },
-
   async run({ puzzleId, tagName }) {
     check(this.userId, String);
 

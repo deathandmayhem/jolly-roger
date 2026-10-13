@@ -5,11 +5,6 @@ import createAPIKey from "../../methods/createAPIKey";
 import defineMethod from "./defineMethod";
 
 defineMethod(createAPIKey, {
-  validate(arg) {
-    check(arg, {});
-    return arg;
-  },
-
   async run() {
     check(this.userId, String);
 
