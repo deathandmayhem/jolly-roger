@@ -51,6 +51,9 @@ import Tags from "../../lib/models/Tags";
 import type Model from "../../lib/typedModel/Model";
 import { AllModels } from "../../lib/typedModel/Model";
 import { deleteDocument } from "../gdrive";
+import AttentionReducerCheckpoints from "../models/AttentionReducerCheckpoints";
+import AttentionStates from "../models/AttentionStates";
+import AttentionTransitions from "../models/AttentionTransitions";
 import Blobs from "../models/Blobs";
 import CallActivities from "../models/CallActivities";
 import DriveActivityLatests from "../models/DriveActivityLatests";
@@ -77,6 +80,7 @@ const COLLECTIONS_TO_PURGE = [
   PendingAnnouncements,
   Announcements,
   DocumentActivities,
+  AttentionTransitions,
   Documents,
   Guesses,
   BookmarkNotifications,
@@ -91,8 +95,14 @@ const COLLECTIONS_EXPLICITLY_LEFT_UNTOUCHED = [
   // References hunt and should be left alone
   InvitationCodes,
 
+  // Two options: either the user is not on a puzzle-specific page, in which
+  // case this is fine, or user is about to navigate off of a just-deleted
+  // puzzle page, in which case this is fine.
+  AttentionStates,
+
   // Doesn't reference hunt but it was easier to write this enforcement around
   APIKeys,
+  AttentionReducerCheckpoints,
   BlobMappings,
   Blobs,
   DiscordCache,
@@ -144,6 +154,20 @@ Meteor.startup(() => {
     }
   }
 });
+
+// Drop transition events from the hunt, except for tab closes, which we need to
+// keep for the reducer to have parity with opens (but drop the hunt)
+async function purgeAttentionTransitions(huntId: string): Promise<void> {
+  await AttentionTransitions.removeAsync({
+    hunt: huntId,
+    $nor: [{ signal: "open", value: false }],
+  });
+  await AttentionTransitions.updateAsync(
+    { hunt: huntId },
+    { $unset: { hunt: "", puzzle: "" } },
+    { multi: true },
+  );
+}
 
 const DAYS_MSEC = 24 * 60 * 60 * 1000;
 
@@ -260,10 +284,14 @@ defineJob(purgeHunt, {
       Logger.info("purgeHunt: removing from collection", {
         collection: collection.name,
       });
-      const castCollection = collection as unknown as Model<
-        z.ZodObject<{ hunt: z.ZodString }>
-      >;
-      await castCollection.removeAsync({ hunt: args.huntId });
+      if (collection === AttentionTransitions) {
+        await purgeAttentionTransitions(args.huntId);
+      } else {
+        const castCollection = collection as unknown as Model<
+          z.ZodObject<{ hunt: z.ZodString }>
+        >;
+        await castCollection.removeAsync({ hunt: args.huntId });
+      }
       itemsCompleted += 1;
       await setResult({
         itemsTotal,
