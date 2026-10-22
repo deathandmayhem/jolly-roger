@@ -62,6 +62,7 @@ import Puzzles from "../../lib/models/Puzzles";
 import type { ServerType } from "../../lib/models/Servers";
 import Servers from "../../lib/models/Servers";
 import Avatar from "./Avatar";
+import { useBootstrapContainer } from "./BootstrapScopeContext";
 import CopyToClipboardButton from "./CopyToClipboardButton";
 import Loading from "./Loading";
 import RelativeTime from "./RelativeTime";
@@ -228,12 +229,14 @@ const Producer = ({ producer }: { producer: ProducerClientType }) => {
   }, [producer.paused, producerServer]);
 
   const tooltipIdPrefix = useId();
+  const container = useBootstrapContainer();
 
   return (
     <Accordion.Item eventKey={producer._id}>
       <Accordion.Header>
         <OverlayTrigger
           placement="top"
+          container={container}
           overlay={
             <Tooltip id={`${tooltipIdPrefix}-kind`}>
               {producer.kind === "audio" ? "Audio" : "Video"}
@@ -246,6 +249,7 @@ const Producer = ({ producer }: { producer: ProducerClientType }) => {
         </OverlayTrigger>
         <OverlayTrigger
           placement="top"
+          container={container}
           overlay={
             <Tooltip id={`${tooltipIdPrefix}-status`}>{statusTooltip}</Tooltip>
           }
@@ -331,12 +335,14 @@ const Consumer = ({ consumer }: { consumer: ConsumerType }) => {
   );
 
   const tooltipIdPrefix = useId();
+  const container = useBootstrapContainer();
 
   return (
     <Accordion.Item eventKey={consumer._id}>
       <Accordion.Header>
         <OverlayTrigger
           placement="top"
+          container={container}
           overlay={
             <Tooltip id={`${tooltipIdPrefix}-kind`}>
               {consumer.kind === "audio" ? "Audio" : "Video"}
@@ -349,6 +355,7 @@ const Consumer = ({ consumer }: { consumer: ConsumerType }) => {
         </OverlayTrigger>
         <OverlayTrigger
           placement="top"
+          container={container}
           overlay={
             <Tooltip id={`${tooltipIdPrefix}-status`}>{statusTooltip}</Tooltip>
           }
@@ -460,12 +467,14 @@ const Transport = ({ transport }: { transport: TransportType }) => {
   }, [transport.direction]);
 
   const tooltipIdPrefix = useId();
+  const container = useBootstrapContainer();
 
   return (
     <Accordion.Item eventKey={transport._id}>
       <Accordion.Header>
         <OverlayTrigger
           placement="top"
+          container={container}
           overlay={
             <Tooltip id={`${tooltipIdPrefix}-status`}>{statusTooltip}</Tooltip>
           }
@@ -474,6 +483,7 @@ const Transport = ({ transport }: { transport: TransportType }) => {
         </OverlayTrigger>
         <OverlayTrigger
           placement="top"
+          container={container}
           overlay={
             <Tooltip id={`${tooltipIdPrefix}-direction`}>
               {directionTooltip}
@@ -615,12 +625,14 @@ const Peer = ({ peer }: { peer: PeerType }) => {
   );
 
   const tooltipIdPrefix = useId();
+  const container = useBootstrapContainer();
 
   return (
     <Accordion.Item eventKey={peer._id}>
       <Accordion.Header>
         <OverlayTrigger
           placement="top"
+          container={container}
           overlay={
             <Tooltip id={`${tooltipIdPrefix}-muted`}>
               {peer.muted ? "Muted" : "Unmuted"}
@@ -633,6 +645,7 @@ const Peer = ({ peer }: { peer: PeerType }) => {
         </OverlayTrigger>
         <OverlayTrigger
           placement="top"
+          container={container}
           overlay={
             <Tooltip id={`${tooltipIdPrefix}-deafened`}>
               {peer.deafened ? "Deafened" : "Undeafened"}
@@ -786,11 +799,13 @@ const Room = ({ room }: { room: RoomType }) => {
     [room.call],
   );
   const tooltipIdPrefix = useId();
+  const container = useBootstrapContainer();
   return (
     <Accordion.Item eventKey={room._id}>
       <Accordion.Header>
         <OverlayTrigger
           placement="top"
+          container={container}
           overlay={
             <Tooltip id={`${tooltipIdPrefix}-active`}>
               {recentActivity
@@ -941,6 +956,7 @@ const ServerTableRow = ({
   roomPercentage: number;
 }) => {
   const idPrefix = useId();
+  const container = useBootstrapContainer();
   const deadline = server.updatedAt.getTime() + gracePeriod;
   return (
     <tr key={server._id}>
@@ -960,6 +976,7 @@ const ServerTableRow = ({
         {server.createdAt ? (
           <OverlayTrigger
             placement="top"
+            container={container}
             overlay={
               <Tooltip id={`${idPrefix}-created-at`}>
                 {server.createdAt.toISOString()}
@@ -979,6 +996,7 @@ const ServerTableRow = ({
       <td>
         <OverlayTrigger
           placement="top"
+          container={container}
           overlay={
             <Tooltip id={`${idPrefix}-updated-at`}>
               {server.updatedAt.toISOString()}

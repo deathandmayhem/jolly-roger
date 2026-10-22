@@ -3,6 +3,7 @@ import Tooltip from "react-bootstrap/Tooltip";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import type { GuessType } from "../../lib/models/Guesses";
+import { useBootstrapContainer } from "./BootstrapScopeContext";
 
 const GuessDetail = styled.div`
   display: flex;
@@ -66,6 +67,7 @@ const GuessDirection = ({
   const arrowHeadFullDepth = 1.5; // arrowHeadBaseDepth <= arrowHeadFullDepth
 
   const { t } = useTranslation();
+  const container = useBootstrapContainer();
 
   const tooltip = (
     <Tooltip id={`${id}-tooltip`}>
@@ -80,7 +82,7 @@ const GuessDirection = ({
     arrowHeadEnd - Math.sign(arrowHeadEnd) * arrowHeadFullDepth;
   return (
     <GuessDetail className={className}>
-      <OverlayTrigger placement="top" overlay={tooltip}>
+      <OverlayTrigger placement="top" overlay={tooltip} container={container}>
         <GuessDirectionSvg xmlns="htp://www.w3.org/2000/svg">
           <svg viewBox="-10 -1 20 2" preserveAspectRatio="none">
             <line x1="-10" y1="0" x2="10" y2="0" />
@@ -132,6 +134,7 @@ const GuessConfidence = ({
   className?: string;
 }) => {
   const { t } = useTranslation();
+  const container = useBootstrapContainer();
   const tooltip = (
     <Tooltip id={`${id}-tooltip`}>
       <strong>{t("puzzle.answerOrGuess.confidence", "Confidence")}:</strong>{" "}
@@ -141,7 +144,7 @@ const GuessConfidence = ({
 
   return (
     <GuessDetail className={className}>
-      <OverlayTrigger placement="top" overlay={tooltip}>
+      <OverlayTrigger placement="top" overlay={tooltip} container={container}>
         <GuessConfidenceProgress>
           <GuessConfidenceProgressBar $value={value ?? 0} />
         </GuessConfidenceProgress>

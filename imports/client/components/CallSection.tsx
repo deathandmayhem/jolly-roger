@@ -20,7 +20,6 @@ import Modal from "react-bootstrap/Modal";
 import Overlay from "react-bootstrap/Overlay";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Tooltip from "react-bootstrap/Tooltip";
-import { createPortal } from "react-dom";
 import { Trans, useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Flags from "../../Flags";
@@ -29,6 +28,7 @@ import type { PeerType } from "../../lib/models/mediasoup/Peers";
 import mediasoupRemoteMutePeer from "../../methods/mediasoupRemoteMutePeer";
 import type { Action, CallState } from "../hooks/useCallState";
 import Avatar from "./Avatar";
+import { useBootstrapContainer } from "./BootstrapScopeContext";
 import Loading from "./Loading";
 import Spectrum from "./Spectrum";
 import {
@@ -146,10 +146,12 @@ const SelfBox = ({
 
   const tooltipId = useId();
 
+  const container = useBootstrapContainer();
   const { t } = useTranslation();
 
   return (
     <OverlayTrigger
+      container={container}
       placement="bottom"
       popperConfig={{
         modifiers: [
@@ -250,6 +252,8 @@ const PeerMuteConfirmModal = ({
   const hide = useCallback(() => setVisible(false), []);
   useImperativeHandle(ref, () => ({ show }), [show]);
 
+  const container = useBootstrapContainer();
+
   const [disabled, setDisabled] = useState(false);
   const [error, setError] = useState<Error>();
   const clearError = useCallback(() => setError(undefined), []);
@@ -274,7 +278,7 @@ const PeerMuteConfirmModal = ({
   const { t } = useTranslation();
 
   const modal = (
-    <Modal show={visible} onHide={hide}>
+    <Modal show={visible} onHide={hide} container={container}>
       <Modal.Header closeButton>
         <Modal.Title>
           {t("audio.peerMuteModal.title", "Manage audio for {{name}}", {
@@ -350,7 +354,7 @@ const PeerMuteConfirmModal = ({
     </Modal>
   );
 
-  return createPortal(modal, document.body);
+  return modal;
 };
 
 const PeerBox = ({
@@ -416,6 +420,7 @@ const PeerBox = ({
     }
   }, [isLocalMuted, audioRef, stream]);
 
+  const container = useBootstrapContainer();
   const { t } = useTranslation();
 
   return (
@@ -430,6 +435,7 @@ const PeerBox = ({
         />
       )}
       <OverlayTrigger
+        container={container}
         placement="bottom"
         popperConfig={{
           modifiers: [
@@ -620,6 +626,7 @@ const CallSection = ({
     "hidden" | "show" | "dismissing"
   >("hidden");
 
+  const container = useBootstrapContainer();
   const { t } = useTranslation();
 
   useEffect(() => {
@@ -694,6 +701,7 @@ const CallSection = ({
       </AVActions>
       {joiningCallAlert}
       <Overlay
+        container={container}
         target={muteRef.current}
         show={callState.allowInitialPeerStateNotification && muted}
         placement="bottom"
@@ -711,6 +719,7 @@ const CallSection = ({
         </Tooltip>
       </Overlay>
       <Overlay
+        container={container}
         target={muteRef.current}
         show={showMutedBy === "show"}
         placement="bottom"

@@ -12,6 +12,7 @@ import Tooltip from "react-bootstrap/Tooltip";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 import type { GuessType } from "../../lib/models/Guesses";
+import { useBootstrapContainer } from "./BootstrapScopeContext";
 
 const iconLookupTable: Record<GuessType["state"], IconProp> = {
   correct: faCheckCircle,
@@ -36,6 +37,7 @@ const GuessState = ({
   state: GuessType["state"];
   short?: boolean;
 }) => {
+  const container = useBootstrapContainer();
   const theme = useTheme();
   const iconColor = (state: GuessType["state"]) => {
     return theme.colors.guess[state].icon;
@@ -69,7 +71,7 @@ const GuessState = ({
     </Tooltip>
   );
   return (
-    <OverlayTrigger placement="top" overlay={tooltip}>
+    <OverlayTrigger placement="top" overlay={tooltip} container={container}>
       <FontAwesomeIcon
         icon={iconLookupTable[state] ?? faQuestionCircle}
         color={iconColor(state)}
