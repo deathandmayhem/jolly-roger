@@ -9,14 +9,6 @@ import enqueueJob from "../jobs/framework/enqueueJob";
 import defineMethod from "./defineMethod";
 
 defineMethod(confirmUserMerge, {
-  validate(arg) {
-    check(arg, {
-      sourceUser: String,
-      targetUser: String,
-    });
-    return arg;
-  },
-
   async run({ sourceUser, targetUser }) {
     check(this.userId, String);
 

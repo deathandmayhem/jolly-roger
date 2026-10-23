@@ -1,4 +1,3 @@
-import { check } from "meteor/check";
 import { Meteor } from "meteor/meteor";
 import Flags from "../../Flags";
 import ConsumerAcks from "../../lib/models/mediasoup/ConsumerAcks";
@@ -8,13 +7,6 @@ import serverId from "../serverId";
 import defineMethod from "./defineMethod";
 
 defineMethod(mediasoupAckConsumer, {
-  validate(arg) {
-    check(arg, {
-      consumerId: String,
-    });
-    return arg;
-  },
-
   async run({ consumerId }) {
     if (!this.userId) {
       throw new Meteor.Error(401, "Not logged in");

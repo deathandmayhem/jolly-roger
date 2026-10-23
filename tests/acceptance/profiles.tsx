@@ -1,8 +1,8 @@
 import { promisify } from "node:util";
 import { Accounts } from "meteor/accounts-base";
-import { check } from "meteor/check";
 import { Meteor } from "meteor/meteor";
 import { assert } from "chai";
+import z from "zod";
 import Hunts from "../../imports/lib/models/Hunts";
 import MeteorUsers from "../../imports/lib/models/MeteorUsers";
 import {
@@ -15,19 +15,33 @@ import { stabilize, subscribeAsync } from "./lib";
 
 // To make these tests easier to setup, use these methods to punch through most
 // of our normal permissions. They don't even require that you be logged in.
-const createUser = new TypedMethod<
-  { email: string; password: string; displayName: string },
-  string
->("test.methods.profiles.createUser");
-const addUserToRole = new TypedMethod<
-  { userId: string; scope: string; role: string },
-  void
->("test.methods.profiles.addUserToRole");
-const createHunt = new TypedMethod<{ name: string }, string>(
-  "test.methods.profiles.createHunt",
+const createUser = new TypedMethod(
+  "test.methods.profiles.createUser",
+  z.tuple([
+    z.strictObject({
+      email: z.string(),
+      password: z.string(),
+      displayName: z.string(),
+    }),
+  ]),
+  z.string(),
 );
-const joinHunt = new TypedMethod<{ huntId: string; userId: string }, void>(
+const addUserToRole = new TypedMethod(
+  "test.methods.profiles.addUserToRole",
+  z.tuple([
+    z.strictObject({ userId: z.string(), scope: z.string(), role: z.string() }),
+  ]),
+  z.void(),
+);
+const createHunt = new TypedMethod(
+  "test.methods.profiles.createHunt",
+  z.tuple([z.strictObject({ name: z.string() })]),
+  z.string(),
+);
+const joinHunt = new TypedMethod(
   "test.methods.profiles.joinHunt",
+  z.tuple([z.strictObject({ huntId: z.string(), userId: z.string() })]),
+  z.void(),
 );
 
 if (Meteor.isServer) {
@@ -35,16 +49,6 @@ if (Meteor.isServer) {
     require("../../imports/server/methods/defineMethod").default;
 
   defineMethod(createUser, {
-    validate(arg: unknown) {
-      check(arg, {
-        email: String,
-        password: String,
-        displayName: String,
-      });
-
-      return arg;
-    },
-
     async run({ email, password, displayName }) {
       if (!Meteor.isAppTest) {
         throw new Meteor.Error(500, "This code must not run in production");
@@ -57,16 +61,6 @@ if (Meteor.isServer) {
   });
 
   defineMethod(addUserToRole, {
-    validate(arg: unknown) {
-      check(arg, {
-        userId: String,
-        scope: String,
-        role: String,
-      });
-
-      return arg;
-    },
-
     async run({ userId, scope, role }) {
       if (!Meteor.isAppTest) {
         throw new Meteor.Error(500, "This code must not run in production");
@@ -77,14 +71,6 @@ if (Meteor.isServer) {
   });
 
   defineMethod(createHunt, {
-    validate(arg: unknown) {
-      check(arg, {
-        name: String,
-      });
-
-      return arg;
-    },
-
     async run({ name }) {
       if (!Meteor.isAppTest) {
         throw new Meteor.Error(500, "This code must not run in production");
@@ -101,15 +87,6 @@ if (Meteor.isServer) {
   });
 
   defineMethod(joinHunt, {
-    validate(arg: unknown) {
-      check(arg, {
-        huntId: String,
-        userId: String,
-      });
-
-      return arg;
-    },
-
     async run({ huntId, userId }) {
       await MeteorUsers.updateAsync(userId, {
         $addToSet: { hunts: { $each: [huntId] } },

@@ -8,13 +8,6 @@ import { ensureDocument, ensureHuntFolderPermission } from "../gdrive";
 import defineMethod from "./defineMethod";
 
 defineMethod(ensurePuzzleDocument, {
-  validate(arg) {
-    check(arg, {
-      puzzleId: String,
-    });
-    return arg;
-  },
-
   async run({ puzzleId }) {
     check(this.userId, String);
 

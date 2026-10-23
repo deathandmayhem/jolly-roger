@@ -1,4 +1,4 @@
-import { check, Match } from "meteor/check";
+import { check } from "meteor/check";
 import { Meteor } from "meteor/meteor";
 import { Random } from "meteor/random";
 import {
@@ -14,13 +14,6 @@ import configureS3ImageBucket from "../../methods/configureS3ImageBucket";
 import defineMethod from "./defineMethod";
 
 defineMethod(configureS3ImageBucket, {
-  validate(arg) {
-    check(arg, {
-      bucketName: Match.Optional(String),
-    });
-    return arg;
-  },
-
   async run({ bucketName }) {
     check(this.userId, String);
 

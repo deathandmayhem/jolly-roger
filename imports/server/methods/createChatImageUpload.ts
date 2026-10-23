@@ -8,15 +8,6 @@ import getS3UploadParams from "../getS3UploadParams";
 import defineMethod from "./defineMethod";
 
 defineMethod(createChatImageUpload, {
-  validate(arg) {
-    check(arg, {
-      puzzleId: String,
-      mimeType: String,
-    });
-
-    return arg;
-  },
-
   async run({ puzzleId, mimeType }) {
     check(this.userId, String);
 

@@ -1,5 +1,12 @@
+import z from "zod";
 import TypedMethod from "./TypedMethod";
 
-export default new TypedMethod<{ language: string }, void>(
+export default new TypedMethod(
   "Setup.methods.configureServerLanguage",
+  z.tuple([
+    z.strictObject({
+      language: z.string(),
+    }),
+  ]),
+  z.void(),
 );

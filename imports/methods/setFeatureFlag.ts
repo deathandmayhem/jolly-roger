@@ -1,11 +1,14 @@
-import type { FlagNames } from "../lib/models/FeatureFlags";
+import z from "zod";
+import { FlagNames } from "../lib/models/FeatureFlags";
 import TypedMethod from "./TypedMethod";
 
-type SetFeatureFlagArgs = {
-  name: (typeof FlagNames)[number];
-  type: "on" | "off";
-};
-
-export default new TypedMethod<SetFeatureFlagArgs, void>(
+export default new TypedMethod(
   "FeatureFlags.methods.set",
+  z.tuple([
+    z.strictObject({
+      name: z.enum(FlagNames),
+      type: z.enum(["off", "on"]),
+    }),
+  ]),
+  z.void(),
 );

@@ -1,19 +1,29 @@
+import z from "zod";
 import TypedMethod from "./TypedMethod";
 
-type UploadImageSource = {
-  source: "upload";
-  filename: string;
-  contents: string /* base64-encoded data url */;
-};
+const UploadImageSource = z.strictObject({
+  source: z.literal("upload"),
+  filename: z.string(),
+  // base64-encoded data url
+  contents: z.string(),
+});
 
-type LinkImageSource = {
-  source: "link";
-  url: string;
-};
+const LinkImageSource = z.strictObject({
+  source: z.literal("link"),
+  url: z.string(),
+});
 
-export type ImageSource = UploadImageSource | LinkImageSource;
+const ImageSource = z.union([UploadImageSource, LinkImageSource]);
+export type ImageSource = z.infer<typeof ImageSource>;
 
-export default new TypedMethod<
-  { documentId: string; sheetId: number; image: ImageSource },
-  void
->("Documents.methods.insertImage");
+export default new TypedMethod(
+  "Documents.methods.insertImage",
+  z.tuple([
+    z.strictObject({
+      documentId: z.string(),
+      sheetId: z.number(),
+      image: ImageSource,
+    }),
+  ]),
+  z.void(),
+);

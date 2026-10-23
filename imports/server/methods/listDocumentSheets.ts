@@ -7,13 +7,6 @@ import listDocumentSheets from "../../methods/listDocumentSheets";
 import defineMethod from "./defineMethod";
 
 defineMethod(listDocumentSheets, {
-  validate(arg) {
-    check(arg, {
-      documentId: String,
-    });
-    return arg;
-  },
-
   async run({ documentId }) {
     check(this.userId, String);
 
