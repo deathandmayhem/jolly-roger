@@ -1626,6 +1626,20 @@ const lookupIPSources = async (ipv: "v4" | "v6") => {
 };
 
 const getPublicIPAddresses = async (): Promise<ListenAddress[]> => {
+  if (process.env.MEDIASOUP_ANNOUNCED_IP) {
+    const rawIps = process.env.MEDIASOUP_ANNOUNCED_IP.split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    if (rawIps.length > 0) {
+      return rawIps.map((ip) => {
+        const isV6 = ip.includes(":");
+        return {
+          ip: isV6 ? "::" : "0.0.0.0",
+          announcedAddress: ip,
+        };
+      });
+    }
+  }
   const [ipv4, ipv6] = await Promise.all([
     lookupIPSources("v4"),
     lookupIPSources("v6"),

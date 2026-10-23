@@ -40,6 +40,11 @@ of environment variables.
   `smtps://` URL for sending email, mostly for user signup. If your server has a
   self-signed TLS certificate, add `?tls.rejectUnauthorized=false` to the URL.
 
+- `$MEDIASOUP_ANNOUNCED_IP` - the external IP address (or comma-separated list of
+  IPv4/IPv6 addresses) that Mediasoup should announce in ICE candidates for WebRTC
+  audio calls. If unset, the server attempts to auto-detect its public IP via DNS
+  reflection.
+
 - `$MONGO_URL` ([Meteor
   core](https://docs.meteor.com/environment-variables#MONGO_URL)) - the [MongoDB
   server](https://www.mongodb.com/) to use for storing Hunt and user data. This
