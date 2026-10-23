@@ -908,8 +908,8 @@ Resources:
                 ${PapertrailDockerConfig}
                 ${SingleInstanceCertConfig}
 
-                - docker run --name coturn -d --restart=unless-stopped --network=host -e DETECT_EXTERNAL_IP=yes coturn/coturn -v --min-port=40000 --max-port=49999 --log-file=stdout --realm=${AppUrl} --use-auth-secret --static-auth-secret=${TurnSecret}
-                - docker run --name jolly-roger -d --network=host --restart=unless-stopped -e AWS_REGION=$AWS_DEFAULT_REGION -e AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION -e PORT=3000 -e ROOT_URL=https://${AppUrl} -e TURN_SERVER=turns:${AppUrl}:443?transport=tcp -e TURN_SECRET=${TurnSecret} -e MONGO_URL="${MongoUrl}" -e MONGO_OPLOG_URL="${MongoOplogUrl}" ${DockerPackage}
+                - docker run --name coturn -d --restart=unless-stopped --network=host coturn/coturn -v --min-port=40000 --max-port=49999 --log-file=stdout --realm=${AppUrl} --use-auth-secret --static-auth-secret=${TurnSecret} ${CoturnExternalIpArg}
+                - docker run --name jolly-roger -d --network=host --restart=unless-stopped -e AWS_REGION=$AWS_DEFAULT_REGION -e AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION -e PORT=3000 -e ROOT_URL=https://${AppUrl} -e TURN_SERVER=turns:${AppUrl}:443?transport=tcp -e TURN_SECRET=${TurnSecret} -e MONGO_URL="${MongoUrl}" -e MONGO_OPLOG_URL="${MongoOplogUrl}" ${SingleInstanceMediasoupEnv} ${DockerPackage}
                 - docker run --name watchtower -d --restart=unless-stopped -v /var/run/docker.sock:/var/run/docker.sock nickfedor/watchtower --interval 30 --cleanup
                 - docker run --name haproxy -d --restart=unless-stopped --user root --network=host -v /var/run/haproxy:/var/run/haproxy -v /etc/haproxy:/usr/local/etc/haproxy:ro haproxy
 
@@ -981,6 +981,18 @@ Resources:
                 - HaveLoadBalancing
                 - ""
                 - ssl crt /usr/local/etc/haproxy/certs/ alpn h2,http/1.1
+              CoturnExternalIpArg: !If
+                - HaveLoadBalancing
+                - "--external-ip='$(detect-external-ip)'"
+                - !Sub
+                  - "--external-ip=${Ip}"
+                  - Ip: !Ref AppInstancePublicIp
+              SingleInstanceMediasoupEnv: !If
+                - HaveLoadBalancing
+                - ""
+                - !Sub
+                  - "-e MEDIASOUP_ANNOUNCED_IP=${Ip}"
+                  - Ip: !Ref AppInstancePublicIp
               SingleInstanceEipAssociation: !If
                 - HaveLoadBalancing
                 - ""
