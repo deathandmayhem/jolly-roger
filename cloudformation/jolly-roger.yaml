@@ -834,11 +834,11 @@ Resources:
                       # don't pick backend until we've seen enough to identify
                       # both STUN and HTTP/2 (STUN headers are only 20 bytes, so
                       # we can't check the full standard HTTP/2 prefix)
-                      acl seen_headers req.len gt 20
+                      acl seen_headers req.len ge 20
                       tcp-request content accept if seen_headers
                       # In STUN, the first two bits are always 0 (to convert to
                       # an int, we need to go through a hex string)
-                      acl is_turn_prefix req.payload(0,1),hex,hex2i,and(196),not
+                      acl is_turn_prefix req.payload(0,1),hex,hex2i,and(192),not
                       # ...and the 4th-7th byte have the magic cookie
                       acl is_turn_magic_cookie req.payload(4,4) -m bin 2112a442
                       # Switch non-STUN traffic to HTTP mode
