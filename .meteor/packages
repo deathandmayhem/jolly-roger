@@ -22,9 +22,9 @@ meteortesting:browser-tests
 meteortesting:mocha
 standard-minifier-css@1.10.1
 react-meteor-data@4.0.0
-shell-server@0.7.0
-google-oauth@1.4.5
-dynamic-import@0.7.4
+shell-server@0.7.1
+google-oauth@1.5.0
+dynamic-import@0.8.0
 server-render@0.4.4
 typescript@5.11.1
 hot-module-replacement@0.6.0
