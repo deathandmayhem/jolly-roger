@@ -46,7 +46,7 @@ defineMethod(updateProfile, {
       userId = this.userId;
     }
 
-    if (!displayName || displayName.match(/^\s/)) {
+    if (!displayName || /^\s/.test(displayName)) {
       throw new Meteor.Error(
         400,
         "Display name is required and cannot begin with whitespace",
