@@ -53,6 +53,9 @@ import { ensureHuntFolderPermission } from "../gdrive";
 import ignoringDuplicateKeyErrors, {
   isDuplicateKeyError,
 } from "../ignoringDuplicateKeyErrors";
+import AttentionReducerCheckpoints from "../models/AttentionReducerCheckpoints";
+import AttentionStates from "../models/AttentionStates";
+import AttentionTransitions from "../models/AttentionTransitions";
 import Blobs from "../models/Blobs";
 import CallActivities from "../models/CallActivities";
 import DriveActivityLatests from "../models/DriveActivityLatests";
@@ -104,6 +107,7 @@ const MODELS_WITH_COMMON: { collection: { rawCollection(): any } }[] = [
 
 // Models with no user foreign keys (or with non-user FKs we skip).
 const MODELS_EXPLICITLY_SKIPPED = [
+  AttentionReducerCheckpoints,
   BlobMappings,
   Blobs,
   CallHistories,
@@ -281,6 +285,38 @@ const ADDITIONAL_FK_UPDATES = new Map<{ name: string }, FKUpdateFn>([
     async (source, target, signal) => {
       await reassignUniqueFK(
         DiscordRoleGrants.collection,
+        "user",
+        source,
+        target,
+        signal,
+      );
+    },
+  ],
+  [
+    AttentionTransitions,
+    async (source, target, signal) => {
+      // Two events with the same dedup key is unlikely, but we need to preserve
+      // both
+      const raw = AttentionTransitions.collection.rawCollection();
+      for await (const doc of raw.find({ user: source })) {
+        signal.throwIfAborted();
+        try {
+          await raw.updateOne({ _id: doc._id }, { $set: { user: target } });
+        } catch (e) {
+          if (!isDuplicateKeyError(e)) throw e;
+          await raw.updateOne(
+            { _id: doc._id },
+            { $set: { user: target, dedupKey: `${doc.dedupKey}#${doc._id}` } },
+          );
+        }
+      }
+    },
+  ],
+  [
+    AttentionStates,
+    async (source, target, signal) => {
+      await reassignUniqueFK(
+        AttentionStates.collection,
         "user",
         source,
         target,
