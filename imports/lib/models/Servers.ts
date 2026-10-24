@@ -14,6 +14,7 @@ const Server = z.object({
   // inserted without a createdAt set.
   createdAt: z.date().optional(),
   cleanupInProgressBy: foreignKey.optional(),
+  cleanupInProgressAt: z.date().optional(),
 });
 
 const Servers = new Model("jr_servers", Server);
