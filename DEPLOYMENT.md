@@ -33,6 +33,8 @@ Atlas](https://www.mongodb.com/atlas/database).
 You can configure development and production Jolly Roger servers with a number
 of environment variables.
 
+- `$BUGSNAG_API_KEY` - the API key for reporting errors to Bugsnag.
+
 - `$CLUSTER_WORKERS_COUNT` - server process count, `"auto"` for the machine's
   core count, 1 by default.
 
@@ -64,6 +66,11 @@ of environment variables.
 - `$ROOT_URL` ([Meteor
   core](https://docs.meteor.com/environment-variables#ROOT_URL)) - the base URL
   used to access your server. Not needed for dev servers.
+
+- `$SOURCE_REPOSITORY` - the repository URL (e.g. `https://github.com/myteam/jolly-roger`)
+  reported to Bugsnag for linking releases and errors to source code. Set
+  automatically by GitHub Actions Docker builds from `github.repository`. Defaults
+  to `https://github.com/deathandmayhem/jolly-roger`.
 
 - `$TURN_SERVER` - the URL of a [TURN
   server](https://webrtc.org/getting-started/turn-server) for robust audio chat

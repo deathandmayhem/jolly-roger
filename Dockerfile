@@ -105,6 +105,8 @@ FROM meteorenv AS build
 COPY --exclude=.git . /app
 ARG METEOR_GIT_COMMIT_HASH
 ENV METEOR_GIT_COMMIT_HASH=${METEOR_GIT_COMMIT_HASH}
+ARG SOURCE_REPOSITORY
+ENV SOURCE_REPOSITORY=${SOURCE_REPOSITORY}
 
 # Generate production build
 RUN --mount=type=cache,target=/app/.meteor/local/ <<'EOF'
@@ -136,6 +138,8 @@ FROM ubuntu:22.04 AS production
 
 ARG METEOR_GIT_COMMIT_HASH
 ENV METEOR_GIT_COMMIT_HASH=${METEOR_GIT_COMMIT_HASH}
+ARG SOURCE_REPOSITORY
+ENV SOURCE_REPOSITORY=${SOURCE_REPOSITORY}
 
 # Install runtime deps
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \

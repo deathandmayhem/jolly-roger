@@ -1,6 +1,7 @@
 import { promises as fs } from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { setTimeout } from "node:timers/promises";
 import { fetch } from "meteor/fetch";
 import { Meteor } from "meteor/meteor";
 import { WebApp } from "meteor/webapp";
@@ -29,14 +30,54 @@ interface ProgramManifestFile {
 
 const apiKey = process.env.BUGSNAG_API_KEY;
 
+async function fetchWithRetry(
+  url: string,
+  init: Parameters<typeof fetch>[1],
+  maxAttempts = 4,
+  initialDelayMs = 1000,
+): Promise<Response> {
+  let delay = initialDelayMs;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    let isRetryable = true;
+    try {
+      const resp = await fetch(url, init);
+      if (!resp.ok) {
+        // Fail fast on 4xx client errors (e.g. 400 Bad Request, 401 Unauthorized), except 429 Too
+        // Many Requests
+        if (resp.status >= 400 && resp.status < 500 && resp.status !== 429) {
+          isRetryable = false;
+        }
+        throw new Error(
+          `Bugsnag API returned status ${resp.status}: ${await resp.text()}`,
+        );
+      }
+      return resp;
+    } catch (error) {
+      if (!isRetryable || attempt === maxAttempts) {
+        throw error;
+      }
+      Logger.info(
+        `Bugsnag API failed (attempt ${attempt}/${maxAttempts}), retrying in ${delay}ms`,
+        { error },
+      );
+      await setTimeout(delay);
+      delay *= 2;
+    }
+  }
+  throw new Error("Bugsnag request failed: exhausted retries");
+}
+
 if (apiKey) {
   const releaseStage = Meteor.isDevelopment ? "development" : "production";
+  const repository =
+    process.env.SOURCE_REPOSITORY ??
+    "https://github.com/deathandmayhem/jolly-roger";
 
   // Record this release so that Bugsnag has tracking for when releases are
   // deployed
   Meteor.defer(async () => {
     try {
-      const resp = await fetch("https://build.bugsnag.com/", {
+      await fetchWithRetry("https://build.bugsnag.com/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -46,15 +87,12 @@ if (apiKey) {
           appVersion: Meteor.gitCommitHash,
           sourceControl: {
             provider: "github",
-            repository: "https://github.com/deathandmayhem/jolly-roger",
+            repository,
             revision: Meteor.gitCommitHash,
           },
           releaseStage,
         }),
       });
-      if (!resp.ok) {
-        throw new Error(`Error from Bugsnag build API: ${await resp.text()}`);
-      }
     } catch (error) {
       Logger.warn("Unable to report release to Bugsnag", { error });
     }
@@ -157,16 +195,11 @@ if (apiKey) {
         });
         formData.append("overwrite", "true");
         try {
-          const resp = await fetch("https://upload.bugsnag.com/", {
+          await fetchWithRetry("https://upload.bugsnag.com/", {
             method: "POST",
             headers: formData.getHeaders(),
             body: formData.getBuffer() as Buffer<ArrayBuffer>,
           });
-          if (!resp.ok) {
-            throw new Error(
-              `Error from Bugsnag upload API: ${await resp.text()}`,
-            );
-          }
         } catch (error) {
           Logger.warn("Unable to upload source map to Bugsnag", { error });
           return;
