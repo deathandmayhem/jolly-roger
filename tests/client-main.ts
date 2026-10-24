@@ -3,6 +3,7 @@ import chaiAsPromised from "chai-as-promised";
 
 chai.use(chaiAsPromised);
 
+import "./unit/imports/client/components/InsertImage";
 import "./unit/imports/lib/calendarTimeFormat";
 import "./unit/imports/lib/puzzle-sort-and-group";
 import "./unit/imports/lib/relativeTimeFormat";
