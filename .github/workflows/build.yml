@@ -129,6 +129,7 @@ jobs:
           cache-to: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && format('type=registry,ref={0}/{1}:{2}-{3},mode=max', env.REGISTRY, env.IMAGE_NAME, matrix.cache-tag, steps.cache-ref.outputs.ref) || '' }}
           build-args: |
             METEOR_GIT_COMMIT_HASH=${{ github.sha }}
+            SOURCE_REPOSITORY=https://github.com/${{ github.repository }}
       - name: Export digest
         run: |
           mkdir -p ${{ runner.temp }}/digests
