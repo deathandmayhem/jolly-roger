@@ -19,6 +19,7 @@ const profileFields: Record<ProfileFields, 1> = {
   discordAccount: 1,
   phoneNumber: 1,
   dingwords: 1,
+  customAvatar: 1,
 };
 
 // This overrides the default set of fields that are published to the
@@ -152,7 +153,7 @@ Meteor.publish("avatars", async function (huntId: unknown) {
 
     return MeteorUsers.find(
       { hunts: huntId },
-      { projection: { discordAccount: 1 } },
+      { projection: { discordAccount: 1, customAvatar: 1 } },
     );
   });
 

@@ -1,6 +1,7 @@
 import { S3Client } from "@aws-sdk/client-s3";
 import { createPresignedPost } from "@aws-sdk/s3-presigned-post";
 import Settings from "../lib/models/Settings";
+import { s3ObjectUrl } from "../lib/s3";
 
 export default async function getS3UploadParams(key: string, mimeType: string) {
   const s3BucketSettings = await Settings.findOneAsync({
@@ -20,7 +21,11 @@ export default async function getS3UploadParams(key: string, mimeType: string) {
     },
   });
 
-  const publicUrl = `https://s3.${s3BucketSettings.value.bucketRegion}.amazonaws.com/${s3BucketSettings.value.bucketName}/${key}`;
+  const publicUrl = s3ObjectUrl(
+    s3BucketSettings.value.bucketRegion,
+    s3BucketSettings.value.bucketName,
+    key,
+  );
 
   return { publicUrl, uploadUrl: url, fields };
 }

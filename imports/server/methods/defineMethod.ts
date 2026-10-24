@@ -1,10 +1,10 @@
-import { EJSON } from "meteor/ejson";
 import { Meteor } from "meteor/meteor";
 import Bugsnag from "@bugsnag/js";
 import type TypedMethod from "../../methods/TypedMethod";
-import type {
-  TypedMethodArgs,
-  TypedMethodParam,
+import {
+  stringifyMethodArgs,
+  type TypedMethodArgs,
+  type TypedMethodParam,
 } from "../../methods/TypedMethod";
 
 type TypedMethodValidator<Arg extends TypedMethodArgs> = (
@@ -80,7 +80,7 @@ export default function defineMethod<
             event.context = method.name;
             event.severity = severity;
             event.addMetadata("method", {
-              arguments: EJSON.stringify(arg0 ?? {}),
+              arguments: stringifyMethodArgs(arg0) ?? "{}",
             });
           });
         }
