@@ -10,7 +10,7 @@
     "url": "https://github.com/deathandmayhem/jolly-roger"
   },
   "scripts": {
-    "lint:types": "tsc",
+    "lint:types": "tsc -b",
     "lint:biome": "biome check",
     "lint:oxlint": "oxlint --tsconfig tsconfig.json --type-aware --deny-warnings --report-unused-disable-directives",
     "lint:css": "stylelint '**/*.scss' '**/*.tsx'",
