@@ -116,7 +116,7 @@ set -o pipefail
 # meteor prints junk about running as root to stdout, so capture this over stderr *sigh*
 NODE_PATH=$(meteor node -e 'console.error(process.execPath);' 2>&1 1>/dev/null)
 export PATH="$(dirname "$NODE_PATH"):$PATH"
-meteor build --directory /built_app --server=http://localhost:3000
+meteor build --directory /built_app --server=http://localhost:3000 --platforms=web.browser
 EOF
 
 # Install server dependencies
