@@ -290,6 +290,15 @@ export function userMayWritePuzzlesForHunt(
   return false;
 }
 
+export function userMayWritePuzzlesForAnyHunt(
+  user: Pick<Meteor.User, "roles"> | null | undefined,
+): boolean {
+  if (!user) {
+    return false;
+  }
+  return isAdmin(user) || huntsUserIsOperatorFor(user).size > 0;
+}
+
 export function userMayCreateHunt(
   user: Pick<Meteor.User, "roles"> | null | undefined,
 ): boolean {
