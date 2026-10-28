@@ -4,6 +4,7 @@ import { assert } from "chai";
 import sinon from "sinon";
 import mergeUsers from "../../../../imports/lib/jobs/mergeUsers";
 import Bookmarks from "../../../../imports/lib/models/Bookmarks";
+import ChatMessageRevisions from "../../../../imports/lib/models/ChatMessageRevisions";
 import ChatMessages, {
   type ChatMessageMentionNodeType,
 } from "../../../../imports/lib/models/ChatMessages";
@@ -395,10 +396,13 @@ describe("user merge", function () {
     const puzzleId = Random.id();
     const now = new Date();
 
+    const messageId = Random.id();
+    const revisionId = Random.id();
+
     // Insert a chat message sent by the source user, with a mention of the
     // source user in the content.
     await ChatMessages.collection.rawCollection().insertOne({
-      _id: Random.id(),
+      _id: messageId,
       hunt: huntId,
       puzzle: puzzleId,
       content: {
@@ -418,6 +422,24 @@ describe("user merge", function () {
       deleted: false,
     });
 
+    // Also insert a revision with a mention of the source user.
+    await ChatMessageRevisions.collection.rawCollection().insertOne({
+      _id: revisionId,
+      chatMessage: messageId,
+      hunt: huntId,
+      content: {
+        type: "message",
+        children: [
+          { text: "Earlier revision " },
+          { type: "mention", userId: sourceId },
+        ],
+      },
+      createdBy: sourceId,
+      updatedBy: sourceId,
+      createdAt: now,
+      updatedAt: now,
+    });
+
     await runMergeJob(sourceId, targetId);
 
     const msgs = await ChatMessages.collection
@@ -432,6 +454,7 @@ describe("user merge", function () {
     assert.equal(msg.updatedBy, targetId, "updatedBy should point to target");
 
     // The @-mention inside content.children should also be updated.
+    assert.isDefined(msg.content);
     const mention = msg.content.children.find(
       (c): c is ChatMessageMentionNodeType =>
         "type" in c && c.type === "mention",
@@ -441,6 +464,35 @@ describe("user merge", function () {
       mention.userId,
       targetId,
       "Mention userId should point to target",
+    );
+
+    // The revision should also have createdBy, updatedBy, and mentions updated.
+    const revs = await ChatMessageRevisions.collection
+      .rawCollection()
+      .find({ chatMessage: messageId })
+      .toArray();
+    assert.equal(revs.length, 1);
+    const rev = revs[0]!;
+    assert.equal(
+      rev.createdBy,
+      targetId,
+      "revision createdBy should point to target",
+    );
+    assert.equal(
+      rev.updatedBy,
+      targetId,
+      "revision updatedBy should point to target",
+    );
+    assert.isDefined(rev.content);
+    const revMention = rev.content.children.find(
+      (c): c is ChatMessageMentionNodeType =>
+        "type" in c && c.type === "mention",
+    );
+    assert.isDefined(revMention);
+    assert.equal(
+      revMention.userId,
+      targetId,
+      "Revision mention userId should point to target",
     );
   });
 

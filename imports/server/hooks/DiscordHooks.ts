@@ -248,7 +248,10 @@ const DiscordHooks: Hookset = {
       return;
     }
 
-    const chatMessage = (await ChatMessages.findOneAsync(chatMessageId))!;
+    const chatMessage = await ChatMessages.findOneAsync(chatMessageId);
+    if (!chatMessage?.content) {
+      return;
+    }
     const puzzle = (await Puzzles.findOneAsync(chatMessage.puzzle))!;
     const hunt = (await Hunts.findOneAsync(chatMessage.hunt))!;
     if (hunt.firehoseDiscordChannel) {

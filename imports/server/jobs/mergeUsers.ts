@@ -11,7 +11,10 @@ import APIKeys from "../../lib/models/APIKeys";
 import BlobMappings from "../../lib/models/BlobMappings";
 import BookmarkNotifications from "../../lib/models/BookmarkNotifications";
 import Bookmarks from "../../lib/models/Bookmarks";
-import ChatMessages from "../../lib/models/ChatMessages";
+import ChatMessageRevisions from "../../lib/models/ChatMessageRevisions";
+import ChatMessages, {
+  type ChatMessageType,
+} from "../../lib/models/ChatMessages";
 import ChatNotifications from "../../lib/models/ChatNotifications";
 import DiscordCache from "../../lib/models/DiscordCache";
 import DiscordRoleGrants from "../../lib/models/DiscordRoleGrants";
@@ -124,6 +127,61 @@ type FKUpdateFn = (
   targetUser: string,
   signal: AbortSignal,
 ) => Promise<void>;
+// Shared helper for collections that store ChatMessageContent (ChatMessages and
+// ChatMessageRevisions). Walks matching documents in a single pass to update
+// createdBy, updatedBy, mentions in content.children, and optionally sender,
+// since none of these are indexed, so four separate updateMany calls would each
+// do a full collection scan. Instead, scan once and issue targeted updateOne
+// calls per matching document.
+async function updateChatCollectionUserFKs(
+  model: typeof ChatMessages | typeof ChatMessageRevisions,
+  source: string,
+  target: string,
+  signal: AbortSignal,
+) {
+  const raw = model.collection.rawCollection();
+  const orConditions: Record<string, unknown>[] = [
+    { createdBy: source },
+    { updatedBy: source },
+    {
+      "content.children": {
+        $elemMatch: { type: "mention", userId: source },
+      },
+    },
+  ];
+  if (model === ChatMessages) {
+    orConditions.unshift({ sender: source });
+  }
+
+  for await (const msg of raw.find({ $or: orConditions })) {
+    signal.throwIfAborted();
+
+    const $set: Record<string, string> = {};
+    if (model === ChatMessages && (msg as ChatMessageType).sender === source) {
+      $set.sender = target;
+    }
+    if (msg.createdBy === source) $set.createdBy = target;
+    if (msg.updatedBy === source) $set.updatedBy = target;
+    if (Object.keys($set).length > 0) {
+      await raw.updateOne({ _id: msg._id }, { $set });
+    }
+
+    const hasMention = msg.content?.children?.some(
+      (child) =>
+        "type" in child && child.type === "mention" && child.userId === source,
+    );
+    if (hasMention) {
+      await raw.updateOne(
+        { _id: msg._id },
+        { $set: { "content.children.$[elem].userId": target } },
+        {
+          arrayFilters: [{ "elem.type": "mention", "elem.userId": source }],
+        },
+      );
+    }
+  }
+}
+
 const ADDITIONAL_FK_UPDATES = new Map<{ name: string }, FKUpdateFn>([
   [
     Jobs,
@@ -135,52 +193,14 @@ const ADDITIONAL_FK_UPDATES = new Map<{ name: string }, FKUpdateFn>([
     },
   ],
   [
+    ChatMessageRevisions,
+    (source, target, signal) =>
+      updateChatCollectionUserFKs(ChatMessageRevisions, source, target, signal),
+  ],
+  [
     ChatMessages,
-    async (source, target, signal) => {
-      // Single-pass cursor walk: none of sender, createdBy, updatedBy, or
-      // content.children.userId are indexed on ChatMessages, so four separate
-      // updateMany calls would each do a full collection scan. Instead, scan
-      // once and issue targeted updateOne calls per matching document.
-      const raw = ChatMessages.collection.rawCollection();
-      for await (const msg of raw.find({
-        $or: [
-          { sender: source },
-          { createdBy: source },
-          { updatedBy: source },
-          {
-            "content.children": {
-              $elemMatch: { type: "mention", userId: source },
-            },
-          },
-        ],
-      })) {
-        signal.throwIfAborted();
-
-        const $set: Record<string, string> = {};
-        if (msg.sender === source) $set.sender = target;
-        if (msg.createdBy === source) $set.createdBy = target;
-        if (msg.updatedBy === source) $set.updatedBy = target;
-        if (Object.keys($set).length > 0) {
-          await raw.updateOne({ _id: msg._id }, { $set });
-        }
-
-        const hasMention = msg.content?.children?.some(
-          (child) =>
-            "type" in child &&
-            child.type === "mention" &&
-            child.userId === source,
-        );
-        if (hasMention) {
-          await raw.updateOne(
-            { _id: msg._id },
-            { $set: { "content.children.$[elem].userId": target } },
-            {
-              arrayFilters: [{ "elem.type": "mention", "elem.userId": source }],
-            },
-          );
-        }
-      }
-    },
+    (source, target, signal) =>
+      updateChatCollectionUserFKs(ChatMessages, source, target, signal),
   ],
   [
     ChatNotifications,

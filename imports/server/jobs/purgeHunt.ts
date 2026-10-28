@@ -14,6 +14,7 @@ import APIKeys from "../../lib/models/APIKeys";
 import BlobMappings from "../../lib/models/BlobMappings";
 import BookmarkNotifications from "../../lib/models/BookmarkNotifications";
 import Bookmarks from "../../lib/models/Bookmarks";
+import ChatMessageRevisions from "../../lib/models/ChatMessageRevisions";
 import ChatMessages from "../../lib/models/ChatMessages";
 import ChatNotifications from "../../lib/models/ChatNotifications";
 import DiscordCache from "../../lib/models/DiscordCache";
@@ -68,6 +69,7 @@ const COLLECTIONS_TO_PURGE = [
   Puzzles,
   // Other than that, try to mostly maintain referential integrity
   ChatNotifications,
+  ChatMessageRevisions,
   ChatMessages,
   Peers,
   Rooms,

@@ -3,6 +3,7 @@ import type { Token, Tokens } from "marked";
 import { marked } from "marked";
 import { useCallback, useEffect, useRef, useState } from "react";
 import BSImage from "react-bootstrap/Image";
+import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import type { ChatMessageContentType } from "../../lib/models/ChatMessages";
 import nodeIsImage from "../../lib/nodeIsImage";
@@ -12,6 +13,14 @@ import { MentionSpan } from "./FancyEditor";
 
 // This file implements standalone rendering for the MessageElement format
 // defined by FancyEditor, for use in the chat pane.
+
+const EditedIndicator = styled.span`
+  font-size: 11px;
+  color: #888;
+  font-style: italic;
+  margin-left: 4px;
+  user-select: none;
+`;
 
 const PreWrapSpan = styled.span`
   white-space: pre-wrap;
@@ -203,13 +212,16 @@ const ChatMessage = ({
   selfUserId,
   roles,
   imageOnLoad,
+  isEdited,
 }: {
   message: ChatMessageContentType;
   displayNames: Map<string, string>;
   selfUserId: string;
   roles: string[];
   imageOnLoad?: () => void;
+  isEdited?: boolean;
 }) => {
+  const { t } = useTranslation();
   const children = message.children.map((child, i) => {
     if (nodeIsMention(child)) {
       const displayName = displayNames.get(child.userId);
@@ -235,7 +247,14 @@ const ChatMessage = ({
     }
   });
 
-  return <div>{children}</div>;
+  return (
+    <div>
+      {children}
+      {isEdited && (
+        <EditedIndicator>{t("chat.edited", "(edited)")}</EditedIndicator>
+      )}
+    </div>
+  );
 };
 
 export default ChatMessage;

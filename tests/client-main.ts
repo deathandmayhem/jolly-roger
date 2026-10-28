@@ -13,6 +13,7 @@ import "./unit/imports/lib/ValidateShape";
 import "./unit/imports/methods/TypedMethod";
 
 import "./acceptance/authentication";
+import "./acceptance/chatActions";
 import "./acceptance/chatHooks";
 import "./acceptance/emails";
 import "./acceptance/profiles";

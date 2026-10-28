@@ -1,3 +1,4 @@
+import { check, Match } from "meteor/check";
 import { z } from "zod";
 import { allowedEmptyString, foreignKey } from "../typedModel/customTypes";
 import type { ModelType } from "../typedModel/Model";
@@ -42,6 +43,35 @@ export const ChatMessageContent = z.object({
 });
 export type ChatMessageContentType = z.infer<typeof ChatMessageContent>;
 
+export const ChatMessagePattern: Match.Pattern = {
+  type: "message",
+  children: [
+    Match.OneOf(
+      {
+        type: "mention",
+        userId: String,
+      },
+      {
+        type: "role-mention",
+        roleId: "operator",
+      },
+      {
+        type: "image",
+        url: String,
+      },
+      {
+        text: String,
+      },
+    ),
+  ],
+};
+
+export function checkChatMessageContent(
+  content: unknown,
+): asserts content is ChatMessageContentType {
+  check(content, ChatMessagePattern);
+}
+
 export function contentFromMessage(msg: string): ChatMessageContentType {
   return {
     type: "message" as const,
@@ -54,12 +84,14 @@ const ChatMessage = withCommon(
     hunt: foreignKey,
     // The puzzle to which this chat was sent.
     puzzle: foreignKey,
-    // The message contents.
-    content: ChatMessageContent,
+    // The message contents. Optional if the message has been deleted.
+    content: ChatMessageContent.optional(),
     // If absent, this message is considered a "system" message
     sender: foreignKey.optional(),
     // The date this message was sent.  Used for ordering chats in the log.
     timestamp: z.date(),
+    // If true, the message has been edited.
+    edited: z.boolean().optional(),
   }),
 );
 const ChatMessages = new SoftDeletedModel("jr_chatmessages", ChatMessage);
