@@ -23,7 +23,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1157.0",
     "@aws-sdk/s3-presigned-post": "^3.1157.0",
-    "@babel/runtime": "^8.0.7",
+    "@babel/runtime": "^8.0.8",
     "@bugsnag/core": "^9.1.0",
     "@bugsnag/js": "^9.1.0",
     "@bugsnag/plugin-react": "^9.1.0",
