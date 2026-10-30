@@ -122,9 +122,6 @@
     "stylelint-config-standard-scss": "^17.0.0",
     "typescript": "^7.0.2"
   },
-  "overrides": {
-    "@sinonjs/fake-timers": "15.2.2"
-  },
   "meteor": {
     "mainModule": {
       "client": "client/main.ts",
