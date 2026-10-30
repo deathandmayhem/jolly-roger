@@ -52,7 +52,7 @@
     "http-proxy-3": "^2.0.2",
     "i18next": "^26.5.11",
     "i18next-browser-languagedetector": "^8.2.1",
-    "ip-address": "^10.7.4",
+    "ip-address": "^10.7.5",
     "logfmt": "^1.4.0",
     "marked": "^18.1.2",
     "mediasoup": "^3.32.0",
