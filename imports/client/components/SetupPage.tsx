@@ -2626,6 +2626,41 @@ const CircuitBreakerSection = () => {
           notifications will be generated or displayed.
         </p>
       </CircuitBreakerControl>
+      <CircuitBreakerControl
+        title="Attention reporting"
+        flagName="disable.attention_reporting"
+      >
+        <p>
+          Every open Jolly Roger tab reports which hunt and puzzle it&apos;s on,
+          and whether it&apos;s visible and focused. Each report is a method
+          call and a write to a log that we keep for later analysis, and tabs
+          report every time the user switches between tabs or windows.
+        </p>
+        <p>
+          Disabling this feature stops that attention reporting (and cleans up
+          any open records by explicitly treating them as closed). When
+          it&apos;s re-enabled, open tabs report their current state again, but
+          anything that happened while it was disabled is lost.
+        </p>
+      </CircuitBreakerControl>
+      <CircuitBreakerControl
+        title="Live attention presence"
+        flagName="disable.attention_reducer"
+      >
+        <p>
+          Jolly Roger records which tabs a user has open and what they&apos;re
+          focused on as a raw event stream, and a background reducer folds that
+          log into the live per-tab presence used for real-time displays. The
+          reducer runs on a single elected server; if it misbehaves it can be
+          paused here.
+        </p>
+        <p>
+          Disabling this feature pauses the reducer, so live attention presence
+          stops updating and remains stale until it is re-enabled. Raw activity
+          is still recorded, and re-enabling replays everything captured while
+          it was off, so no history is lost.
+        </p>
+      </CircuitBreakerControl>
     </Section>
   );
 };

@@ -101,6 +101,7 @@ import useDocumentTitle from "../hooks/useDocumentTitle";
 import useSubscribeDisplayNames from "../hooks/useSubscribeDisplayNames";
 import useTypedSubscribe from "../hooks/useTypedSubscribe";
 import indexedDisplayNames from "../indexedDisplayNames";
+import tabId from "../tabId";
 import { trace } from "../tracing";
 import BookmarkButton from "./BookmarkButton";
 import ChatMessage from "./ChatMessage";
@@ -134,8 +135,6 @@ import TagList from "./TagList";
 
 // Shows a state dump as an in-page overlay when enabled.
 const DEBUG_SHOW_CALL_STATE = false;
-
-const tabId = Random.id();
 
 type FilteredChatFields =
   | "_id"
