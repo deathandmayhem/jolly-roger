@@ -1,4 +1,8 @@
-// First thing's first: setup error reporting and logging
+// First thing's first: stop browsers that are missing built-ins we use, before
+// anything can report their errors
+import "../imports/client/browserSupport";
+
+// Then setup error reporting and logging
 import "../imports/client/bugsnag";
 import "../imports/client/configureLogger";
 

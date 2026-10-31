@@ -10,7 +10,7 @@
     "url": "https://github.com/deathandmayhem/jolly-roger"
   },
   "scripts": {
-    "lint:types": "tsc",
+    "lint:types": "tsc -b",
     "lint:biome": "biome check",
     "lint:oxlint": "oxlint --tsconfig tsconfig.json --type-aware --deny-warnings --report-unused-disable-directives",
     "lint:css": "stylelint '**/*.scss' '**/*.tsx'",
@@ -84,6 +84,7 @@
   "devDependencies": {
     "@biomejs/biome": "2.6.3",
     "@meteorjs/rspack": "^2.2.0",
+    "@rsbuild/plugin-check-syntax": "^1.6.1",
     "@rsdoctor/rspack-plugin": "^1.6.5",
     "@rspack/cli": "^1.7.11",
     "@rspack/core": "^1.7.11",

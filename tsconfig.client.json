@@ -1,0 +1,9 @@
+{
+  // Limit client code based on supported browser features
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "lib": ["es2022", "es2023.array", "dom"]
+  },
+  "include": ["**/*"],
+  "exclude": ["**/server/**", "tests/**", "scripts/**"]
+}

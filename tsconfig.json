@@ -32,9 +32,13 @@
       "meteor/*": ["./.meteor/local/types/packages.d.ts"]
     }
   },
-  "exclude": [
-    "./.meteor/local/build/**",
-    "./.meteor/local/bundler-cache/**",
-    "./packages/**"
+  // Code lives in the referenced projects, which means that plain `tsc` doesn't
+  // check anything - use `tsc -b` to traverse into references.
+  "files": [],
+  // First project that includes a file wins, so strictest project first
+  "references": [
+    { "path": "./tsconfig.client.json" },
+    { "path": "./tsconfig.server.json" },
+    { "path": "./tsconfig.tests.json" }
   ]
 }

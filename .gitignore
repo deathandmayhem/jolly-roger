@@ -3,6 +3,7 @@ npm-debug.log
 jsconfig.json
 .vscode/launch.json
 .swc
+*.tsbuildinfo
 
 # Meteor Modern-Tools build context directories
 _build
