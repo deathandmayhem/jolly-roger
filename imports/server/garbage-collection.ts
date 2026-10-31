@@ -45,13 +45,6 @@ async function cleanup() {
     updatedAt: { $lt: timeout },
   }).mapAsync((server) => server._id);
 
-  if (deadServers.length === 0) {
-    return;
-  }
-
-  Logger.info("Cleaning up dead servers", {
-    deadServers: deadServers.join(","),
-  });
   for (const deadServer of deadServers) {
     await cleanupDeadServer(deadServer);
   }
@@ -61,9 +54,15 @@ export async function cleanupDeadServer(id: string) {
   // First mark that we're cleaning up the server so that if it wakes back up it
   // knows to abort
   const updated = await Servers.updateAsync(
-    { _id: id, cleanupInProgressBy: { $exists: false } },
     {
-      $set: { cleanupInProgressBy: serverId },
+      _id: id,
+      $or: [
+        { cleanupInProgressAt: { $exists: false } },
+        { cleanupInProgressAt: { $lt: new Date(Date.now() - gracePeriod) } },
+      ],
+    },
+    {
+      $set: { cleanupInProgressBy: serverId, cleanupInProgressAt: new Date() },
     },
   );
   if (updated === 0) {
@@ -71,21 +70,12 @@ export async function cleanupDeadServer(id: string) {
     return;
   }
 
+  Logger.info("Cleaning up dead server", { deadServer: id });
   for (const f of globalGCHooks) {
     await f(id);
   }
   await Servers.removeAsync(id);
 }
-
-registerPeriodicCleanupHook(async (deadServer) => {
-  // If a server died while cleaning up another server, we want to unmark it as
-  // being cleaned up so that someone else picks it up
-  await Servers.updateAsync(
-    { cleanupInProgressBy: deadServer },
-    { $unset: { cleanupInProgressBy: "" } },
-    { multi: true },
-  );
-});
 
 function periodic() {
   Meteor.setTimeout(
