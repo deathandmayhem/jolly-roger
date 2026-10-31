@@ -117,7 +117,7 @@ doc but is primarily expected to take action when a new puzzle is created.
 Since the document is a core part of the Jolly Roger experience, clients can
 also call `ensureDocument` via the `ensurePuzzleDocument` Meteor method, which
 they call on loading a puzzle page. In order to prevent thundering herds of
-creation attempts, when creating a new puzzle, the document is created *before*
+creation attempts, when creating a new puzzle, the document is created _before_
 saving the puzzle to MongoDB, so that once clients discover the new puzzle, the
 document should already be present.
 
@@ -284,7 +284,7 @@ handler to serve a small detection page
 handler uses `Session.getTemporaryActiveUserKey()` to determine if Google can
 identify the accessing user from the HTTP request. While it's intended to be
 effectively a hash of the account that rolls over after some period of time, for
-our purposes we only care if it's empty or not. If it *is* empty, either the
+our purposes we only care if it's empty or not. If it _is_ empty, either the
 user isn't logged into Google in this browser, or something is preventing
 cookies from reaching Google's server (browser-level tracking protection, an
 extension stripping HTTP headers, etc.). Either way, the user would appear

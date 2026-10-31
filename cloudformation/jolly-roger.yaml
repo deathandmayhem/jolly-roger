@@ -123,7 +123,7 @@ Parameters:
     Description: Enable remote logging and metrics collection to Grafana Cloud.
     Type: String
     Default: "No"
-    AllowedValues: ["Yes", "No"]
+    AllowedValues: [ "Yes", "No" ]
   GrafanaCloudLokiUrl:
     Description: Grafana Cloud Loki endpoint URL (e.g. https://logs-prod-042.grafana.net)
     Type: String
@@ -173,7 +173,7 @@ Parameters:
       and making it simpler to enable serving in the future.
     Type: String
     Default: "NLB"
-    AllowedValues: ["NLB", "SingleInstance", "None"]
+    AllowedValues: [ "NLB", "SingleInstance", "None" ]
   CertNotificationEmail:
     Description: Email to use for certificate abuse and renewal notifications when using Let's Encrypt via the SingleInstance serving mode. Leave blank to disable notifications.
     Type: String
@@ -187,16 +187,16 @@ Parameters:
       acceptable.
     Type: String
     Default: "No"
-    AllowedValues: ["Yes", "No"]
+    AllowedValues: [ "Yes", "No" ]
 
 Conditions:
   HaveGrafanaCloud: !And
-    - !Equals [!Ref EnableGrafanaCloud, "Yes"]
-    - !Not [!Equals [!Ref GrafanaCloudApiKey, ""]]
-  HaveServing: !Not [!Equals [!Ref ServingMode, "None"]]
-  HaveLoadBalancing: !Equals [!Ref ServingMode, "NLB"]
-  HaveSingleInstance: !Equals [!Ref ServingMode, "SingleInstance"]
-  UseSpot: !Equals [!Ref UseSpotInstances, "Yes"]
+    - !Equals [ !Ref EnableGrafanaCloud, "Yes" ]
+    - !Not [ !Equals [ !Ref GrafanaCloudApiKey, "" ] ]
+  HaveServing: !Not [ !Equals [ !Ref ServingMode, "None" ] ]
+  HaveLoadBalancing: !Equals [ !Ref ServingMode, "NLB" ]
+  HaveSingleInstance: !Equals [ !Ref ServingMode, "SingleInstance" ]
+  UseSpot: !Equals [ !Ref UseSpotInstances, "Yes" ]
 
 Resources:
   LambdaExecutionRole:
@@ -207,8 +207,8 @@ Resources:
         Statement:
           - Effect: Allow
             Principal:
-              Service: [lambda.amazonaws.com]
-            Action: ["sts:AssumeRole"]
+              Service: [ lambda.amazonaws.com ]
+            Action: [ "sts:AssumeRole" ]
       Policies:
         - PolicyName: root
           PolicyDocument:
@@ -368,7 +368,7 @@ Resources:
     Type: AWS::EC2::Subnet
     Condition: HaveServing
     Properties:
-      AvailabilityZone: !Select [0, !GetAZs ""]
+      AvailabilityZone: !Select [ 0, !GetAZs "" ]
       CidrBlock: 10.32.0.0/24
       MapPublicIpOnLaunch: true
       VpcId: !Ref VPC
@@ -383,7 +383,7 @@ Resources:
     Type: AWS::EC2::Subnet
     Condition: HaveServing
     Properties:
-      AvailabilityZone: !Select [1, !GetAZs ""]
+      AvailabilityZone: !Select [ 1, !GetAZs "" ]
       CidrBlock: 10.32.1.0/24
       MapPublicIpOnLaunch: true
       VpcId: !Ref VPC
@@ -411,7 +411,7 @@ Resources:
         Statement:
           - Effect: Allow
             Principal: "*"
-            Action: ["s3:GetObject"]
+            Action: [ "s3:GetObject" ]
             Resource: !Sub "arn:aws:s3:::${ImageUploadBucket}/*"
 
   CertificateStorageBucket:
@@ -432,8 +432,8 @@ Resources:
         Statement:
           - Effect: Allow
             Principal:
-              Service: [ec2.amazonaws.com]
-            Action: ["sts:AssumeRole"]
+              Service: [ ec2.amazonaws.com ]
+            Action: [ "sts:AssumeRole" ]
       Policies:
         - PolicyName: ssm-download
           PolicyDocument:
@@ -618,7 +618,7 @@ Resources:
       Port: 443
       Certificates:
         - { CertificateArn: !Ref CertificateArn }
-      AlpnPolicy: [HTTP2Preferred]
+      AlpnPolicy: [ HTTP2Preferred ]
       DefaultActions:
         - Type: forward
           TargetGroupArn: !Ref AppNlbTargetHTTPS
@@ -1051,11 +1051,11 @@ Resources:
         - ELB
         - EC2
       HealthCheckGracePeriod: 1800
-      CapacityRebalance: !If [UseSpot, true, false]
+      CapacityRebalance: !If [ UseSpot, true, false ]
       MixedInstancesPolicy:
         InstancesDistribution:
-          OnDemandBaseCapacity: !If [UseSpot, 0, !Ref AppDesiredCapacity]
-          OnDemandPercentageAboveBaseCapacity: !If [UseSpot, 0, 100]
+          OnDemandBaseCapacity: !If [ UseSpot, 0, !Ref AppDesiredCapacity ]
+          OnDemandPercentageAboveBaseCapacity: !If [ UseSpot, 0, 100 ]
           SpotAllocationStrategy: price-capacity-optimized
         LaunchTemplate:
           LaunchTemplateSpecification:
@@ -1069,7 +1069,7 @@ Resources:
       DesiredCapacity: !Ref AppDesiredCapacity
       TargetGroupARNs: !If
         - HaveLoadBalancing
-        - [!Ref AppNlbTargetHTTP, !Ref AppNlbTargetHTTPS]
+        - [ !Ref AppNlbTargetHTTP, !Ref AppNlbTargetHTTPS ]
         - !Ref "AWS::NoValue"
       Tags:
         - Key: DNSZone
@@ -1097,7 +1097,7 @@ Resources:
       ResourceRecords: !If
         - HaveLoadBalancing
         - !Ref "AWS::NoValue"
-        - [!Ref AppInstancePublicIp]
+        - [ !Ref AppInstancePublicIp ]
       TTL: !If
         - HaveLoadBalancing
         - !Ref "AWS::NoValue"
