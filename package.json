@@ -116,7 +116,7 @@
     "postcss-scss": "^4.0.9",
     "postcss-styled-syntax": "^0.7.4",
     "react-refresh": "^0.19.0",
-    "sass": "^1.106.1",
+    "sass": "^1.108.0",
     "sinon": "^22.1.0",
     "stylelint": "^17.16.0",
     "stylelint-config-standard": "^40.0.0",
