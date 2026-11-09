@@ -20,9 +20,9 @@ updates:
       - dependency-name: "@meteorjs/rspack"
       - dependency-name: "@rspack/*"
       - dependency-name: "@rsbuild/*"
-        versions: [">=2"]
+        versions: [ ">=2" ]
       - dependency-name: "@rsdoctor/*"
-        versions: [">=2"]
+        versions: [ ">=2" ]
     groups:
       aws:
         patterns:

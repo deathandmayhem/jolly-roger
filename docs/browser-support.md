@@ -18,11 +18,11 @@ the features we care about, and are not binding on their own.
 Rather than rely on polyfills and other backwards-compatibility, this browser
 support cutoff manifests in two ways:
 
-* To prevent older browsers from having a bad time, we enforce a floor in the
+- To prevent older browsers from having a bad time, we enforce a floor in the
   client bundle load. If a browser does not support the newest features that we
   depend on, it throws an error page and stops the rest of the app from loading
   (and, presumably, having a bad time).
-* To prevent us from accidentally introducing newer features, we enforce a
+- To prevent us from accidentally introducing newer features, we enforce a
   ceiling in our TypeScript (for checking built-ins) and Rspack (for checking
   syntax) configurations.
 
@@ -46,10 +46,10 @@ either i18n configuration probably will need to be reflected in both places.
 Two mechanisms enforce that we don't unintentionally move forward our version
 support cutoff:
 
-* **In the `tsc` config**: `tsconfig.client.json` specifies which language
+- **In the `tsc` config**: `tsconfig.client.json` specifies which language
   built-ins are supported in the code via the `lib` directive. Using newer
   features fails typechecking.
-* **In the `rspack` config**: `rspack.config.js` configures
+- **In the `rspack` config**: `rspack.config.js` configures
   `@rsbuild/plugin-check-syntax` which checks the emitted client bundle for
   language syntax that's newer than the specified version. (Unfortunately,
   because the dev server doesn't materialize the bundle to disk, it only runs in
@@ -70,11 +70,11 @@ Oxlint will eventually grow coverage ([oxc#27384][]).
 In order to change the oldest acceptable version, change all three places that
 currently check:
 
-* `imports/client/browserSupport.ts`: Update the runtime check to the newest
+- `imports/client/browserSupport.ts`: Update the runtime check to the newest
   feature that you want to depend on
-* `tsconfig.client.json`: Change the `lib` directive to match the browsers that
+- `tsconfig.client.json`: Change the `lib` directive to match the browsers that
   support that feature
-* `rspack.config.js`: Update the `ecmaVersion` as needed (or possible) to
+- `rspack.config.js`: Update the `ecmaVersion` as needed (or possible) to
   support newer syntax.
 
 ## Gaps
@@ -83,11 +83,11 @@ Because these specifiers are all in terms of standards, they don't necessarily
 align exactly with browser support. A few specific things that will pass linting
 but aren't actually supported by our nominal floor:
 
-* `Intl.Segmenter` is part of ES2022, but wasn't supported by Firefox until
+- `Intl.Segmenter` is part of ES2022, but wasn't supported by Firefox until
   v125. We feature-detect that instead of dropping it.
-* Class static blocks aren't supported until Safari v16.4 (although we don't
+- Class static blocks aren't supported until Safari v16.4 (although we don't
   currently use those).
-* Regex lookbehind (`(?<=...)` and `(?<!...)`) is ES2018, but isn't supported
+- Regex lookbehind (`(?<=...)` and `(?<!...)`) is ES2018, but isn't supported
   until Safari v16.4 (although we don't currently use it in regex literals).
 
 [oxc#27384]: https://github.com/oxc-project/oxc/issues/27384
