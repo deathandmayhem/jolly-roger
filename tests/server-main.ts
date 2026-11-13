@@ -28,6 +28,9 @@ before(async function () {
   await startupHooksComplete;
 });
 
+import "./unit/imports/server/attentionLog";
+import "./unit/imports/server/attentionReducer";
+import "./unit/imports/server/attentionReducerDaemon";
 import "./unit/imports/server/Flags";
 import "./unit/imports/server/MigrationRegistry";
 import "./unit/imports/server/Model";
@@ -35,6 +38,7 @@ import "./unit/imports/server/publishJoinedQuery";
 import "./unit/imports/server/validateSchema";
 import "./unit/imports/server/mergeUsers";
 
+import "./acceptance/attentionReporting";
 import "./acceptance/authentication";
 import "./acceptance/chatActions";
 import "./acceptance/chatHooks";

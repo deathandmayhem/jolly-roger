@@ -3,9 +3,17 @@ import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import { faFileAlt } from "@fortawesome/free-solid-svg-icons/faFileAlt";
 import { faTable } from "@fortawesome/free-solid-svg-icons/faTable";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import styled from "styled-components";
 import type { DocumentType } from "../../lib/models/Documents";
+import useAttentionSignal from "../hooks/useAttentionSignal";
+import { subscribeWindowFocus, useAttentionReady } from "./AttentionReporter";
 
 // Google Sheets steals focus during initialization. The number of times
 // depends on the browser engine: Chromium does it twice, Firefox once, and
@@ -73,6 +81,29 @@ export const DocumentMessage = styled.span`
   height: 100%;
   background-color: ${({ theme }) => theme.colors.documentMessageBackground};
 `;
+
+// As with the focus guard below, we don't get direct focus or blur events from
+// a cross-origin iframe, so instead we monitor for when the *window* loses
+// focus. If that happens and the iframe is the currently active element, that
+// means that focus went to the iframe.
+//
+// And ignore all of this while we're guarding against Google Sheets stealing
+// focus during initial page load.
+const IframeAttentionReporter = ({
+  iframeRef,
+  focusGuarded,
+}: {
+  iframeRef: React.RefObject<HTMLIFrameElement | null>;
+  focusGuarded: boolean;
+}) => {
+  const attentionReadyFor = useAttentionReady();
+  const iframeFocused = useSyncExternalStore(
+    subscribeWindowFocus,
+    () => !focusGuarded && window.document.activeElement === iframeRef.current,
+  );
+  useAttentionSignal("iframeFocused", iframeFocused, attentionReadyFor);
+  return null;
+};
 
 const GoogleDocumentDisplay = ({
   document,
@@ -223,6 +254,10 @@ const GoogleDocumentDisplay = ({
               </FocusGuardLabel>
             </FocusGuard>
           )}
+          <IframeAttentionReporter
+            iframeRef={iframeRef}
+            focusGuarded={focusGuarded}
+          />
         </>
       );
     default:
