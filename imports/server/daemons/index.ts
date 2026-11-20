@@ -1,1 +1,2 @@
+import "./attentionReducerDaemon";
 import "./discord";

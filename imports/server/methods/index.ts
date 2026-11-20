@@ -65,6 +65,8 @@ import "./removeUserAccountEmail";
 import "./removePuzzleAnswer";
 import "./removePuzzleTag";
 import "./renameTag";
+import "./reportAttentionContext";
+import "./reportAttentionTransition";
 import "./sendChatMessage";
 import "./sendUserVerificationEmail";
 import "./setFeatureFlag";

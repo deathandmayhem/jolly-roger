@@ -52,17 +52,16 @@ of environment variables.
   server](https://www.mongodb.com/) to use for storing Hunt and user data. This
   can be a server you run, or a server hosted on something like [MongoDB
   Atlas](https://www.mongodb.com/atlas/database). In development, a mini local
-  MongoDB instance is set up for you.
+  MongoDB instance is set up for you. The server must be a [replica
+  set](https://www.mongodb.com/docs/manual/replication/) (can be size 1).
 
 - `$MONGO_OPLOG_URL` ([Meteor
   core](https://docs.meteor.com/environment-variables#MONGO_OPLOG_URL)) - the
   [MongoDB operations log
   server](https://www.mongodb.com/docs/manual/core/replica-set-oplog/) to use
   for change monitoring. Strongly recommended for production, not needed for
-  development. Requires the server to be a [replica
-  set](https://www.mongodb.com/docs/manual/replication/) (can be size 1).
-  Typically this is the `$MONGO_URL` with `/local` replacing the Jolly Roger
-  database name.
+  development. Typically this is the `$MONGO_URL` with `/local` replacing the
+  Jolly Roger database name.
 
 - `$PORT` ([Meteor core](https://docs.meteor.com/environment-variables#PORT)) -
   the socket port to listen for HTTP connections. Defaults to 3000. For dev, use

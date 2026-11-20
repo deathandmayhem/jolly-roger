@@ -10,6 +10,7 @@ import { darkTheme, lightTheme } from "../theme";
 import AddPuzzlePage from "./AddPuzzlePage";
 import AllProfileListPage from "./AllProfileListPage";
 import AnnouncementsPage from "./AnnouncementsPage";
+import AttentionReporter from "./AttentionReporter";
 import { AuthenticatedPage, UnauthenticatedPage } from "./authentication";
 import EnrollForm from "./EnrollForm";
 import FirehosePage from "./FirehosePage";
@@ -138,7 +139,9 @@ const Routes = React.memo(() => {
   return (
     <ThemeProvider theme={theme}>
       <BreadcrumbsProvider>
-        <Suspense fallback={<Loading />}>{routes}</Suspense>
+        <AttentionReporter>
+          <Suspense fallback={<Loading />}>{routes}</Suspense>
+        </AttentionReporter>
       </BreadcrumbsProvider>
     </ThemeProvider>
   );
