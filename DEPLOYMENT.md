@@ -48,19 +48,19 @@ of environment variables.
   reflection.
 
 - `$MONGO_URL` ([Meteor
-  core](https://docs.meteor.com/environment-variables#MONGO_URL)) - the [MongoDB
-  server](https://www.mongodb.com/) to use for storing Hunt and user data. This
+core](https://docs.meteor.com/environment-variables#MONGO_URL)) - the [MongoDB
+server](https://www.mongodb.com/) to use for storing Hunt and user data. This
   can be a server you run, or a server hosted on something like [MongoDB
-  Atlas](https://www.mongodb.com/atlas/database). In development, a mini local
+Atlas](https://www.mongodb.com/atlas/database). In development, a mini local
   MongoDB instance is set up for you.
 
 - `$MONGO_OPLOG_URL` ([Meteor
-  core](https://docs.meteor.com/environment-variables#MONGO_OPLOG_URL)) - the
+core](https://docs.meteor.com/environment-variables#MONGO_OPLOG_URL)) - the
   [MongoDB operations log
-  server](https://www.mongodb.com/docs/manual/core/replica-set-oplog/) to use
+server](https://www.mongodb.com/docs/manual/core/replica-set-oplog/) to use
   for change monitoring. Strongly recommended for production, not needed for
   development. Requires the server to be a [replica
-  set](https://www.mongodb.com/docs/manual/replication/) (can be size 1).
+set](https://www.mongodb.com/docs/manual/replication/) (can be size 1).
   Typically this is the `$MONGO_URL` with `/local` replacing the Jolly Roger
   database name.
 
@@ -69,7 +69,7 @@ of environment variables.
   `--port=XXXX` instead.
 
 - `$ROOT_URL` ([Meteor
-  core](https://docs.meteor.com/environment-variables#ROOT_URL)) - the base URL
+core](https://docs.meteor.com/environment-variables#ROOT_URL)) - the base URL
   used to access your server. Not needed for dev servers.
 
 - `$SOURCE_REPOSITORY` - the repository URL (e.g. `https://github.com/myteam/jolly-roger`)
@@ -78,7 +78,7 @@ of environment variables.
   to `https://github.com/deathandmayhem/jolly-roger`.
 
 - `$TURN_SERVER` - the URL of a [TURN
-  server](https://webrtc.org/getting-started/turn-server) for robust audio chat
+server](https://webrtc.org/getting-started/turn-server) for robust audio chat
   connectivity.
 
 - `$TURN_SECRET` - the secret needed to authenticate with `$TURN_SERVER`.
