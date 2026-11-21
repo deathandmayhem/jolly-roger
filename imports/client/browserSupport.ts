@@ -17,6 +17,7 @@ function showUnsupportedPage() {
       en: { translation: en },
       zh: { translation: zh },
     },
+    returnEmptyString: true,
   });
 
   const container = document.createElement("div");

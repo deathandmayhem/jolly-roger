@@ -22,6 +22,7 @@ function initTestI18n(language: string) {
     interpolation: {
       escapeValue: false,
     },
+    returnEmptyString: true,
   });
 }
 
