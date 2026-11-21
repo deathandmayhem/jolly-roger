@@ -8,6 +8,7 @@ void i18n.init({
     en: { translation: en },
     zh: { translation: zh },
   },
+  returnEmptyString: true,
 });
 
 export default i18n;

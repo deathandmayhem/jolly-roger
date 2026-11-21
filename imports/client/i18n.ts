@@ -13,6 +13,7 @@ void i18n
       en: { translation: en },
       zh: { translation: zh },
     },
+    returnEmptyString: true,
   });
 
 export default i18n;
