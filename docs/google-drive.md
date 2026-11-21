@@ -138,7 +138,7 @@ Drive resources:
 - Allow users to edit files for hunts they are a part of, even if they have not
   linked a Google account.
 - If possible, avoid users showing up as ["Anonymous
-  Animals"][anonymous animals] and attribute their write activity to them.
+Animals"][anonymous animals] and attribute their write activity to them.
 - Prevent users from being able to delete or move files (accidentally or
   otherwise).
 - Avoid various quotas and rate limits imposed by Google. This includes an
