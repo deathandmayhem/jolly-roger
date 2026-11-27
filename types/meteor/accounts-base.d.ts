@@ -18,20 +18,8 @@ declare module "meteor/accounts-base" {
           | undefined;
         profile?: Meteor.UserProfile | undefined;
       },
-      callback?: (error?: Error | Meteor.Error | Meteor.TypedError) => void,
+      callback?: (error?: Error | Meteor.Error) => void,
     ): Promise<string>;
-
-    function addEmailAsync(userId: string, email: string): Promise<void>;
-    function removeEmail(userId: string, email: string): Promise<void>;
-    function sendVerificationEmail(
-      userId: string,
-      email?: string,
-    ): Promise<void>;
-
-    function verifyEmail(
-      token: string,
-      callback?: (error?: Error | Meteor.Error | Meteor.TypedError) => void,
-    ): void;
 
     // Server-only. Creates the indexes on Meteor.users; accounts-base calls it
     // at startup without awaiting the result.
@@ -42,26 +30,7 @@ declare module "meteor/accounts-base" {
       fields: Partial<Record<keyof Meteor.User, 1 | 0>>,
     ): void;
 
-    // @types/meteor needs to be updated to allow async handler functions here
-    function registerLoginHandler(
-      handler: (
-        options: any,
-      ) =>
-        | undefined
-        | LoginMethodResult
-        | Promise<undefined | LoginMethodResult>,
-    ): void;
-    function registerLoginHandler(
-      name: string,
-      handler: (
-        options: any,
-      ) =>
-        | undefined
-        | LoginMethodResult
-        | Promise<undefined | LoginMethodResult>,
-    ): void;
-
-    // @types/meteor needs to be updated to allow async functions for email field generators
+    // Meteor awaits these, but upstream types them as synchronous
     interface EmailFields {
       from?: ((user: Meteor.User) => string | Promise<string>) | undefined;
       subject?: ((user: Meteor.User) => string | Promise<string>) | undefined;
