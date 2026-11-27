@@ -49,7 +49,7 @@ export default function definePublication<
   const validator = (validate ??
     voidValidator) as TypedPublicationValidator<Args>;
 
-  Meteor.publish(publication.name, async function (arg0: Args) {
+  Meteor.publish(publication.name, async function (arg0: unknown) {
     try {
       const validatedArg0 = validator.bind(this)(arg0) as any;
       return await run.bind(this)(validatedArg0);
