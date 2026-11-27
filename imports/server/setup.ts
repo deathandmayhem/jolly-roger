@@ -14,9 +14,11 @@ async function cleanupUploadTokens() {
   const oldestValidTime = new Date(Date.now() - 60 * 1000);
   await UploadTokens.removeAsync({ createdAt: { $lt: oldestValidTime } });
 }
-async function periodic() {
+function periodic() {
   Meteor.setTimeout(periodic, 15000 + 15000 * Random.fraction());
-  await cleanupUploadTokens();
+  cleanupUploadTokens().catch((error) => {
+    Logger.error("Error cleaning up upload tokens", { error });
+  });
 }
 Meteor.startup(() => periodic());
 

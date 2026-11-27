@@ -42,13 +42,17 @@ defineMethod(createHunt, {
       await getOrCreateTagByName(huntId, tag);
     }
 
-    Meteor.defer(async () => {
-      // Sync discord roles
-      const userIds = (
-        await MeteorUsers.find({ hunts: huntId }).fetchAsync()
-      ).map((u) => u._id);
-      await addUsersToDiscordRole(userIds, huntId);
-      await ensureHuntFolder({ _id: huntId, name: arg.name });
+    Meteor.defer(() => {
+      (async () => {
+        // Sync discord roles
+        const userIds = (
+          await MeteorUsers.find({ hunts: huntId }).fetchAsync()
+        ).map((u) => u._id);
+        await addUsersToDiscordRole(userIds, huntId);
+        await ensureHuntFolder({ _id: huntId, name: arg.name });
+      })().catch((error) => {
+        Logger.error("Error setting up new hunt", { hunt: huntId, error });
+      });
     });
 
     return huntId;

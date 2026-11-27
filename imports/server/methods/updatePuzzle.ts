@@ -98,8 +98,8 @@ defineMethod(updatePuzzle, {
     });
 
     if (oldPuzzle.title !== title) {
-      Meteor.defer(
-        Meteor.bindEnvironment(async () => {
+      Meteor.defer(() => {
+        (async () => {
           const doc = await ensureDocument({
             _id: puzzleId,
             title,
@@ -107,8 +107,13 @@ defineMethod(updatePuzzle, {
           });
           const teamName = await getTeamName();
           await renameDocument(doc.value.id, `${title}: ${teamName}`);
-        }),
-      );
+        })().catch((error) => {
+          Logger.error("Error renaming puzzle document", {
+            puzzle: puzzleId,
+            error,
+          });
+        });
+      });
     }
   },
 });

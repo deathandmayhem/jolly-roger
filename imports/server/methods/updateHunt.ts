@@ -49,20 +49,24 @@ defineMethod(updateHunt, {
       },
     );
 
-    Meteor.defer(async () => {
-      // Sync discord roles
-      const userIds = (
-        await MeteorUsers.find({ hunts: huntId }).fetchAsync()
-      ).map((u) => u._id);
-      await addUsersToDiscordRole(userIds, huntId, { force: false });
+    Meteor.defer(() => {
+      (async () => {
+        // Sync discord roles
+        const userIds = (
+          await MeteorUsers.find({ hunts: huntId }).fetchAsync()
+        ).map((u) => u._id);
+        await addUsersToDiscordRole(userIds, huntId, { force: false });
 
-      if (oldHunt?.name !== value.name) {
-        const folderId = await ensureHuntFolder({
-          _id: huntId,
-          name: value.name,
-        });
-        await renameDocument(folderId, await huntFolderName(value.name));
-      }
+        if (oldHunt?.name !== value.name) {
+          const folderId = await ensureHuntFolder({
+            _id: huntId,
+            name: value.name,
+          });
+          await renameDocument(folderId, await huntFolderName(value.name));
+        }
+      })().catch((error) => {
+        Logger.error("Error syncing updated hunt", { hunt: huntId, error });
+      });
     });
   },
 });
