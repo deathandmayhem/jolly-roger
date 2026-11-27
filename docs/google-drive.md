@@ -32,10 +32,11 @@ files:
   - imports/server/methods/listDocumentSheets.ts
   - imports/server/methods/unlinkUserGoogleAccount.ts
   - imports/server/models/DriveActivityLatests.ts
+  - imports/server/retrieveOAuthCredential.ts
   - imports/server/setup.ts
   - private/google-script/cookie-test.html
   - private/google-script/main.js
-updated: 2026-10-24
+updated: 2026-11-27
 ---
 
 # Google Drive Integration
@@ -69,13 +70,14 @@ invite link using our Jolly Roger-specific Google-based user authentication flow
 (`useGoogleSignInCredentialsField` and the call to
 `Accounts.registerLoginHandler` in `imports/server/accounts.ts`). Either way,
 once an account is linked, that account can be used for subsequent logins.
+Server code obtains the Google credential for both flows through
+`retrieveOAuthCredential`, which checks that it really came from Google and has
+the fields we expect.
 
 Because we use Meteor's built-in OAuth support, OAuth application credentials
 are stored in `ServiceConfiguration` (see the `configureGoogleOAuthClient`
 Meteor method) instead of the `Settings` model, which we use for all other
-configuration related to Google integrations. This is handled by the
-`GoogleLinkBlock` React component and the `linkUserGoogleAccount` and
-`unlinkUserGoogleAccount` Meteor methods.
+configuration related to Google integrations.
 
 In addition to the OAuth application (used for user authentication), Jolly Roger
 requires a regular Google account, linked via the `configureGdriveCreds` Meteor
@@ -83,7 +85,7 @@ method. (We describe this as a "service user", but we do not utilize Google
 Cloud's support for service accounts). Although the credentials are referred to
 as being for "Drive", in practice they are used to authenticate all actions
 taken directly by Jolly Roger (including interfacing with the Drive, Drive
-Activity and Script APIs).
+Activity and Script APIs), so the credential must include a refresh token.
 
 On the server side, `imports/server/googleClientRefresher.ts` is responsible for
 monitoring changes to various Google-related settings and ensuring that we
