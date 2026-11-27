@@ -30,7 +30,7 @@ const PasswordResetForm = () => {
       e.preventDefault();
       if (submitState !== AccountFormSubmitState.SUBMITTING) {
         setSubmitState(AccountFormSubmitState.SUBMITTING);
-        void Accounts.resetPassword(token, password, (error?: Error) => {
+        Accounts.resetPassword(token, password, (error?: Error) => {
           if (error) {
             setSubmitState(AccountFormSubmitState.FAILED);
             setErrorMessage(
