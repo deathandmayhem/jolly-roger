@@ -261,7 +261,7 @@ const handleOauthRequest = async (query: any) => {
   const config = await ServiceConfiguration.configurations.findOneAsync({
     service: "discord",
   });
-  if (!config) {
+  if (!config?.appId || !config.secret) {
     throw new Meteor.Error("Missing service configuration for discord");
   }
 
