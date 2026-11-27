@@ -153,7 +153,7 @@ if (apiKey) {
   // they have on disk, so we need to translate through program.json.
   Meteor.defer(async () => {
     for (const [arch, spec] of Object.entries(WebApp.clientPrograms)) {
-      const manifest = spec.manifest as ProgramManifestFile[];
+      const manifest = spec.manifest as unknown as ProgramManifestFile[];
       for (const file of manifest) {
         if (file.type !== "js" && file.type !== "dynamic js") {
           continue;
