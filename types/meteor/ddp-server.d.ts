@@ -1,6 +1,6 @@
-declare module "meteor/ddp-server" {
-  import type { Meteor } from "meteor/meteor";
+import type { Meteor } from "meteor/meteor";
 
+declare module "meteor/ddp-server" {
   namespace DDPServer {
     class _WriteFence {
       armAndWait(): Promise<void>;
