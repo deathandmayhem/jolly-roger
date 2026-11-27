@@ -4,6 +4,7 @@
   "compilerOptions": {
     "lib": ["es2022", "es2023.array", "dom"]
   },
+  "files": ["./.meteor/types/packages.d.ts"],
   "include": ["**/*"],
   "exclude": ["**/server/**", "tests/**", "scripts/**"]
 }

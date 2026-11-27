@@ -16,7 +16,7 @@
     "lint:css": "stylelint '**/*.scss' '**/*.tsx'",
     "lint:docs": "node tests/check_docs.mts",
     "lint:knip": "knip",
-    "lint": "meteor lint && concurrently npm:lint:*",
+    "lint": "meteor types && concurrently npm:lint:*",
     "screenshots": "node scripts/generate_screenshots.mts",
     "test": "TEST_BROWSER_DRIVER=playwright meteor test --full-app --once --driver-package meteortesting:mocha"
   },

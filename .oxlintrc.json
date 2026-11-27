@@ -337,7 +337,7 @@
             "allow": [
               {
                 "from": "package",
-                "package": "package-types",
+                "package": "meteor-package-types",
                 "name": "findOne"
               },
               {

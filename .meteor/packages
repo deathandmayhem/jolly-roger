@@ -30,7 +30,6 @@ typescript@5.11.2
 hot-module-replacement@0.6.1
 zodern:standard-minifier-js
 fetch@0.2.1
-zodern:types
 fourseven:scss@5.0.0-beta.1
 npm-mongo@6.18.1
 rspack@1.4.0

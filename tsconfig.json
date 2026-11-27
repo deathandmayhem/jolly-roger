@@ -29,7 +29,7 @@
     "esModuleInterop": true,
     "preserveSymlinks": true,
     "paths": {
-      "meteor/*": ["./.meteor/local/types/packages.d.ts"]
+      "meteor/*": ["./.meteor/types/packages/*"]
     }
   },
   // Code lives in the referenced projects, which means that plain `tsc` doesn't
