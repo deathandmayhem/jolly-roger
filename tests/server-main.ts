@@ -32,6 +32,7 @@ import "./unit/imports/server/Flags";
 import "./unit/imports/server/MigrationRegistry";
 import "./unit/imports/server/Model";
 import "./unit/imports/server/publishJoinedQuery";
+import "./unit/imports/server/retrieveOAuthCredential";
 import "./unit/imports/server/validateSchema";
 import "./unit/imports/server/mergeUsers";
 

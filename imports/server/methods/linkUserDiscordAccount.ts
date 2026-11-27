@@ -1,13 +1,19 @@
 import { check } from "meteor/check";
 import { Meteor } from "meteor/meteor";
-import { OAuth } from "meteor/oauth";
+import { z } from "zod";
 import Logger from "../../Logger";
 import MeteorUsers from "../../lib/models/MeteorUsers";
 import Settings from "../../lib/models/Settings";
 import linkUserDiscordAccount from "../../methods/linkUserDiscordAccount";
 import addUsersToDiscordRole from "../addUsersToDiscordRole";
 import { DiscordAPIClient, DiscordBot } from "../discord";
+import retrieveOAuthCredential from "../retrieveOAuthCredential";
 import defineMethod from "./defineMethod";
+
+// We store the whole of serviceData under services.discord
+const DiscordServiceData = z.looseObject({
+  accessToken: z.string(),
+});
 
 defineMethod(linkUserDiscordAccount, {
   validate(arg) {
@@ -22,18 +28,29 @@ defineMethod(linkUserDiscordAccount, {
     check(this.userId, String);
 
     // Retrieve the OAuth token from the OAuth subsystem.
-    const credential = await OAuth.retrieveCredential(key, secret);
+    const serviceData = await retrieveOAuthCredential(
+      "discord",
+      key,
+      secret,
+      DiscordServiceData,
+    );
+    if (!serviceData) {
+      throw new Meteor.Error(
+        400,
+        "Discord credential not found. Please try linking your account again.",
+      );
+    }
     Logger.info("Linking user to Discord account");
 
     // Save the user's credentials to their User object, under services.discord.
     await MeteorUsers.updateAsync(this.userId, {
       $set: {
-        "services.discord": credential.serviceData,
+        "services.discord": serviceData,
       },
     });
 
     // Use OAuth token to retrieve user's identifier
-    const { accessToken } = credential.serviceData;
+    const { accessToken } = serviceData;
     const apiClient = new DiscordAPIClient(accessToken);
     const userInfo = await apiClient.retrieveUserInfo();
 
