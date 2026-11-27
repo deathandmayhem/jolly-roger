@@ -1,14 +1,13 @@
 import child from "node:child_process";
-import { Meteor } from "meteor/meteor";
+import { promisify } from "node:util";
 import Logger from "../Logger";
 
-const execFile = Meteor.wrapAsync(child.execFile);
+const execFile = promisify(child.execFile);
 
-const blanche = (args: string[]): string => {
+const blanche = async (args: string[]): Promise<string> => {
   try {
-    return execFile("blanche", args, {
-      stdio: ["ignore", "pipe", process.stderr],
-    });
+    const { stdout } = await execFile("blanche", args);
+    return stdout;
   } catch (e) {
     if (e instanceof Error && (e as any).code === "ENOENT") {
       Logger.warn("Would run blanche, but it's not available", { args });
@@ -26,8 +25,8 @@ class List {
     this.name = name;
   }
 
-  members(): string[] {
-    const out = blanche([this.name]);
+  async members(): Promise<string[]> {
+    const out = await blanche([this.name]);
     return out
       .trim()
       .split("\n")
@@ -57,9 +56,9 @@ class List {
       .filter<string>((v): v is string => v !== undefined);
   }
 
-  add(member: string): boolean {
+  async add(member: string): Promise<boolean> {
     try {
-      blanche([this.name, "-a", member]);
+      await blanche([this.name, "-a", member]);
       return true;
     } catch {
       return false;
