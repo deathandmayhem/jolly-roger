@@ -53,16 +53,14 @@ defineMethod(updateProfile, {
       );
     }
 
-    const unset = { phoneNumber: phoneNumber ? undefined : 1 } as const;
-
     Logger.info("Updating profile for user", { displayName });
     await MeteorUsers.updateAsync(userId, {
       $set: {
         displayName,
-        phoneNumber,
         dingwords,
+        ...(phoneNumber ? { phoneNumber } : {}),
       },
-      $unset: unset,
+      ...(phoneNumber ? {} : { $unset: { phoneNumber: 1 } }),
     });
   },
 });
