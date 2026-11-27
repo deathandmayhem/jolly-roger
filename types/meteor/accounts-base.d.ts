@@ -33,6 +33,10 @@ declare module "meteor/accounts-base" {
       callback?: (error?: Error | Meteor.Error | Meteor.TypedError) => void,
     ): void;
 
+    // Server-only. Creates the indexes on Meteor.users; accounts-base calls it
+    // at startup without awaiting the result.
+    function init(): Promise<void>;
+
     function removeDefaultRateLimit(): void;
     function setDefaultPublishFields(
       fields: Partial<Record<keyof Meteor.User, 1 | 0>>,
