@@ -118,8 +118,8 @@
     "react-refresh": "^0.19.0",
     "sass": "^1.108.2",
     "sinon": "^22.1.0",
-    "stylelint": "^18.0.0",
-    "stylelint-config-standard": "^41.0.0",
+    "stylelint": "^18.1.0",
+    "stylelint-config-standard": "^41.1.0",
     "stylelint-config-standard-scss": "^18.0.0",
     "typescript": "^7.0.2"
   },
