@@ -74,7 +74,7 @@
     "slate-history": "^0.144.0",
     "slate-react": "^0.147.6",
     "stacktrace-js": "^2.0.2",
-    "styled-components": "^6.6.0",
+    "styled-components": "^6.7.0",
     "usehooks-ts": "^3.1.1",
     "winston": "^3.19.0",
     "winston-transport": "^4.9.0",
