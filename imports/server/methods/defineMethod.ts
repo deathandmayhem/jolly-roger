@@ -52,7 +52,7 @@ export default function defineMethod<
   const validator = (validate ?? voidValidator) as TypedMethodValidator<Args>;
 
   Meteor.methods({
-    async [method.name](arg0: Args) {
+    async [method.name](this: Meteor.MethodThisType, arg0: unknown) {
       try {
         // In the case of no arguments, the type system will track the return
         // value from `validate` as `void`, but because it's a function that

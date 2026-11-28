@@ -10,19 +10,14 @@ updates:
       # Keep this pinned to the version of Node that we're running
       - dependency-name: "@types/node"
         versions: [ ">=23" ]
-      # This has tight coupling to the version of SWC, which is provided by
-      # Meteor. Assume we'll upgrade this when we take Meteor upgrades.
+      # This has tight coupling to the version of swc_core built into
+      # @rspack/binding (and @swc/core), both of which Meteor selects. Assume
+      # we'll upgrade this when we take Meteor upgrades.
       - dependency-name: "@swc/plugin-styled-components"
-      # These all need to stay compatible with the Meteor version.
-      # No currently-released Meteor version is compatible with the rspack
-      # 2.0 series; Meteor will need to update to correctly consume these
-      # deps as ES Modules
+      # Meteor selects these versions when we take Meteor upgrades, so they
+      # need to stay compatible with the Meteor version.
       - dependency-name: "@meteorjs/rspack"
       - dependency-name: "@rspack/*"
-      - dependency-name: "@rsbuild/*"
-        versions: [ ">=2" ]
-      - dependency-name: "@rsdoctor/*"
-        versions: [ ">=2" ]
     groups:
       aws:
         patterns:

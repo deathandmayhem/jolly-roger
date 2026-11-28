@@ -197,7 +197,7 @@ const JoinHunt = () => {
                     setInfoMessage(
                       `Account ${trimmedEmail} needs its password reset.  Requesting password reset...`,
                     );
-                    void Accounts.forgotPassword(
+                    Accounts.forgotPassword(
                       { email: trimmedEmail },
                       (innerError?: Error) => {
                         setInfoMessage(undefined);

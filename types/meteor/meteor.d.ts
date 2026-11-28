@@ -5,6 +5,11 @@ import type { Mongo } from "meteor/mongo";
 type GlobalError = Error;
 
 declare module "meteor/meteor" {
+  // Meteor 3 awaits each stop callback and catches its errors
+  interface Subscription {
+    onStop(func: () => void | Promise<unknown>): void;
+  }
+
   namespace Meteor {
     // Redeclared as deprecated so that typescript/no-deprecated flags them
     // outside of client code (see the client override in .oxlintrc.json)

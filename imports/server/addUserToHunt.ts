@@ -115,17 +115,17 @@ export default async function addUserToHunt({
   });
   const joineeEmails = (joineeUser.emails ?? []).map((e) => e.address);
 
-  hunt.mailingLists.forEach((listName) => {
+  for (const listName of hunt.mailingLists) {
     const list = new List(listName);
-    joineeEmails.forEach((joineeEmail) => {
-      if (!list.add(joineeEmail)) {
+    for (const joineeEmail of joineeEmails) {
+      if (!(await list.add(joineeEmail))) {
         Logger.info("Unable to add user to list", {
           joineeEmail,
           list: listName,
         });
       }
-    });
-  });
+    }
+  }
 
   await addUsersToDiscordRole([joineeUser._id], hunt._id);
 

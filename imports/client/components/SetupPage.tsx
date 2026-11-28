@@ -271,8 +271,20 @@ const GoogleAuthorizeDriveClientForm = () => {
     setState({ submitState: SubmitState.IDLE });
   }, []);
 
-  const requestComplete = useCallback((token: string) => {
+  const requestComplete = useCallback((token?: string | Error) => {
+    if (typeof token !== "string") {
+      setState({
+        submitState: SubmitState.ERROR,
+        error: token ?? new Error("Google sign-in failed"),
+      });
+      return;
+    }
     const secret = OAuth._retrieveCredentialSecret(token);
+    if (!secret) {
+      // The user closed the popup
+      setState({ submitState: SubmitState.IDLE });
+      return;
+    }
     setState({ submitState: SubmitState.SUBMITTING });
     configureGdriveCreds.call({ key: token, secret }, (error) => {
       if (error) {
@@ -295,6 +307,9 @@ const GoogleAuthorizeDriveClientForm = () => {
           "https://www.googleapis.com/auth/user.emails.read",
           "https://www.googleapis.com/auth/contacts.other.readonly",
         ],
+        // configureGdriveCreds requires a refresh token, and Google only
+        // issues one on the consent screen, which it skips once an account
+        // has already granted these scopes
         requestOfflineToken: true,
         forceApprovalPrompt: true,
       },

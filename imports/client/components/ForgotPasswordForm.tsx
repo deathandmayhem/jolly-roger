@@ -40,7 +40,7 @@ const ForgotPasswordForm = () => {
     (e: SubmitEvent<HTMLFormElement>) => {
       e.preventDefault();
       setSubmitState(AccountFormSubmitState.SUBMITTING);
-      void Accounts.forgotPassword({ email }, (error?: Error) => {
+      Accounts.forgotPassword({ email }, (error?: Error) => {
         if (error) {
           setSubmitState(AccountFormSubmitState.FAILED);
           setErrorMessage(

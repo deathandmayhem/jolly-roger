@@ -1,12 +1,19 @@
 import { check } from "meteor/check";
-import { Google } from "meteor/google-oauth";
 import { Meteor } from "meteor/meteor";
+import { z } from "zod";
 import Flags from "../../Flags";
 import Logger from "../../Logger";
 import MeteorUsers from "../../lib/models/MeteorUsers";
 import linkUserGoogleAccount from "../../methods/linkUserGoogleAccount";
 import { ensureHuntFolderPermission } from "../gdrive";
+import retrieveOAuthCredential from "../retrieveOAuthCredential";
 import defineMethod from "./defineMethod";
+
+const GoogleIdentity = z.object({
+  id: z.string(),
+  email: z.string(),
+  picture: z.string().optional(),
+});
 
 defineMethod(linkUserGoogleAccount, {
   validate(arg) {
@@ -24,8 +31,13 @@ defineMethod(linkUserGoogleAccount, {
     // not going to do anything with it (and with only identity
     // scopes, I don't think you can do anything with it), but we do
     // want to validate it.
-    const credential = await Google.retrieveCredential(key, secret);
-    if (!credential?.serviceData) {
+    const identity = await retrieveOAuthCredential(
+      "google",
+      key,
+      secret,
+      GoogleIdentity,
+    );
+    if (!identity) {
       // The pending credential was already consumed, likely because
       // Meteor retried this method after a connection drop. If the
       // user already has a Google account linked, this is a no-op.
@@ -38,7 +50,7 @@ defineMethod(linkUserGoogleAccount, {
         "Google credential not found. Please try linking your account again.",
       );
     }
-    const { email, id, picture } = credential.serviceData;
+    const { email, id, picture } = identity;
     Logger.info("Linking user to Google account", {
       email,
       id,

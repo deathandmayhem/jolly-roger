@@ -1,8 +1,8 @@
 import { Accounts } from "meteor/accounts-base";
 import { check, Match } from "meteor/check";
-import { Google } from "meteor/google-oauth";
 import { Meteor } from "meteor/meteor";
 import Mustache from "mustache";
+import { z } from "zod";
 import Logger from "../Logger";
 import type { LoginOptions } from "../lib/loginOptions";
 import Hunts from "../lib/models/Hunts";
@@ -11,6 +11,7 @@ import MeteorUsers from "../lib/models/MeteorUsers";
 import type { SettingType } from "../lib/models/Settings";
 import Settings from "../lib/models/Settings";
 import { primaryEmail } from "../lib/models/User";
+import retrieveOAuthCredential from "./retrieveOAuthCredential";
 
 type LoginInfo = {
   type: string;
@@ -48,6 +49,35 @@ const summaryFromLoginInfo = function (info: LoginInfo) {
         method: info.methodName,
       };
   }
+};
+
+const GoogleIdentity = z.object({
+  id: z.string(),
+  email: z.string(),
+  name: z.string().optional(),
+  picture: z.string().optional(),
+});
+
+const retrieveGoogleIdentity = async ({
+  key,
+  secret,
+}: {
+  key: string;
+  secret: string;
+}) => {
+  const identity = await retrieveOAuthCredential(
+    "google",
+    key,
+    secret,
+    GoogleIdentity,
+  );
+  if (!identity) {
+    throw new Meteor.Error(
+      400,
+      "Google credential not found. Please try signing in again.",
+    );
+  }
+  return identity;
 };
 
 Accounts.registerLoginHandler(async (options: LoginOptions) => {
@@ -95,11 +125,9 @@ Accounts.registerLoginHandler(async (options: LoginOptions) => {
     // Google credentials were provided - obtain the email from the associated account,
     // create a passwordless account with that email, and link it to the Google account.
     // Also set the initial displayName for the user to their Google account's name.
-    const credential = await Google.retrieveCredential(
-      options.googleCredentials.key,
-      options.googleCredentials.secret,
+    const { email, id, name, picture } = await retrieveGoogleIdentity(
+      options.googleCredentials,
     );
-    const { email, id, name, picture } = credential.serviceData;
     const users = await MeteorUsers.find(
       { googleAccountId: id },
       { limit: 2 },
@@ -152,11 +180,9 @@ Accounts.registerLoginHandler(async (options: LoginOptions) => {
     );
   }
 
-  const credential = await Google.retrieveCredential(
-    options.googleCredentials.key,
-    options.googleCredentials.secret,
+  const { email, id, picture } = await retrieveGoogleIdentity(
+    options.googleCredentials,
   );
-  const { email, id, picture } = credential.serviceData;
 
   // Attempt to match existing Google users by their linked account ID.
   const users = await MeteorUsers.find(

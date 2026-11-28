@@ -135,7 +135,13 @@ export const useGoogleSignInCredentialsField = ({
   const submitting = submitState === AccountFormSubmitState.SUBMITTING;
 
   const requestComplete = useCallback(
-    (token: string) => {
+    (token?: string | Error) => {
+      // An Error means Google isn't configured, in which case we don't show
+      // the button; a missing secret means the user closed the popup
+      if (typeof token !== "string") {
+        setSubmitState(AccountFormSubmitState.IDLE);
+        return;
+      }
       const secret = OAuth._retrieveCredentialSecret(token);
       if (!secret) {
         setSubmitState(AccountFormSubmitState.IDLE);

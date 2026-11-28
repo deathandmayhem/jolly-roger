@@ -40,7 +40,14 @@ const GoogleLinkBlock = ({ user }: { user: Meteor.User }) => {
   );
   const googleDisabled = useTracker(() => Flags.active("disable.google"), []);
 
-  const requestComplete = useCallback((token: string) => {
+  const requestComplete = useCallback((token?: string | Error) => {
+    if (typeof token !== "string") {
+      setState({
+        state: GoogleLinkBlockLinkState.ERROR,
+        error: token ?? new Error("Google sign-in failed"),
+      });
+      return;
+    }
     const secret = OAuth._retrieveCredentialSecret(token);
     if (!secret) {
       setState({ state: GoogleLinkBlockLinkState.IDLE });

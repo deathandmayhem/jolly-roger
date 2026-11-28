@@ -4,7 +4,7 @@ files:
   - imports/client/i18n.ts
   - rspack.config.js
   - tsconfig.client.json
-updated: 2026-11-20
+updated: 2026-11-27
 ---
 
 # Browser Support

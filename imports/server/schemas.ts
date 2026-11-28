@@ -1,3 +1,4 @@
+import { Accounts } from "meteor/accounts-base";
 import { Meteor } from "meteor/meteor";
 import { User } from "../lib/models/User";
 import { AllModels } from "../lib/typedModel/Model";
@@ -8,6 +9,10 @@ runIfLatestBuild(async () => {
   for (const model of AllModels.values()) {
     await attachSchema(model.schema, model.collection);
   }
+  // accounts-base builds its indexes on Meteor.users at startup without
+  // awaiting them, and collMod fails while an index build is in progress.
+  // Re-running init waits for any in-flight builds of the same indexes.
+  await Accounts.init();
   // Note: this will fail type checking if our schema for User gets out of sync
   // with the type declaration for Meteor.User. (This could happen if we change
   // our extensions to Meteor.User in imports/lib/models/User.ts but is more

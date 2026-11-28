@@ -92,11 +92,14 @@ export default async function withLock<T>(
           }
 
           // Otherwise wait until expiration and then check again
-          timeoutHandle = Meteor.setTimeout(waitForDeadline, timeout);
+          timeoutHandle = Meteor.setTimeout(checkDeadline, timeout);
         };
-        waitForDeadline().catch((error) => {
-          Logger.error("withLock waitForDeadline() threw", { name, error });
-        });
+        const checkDeadline = () => {
+          waitForDeadline().catch((error) => {
+            Logger.error("withLock waitForDeadline() threw", { name, error });
+          });
+        };
+        checkDeadline();
       });
 
       // If we time out, then preempt

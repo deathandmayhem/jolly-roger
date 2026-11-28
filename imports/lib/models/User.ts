@@ -13,6 +13,19 @@ declare module "meteor/meteor" {
     interface UserProfile {
       [key: string]: never;
     }
+    // Only the fields we read; accounts-* packages write more
+    interface UserServices {
+      password?: {
+        bcrypt?: string;
+      };
+      email?: {
+        verificationTokens?: {
+          token: string;
+          address: string;
+          when: Date;
+        }[];
+      };
+    }
     interface User {
       lastLogin?: Date;
       hunts?: string[];
