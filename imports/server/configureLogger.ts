@@ -49,4 +49,5 @@ logger.format = format.combine(
     },
   ),
 );
+// oxlint-disable-next-line typescript/no-unsafe-class-instance-assignment -- rule false positive
 logger.add(new transports.Console());

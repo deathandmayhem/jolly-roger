@@ -59,4 +59,5 @@ logger.format = format.combine(
     return `${label ? `[${label}] ` : ""}${message}`;
   }),
 );
+// oxlint-disable-next-line typescript/no-unsafe-class-instance-assignment -- rule false positive
 logger.add(new BrowserConsole());

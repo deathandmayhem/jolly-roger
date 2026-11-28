@@ -48,6 +48,7 @@ class BugsnagTransport extends Transport {
 
 const logger = createLogger({
   level: "verbose",
+  // oxlint-disable-next-line typescript/no-unsafe-class-instance-assignment -- rule false positive
   transports: [new BugsnagTransport({ level: "warn" })],
 });
 
